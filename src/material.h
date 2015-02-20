@@ -1,0 +1,17 @@
+#ifndef RAINY_MATERIAL_H_
+#define RAINY_MATERIAL_H_
+
+#include "Vector3.h"
+
+namespace rainy {
+
+    typedef Vector3 Color;
+
+    enum ReflectionType {
+        REFLECTION_DIFFUSE = 0x01,
+        REFLECTION_SPECULAR = 0x02,
+        REFLECTION_REFRACTION = 0x04
+    };
+}
+
+#endif

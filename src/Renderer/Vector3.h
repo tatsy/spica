@@ -44,10 +44,10 @@ namespace rainy {
 
 }  // namespace rainy
 
-rainy::Vector3 operator+(const rainy::Vector3& v1, const rainy::Vector3& v2);
-rainy::Vector3 operator-(const rainy::Vector3& v1, const rainy::Vector3& v2);
-rainy::Vector3 operator*(const rainy::Vector3& v, double s);
-rainy::Vector3 operator*(double s, const rainy::Vector3& v);
-rainy::Vector3 operator/(const rainy::Vector3& v, double s);
+RAINY_VECTOR3_DLL rainy::Vector3 operator+(const rainy::Vector3& v1, const rainy::Vector3& v2);
+RAINY_VECTOR3_DLL rainy::Vector3 operator-(const rainy::Vector3& v1, const rainy::Vector3& v2);
+RAINY_VECTOR3_DLL rainy::Vector3 operator*(const rainy::Vector3& v, double s);
+RAINY_VECTOR3_DLL rainy::Vector3 operator*(double s, const rainy::Vector3& v);
+RAINY_VECTOR3_DLL rainy::Vector3 operator/(const rainy::Vector3& v, double s);
 
 #endif  // RAINY_VECTOR3_H_

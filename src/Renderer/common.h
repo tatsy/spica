@@ -22,7 +22,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef RAINY_COMMON_H_
 #define RAINY_COMMON_H_
 
-#include <cstdlib>
 #include <cmath>
 #include <iostream>
 
@@ -46,13 +45,14 @@ static const double EPS = 1.0e-8;
 // ----------------------------------------------------------------------------
 // Assertion with message
 // ----------------------------------------------------------------------------
+#undef NDEBUG
 #ifndef NDEBUG
 #define msg_assert(PREDICATE, MSG) \
 do { \
     if (!(PREDICATE)) { \
         std::cerr << "Asssertion \"" << #PREDICATE << "\" failed in " << __FILE__ \
         << " line " << __LINE__ << " : " << MSG << std::endl; \
-        abort(); \
+        std::abort(); \
     } \
 } while (false)
 #else  // NDEBUG

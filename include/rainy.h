@@ -1,8 +1,7 @@
 #ifndef RAINY_H_
 #define RAINY_H_
 
-#undef NDEBUG
-
+#include "../src/Renderer/common.h"
 #include "../src/Renderer/Vector3.h"
 #include "../src/Renderer/Renderer.h"
 

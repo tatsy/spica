@@ -50,6 +50,8 @@ TEST(Vector3Test, AlgebraTest) {
     EXPECT_EQ(1.0, w.y());
     EXPECT_EQ(1.5, w.z());
 
+    ASSERT_DEATH(u /= 0.0, "");
+
     double dt = u.dot(v);
     EXPECT_EQ(14.0, dt);
     EXPECT_EQ(dt, v.dot(u));

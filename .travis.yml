@@ -10,8 +10,8 @@ before_install:
 
   # update gcc
   - sudo apt-get -qq install gcc-4.9 g++-4.9
-  - sudo apt-get update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
-  - sudo apt-get update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
+  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
 
 install:
   # install GTest

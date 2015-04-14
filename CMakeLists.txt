@@ -9,7 +9,7 @@ if (WIN32)
   set(LIB_SUFFIX ".lib")
 else()
   set(LIB_PREFIX "lib")
-  set(LIB_SUFFIX ".a")
+  set(LIB_SUFFIX ".so")
 endif()
 
 # Set output path

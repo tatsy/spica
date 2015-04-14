@@ -1,6 +1,16 @@
 #ifndef RAINY_RENDERER_H_
 #define RAINY_RENDERER_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef RAINY_RENDERER_EXPORT
+        #define RAINY_RENDERER_DLL __declspec(dllexport)
+    #else
+        #define RAINY_RENDERER_DLL __declspec(dllimport)
+    #endif
+#elif defined(linux) || defined(__linux)
+    #define RAINY_RENDERER_DLL
+#endif
+
 #include <string>
 
 #include "Ray.h"
@@ -9,7 +19,7 @@
 
 namespace rainy {
 
-    class Renderer {
+    class RAINY_RENDERER_DLL Renderer {
     private:
         int _width;              // Screen width
         int _height;             // Screen height

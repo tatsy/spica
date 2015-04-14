@@ -1,9 +1,19 @@
 #ifndef RAINY_VECTOR3_H_
 #define RAINY_VECTOR3_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef RAINY_VECTOR3_EXPORT
+        #define RAINY_VECTOR3_DLL __declspec(dllexport)
+    #else
+        #define RAINY_VECTOR3_DLL __declspec(dllimport)
+    #endif
+#elif defined(linux) || defined(__linux)
+    #define RAINY_VECTOR3_DLL
+#endif
+
 namespace rainy {
 
-    class Vector3 {
+    class RAINY_VECTOR3_DLL Vector3 {
     private:
         double _x, _y, _z;
 

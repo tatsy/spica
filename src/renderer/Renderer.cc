@@ -1,3 +1,4 @@
+#define RAINY_RENDERER_EXPORT
 #include "Renderer.h"
 
 #include <fstream>

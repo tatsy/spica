@@ -1,3 +1,4 @@
+#define RAINY_VECTOR3_EXPORT
 #include "Vector3.h"
 #include "common.h"
 

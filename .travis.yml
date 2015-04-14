@@ -1,0 +1,52 @@
+language: cpp
+
+compiler:
+  - gcc
+
+before_install:
+  # update apt-repository
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get -qq update
+
+  # update gcc
+  - sudo apt-get -qq install gcc-4.9 g++-4.9
+  - sudo apt-get update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
+  - sudo apt-get update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
+
+install:
+  # install GTest
+  - sudo apt-get install libgtest-dev
+  - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib ; cd -"
+  - export GTEST_LIBRARY=/usr/local/lib/libgtest.a
+  - export GTEST_MAIN_LIBRARY=/usr/local/lib/libgtest_main.a
+  - export GTEST_INCLUDE_DIRS=/usr/include
+
+  # install latest LCOV
+  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.11.orig.tar.gz
+  - tar xf lcov_1.11.orig.tar.gz
+  - sudo make -C lcov-1.11/ install
+  - gem install coveralls-lcov
+  - lcov --version
+  - g++ --version
+
+  # build this project
+  - cmake .
+  - cmake --build .
+
+before_script:
+  - lcov --directory . --zerocounters
+
+script:
+  - CTEST_OUTPUT_ON_FAILURE=TRUE make check
+
+after_success:
+  - lcov --directory . --capture --output-file converage.info
+  - lcov --remove converage.info 'test/*' '/usr/*' 'CMakeFiles/*' --outputfile coverage.info
+  - lcov --list coverage.info
+  - converalls-lcov --repo-token punfgYjHqV4P4flVjRVMnSk45TFIxeull
+
+notifications:
+  email:
+    recipients: tatsy.mail@gmail.com
+    on_success: change
+    on_failure: always

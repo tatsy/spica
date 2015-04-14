@@ -41,7 +41,7 @@ script:
 
 after_success:
   - lcov --directory . --capture --output-file coverage.info
-  - lcov --remove converage.info 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
+  - lcov --remove converage.info --remove 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
   - lcov --list coverage.info
   - coveralls-lcov --repo-token punfgYjHqV4P4flVjRVMnSk45TFIxeull coverage.info
 

@@ -52,7 +52,7 @@ do { \
     if (!(PREDICATE)) { \
         std::cerr << "Asssertion \"" << #PREDICATE << "\" failed in " << __FILE__ \
         << " line " << __LINE__ << " : " << MSG << std::endl; \
-        std::abort(); \
+        abort(); \
     } \
 } while (false)
 #else  // NDEBUG

@@ -55,6 +55,16 @@ TEST(Vector3Test, AlgebraTest) {
     double dt = u.dot(v);
     EXPECT_EQ(14.0, dt);
     EXPECT_EQ(dt, v.dot(u));
+
+    w = u.cross(v);
+    EXPECT_EQ(0.0, w.x());
+    EXPECT_EQ(0.0, w.y());
+    EXPECT_EQ(0.0, w.z());
+
+    w = u.cwiseMultiply(v);
+    EXPECT_EQ(1.0, w.x());
+    EXPECT_EQ(4.0, w.y());
+    EXPECT_EQ(9.0, w.z());
 }
 
 int main(int argc, char **argv) {

@@ -1,3 +1,4 @@
+#define RAINY_RAY_EXPORT
 #include "Ray.h"
 #include "common.h"
 

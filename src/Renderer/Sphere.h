@@ -1,13 +1,23 @@
 #ifndef RAINY_SPHERE_H_
 #define RAINY_SPHERE_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef RAINY_SPHERE_EXPORT
+        #define RAINY_SPHERE_DLL __declspec(dllexport)
+    #else
+        #define RAINY_SPHERE_DLL __declspec(dllimport)
+    #endif
+#elif defined(linux) || defined(__linux)
+    #define RAINY_SPHERE_DLL
+#endif
+
 #include "Vector3.h"
 #include "material.h"
 #include "Ray.h"
 
 namespace rainy {
 
-    class Sphere {
+    class RAINY_SPHERE_DLL Sphere {
     private:
         double _radius;
         Vector3 _center;
@@ -30,6 +40,8 @@ namespace rainy {
          */
         bool intersect(const Ray& ray, HitPoint& hitpoint) const;
 
+        inline double radius() const { return _radius; }
+        inline Vector3 center() const { return _center; }
         inline Color color() const { return _color; }
         inline Color emission() const { return _emission; }
         inline ReflectionType reftype() const { return _reftype; }

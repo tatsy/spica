@@ -1,11 +1,21 @@
 #ifndef RAINY_RAY_H_
 #define RAINY_RAY_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef RAINY_RAY_EXPORT
+        #define RAINY_RAY_DLL __declspec(dllexport)
+    #else
+        #define RAINY_RAY_DLL __declspec(dllimport)
+    #endif
+#elif defined(linux) || defined(__linux)
+    #define RAINY_RAY_DLL
+#endif
+
 #include "Vector3.h"
 
 namespace rainy {
 
-    class Ray {
+    class RAINY_RAY_DLL Ray {
     private:
         Vector3 _origin;
         Vector3 _direction;
@@ -22,7 +32,7 @@ namespace rainy {
         inline Vector3 direction() const { return _direction; }
     };
 
-    class HitPoint {
+    class RAINY_RAY_DLL HitPoint {
     private:
         double _distance;
         Vector3 _normal;
@@ -44,7 +54,7 @@ namespace rainy {
         inline void setPosition(const Vector3& position) { _position = position; }
     };
 
-    class Intersection {
+    class RAINY_RAY_DLL Intersection {
     private:
         HitPoint _hitPoint;
         int _objectId;

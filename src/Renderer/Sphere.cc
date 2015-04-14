@@ -1,3 +1,4 @@
+#define RAINY_SPHERE_EXPORT
 #include "Sphere.h"
 
 #include <cmath>

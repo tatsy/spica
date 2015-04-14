@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "rainy.h"
+#include "../include/rainy.h"
 using namespace rainy;
 
 int main(int argc, char **argv) {

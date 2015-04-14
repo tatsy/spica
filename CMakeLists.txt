@@ -3,6 +3,7 @@ project(Rainy)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 if (WIN32)
   set(LIB_PREFIX "")
@@ -26,5 +27,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 add_subdirectory(src)
 add_subdirectory(test)
+add_subdirectory(example)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})

@@ -17,6 +17,9 @@ namespace rainy {
         ~Ray();
 
         Ray& operator=(const Ray& ray);
+
+        inline Vector3 origin() const { return _origin; }
+        inline Vector3 direction() const { return _direction; }
     };
 
     class HitPoint {
@@ -31,6 +34,14 @@ namespace rainy {
         ~HitPoint();
 
         HitPoint& operator=(const HitPoint& hp);
+
+        inline double distance() const { return _distance; }
+        inline Vector3 normal() const { return _normal; }
+        inline Vector3 position() const { return _position; }
+
+        inline void setDistance(double distance) { _distance = distance; }
+        inline void setNormal(const Vector3& normal) { _normal = normal; }
+        inline void setPosition(const Vector3& position) { _position = position; }
     };
 
     class Intersection {
@@ -44,6 +55,14 @@ namespace rainy {
         ~Intersection();
 
         Intersection& operator=(const Intersection& intersection);
+
+        double hittingDistance() const;
+
+        inline int objectId() const { return _objectId; }
+        inline const HitPoint& hitPoint() const { return _hitPoint; }
+
+        inline void setHitPoint(const HitPoint& hitpoint) { _hitPoint = hitpoint; }
+        inline void setObjectId(int id) { _objectId = id; }
     };
 
 }  // namespace rainy

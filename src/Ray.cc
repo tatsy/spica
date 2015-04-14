@@ -65,6 +65,11 @@ namespace rainy {
     Intersection& Intersection::operator=(const Intersection& intersection) {
         this->_hitPoint = intersection._hitPoint;
         this->_objectId = intersection._objectId;
+        return *this;
+    }
+
+    double Intersection::hittingDistance() const {
+        return _hitPoint.distance();
     }
 
 }  // namespace rainy

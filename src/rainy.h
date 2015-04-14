@@ -4,5 +4,6 @@
 #undef NDEBUG
 
 #include "Vector3.h"
+#include "Renderer.h"
 
 #endif  // RAINY_H_

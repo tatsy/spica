@@ -39,10 +39,12 @@ namespace rainy {
     }
 
     Vector3& Vector3::operator-=(const Vector3& v) {
-        this->_x -= v._x;
-        this->_y -= v._y;
-        this->_z -= v._z;
+        this->operator+=(-v);
         return *this;
+    }
+
+    Vector3 Vector3::operator-() const {
+        return Vector3(-_x, -_y, -_z);
     }
 
     Vector3& Vector3::operator*=(double s) {
@@ -71,6 +73,20 @@ namespace rainy {
         return Vector3(x, y, z);
     }
 
+    double Vector3::norm() const {
+        return sqrt(this->dot(*this));
+    }
+
+    Vector3 Vector3::normalize() const {
+        Vector3 ret = *this;
+        ret /= ret.norm();
+        return ret;
+    }
+
+    Vector3 Vector3::cwiseMultiply(const Vector3& v) const {
+        return Vector3(this->_x * v._x, this->_y * v._y, this->_z * v._z);
+    }
+
     double Vector3::x() const {
         return _x;
     }
@@ -82,4 +98,34 @@ namespace rainy {
     double Vector3::z() const {
         return _z;
     }
+}
+
+rainy::Vector3 operator+(const rainy::Vector3& v1, const rainy::Vector3& v2) {
+    rainy::Vector3 ret = v1;
+    ret += v2;
+    return ret;
+}
+
+rainy::Vector3 operator-(const rainy::Vector3& v1, const rainy::Vector3& v2) {
+    rainy::Vector3 ret = v1;
+    ret -= v2;
+    return ret;
+}
+
+rainy::Vector3 operator*(const rainy::Vector3& v, double s) {
+    rainy::Vector3 ret = v;
+    ret *= s;
+    return ret;
+}
+
+rainy::Vector3 operator*(double s, const rainy::Vector3& v) {
+    rainy::Vector3 ret = v;
+    ret *= s;
+    return ret;
+}
+
+rainy::Vector3 operator/(const rainy::Vector3& v, double s) {
+    rainy::Vector3 ret = v;
+    ret /= s;
+    return ret;
 }

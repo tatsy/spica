@@ -4,11 +4,10 @@
 using namespace rainy;
 
 int main(int argc, char **argv) {
-    Vector3 v(1.0, 2.0, 3.0);
-    Vector3 u(1.0, 2.0, 3.0);
-    v += u;
+    std::cout << "Path tracing" << std::endl << std::endl;
 
-    std::cout << v.x() << " " << v.y() << " " << v.z() << std::endl;
+    Renderer renderer(200, 200, 16, 2);
+    renderer.render();
 
     return 0;
 }

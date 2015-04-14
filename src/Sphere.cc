@@ -1,5 +1,9 @@
 #include "Sphere.h"
 
+#include <cmath>
+
+#include "common.h"
+
 namespace rainy {
 
     Sphere::Sphere()
@@ -36,6 +40,31 @@ namespace rainy {
         this->_color = sphere._color;
         this->_reftype = sphere._reftype;
         return *this;
+    }
+
+    bool Sphere::intersect(const Ray& ray, HitPoint& hitpoint) const {
+        const Vector3 VtoC = _center - ray.origin();
+        const double b = VtoC.dot(ray.direction());
+        const double D4 = b * b - VtoC.dot(VtoC) + _radius * _radius;
+
+        if (D4 < 0.0) return false;
+
+        const double sqrtD4 = sqrt(D4);
+        const double t1 = b - sqrtD4;
+        const double t2 = b + sqrtD4;
+
+        if (t1 < EPS && t2 < EPS) return false;
+
+        if (t1 > EPS) {
+            hitpoint.setDistance(t1);
+        } else {
+            hitpoint.setDistance(t2);
+        }
+
+        hitpoint.setPosition(ray.origin() + hitpoint.distance() * ray.direction());
+        hitpoint.setNormal((hitpoint.position() - _center).normalize());
+
+        return true;
     }
 
 }  // namespace rainy

@@ -25,10 +25,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cmath>
 #include <iostream>
 
+// ----------------------------------------------------------------------------
+// Parameter constants
+// ----------------------------------------------------------------------------
 static const double PI = 4.0 * atan(1.0);
 static const double INFTY = 1.0e20;
 static const double EPS = 1.0e-8;
 
+// ----------------------------------------------------------------------------
+// Parallel for
+// ----------------------------------------------------------------------------
 #ifdef _OPENMP
 #include <omp.h>
 #define ompfor __pragma(omp parallel for) for
@@ -36,6 +42,9 @@ static const double EPS = 1.0e-8;
 #define ompfor for
 #endif  // _OPENMP
 
+// ----------------------------------------------------------------------------
+// Assertion with message
+// ----------------------------------------------------------------------------
 #ifndef NDEBUG
 #define msg_assert(PREDICATE, MSG) \
 do { \

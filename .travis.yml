@@ -43,7 +43,7 @@ after_success:
   - lcov --directory . --capture --output-file converage.info
   - lcov --remove converage.info 'test/*' '/usr/*' 'CMakeFiles/*' --outputfile coverage.info
   - lcov --list coverage.info
-  - coveralls-lcov --repo-token punfgYjHqV4P4flVjRVMnSk45TFIxeull
+  - coveralls-lcov --repo-token punfgYjHqV4P4flVjRVMnSk45TFIxeull coverage.info
 
 notifications:
   email:

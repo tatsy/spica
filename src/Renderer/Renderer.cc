@@ -208,7 +208,7 @@ namespace rainy {
     }
 
     void Renderer::savePPM(std::string filename, Color* image, int width, int height) {
-        std::ofstream ofs(filename, std::ios::out);
+        std::ofstream ofs(filename.c_str(), std::ios::out);
         ofs << "P3" << std::endl;
         ofs << width << " " << height << " 255" << std::endl;
 

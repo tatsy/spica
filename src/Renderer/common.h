@@ -22,6 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef RAINY_COMMON_H_
 #define RAINY_COMMON_H_
 
+#include <cstdlib>
 #include <cmath>
 #include <iostream>
 

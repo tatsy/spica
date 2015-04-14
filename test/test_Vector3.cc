@@ -65,6 +65,10 @@ TEST(Vector3Test, AlgebraTest) {
     EXPECT_EQ(1.0, w.x());
     EXPECT_EQ(4.0, w.y());
     EXPECT_EQ(9.0, w.z());
+
+    double nrm = u.norm();
+    EXPECT_EQ(sqrt(14.0), nrm);
+
 }
 
 int main(int argc, char **argv) {

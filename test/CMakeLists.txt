@@ -34,8 +34,8 @@ function (add_gtest test_name test_source)
   add_test(NAME ${test_name} COMMAND ${test_name})
 endfunction(add_gtest)
 
-add_gtest(test_Vector3 test_Vector3.cc)
-add_gtest(test_Sphere test_Sphere.cc)
+add_gtest(test_vector test_vector.cc)
+add_gtest(test_geometry test_geometry.cc)
 
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS test_Vector3)
 

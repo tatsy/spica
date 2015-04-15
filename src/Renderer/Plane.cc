@@ -1,0 +1,38 @@
+#include "Plane.h"
+
+namespace rainy {
+    Plane::Plane()
+        : Primitive()
+        , _distance(0.0)
+        , _normal()
+    {
+    }
+
+    Plane::Plane(double distance, const Vector3& normal, const Color& emission, const Color& color, ReflectionType reftype)
+        : Primitive(emission, color, reftype)
+        , _distance(distance)
+        , _normal(normal)
+    {
+    }
+
+    Plane::Plane(const Plane& plane) 
+        : Primitive(plane)
+        , _distance(plane._distance)
+        , _normal(plane._normal)
+    {
+    }
+
+    Plane::~Plane() {
+    }
+
+    Plane& Plane::operator=(const Plane& plane) {
+        Primitive::operator=(plane);
+        this->_distance = plane._distance;
+        this->_normal   = plane._normal;
+        return *this;
+    }
+
+    bool Plane::intersect(const Ray& ray, HitPoint& hitpoint) const {
+        return false;
+    }
+}

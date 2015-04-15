@@ -11,19 +11,17 @@
     #define RAINY_SPHERE_DLL
 #endif
 
+#include "Primitive.h"
 #include "Vector3.h"
 #include "material.h"
 #include "Ray.h"
 
 namespace rainy {
 
-    class RAINY_SPHERE_DLL Sphere {
+    class RAINY_SPHERE_DLL Sphere : public Primitive {
     private:
         double _radius;
         Vector3 _center;
-        Color _emission;
-        Color _color;
-        ReflectionType _reftype;
 
     public:
         Sphere();
@@ -42,9 +40,6 @@ namespace rainy {
 
         inline double radius() const { return _radius; }
         inline Vector3 center() const { return _center; }
-        inline Color color() const { return _color; }
-        inline Color emission() const { return _emission; }
-        inline ReflectionType reftype() const { return _reftype; }
 
     };  // class Sphere
 

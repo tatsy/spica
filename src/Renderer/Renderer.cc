@@ -98,7 +98,7 @@ namespace rainy {
             }
         }
 
-        savePPM("image.ppm", image, _width, _height);
+        savePPM("simplept.ppm", image, _width, _height);
         delete[] image;
 
         return 0;

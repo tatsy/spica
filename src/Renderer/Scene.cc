@@ -42,7 +42,7 @@ namespace rainy {
     }
 
     void Scene::release() {
-        for (int i = 0; i < _arraySize; i++) {
+        for (int i = 0; i < _nPrimitives; i++) {
             delete _primitives[i];
         }
         delete _primitives;    

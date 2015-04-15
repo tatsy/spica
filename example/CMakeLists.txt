@@ -5,6 +5,6 @@ add_executable(simplept simplept_example.cc)
 
 target_link_libraries(simplept "${LIB_PREFIX}rainy_renderer${LIB_SUFFIX}")
 
-add_custom_target(render COMMAND ./simplept)
+add_custom_target(render COMMAND "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/simplept")
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})

@@ -6,7 +6,6 @@ convert ./simplept.ppm ./results/simplept.jpg
 if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
   echo -e "Starting to update gh-pages\n"
 
-  cd $HOME
   git config --global user.emal "travis@travis-ci.org"
   git config --global user.name "Travis CI"
 

@@ -37,7 +37,7 @@ endfunction(add_gtest)
 add_gtest(test_vector test_vector.cc)
 add_gtest(test_geometry test_geometry.cc)
 
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS test_Vector3)
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS test_vector test_geometry)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 include_directories(${GTEST_INCLUDE_DIRS})

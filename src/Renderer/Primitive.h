@@ -11,6 +11,7 @@
     #define RAINY_PRIMITIVE_DLL
 #endif
 
+#include "common.h"
 #include "Ray.h"
 #include "material.h"
 
@@ -31,7 +32,7 @@ namespace rainy {
 
         Primitive& operator=(const Primitive& primitive);
 
-        virtual bool intersect(const Ray& ray, HitPoint& hitpoint) const = 0;
+        virtual bool intersect(const Ray& ray, HitPoint& hitpoint) const;
 
         inline Color emission() const { return _emission; }
         inline Color color()    const { return _color;    }

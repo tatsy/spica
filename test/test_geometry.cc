@@ -3,6 +3,22 @@
 #include "../include/rainy.h"
 using namespace rainy;
 
+TEST(PrimitiveTest, InstanceTest) {
+    Primitive p;
+
+    EXPECT_EQ(0.0, p.emission().x());
+    EXPECT_EQ(0.0, p.emission().y());
+    EXPECT_EQ(0.0, p.emission().z());
+
+    EXPECT_EQ(0.0, p.color().x());
+    EXPECT_EQ(0.0, p.color().y());
+    EXPECT_EQ(0.0, p.color().z());
+
+    EXPECT_EQ(0, p.reftype());
+
+    ASSERT_DEATH(p.intersect(Ray(), HitPoint()), "");
+}
+
 TEST(SphereTest, InstanceTest) {
     Sphere sp(2.0, Vector3(0.0, 0.0, 0.0), Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE);
 

@@ -34,4 +34,8 @@ namespace rainy {
         this->_reftype = primitive._reftype;
         return *this;
     }
+
+    bool Primitive::intersect(const Ray& ray, HitPoint& hitpoint) const {
+        msg_assert(false, "Please overload the function \"intersect\"");
+    }
 }

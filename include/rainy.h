@@ -3,6 +3,7 @@
 
 #include "../src/Renderer/common.h"
 #include "../src/Renderer/Vector3.h"
+#include "../src/Renderer/Primitive.h"
 #include "../src/Renderer/Sphere.h"
 #include "../src/Renderer/Renderer.h"
 

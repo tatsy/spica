@@ -213,9 +213,9 @@ namespace rainy {
         ofs << width << " " << height << " 255" << std::endl;
 
         for (int i = 0; i < width * height; i++) {
-            int r = std::max(0, std::min((int)image[i].x(), 255));
-            int g = std::max(0, std::min((int)image[i].y(), 255));
-            int b = std::max(0, std::min((int)image[i].z(), 255));
+            int r = (int)(255.0 * std::max(0.0, std::min(image[i].x(), 1.0)));
+            int g = (int)(255.0 * std::max(0.0, std::min(image[i].y(), 1.0)));
+            int b = (int)(255.0 * std::max(0.0, std::min(image[i].z(), 1.0)));
             ofs << r << " " << g << " " << b << std::endl;
         }
         ofs.close();

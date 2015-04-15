@@ -1,9 +1,9 @@
 #!/bin/sh
 
 # copy rendered image to result directory
-convert ./image.ppm ./results/simplept.jpg
+convert ./simplept.ppm ./results/simplept.jpg
 
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
   echo -e "Starting to update gh-pages\n"
 
   cd $HOME

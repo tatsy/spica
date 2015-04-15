@@ -11,7 +11,8 @@ if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 
   git checkout gh-pages
 
-  git add -f .
+  git add -u
   git commit -m "Travis build $TRAVIS_BUILD_NUMBER pushed to gh-pages"
+  git remote set-url origin https://github.com/tatsy/rainy.git
   git push -fq origin gh-pages > /dev/null
 fi

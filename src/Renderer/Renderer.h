@@ -14,6 +14,7 @@
 #include <string>
 
 #include "Ray.h"
+#include "Scene.h"
 #include "Random.h"
 #include "material.h"
 
@@ -43,10 +44,10 @@ namespace rainy {
         void setSize(int width, int height);
         void setSamples(int sample, int supsample);
 
-        int render();
+        int render(const Scene& scene);
 
     private:
-        static Color radiance(const Ray& ray, Random& rng, const int depth);
+        static Color radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth);
         static void savePPM(std::string filename, Color* image, int width, int height);
     };
 

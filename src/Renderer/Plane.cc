@@ -1,3 +1,4 @@
+#define RAINY_PLANE_EXPORT
 #include "Plane.h"
 
 namespace rainy {
@@ -33,6 +34,15 @@ namespace rainy {
     }
 
     bool Plane::intersect(const Ray& ray, HitPoint& hitpoint) const {
-        return false;
+        double dt = ray.direction().dot(_normal);
+        if (dt > EPS) {
+            return false;
+        }
+
+        double dist = - _distance / dt;
+        hitpoint.setDistance(dist);
+        hitpoint.setPosition(ray.origin() + dist * ray.direction());
+        hitpoint.setNormal(_normal);
+        return true;
     }
 }

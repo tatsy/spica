@@ -1,7 +1,7 @@
 #ifndef RAINY_PLANE_H_
 #define RAINY_PLANE_H_
 
-#if defined(_WINM32) || defined(__WIN32__)
+#if defined(_WIN32) || defined(__WIN32__)
     #ifdef RAINY_PLANE_EXPORT
         #define RAINY_PLANE_DLL __declspec(dllexport)
     #else
@@ -15,7 +15,7 @@
 
 namespace rainy {
 
-    class Plane : public Primitive {
+    class RAINY_PLANE_DLL Plane : public Primitive {
     private:
         double _distance;
         Vector3 _normal;
@@ -29,7 +29,10 @@ namespace rainy {
         Plane& operator=(const Plane& plane);
 
         bool intersect(const Ray& ray, HitPoint& hitpoint) const;
+
+        inline double distance() const { return _distance; }
+        inline Vector3 normal() const { return _normal; }
     };
 }
 
-#endif
+#endif  // RAINY_PLANE_H_

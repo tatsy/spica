@@ -54,7 +54,7 @@ namespace rainy {
         this->_supersamplePerAxis = supsamples;
     }
 
-    int Renderer::render() {
+    int Renderer::render(const Scene& scene) {
         // Camera position
         const Vector3 cameraPos(50.0, 52.0, 220.0);
         const Vector3 cameraDir = Vector3(0.0, -0.04, -1.0).normalize();
@@ -90,7 +90,7 @@ namespace rainy {
                             const Vector3 screenPos = scrrenCenter + screenX * ((rx + x) / _width - 0.5) + screenY * ((ry + y) / _height - 0.5);
                             const Vector3 rayDirection = (screenPos - cameraPos).normalize();
                         
-                            accum += radiance(Ray(cameraPos, rayDirection), rng, 0) / (_samplePerPixel * _supersamplePerAxis * _supersamplePerAxis);
+                            accum += radiance(scene, Ray(cameraPos, rayDirection), rng, 0) / (_samplePerPixel * _supersamplePerAxis * _supersamplePerAxis);
                         }
                         image[pixelIndex] += accum;
                     }
@@ -104,19 +104,19 @@ namespace rainy {
         return 0;
     }
 
-    Color Renderer::radiance(const Ray& ray, Random& rng, const int depth) {
+    Color Renderer::radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth) {
         Intersection intersection;
 
         // NOT intersect the scene
-        if (!intersectScene(ray, intersection)) {
+        if (!scene.intersect(ray, intersection)) {
             return backgroundColor;
         }
 
-        const Sphere& currentObject = spheres[intersection.objectId()];
+        const Primitive* currentObj = scene.getObjectPtr(intersection.objectId());
         const HitPoint& hitpoint = intersection.hitPoint();
         const Vector3 orientNormal = hitpoint.normal().dot(ray.direction()) < 0.0 ? hitpoint.normal() : (-1.0 * hitpoint.normal());
 
-        double rouletteProb =std::max(currentObject.color().x(), std::max(currentObject.color().y(), currentObject.color().z()));
+        double rouletteProb =std::max(currentObj->color().x(), std::max(currentObj->color().y(), currentObj->color().z()));
 
         if (depth > depthLimit) {
             rouletteProb *= pow(0.5, depth - depthLimit);
@@ -124,7 +124,7 @@ namespace rainy {
 
         if (depth > maxDepth) {
             if (rng.randReal() > rouletteProb) {
-                return currentObject.emission();
+                return currentObj->emission();
             }
         } else {
             rouletteProb = 1.0;
@@ -133,7 +133,7 @@ namespace rainy {
         Color incomingRad;
         Color weight = Color(1.0, 0.0, 0.0);
 
-        if (currentObject.reftype() == REFLECTION_DIFFUSE) {
+        if (currentObj->reftype() == REFLECTION_DIFFUSE) {
             Vector3 u, v, w;
             w = orientNormal;
             if (abs(w.x()) > EPS) {
@@ -149,15 +149,15 @@ namespace rainy {
             const double r2s = sqrt(r2);
             Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalize();
 
-            incomingRad = radiance(Ray(hitpoint.position(), nextDir), rng, depth + 1);
-            weight = currentObject.color() / rouletteProb;
+            incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
+            weight = currentObj->color() / rouletteProb;
 
-        } else if (currentObject.reftype() == REFLECTION_SPECULAR) {
+        } else if (currentObj->reftype() == REFLECTION_SPECULAR) {
             Vector3 nextDir = ray.direction() - (2.0 * hitpoint.normal().dot(ray.direction())) * hitpoint.normal();
-            incomingRad = radiance(Ray(hitpoint.position(), nextDir), rng, depth + 1);
-            weight = currentObject.color() / rouletteProb;
+            incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
+            weight = currentObj->color() / rouletteProb;
 
-        } else if (currentObject.reftype() == REFLECTION_REFRACTION) {
+        } else if (currentObj->reftype() == REFLECTION_REFRACTION) {
             Vector3 reflectDir = ray.direction() - (2.0 * hitpoint.normal().dot(ray.direction())) * hitpoint.normal();
             const Ray reflectRay = Ray(hitpoint.position(), reflectDir);
 
@@ -172,8 +172,8 @@ namespace rainy {
             const double cos2t = 1.0 - nnt * nnt * (1.0  - ddn * ddn);
 
             if (cos2t < 0.0) { // Total reflection
-                incomingRad = radiance(reflectRay, rng, depth + 1);
-                weight += currentObject.color() / rouletteProb;
+                incomingRad = radiance(scene, reflectRay, rng, depth + 1);
+                weight += currentObj->color() / rouletteProb;
             } else {
                 Vector3 refractDir = (ray.direction() * nnt - hitpoint.normal() * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalize();
                 const Ray refractRay = Ray(hitpoint.position(), refractDir);
@@ -191,20 +191,20 @@ namespace rainy {
                 const double prob = 0.25 + 0.5 * Re;
                 if (depth > 2) {
                     if (rng.randReal() < prob) {
-                        incomingRad = radiance(reflectRay, rng, depth + 1) * Re;
-                        weight = currentObject.color() / (prob * rouletteProb);
+                        incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re;
+                        weight = currentObj->color() / (prob * rouletteProb);
                     } else {
-                        incomingRad = radiance(refractRay, rng, depth + 1) * Tr;
-                        weight = currentObject.color() / ((1.0 - prob) * rouletteProb);
+                        incomingRad = radiance(scene, refractRay, rng, depth + 1) * Tr;
+                        weight = currentObj->color() / ((1.0 - prob) * rouletteProb);
                     }
                 } else {
-                    incomingRad = radiance(reflectRay, rng, depth + 1) * Re + radiance(refractRay, rng, depth + 1) * Tr;
-                    weight = currentObject.color() / rouletteProb;
+                    incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re + radiance(scene, refractRay, rng, depth + 1) * Tr;
+                    weight = currentObj->color() / rouletteProb;
                 }
             }
         }
 
-        return currentObject.emission() + weight.cwiseMultiply(incomingRad);
+        return currentObj->emission() + weight.cwiseMultiply(incomingRad);
     }
 
     void Renderer::savePPM(std::string filename, Color* image, int width, int height) {

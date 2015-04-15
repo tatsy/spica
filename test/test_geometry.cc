@@ -16,7 +16,43 @@ TEST(PrimitiveTest, InstanceTest) {
 
     EXPECT_EQ(0, p.reftype());
 
-    ASSERT_DEATH(p.intersect(Ray(), HitPoint()), "");
+    Ray ray;
+    HitPoint hitpoint;
+    ASSERT_DEATH(p.intersect(ray, hitpoint), "");
+
+    Primitive q(Color(0.25, 0.50, 0.75), Color(0.1, 0.2, 0.3), REFLECTION_REFRACTION);
+    
+    EXPECT_EQ(0.25, q.emission().x());
+    EXPECT_EQ(0.50, q.emission().y());
+    EXPECT_EQ(0.75, q.emission().z());
+
+    EXPECT_EQ(0.1, q.color().x());
+    EXPECT_EQ(0.2, q.color().y());
+    EXPECT_EQ(0.3, q.color().z());
+
+    EXPECT_EQ(REFLECTION_REFRACTION, q.reftype());
+
+    p = q;
+
+    EXPECT_EQ(0.25, p.emission().x());
+    EXPECT_EQ(0.50, p.emission().y());
+    EXPECT_EQ(0.75, p.emission().z());
+
+    EXPECT_EQ(0.1, p.color().x());
+    EXPECT_EQ(0.2, p.color().y());
+    EXPECT_EQ(0.3, p.color().z());
+    
+    p = Primitive(q);
+
+    EXPECT_EQ(0.25, p.emission().x());
+    EXPECT_EQ(0.50, p.emission().y());
+    EXPECT_EQ(0.75, p.emission().z());
+
+    EXPECT_EQ(0.1, p.color().x());
+    EXPECT_EQ(0.2, p.color().y());
+    EXPECT_EQ(0.3, p.color().z());
+
+
 }
 
 TEST(SphereTest, InstanceTest) {

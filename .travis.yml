@@ -26,11 +26,12 @@ before_script:
 script:
   - CTEST_OUTPUT_ON_FAILURE=TRUE make check
 after_success:
-  - ls -l
   - lcov --directory . --capture --output-file coverage.info
   - lcov --remove coverage.info 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
   - lcov --list coverage.info
   - coveralls-lcov --repo-token punfgYjHqV4P4flVjRVMnSk45TFIxeull coverage.info
+  - make render
+  - ls -l
   - sh ./update-gh-pages.sh
 notifications:
   email:

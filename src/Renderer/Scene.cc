@@ -1,6 +1,8 @@
 #define RAINY_SCENE_EXPORT
 #include "Scene.h"
 
+#include <cstring>
+
 namespace rainy {
     
     Scene::Scene()

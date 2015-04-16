@@ -11,7 +11,7 @@ spica
 ### Renderer
 
 * Monte-Carlo path tracing
-* 
+*
 
 ### Geometry
 
@@ -27,7 +27,10 @@ spica
 * Photon mapping
 * Metropolis light transport
 
+## To Do
+
+* ImageSensor, Lens, and ObjectPlane classes should be inner class of Camera.
+
 ## License
 
 MIT license 2015, Tatsuya Yatagawa (tatsy). The part of this code is largely inspired by [edupt](https://github.com/githole/edupt.git).
-

@@ -16,7 +16,7 @@
 namespace spica {
 
     class SPICA_PLANE_DLL Plane : public Primitive {
-    private:
+    protected:
         double _distance;
         Vector3 _normal;
 
@@ -24,7 +24,7 @@ namespace spica {
         Plane();
         Plane(double distance, const Vector3& normal, const Color& emission, const Color& color, ReflectionType reftype);
         Plane(const Plane& plane);
-        ~Plane();
+        virtual ~Plane();
 
         Plane& operator=(const Plane& plane);
 

@@ -11,18 +11,25 @@
     #define SPICA_CAMERA_DLL
 #endif
 
+#include "../geometry/Plane.h"
 #include "../utils/Image.h"
 
 namespace spica {
+
+    class Camera;
 
     // ------------------------------------------------------------
     // Image sensor
     // ------------------------------------------------------------
 
-    class SPICA_CAMERA_DLL ImageSensor {
+    class ImageSensor {
+        friend class Camera;
+
     private:
         double _width;
         double _height;
+        double _pixelWidth;
+        double _pixelHeight;
         Vector3 _center;
         Vector3 _direction;
         Vector3 _up;
@@ -53,6 +60,8 @@ namespace spica {
     // ------------------------------------------------------------
 
     class Lens {
+        friend class Camera;
+
     private:
         double _focalLength;
         double _radius;
@@ -73,25 +82,51 @@ namespace spica {
 
 
     // ------------------------------------------------------------
+    // Object plane
+    // ------------------------------------------------------------
+
+    class ObjectPlane : public Plane {
+        friend class Camera;
+
+    private:
+        Vector3 _center;
+        Vector3 _u;
+        Vector3 _v;
+
+    public:
+        ObjectPlane();
+        ObjectPlane(Vector3 center, Vector3 u, Vector3 v);
+        ObjectPlane(const ObjectPlane& objplane);
+        ~ObjectPlane();
+
+        ObjectPlane& operator=(const ObjectPlane& objplane);
+    };
+
+    // ------------------------------------------------------------
     // Camera
     // ------------------------------------------------------------
 
-    class Camera {
+    class SPICA_CAMERA_DLL Camera {
     private:
         // Image size
-        int _width;
-        int _height;
+        unsigned int _width;
+        unsigned int _height;
 
-        // Image sensor parameters
         ImageSensor _sensor;
-
-        // Lens parameters
         Lens _lens;
+        ObjectPlane _objplane;
 
-        // Object plane
-        Vector3 _objPlaneCenter;
-        Vector3 _objPlaneU;
-        Vector3 _objPlaneV;
+    public:
+        Camera();
+        Camera(int imageWidth, int imageHeight, const Vector3& sensorCenter, const Vector3& sensorDir,  const Vector3& sensorUp, double sensorSize,
+               double distSensorToLens, double focalLength, double lensRadius, double sensorSensitivity);
+        Camera(const Camera& camera);
+
+        ~Camera();
+
+        Camera& operator=(const Camera& camera);
+
+        bool intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positonOnObjplane, Vector3& positionOnSensor, double& distance);
     };
 
 }

@@ -107,5 +107,121 @@ namespace spica {
         this->_normal = lens._normal;
         return *this;
     }
+
+
+    // ------------------------------------------------------------
+    // Object plane
+    // ------------------------------------------------------------
+
+    ObjectPlane::ObjectPlane()
+        : Plane()
+        , _center()
+        , _u()
+        , _v()
+    {
+    }
+
+    ObjectPlane::ObjectPlane(Vector3 center, Vector3 u, Vector3 v)
+        : Plane()
+        , _center(center)
+        , _u(u)
+        , _v(v)
+    {
+
+        this->_normal = v.cross(u).normalize();
+        this->_distance = - _normal.dot(center);
+    }
+
+    ObjectPlane::ObjectPlane(const ObjectPlane& objplane)
+        : Plane(objplane)
+        , _center(objplane._center)
+        , _u(objplane._u)
+        , _v(objplane._v)
+    {
+    }
+
+    ObjectPlane::~ObjectPlane()
+    {
+    }
+
+    ObjectPlane& ObjectPlane::operator=(const ObjectPlane& objplane) {
+        Plane::operator=(objplane);
+        this->_center = objplane._center;
+        this->_u = objplane._u;
+        this->_v = objplane._v;
+        return *this;
+    }
+
+
+    // ------------------------------------------------------------
+    // Camera
+    // ------------------------------------------------------------
+
+    Camera::Camera()
+        : _width(0)
+        , _height(0)
+        , _sensor()
+        , _lens()
+        , _objplane()
+    {
+    }
+
+    Camera::Camera(int imageWidth, int imageHeight, const Vector3& sensorCenter, const Vector3& sensorDir,  const Vector3& sensorUp, double sensorSize,
+                   double distSensorToLens, double focalLength, double lensRadius, double sensorSensitivity)
+        : _width(imageWidth)
+        , _height(imageHeight)
+        , _sensor()
+        , _lens()
+        , _objplane()
+    {
+        _sensor._center = sensorCenter;
+        _sensor._direction = sensorDir;
+        _sensor._up = sensorUp;
+
+        _sensor._width = sensorSize * imageWidth / imageHeight;
+        _sensor._height = sensorSize;
+        
+        _sensor._pixelWidth = _sensor._width / imageWidth;
+        _sensor._pixelHeight = _sensor._height / imageHeight;
+
+        _sensor._u = sensorDir.cross(sensorUp).normalize() * _sensor._width;
+        _sensor._v = _sensor._u.cross(sensorDir).normalize() * _sensor._height;
+
+        Vector3 objplaneCenter = sensorCenter + (focalLength + distSensorToLens) * sensorDir;
+        _objplane = ObjectPlane(objplaneCenter, _sensor._u, _sensor._v);
+
+        _lens._radius = lensRadius;
+        _lens._center = sensorCenter + distSensorToLens * sensorDir;
+        _lens._u = lensRadius * _sensor._u.normalize();
+        _lens._v = lensRadius * _sensor._v.normalize();
+
+        _sensor._sensitivity = sensorSensitivity / (_sensor._pixelWidth * _sensor._pixelHeight);
+    }
+
+    Camera::Camera(const Camera& camera)
+        : _width(camera._width)
+        , _height(camera._height)
+        , _sensor(camera._sensor)
+        , _lens(camera._lens)
+        , _objplane(camera._objplane)
+    {
+    }
+
+    Camera::~Camera()
+    {
+    }
+
+    Camera& Camera::operator=(const Camera& camera) {
+        this->_width = camera._width;
+        this->_height = camera._height;
+        this->_sensor = camera._sensor;
+        this->_lens = camera._lens;
+        this->_objplane = camera._objplane;
+        return *this;
+    }
+
+    bool Camera::intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positionOnObjplane, Vector3& positionOnSensor, double& distance) {
+        return false;    
+    }
 }
 

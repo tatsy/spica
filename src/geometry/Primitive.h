@@ -11,9 +11,9 @@
     #define RAINY_PRIMITIVE_DLL
 #endif
 
-#include "common.h"
-#include "Ray.h"
-#include "material.h"
+#include "../utils/common.h"
+#include "../renderer/Ray.h"
+#include "../renderer/material.h"
 
 namespace spica {
     /* Interface class for shape primitives (Plane, Sphere etc.)

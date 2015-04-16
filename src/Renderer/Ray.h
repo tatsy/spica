@@ -11,7 +11,7 @@
     #define RAINY_RAY_DLL
 #endif
 
-#include "Vector3.h"
+#include "../utils/Vector3.h"
 
 namespace spica {
 

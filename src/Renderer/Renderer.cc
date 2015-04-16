@@ -5,8 +5,8 @@
 #include <fstream>
 #include <algorithm>
 
-#include "common.h"
-#include "Vector3.h"
+#include "../utils/common.h"
+#include "../utils/Vector3.h"
 #include "material.h"
 #include "Scene.h"
 

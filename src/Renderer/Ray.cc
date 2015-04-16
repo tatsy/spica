@@ -1,6 +1,6 @@
 #define RAINY_RAY_EXPORT
 #include "Ray.h"
-#include "common.h"
+#include "../utils/common.h"
 
 namespace spica {
 

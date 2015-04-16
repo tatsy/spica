@@ -15,7 +15,7 @@
 
 #include "Ray.h"
 #include "Scene.h"
-#include "Random.h"
+#include "../utils/Random.h"
 #include "material.h"
 
 namespace spica {

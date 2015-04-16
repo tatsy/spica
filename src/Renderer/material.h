@@ -1,7 +1,7 @@
 #ifndef RAINY_MATERIAL_H_
 #define RAINY_MATERIAL_H_
 
-#include "Vector3.h"
+#include "../utils/Vector3.h"
 
 namespace spica {
 

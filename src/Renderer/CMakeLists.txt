@@ -1,15 +1,15 @@
 # Add source files
-list(APPEND SOURCE_FILES Random.h Random_detail.h)
-list(APPEND SOURCE_FILES Vector3.h Vector3.cc)
-list(APPEND SOURCE_FILES Sphere.h Sphere.cc)
-list(APPEND SOURCE_FILES Ray.h Ray.cc)
-list(APPEND SOURCE_FILES Scene.h Scene.cc)
-list(APPEND SOURCE_FILES Primitive.h Primitive.cc)
-list(APPEND SOURCE_FILES Plane.h Plane.cc)
-list(APPEND SOURCE_FILES Triangle.h Triangle.cc)
-list(APPEND SOURCE_FILES Quad.h Quad.cc)
-list(APPEND SOURCE_FILES Renderer.h Renderer.cc)
-list(APPEND SOURCE_FILES material.h)
-list(APPEND SOURCE_FILES ../../include/spica.h common.h)
+set(SOURCES
+    ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/Ray.cc
+    ${CMAKE_CURRENT_LIST_DIR}/Scene.cc
+    ${CMAKE_CURRENT_LIST_DIR}/Renderer.cc
+    PARENT_SCOPE)
 
-add_library(spica_renderer SHARED ${SOURCE_FILES})
+set(HEADERS
+    ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/Ray.h
+    ${CMAKE_CURRENT_LIST_DIR}/Scene.h
+    ${CMAKE_CURRENT_LIST_DIR}/Renderer.h
+    ${CMAKE_CURRENT_LIST_DIR}/material.h
+    PARENT_SCOPE)

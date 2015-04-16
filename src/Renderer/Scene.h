@@ -11,10 +11,10 @@
     #define RAINY_SCENE_DLL
 #endif
 
-#include "common.h"
-#include "Vector3.h"
-#include "Plane.h"
-#include "Sphere.h"
+#include "../utils/common.h"
+#include "../utils/Vector3.h"
+#include "../geometry/Plane.h"
+#include "../geometry/Sphere.h"
 #include "Ray.h"
 
 namespace spica {

@@ -1,14 +1,14 @@
-#ifndef RAINY_SCENE_H_
-#define RAINY_SCENE_H_
+#ifndef SPICA_SCENE_H_
+#define SPICA_SCENE_H_
 
 #if defined(_WIN32) || defined(__WIN32__)
-    #ifdef RAINY_SCENE_EXPORT
-        #define RAINY_SCENE_DLL __declspec(dllexport)
+    #ifdef SPICA_SCENE_EXPORT
+        #define SPICA_SCENE_DLL __declspec(dllexport)
     #else
-        #define RAINY_SCENE_DLL __declspec(dllimport)
+        #define SPICA_SCENE_DLL __declspec(dllimport)
     #endif
 #elif defined(linux) || defined(__linux)
-    #define RAINY_SCENE_DLL
+    #define SPICA_SCENE_DLL
 #endif
 
 #include "../utils/common.h"
@@ -19,7 +19,7 @@
 
 namespace spica {
     
-    class RAINY_SCENE_DLL Scene {
+    class SPICA_SCENE_DLL Scene {
     private:
         unsigned int _nPrimitives;
         unsigned int _arraySize;
@@ -46,4 +46,4 @@ namespace spica {
     };
 }
 
-#endif  // RAINY_SCENE_H_
+#endif  // SPICA_SCENE_H_

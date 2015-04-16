@@ -1,5 +1,5 @@
-#ifndef RAINY_MATERIAL_H_
-#define RAINY_MATERIAL_H_
+#ifndef SPICA_MATERIAL_H_
+#define SPICA_MATERIAL_H_
 
 #include "../utils/Vector3.h"
 

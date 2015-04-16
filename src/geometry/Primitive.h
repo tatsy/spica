@@ -1,14 +1,14 @@
-#ifndef RAINY_PRIMITIVE_H_
-#define RAINY_PRIMITIVE_H_
+#ifndef SPICA_PRIMITIVE_H_
+#define SPICA_PRIMITIVE_H_
 
 #if defined(_WIN32) || defined(__WIN32__)
-    #ifdef RAINY_PRIMITIVE_EXPORT
-        #define RAINY_PRIMITIVE_DLL __declspec(dllexport)
+    #ifdef SPICA_PRIMITIVE_EXPORT
+        #define SPICA_PRIMITIVE_DLL __declspec(dllexport)
     #else
-        #define RAINY_PRIMITIVE_DLL __declspec(dllimport)
+        #define SPICA_PRIMITIVE_DLL __declspec(dllimport)
     #endif
 #elif defined(linux) || defined(__linux)
-    #define RAINY_PRIMITIVE_DLL
+    #define SPICA_PRIMITIVE_DLL
 #endif
 
 #include "../utils/common.h"
@@ -18,7 +18,7 @@
 namespace spica {
     /* Interface class for shape primitives (Plane, Sphere etc.)
      */
-    class RAINY_PRIMITIVE_DLL Primitive {
+    class SPICA_PRIMITIVE_DLL Primitive {
     protected:
         Color _emission;
         Color _color;
@@ -40,4 +40,4 @@ namespace spica {
     };
 }
 
-#endif  // RAINY_PRIMITIVE_H_
+#endif  // SPICA_PRIMITIVE_H_

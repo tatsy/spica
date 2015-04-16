@@ -1,4 +1,4 @@
-#define RAINY_RAY_EXPORT
+#define SPICA_RAY_EXPORT
 #include "Ray.h"
 #include "../utils/common.h"
 

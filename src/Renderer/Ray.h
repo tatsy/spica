@@ -1,21 +1,21 @@
-#ifndef RAINY_RAY_H_
-#define RAINY_RAY_H_
+#ifndef SPICA_RAY_H_
+#define SPICA_RAY_H_
 
 #if defined(_WIN32) || defined(__WIN32__)
-    #ifdef RAINY_RAY_EXPORT
-        #define RAINY_RAY_DLL __declspec(dllexport)
+    #ifdef SPICA_RAY_EXPORT
+        #define SPICA_RAY_DLL __declspec(dllexport)
     #else
-        #define RAINY_RAY_DLL __declspec(dllimport)
+        #define SPICA_RAY_DLL __declspec(dllimport)
     #endif
 #elif defined(linux) || defined(__linux)
-    #define RAINY_RAY_DLL
+    #define SPICA_RAY_DLL
 #endif
 
 #include "../utils/Vector3.h"
 
 namespace spica {
 
-    class RAINY_RAY_DLL Ray {
+    class SPICA_RAY_DLL Ray {
     private:
         Vector3 _origin;
         Vector3 _direction;
@@ -32,7 +32,7 @@ namespace spica {
         inline Vector3 direction() const { return _direction; }
     };
 
-    class RAINY_RAY_DLL HitPoint {
+    class SPICA_RAY_DLL HitPoint {
     private:
         double _distance;
         Vector3 _normal;
@@ -54,7 +54,7 @@ namespace spica {
         inline void setPosition(const Vector3& position) { _position = position; }
     };
 
-    class RAINY_RAY_DLL Intersection {
+    class SPICA_RAY_DLL Intersection {
     private:
         HitPoint _hitPoint;
         int _objectId;
@@ -77,4 +77,4 @@ namespace spica {
 
 }  // namespace spica
 
-#endif  // RAINY_RAY_H_
+#endif  // SPICA_RAY_H_

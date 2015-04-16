@@ -1,4 +1,4 @@
-#define RAINY_PRIMITIVE_EXPORT
+#define SPICA_PRIMITIVE_EXPORT
 #include "Primitive.h"
 
 namespace spica {

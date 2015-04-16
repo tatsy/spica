@@ -1,4 +1,4 @@
-#define RAINY_PLANE_EXPORT
+#define SPICA_PLANE_EXPORT
 #include "Plane.h"
 
 namespace spica {

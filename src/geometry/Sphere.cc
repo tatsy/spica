@@ -1,4 +1,4 @@
-#define RAINY_SPHERE_EXPORT
+#define SPICA_SPHERE_EXPORT
 #include "Sphere.h"
 
 #include <cmath>

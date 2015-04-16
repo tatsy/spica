@@ -1,4 +1,4 @@
-#define RAINY_RENDERER_EXPORT
+#define SPICA_RENDERER_EXPORT
 #include "Renderer.h"
 
 #include <iostream>
@@ -12,23 +12,13 @@
 
 namespace spica {
 
-    const Color Renderer::backgroundColor = Color();
-    const int   Renderer::maxDepth        = 5;
-    const int   Renderer::depthLimit      = 64;
-
     Renderer::Renderer(int width, int height, int samples, int supsamples) 
-        : _width(width)
-        , _height(height)
-        , _samplePerPixel(samples)
-        , _supersamplePerAxis(supsamples)
+        : RendererBase(width, height, samples, supsamples) 
     {
     }
 
     Renderer::Renderer(const Renderer& renderer)
-        : _width(renderer._width)
-        , _height(renderer._height)
-        , _samplePerPixel(renderer._samplePerPixel)
-        , _supersamplePerAxis(renderer._supersamplePerAxis)
+        : RendererBase(renderer)
     {
     }
 
@@ -37,10 +27,7 @@ namespace spica {
     }
 
     Renderer& Renderer::operator=(const Renderer& renderer) {
-        this->_width = renderer._width;
-        this->_height = renderer._height;
-        this->_samplePerPixel = renderer._samplePerPixel;
-        this->_supersamplePerAxis = renderer._supersamplePerAxis;
+        RendererBase::operator=(renderer);
         return *this;
     }
 
@@ -51,7 +38,7 @@ namespace spica {
 
     void Renderer::setSamples(int samples, int supsamples) {
         this->_samplePerPixel = samples;
-        this->_supersamplePerAxis = supsamples;
+        this->_supsamplePerAxis = supsamples;
     }
 
     int Renderer::render(const Scene& scene) {
@@ -80,17 +67,17 @@ namespace spica {
 
             for (int x = 0; x < _width; x++) {
                 const int pixelIndex = (_height - y - 1) * _width + x;
-                for (int sy = 0; sy < _supersamplePerAxis; sy++) {
-                    for (int sx = 0; sx < _supersamplePerAxis; sx++) {
+                for (int sy = 0; sy < _supsamplePerAxis; sy++) {
+                    for (int sx = 0; sx < _supsamplePerAxis; sx++) {
                         Color accum;
                         for (int s = 0; s < _samplePerPixel; s++) {
-                            const double rate = (1.0 / _supersamplePerAxis);
+                            const double rate = (1.0 / _supsamplePerAxis);
                             const double rx = sx * rate + rate / 2.0;
                             const double ry = sy * rate + rate / 2.0;
                             const Vector3 screenPos = scrrenCenter + screenX * ((rx + x) / _width - 0.5) + screenY * ((ry + y) / _height - 0.5);
                             const Vector3 rayDirection = (screenPos - cameraPos).normalize();
                         
-                            accum += radiance(scene, Ray(cameraPos, rayDirection), rng, 0) / (_samplePerPixel * _supersamplePerAxis * _supersamplePerAxis);
+                            accum += radiance(scene, Ray(cameraPos, rayDirection), rng, 0) / (_samplePerPixel * _supsamplePerAxis * _supsamplePerAxis);
                         }
                         image[pixelIndex] += accum;
                     }

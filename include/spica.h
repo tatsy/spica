@@ -1,5 +1,5 @@
-#ifndef RAINY_H_
-#define RAINY_H_
+#ifndef SPICA_H_
+#define SPICA_H_
 
 #include "../src/utils/common.h"
 #include "../src/utils/Vector3.h"
@@ -9,4 +9,4 @@
 #include "../src/renderer/Renderer.h"
 #include "../src/renderer/Scene.h"
 
-#endif  // RAINY_H_
+#endif  // SPICA_H_

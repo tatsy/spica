@@ -1,21 +1,21 @@
-#ifndef RAINY_PLANE_H_
-#define RAINY_PLANE_H_
+#ifndef SPICA_PLANE_H_
+#define SPICA_PLANE_H_
 
 #if defined(_WIN32) || defined(__WIN32__)
-    #ifdef RAINY_PLANE_EXPORT
-        #define RAINY_PLANE_DLL __declspec(dllexport)
+    #ifdef SPICA_PLANE_EXPORT
+        #define SPICA_PLANE_DLL __declspec(dllexport)
     #else
-        #define RAINY_PLANE_DLL __declspec(dllimport)
+        #define SPICA_PLANE_DLL __declspec(dllimport)
     #endif
 #elif defined(linux) || defined(__linux)
-    #define RAINY_PLANE_DLL
+    #define SPICA_PLANE_DLL
 #endif
 
 #include "Primitive.h"
 
 namespace spica {
 
-    class RAINY_PLANE_DLL Plane : public Primitive {
+    class SPICA_PLANE_DLL Plane : public Primitive {
     private:
         double _distance;
         Vector3 _normal;
@@ -35,4 +35,4 @@ namespace spica {
     };
 }
 
-#endif  // RAINY_PLANE_H_
+#endif  // SPICA_PLANE_H_

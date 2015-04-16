@@ -1,4 +1,4 @@
-#define RAINY_SCENE_EXPORT
+#define SPICA_SCENE_EXPORT
 #include "Scene.h"
 
 #include <cstring>

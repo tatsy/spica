@@ -25,6 +25,12 @@ namespace spica {
         BPTRenderer& operator=(const BPTRenderer& renderer);
 
         int render(const Scene& scene);
+
+    private:
+        void executeBPT(const Scene& scene, int x, int y);
+
+        void executeLightTracing(const Scene& scene, int x, int y);
+        void executePathTracing(const Scene& scene, int x, int y);
     };
 
 }

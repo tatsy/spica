@@ -2,7 +2,7 @@
 #include "Ray.h"
 #include "common.h"
 
-namespace rainy {
+namespace spica {
 
     Ray::Ray()
         : _origin()
@@ -73,4 +73,4 @@ namespace rainy {
         return _hitPoint.distance();
     }
 
-}  // namespace rainy
+}  // namespace spica

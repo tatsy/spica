@@ -10,7 +10,7 @@
 #include "material.h"
 #include "Scene.h"
 
-namespace rainy {
+namespace spica {
 
     const Color Renderer::backgroundColor = Color();
     const int   Renderer::maxDepth        = 5;

@@ -1,7 +1,7 @@
 #define RAINY_PRIMITIVE_EXPORT
 #include "Primitive.h"
 
-namespace rainy {
+namespace spica {
 
     Primitive::Primitive()
         : _emission()

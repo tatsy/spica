@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-namespace rainy {
+namespace spica {
     
     Scene::Scene()
         : _nPrimitives(0)

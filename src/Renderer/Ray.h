@@ -13,7 +13,7 @@
 
 #include "Vector3.h"
 
-namespace rainy {
+namespace spica {
 
     class RAINY_RAY_DLL Ray {
     private:
@@ -75,6 +75,6 @@ namespace rainy {
         inline void setObjectId(int id) { _objectId = id; }
     };
 
-}  // namespace rainy
+}  // namespace spica
 
 #endif  // RAINY_RAY_H_

@@ -16,7 +16,7 @@
 #include "material.h"
 #include "Ray.h"
 
-namespace rainy {
+namespace spica {
 
     class RAINY_SPHERE_DLL Sphere : public Primitive {
     private:
@@ -43,6 +43,6 @@ namespace rainy {
 
     };  // class Sphere
 
-}  // namespace rainy
+}  // namespace spica
 
 #endif  // RAINY_SPHERE_H_

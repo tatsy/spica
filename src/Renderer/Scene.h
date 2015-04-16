@@ -17,7 +17,7 @@
 #include "Sphere.h"
 #include "Ray.h"
 
-namespace rainy {
+namespace spica {
     
     class RAINY_SCENE_DLL Scene {
     private:

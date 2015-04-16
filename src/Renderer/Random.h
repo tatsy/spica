@@ -22,7 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef RAINY_RANDOM_H_
 #define RAINY_RANDOM_H_
 
-namespace rainy {
+namespace spica {
 
 /*
  * A singleton class for generating random numbers

@@ -3,7 +3,7 @@
 
 #include "Vector3.h"
 
-namespace rainy {
+namespace spica {
 
     typedef Vector3 Color;
 

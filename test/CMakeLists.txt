@@ -29,7 +29,7 @@ function (add_gtest test_name test_source)
   add_executable(${test_name} ${SOURCE_FILES})
   target_link_libraries(${test_name} ${GTEST_LIBRARY})
   target_link_libraries(${test_name} ${GTEST_MAIN_LIBRARY})
-  target_link_libraries(${test_name} "${LIB_PREFIX}rainy_renderer${LIB_SUFFIX}")
+  target_link_libraries(${test_name} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
 
   add_test(NAME ${test_name} COMMAND ${test_name})
 endfunction(add_gtest)

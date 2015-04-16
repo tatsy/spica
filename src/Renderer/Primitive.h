@@ -15,7 +15,7 @@
 #include "Ray.h"
 #include "material.h"
 
-namespace rainy {
+namespace spica {
     /* Interface class for shape primitives (Plane, Sphere etc.)
      */
     class RAINY_PRIMITIVE_DLL Primitive {

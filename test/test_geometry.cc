@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
-#include "../include/rainy.h"
-using namespace rainy;
+#include "../include/spica.h"
+using namespace spica;
 
 // ------------------------------
 // Primitive class test

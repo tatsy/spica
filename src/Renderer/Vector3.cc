@@ -2,7 +2,7 @@
 #include "Vector3.h"
 #include "common.h"
 
-namespace rainy {
+namespace spica {
 
     Vector3::Vector3()
         : _x(0.0)
@@ -101,32 +101,32 @@ namespace rainy {
     }
 }
 
-rainy::Vector3 operator+(const rainy::Vector3& v1, const rainy::Vector3& v2) {
-    rainy::Vector3 ret = v1;
+spica::Vector3 operator+(const spica::Vector3& v1, const spica::Vector3& v2) {
+    spica::Vector3 ret = v1;
     ret += v2;
     return ret;
 }
 
-rainy::Vector3 operator-(const rainy::Vector3& v1, const rainy::Vector3& v2) {
-    rainy::Vector3 ret = v1;
+spica::Vector3 operator-(const spica::Vector3& v1, const spica::Vector3& v2) {
+    spica::Vector3 ret = v1;
     ret -= v2;
     return ret;
 }
 
-rainy::Vector3 operator*(const rainy::Vector3& v, double s) {
-    rainy::Vector3 ret = v;
+spica::Vector3 operator*(const spica::Vector3& v, double s) {
+    spica::Vector3 ret = v;
     ret *= s;
     return ret;
 }
 
-rainy::Vector3 operator*(double s, const rainy::Vector3& v) {
-    rainy::Vector3 ret = v;
+spica::Vector3 operator*(double s, const spica::Vector3& v) {
+    spica::Vector3 ret = v;
     ret *= s;
     return ret;
 }
 
-rainy::Vector3 operator/(const rainy::Vector3& v, double s) {
-    rainy::Vector3 ret = v;
+spica::Vector3 operator/(const spica::Vector3& v, double s) {
+    spica::Vector3 ret = v;
     ret /= s;
     return ret;
 }

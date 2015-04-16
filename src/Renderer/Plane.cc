@@ -1,7 +1,7 @@
 #define RAINY_PLANE_EXPORT
 #include "Plane.h"
 
-namespace rainy {
+namespace spica {
     Plane::Plane()
         : Primitive()
         , _distance(0.0)

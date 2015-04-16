@@ -58,7 +58,7 @@ Thanks!
 
 #include "common.h"
 
-namespace rainy {
+namespace spica {
 
 namespace {  // NOLINT
 

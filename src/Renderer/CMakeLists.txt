@@ -10,6 +10,6 @@ list(APPEND SOURCE_FILES Triangle.h Triangle.cc)
 list(APPEND SOURCE_FILES Quad.h Quad.cc)
 list(APPEND SOURCE_FILES Renderer.h Renderer.cc)
 list(APPEND SOURCE_FILES material.h)
-list(APPEND SOURCE_FILES ../../include/rainy.h common.h)
+list(APPEND SOURCE_FILES ../../include/spica.h common.h)
 
-add_library(rainy_renderer SHARED ${SOURCE_FILES})
+add_library(spica_renderer SHARED ${SOURCE_FILES})

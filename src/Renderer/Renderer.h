@@ -18,7 +18,7 @@
 #include "Random.h"
 #include "material.h"
 
-namespace rainy {
+namespace spica {
 
     class RAINY_RENDERER_DLL Renderer {
     private:

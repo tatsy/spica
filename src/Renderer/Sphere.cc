@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-namespace rainy {
+namespace spica {
 
     Sphere::Sphere()
         : Primitive()
@@ -64,4 +64,4 @@ namespace rainy {
         return true;
     }
 
-}  // namespace rainy
+}  // namespace spica

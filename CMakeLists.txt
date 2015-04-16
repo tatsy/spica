@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.4)
-project(Rainy)
+project(spica)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")

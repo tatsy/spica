@@ -11,7 +11,7 @@
     #define RAINY_VECTOR3_DLL
 #endif
 
-namespace rainy {
+namespace spica {
 
     class RAINY_VECTOR3_DLL Vector3 {
     private:
@@ -42,12 +42,12 @@ namespace rainy {
         double z() const;
     };  // class Vector3
 
-}  // namespace rainy
+}  // namespace spica
 
-RAINY_VECTOR3_DLL rainy::Vector3 operator+(const rainy::Vector3& v1, const rainy::Vector3& v2);
-RAINY_VECTOR3_DLL rainy::Vector3 operator-(const rainy::Vector3& v1, const rainy::Vector3& v2);
-RAINY_VECTOR3_DLL rainy::Vector3 operator*(const rainy::Vector3& v, double s);
-RAINY_VECTOR3_DLL rainy::Vector3 operator*(double s, const rainy::Vector3& v);
-RAINY_VECTOR3_DLL rainy::Vector3 operator/(const rainy::Vector3& v, double s);
+RAINY_VECTOR3_DLL spica::Vector3 operator+(const spica::Vector3& v1, const spica::Vector3& v2);
+RAINY_VECTOR3_DLL spica::Vector3 operator-(const spica::Vector3& v1, const spica::Vector3& v2);
+RAINY_VECTOR3_DLL spica::Vector3 operator*(const spica::Vector3& v, double s);
+RAINY_VECTOR3_DLL spica::Vector3 operator*(double s, const spica::Vector3& v);
+RAINY_VECTOR3_DLL spica::Vector3 operator/(const spica::Vector3& v, double s);
 
 #endif  // RAINY_VECTOR3_H_

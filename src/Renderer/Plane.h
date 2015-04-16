@@ -13,7 +13,7 @@
 
 #include "Primitive.h"
 
-namespace rainy {
+namespace spica {
 
     class RAINY_PLANE_DLL Plane : public Primitive {
     private:

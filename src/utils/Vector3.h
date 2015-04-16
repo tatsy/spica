@@ -14,7 +14,7 @@
 namespace spica {
 
     class SPICA_VECTOR3_DLL Vector3 {
-    private:
+    protected:
         double _x, _y, _z;
 
     public:

@@ -12,19 +12,22 @@
 #endif
 
 #include "Scene.h"
+#include "../utils/Random.h"
 
 namespace spica {
 
     class SPICA_RENDERER_BASE_DLL RendererBase {
     protected:
-        static const Color backgroundColor;
-        static const int   maxDepth;
-        static const int   depthLimit;
+        static const Color  backgroundColor;
+        static const int    maxDepth;
+        static const int    depthLimit;
+        static const Random rng;
 
         int _width;
         int _height;
         int _samplePerPixel;
         int _supsamplePerAxis;
+        
 
     public:
         explicit RendererBase(int width = 512, int height = 512, int samples = 4, int supsamples = 2);

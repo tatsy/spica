@@ -29,7 +29,7 @@ after_success:
   - lcov --directory . --capture --output-file coverage.info
   - lcov --remove coverage.info 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
   - lcov --list coverage.info
-  - coveralls-lcov --repo-token punfgYjHqV4P4flVjRVMnSk45TFIxeull coverage.info
+  - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
   - ./build/bin/simplept
   - sh ./update-gh-pages.sh
 notifications:

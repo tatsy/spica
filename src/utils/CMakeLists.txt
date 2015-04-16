@@ -1,5 +1,7 @@
 set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/Vector3.cc
+    ${CMAKE_CURRENT_LIST_DIR}/Color.cc
+    ${CMAKE_CURRENT_LIST_DIR}/Image.cc
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
@@ -7,4 +9,6 @@ set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/Random.h
     ${CMAKE_CURRENT_LIST_DIR}/Random_detail.h
     ${CMAKE_CURRENT_LIST_DIR}/Vector3.h
+    ${CMAKE_CURRENT_LIST_DIR}/Color.h
+    ${CMAKE_CURRENT_LIST_DIR}/Image.h
     PARENT_SCOPE)

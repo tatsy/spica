@@ -37,7 +37,7 @@ namespace spica {
         int render(const Scene& scene);
 
     private:
-        static Color radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth);
+        static Color radiance(const Scene& scene, const Ray& ray, const int depth);
         static void savePPM(std::string filename, Color* image, int width, int height);
     };
 

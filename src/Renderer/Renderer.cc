@@ -7,6 +7,7 @@
 
 #include "../utils/common.h"
 #include "../utils/Vector3.h"
+#include "../utils/Image.h"
 #include "material.h"
 #include "Scene.h"
 
@@ -59,9 +60,8 @@ namespace spica {
         const Vector3 screenY = screenX.cross(cameraDir).normalize() * screenHeight;
         const Vector3 scrrenCenter = cameraPos + cameraDir * distToScreen;
 
-        Color* image = new Color[_width * _height];
+        Image image = Image(_width, _height);
 
-        Random rng = Random::getRNG();
         ompfor (int y = 0; y < _height; y++) {
             std::cout << "Row: " << y << " is processing..." << std::endl;
 
@@ -77,21 +77,20 @@ namespace spica {
                             const Vector3 screenPos = scrrenCenter + screenX * ((rx + x) / _width - 0.5) + screenY * ((ry + y) / _height - 0.5);
                             const Vector3 rayDirection = (screenPos - cameraPos).normalize();
                         
-                            accum += radiance(scene, Ray(cameraPos, rayDirection), rng, 0) / (_samplePerPixel * _supsamplePerAxis * _supsamplePerAxis);
+                            accum += radiance(scene, Ray(cameraPos, rayDirection), 0) / (_samplePerPixel * _supsamplePerAxis * _supsamplePerAxis);
                         }
-                        image[pixelIndex] += accum;
+                        image.pixel(x, y) += accum;
                     }
                 }
             }
         }
 
-        savePPM("simplept.ppm", image, _width, _height);
-        delete[] image;
+        image.savePPM("simplept.ppm");
 
         return 0;
     }
 
-    Color Renderer::radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth) {
+    Color Renderer::radiance(const Scene& scene, const Ray& ray, const int depth) {
         Intersection intersection;
 
         // NOT intersect the scene
@@ -136,12 +135,12 @@ namespace spica {
             const double r2s = sqrt(r2);
             Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalize();
 
-            incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
+            incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), depth + 1);
             weight = currentObj->color() / rouletteProb;
 
         } else if (currentObj->reftype() == REFLECTION_SPECULAR) {
             Vector3 nextDir = ray.direction() - (2.0 * hitpoint.normal().dot(ray.direction())) * hitpoint.normal();
-            incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
+            incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), depth + 1);
             weight = currentObj->color() / rouletteProb;
 
         } else if (currentObj->reftype() == REFLECTION_REFRACTION) {
@@ -159,7 +158,7 @@ namespace spica {
             const double cos2t = 1.0 - nnt * nnt * (1.0  - ddn * ddn);
 
             if (cos2t < 0.0) { // Total reflection
-                incomingRad = radiance(scene, reflectRay, rng, depth + 1);
+                incomingRad = radiance(scene, reflectRay, depth + 1);
                 weight += currentObj->color() / rouletteProb;
             } else {
                 Vector3 refractDir = (ray.direction() * nnt - hitpoint.normal() * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalize();
@@ -178,14 +177,14 @@ namespace spica {
                 const double prob = 0.25 + 0.5 * Re;
                 if (depth > 2) {
                     if (rng.randReal() < prob) {
-                        incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re;
+                        incomingRad = radiance(scene, reflectRay, depth + 1) * Re;
                         weight = currentObj->color() / (prob * rouletteProb);
                     } else {
-                        incomingRad = radiance(scene, refractRay, rng, depth + 1) * Tr;
+                        incomingRad = radiance(scene, refractRay, depth + 1) * Tr;
                         weight = currentObj->color() / ((1.0 - prob) * rouletteProb);
                     }
                 } else {
-                    incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re + radiance(scene, refractRay, rng, depth + 1) * Tr;
+                    incomingRad = radiance(scene, reflectRay, depth + 1) * Re + radiance(scene, refractRay, depth + 1) * Tr;
                     weight = currentObj->color() / rouletteProb;
                 }
             }
@@ -195,16 +194,5 @@ namespace spica {
     }
 
     void Renderer::savePPM(std::string filename, Color* image, int width, int height) {
-        std::ofstream ofs(filename.c_str(), std::ios::out);
-        ofs << "P3" << std::endl;
-        ofs << width << " " << height << " 255" << std::endl;
-
-        for (int i = 0; i < width * height; i++) {
-            int r = (int)(255.0 * std::max(0.0, std::min(image[i].x(), 1.0)));
-            int g = (int)(255.0 * std::max(0.0, std::min(image[i].y(), 1.0)));
-            int b = (int)(255.0 * std::max(0.0, std::min(image[i].z(), 1.0)));
-            ofs << r << " " << g << " " << b << std::endl;
-        }
-        ofs.close();
     }
 }

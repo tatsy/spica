@@ -23,20 +23,23 @@ namespace spica {
     private:
         unsigned int _nPrimitives;
         unsigned int _arraySize;
+        int _lightId;
         Primitive** _primitives;
 
     public:
         Scene();
         ~Scene();
 
-        void addPlane(const Plane& plane);
-        void addSphere(const Sphere& sphere);
+        void addPlane(const Plane& plane, bool isLight = false);
+        void addSphere(const Sphere& sphere, bool isLight = false);
 
         const Primitive* getObjectPtr(int id) const;
 
         void release();
 
         bool intersect(const Ray& ray, Intersection& intersection) const;
+
+        inline int lightId() const { return _lightId; }
 
     private:
         Scene(const Scene& scene);

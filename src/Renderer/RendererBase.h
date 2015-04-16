@@ -11,8 +11,8 @@
     #define SPICA_RENDERER_BASE_DLL
 #endif
 
-#include "Scene.h"
 #include "../utils/Random.h"
+#include "Scene.h"
 
 namespace spica {
 
@@ -27,7 +27,6 @@ namespace spica {
         int _height;
         int _samplePerPixel;
         int _supsamplePerAxis;
-        
 
     public:
         explicit RendererBase(int width = 512, int height = 512, int samples = 4, int supsamples = 2);

@@ -6,7 +6,7 @@ namespace spica {
     const Color  RendererBase::backgroundColor = Color();
     const int    RendererBase::maxDepth        = 5;
     const int    RendererBase::depthLimit      = 64;
-    const Random RendererBase::rng = Random::getRNG();
+    const Random RendererBase::rng             = Random::getRNG();
 
     RendererBase::RendererBase(int width, int height, int samples, int supsamples)
         : _width(width)

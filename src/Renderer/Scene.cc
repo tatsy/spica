@@ -8,7 +8,6 @@ namespace spica {
     Scene::Scene()
         : _nPrimitives(0)
         , _arraySize(1024)
-        , _lightId(-1)
         , _primitives(0)
     {
         _primitives = new Primitive*[_arraySize];

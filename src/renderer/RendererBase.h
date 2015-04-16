@@ -11,15 +11,17 @@
     #define SPICA_RENDERER_BASE_DLL
 #endif
 
+#include "../utils/Random.h"
 #include "Scene.h"
 
 namespace spica {
 
     class SPICA_RENDERER_BASE_DLL RendererBase {
     protected:
-        static const Color backgroundColor;
-        static const int   maxDepth;
-        static const int   depthLimit;
+        static const Color  backgroundColor;
+        static const int    maxDepth;
+        static const int    depthLimit;
+        static const Random rng;
 
         int _width;
         int _height;

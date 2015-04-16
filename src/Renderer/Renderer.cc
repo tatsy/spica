@@ -7,7 +7,6 @@
 
 #include "../utils/common.h"
 #include "../utils/Vector3.h"
-#include "../utils/Image.h"
 #include "material.h"
 #include "Scene.h"
 
@@ -60,7 +59,7 @@ namespace spica {
         const Vector3 screenY = screenX.cross(cameraDir).normalize() * screenHeight;
         const Vector3 scrrenCenter = cameraPos + cameraDir * distToScreen;
 
-        Image image = Image(_width, _height);
+        Color* image = new Color[_width * _height];
 
         ompfor (int y = 0; y < _height; y++) {
             std::cout << "Row: " << y << " is processing..." << std::endl;
@@ -79,13 +78,14 @@ namespace spica {
                         
                             accum += radiance(scene, Ray(cameraPos, rayDirection), 0) / (_samplePerPixel * _supsamplePerAxis * _supsamplePerAxis);
                         }
-                        image.pixel(x, y) += accum;
+                        image[pixelIndex] += accum;
                     }
                 }
             }
         }
 
-        image.savePPM("simplept.ppm");
+        savePPM("simplept.ppm", image, _width, _height);
+        delete[] image;
 
         return 0;
     }
@@ -194,5 +194,16 @@ namespace spica {
     }
 
     void Renderer::savePPM(std::string filename, Color* image, int width, int height) {
+        std::ofstream ofs(filename.c_str(), std::ios::out);
+        ofs << "P3" << std::endl;
+        ofs << width << " " << height << " 255" << std::endl;
+
+        for (int i = 0; i < width * height; i++) {
+            int r = (int)(255.0 * std::max(0.0, std::min(image[i].x(), 1.0)));
+            int g = (int)(255.0 * std::max(0.0, std::min(image[i].y(), 1.0)));
+            int b = (int)(255.0 * std::max(0.0, std::min(image[i].z(), 1.0)));
+            ofs << r << " " << g << " " << b << std::endl;
+        }
+        ofs.close();
     }
 }

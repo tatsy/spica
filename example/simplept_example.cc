@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     scene.addSphere(Sphere(16.5,  Vector3(77.0, 16.5, 78),            Color(),           Color(0.99, 0.99, 0.99), REFLECTION_REFRACTION));     // Glass ball
     scene.addSphere(Sphere(15.0,  Vector3(50.0, 90.0, 81.6),          Color(36, 36, 36), Color(),                 REFLECTION_DIFFUSE), true);  // Light
 
-    Renderer renderer(128, 128, 8, 4);
+    Renderer renderer(256, 256, 4, 2);
     renderer.render(scene);
 
     return 0;

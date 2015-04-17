@@ -111,6 +111,7 @@ namespace spica {
         // Image size
         unsigned int _width;
         unsigned int _height;
+        double _distSensorToLens;
 
         ImageSensor _sensor;
         Lens _lens;
@@ -126,7 +127,15 @@ namespace spica {
 
         Camera& operator=(const Camera& camera);
 
-        bool intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positonOnObjplane, Vector3& positionOnSensor, double& distance);
+        bool intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positonOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const;
+
+        double contribSensitivity(const Vector3& x0xV, const Vector3& x0xI, const Vector3& x0x1) const;
+
+        inline unsigned int imageWidth() const { return _width; }
+        inline unsigned int imageHeight() const { return _height; }
+        inline const ImageSensor& sensor() const { return _sensor; }
+
+        
     };
 
 }

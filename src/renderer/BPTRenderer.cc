@@ -1,11 +1,45 @@
 #define SPICA_BPT_RENDERER_EXPORT
 #include "BPTRenderer.h"
 
+#include <vector>
 #include <algorithm>
+
+#include "Camera.h"
 
 namespace spica {
 
     namespace {
+
+        struct Vertex {
+            double totalPdfA;
+            Color throughput;
+            Vector3 position;
+            int objectId;
+            Vector3 orientNormal;
+            Vector3 objectNormal;
+
+            enum ObjectType {
+                OBJECT_TYPE_LIGHT,
+                OBJECT_TYPE_LENS,
+                OBJECT_TYPE_DIFFUSE,
+                OBJECT_TYPE_SPECULAR,
+            };
+
+            ObjectType objtype;
+
+            Vertex(const Vector3& position_, const Vector3 & orientNormal_, const Vector3& objectNormal_,
+                   const int objectId_, const ObjectType objtype_, const double totalPdfA_, const Color& throughput_)
+                : totalPdfA(totalPdfA_)
+                , throughput(throughput_)
+                , position(position_)
+                , objectId(objectId_)
+                , orientNormal(orientNormal_)
+                , objectNormal(objectNormal_)
+                , objtype(objtype_)
+            {
+            }
+        };
+
         double sample_hemisphere_pdf_omega(const Vector3& normal, const Vector3& direction) {
             return std::max(normal.dot(direction), 0.0) / PI;
         }
@@ -44,7 +78,147 @@ namespace spica {
 
             return R * Vector3(sz * cos(phi), sz * sin(phi), z);
         }
-    }
+
+        void executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
+            // Generate sample on the light
+            double pdfAreaOnLight = 1.0;
+
+            const int lightId = scene.lightId();
+            const Sphere* lightSphere = reinterpret_cast<const Sphere*>(scene.getObjectPtr(lightId));
+
+            const Vector3 positionOnLight = lightSphere->center() + sample_sphere(lightSphere->radius(), rng, pdfAreaOnLight);
+            const Vector3 normalOnLight = (positionOnLight - lightSphere->center()).normalize();
+            double totalPdfArea = pdfAreaOnLight;
+
+            vertices.push_back(Vertex(positionOnLight, normalOnLight, normalOnLight, lightId, Vertex::OBJECT_TYPE_LIGHT, totalPdfArea, Color(0, 0, 0));
+
+            Color throughputMC = lightSphere->emission();
+
+            double nowSampledPdfOmega;
+            const Vector3 nextDir = sample_hemisphere_cos_term(normalOnLight, rng, nowSampledPdfOmega);
+
+            Ray nowRay(positionOnLight, nextDir);
+            Vector3 prevNormal = normalOnLight;
+
+            for (;;) {
+                Intersection intersection;
+                const bool isHitScene = scene.intersect(nowRay, intersection);
+
+                Vector3 positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor;
+                double lensT = camera.intersectLens(nowRay, positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor);
+                if (EPS < lensT && lensT < intersection.hitPoint().distance()) {
+                    const Vector3 x0xI = positionOnSensor - positionOnLens;
+                    const Vector3 x0xV = positionOnObjplane - positionOnLens;
+                    const Vector3 x0x1 = nowRay.origin() - positionOnLens;
+
+                    int x = (int)uvOnSensor.x();
+                    int y = (int)uvOnSensor.y();
+                    x = x < 0 ? 0 : x >= camera.imageWidth() ? camera.imageWidth() - 1 : x;
+                    y = y < 0 ? 0 : y >= camera.imageHeight() ? camera.imageHeight() - 1 : y;
+
+                    const double nowSamplePdfArea = nowSampledPdfOmega * (x0x1.normalize().dot(camera.sensor().direction().normalize()) / x0x1.dot(x0x1));
+                    totalPdfArea *= nowSamplePdfArea;
+
+                    // Geometry term
+                    const double G = x0x1.normalize().dot(camera.sensor().direction().normalize()) * (-1.0) * (x0x1.normalize().dot(prevNormal) / x0x1.dot(x0x1));
+
+                    vertices.push_back(Vertex(positionOnLens, camera.sensor().direction().normalize(), camera.sensor().direction().normalize(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfArea, throughputMC));
+                
+                    const Color result = (camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfArea;
+                    return LightTracingResult(result, x, y, true);
+                }
+
+                if (!isHitScene) {
+                    break;
+                }
+
+                const Primitive* currentObj = scene.getObjectPtr(intersection.objectId);
+                const HitPoint& hitpoint = intersection.hitPoint();
+
+                const Vector3 orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -1.0 * hitpoint.normal();
+                const double rouletteProb = currentObj->emission().norm() > 1.0 ? 1.0 : std::max(currentObj->emission().x(), std::max(currentObj->emission().y(), currentObj->emission().z()));
+                
+                if (rng.randReal() >= rouletteProb) {
+                    break;
+                }
+
+                totalPdfArea *= rouletteProb;
+
+                const Vector3 toNextVertex = nowRay.origin() - hitpoint.position();
+                const double nowSampledPdfArea = nowSampledPdfOmega * (toNextVertex.normalize().dot(orientNormal) / toNextVertex.dot(toNextVertex));
+                totalPdfArea *= rouletteProb;
+
+                const double G = toNextVertex.normalize().dot(orientNormal) * (-1.0 * toNextVertex).normalize().dot(prevNormal) / toNextVertex.dot(toNextVertex);
+                throughputMC = G * throughputMC;
+
+                vertices.push_back(Vertex(hitpoint.position, orientNormal, hitpoint.normal(), intersection.objectId(),
+                                          currentObj->reftype() == REFLECTION_DIFFUSE ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
+                                          totalPdfArea, throughputMC));
+
+                if (currentObj->reftype() == REFLECTION_DIFFUSE) {
+                    const Vector3 nextDir = sample_hemisphere_cos_term(orientNormal, rng, nowSampledPdfOmega);
+                    nowRay = Ray(hitpoint.position(), nextDir);
+                    throughputMC = currentObj->color().cwiseMultiply(throughputMC) / PI;
+
+                } else if (currentObj->reftype() == REFLECTION_SPECULAR) {
+                    nowSampledPdfOmega = 1.0;
+                    const Vector3 nextDir = nowRay.direction() - (2.0 * hitpoint.normal().dot(nowRay.direction())) * hitpoint.normal();
+                    nowRay = Ray(hitpoint.position(), nextDir);
+                    throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
+                } else if (currentObj->reftype() == REFLECTION_REFRACTION) {
+                    Vector3 reflectDir = nowRay.direction() - (2.0 * hitpoint.normal().dot(nowRay.direction())) * hitpoint.normal();
+                    const Ray reflectRay = Ray(hitpoint.position(), reflectDir);
+
+                    // Incoming or outgoing
+                    const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
+
+                    // Snell's rule
+                    const double nc = 1.0;
+                    const double nt = indexOfRef;
+                    const double nnt = isIncoming ? nc / nt : nt / nc;
+                    const double ddn = nowRay.direction().dot(orientNormal);
+                    const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
+
+                    if (cos2t < 0.0) { // Total reflection
+                        nowSampledPdfOmega = 1.0;
+                        nowRay = Ray(hitpoint.position(), reflectDir);
+                        throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
+                    } else {
+                        Vector3 refractDir = (nowRay.direction() * nnt - hitpoint.normal() * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalize();
+                        const Ray refractRay = Ray(hitpoint.position(), refractDir);
+
+                        // Schlick's approximation of Fresnel coefficient
+                        const double a = nt - nc;
+                        const double b = nt + nc;
+                        const double R0 = (a * a) / (b * b);
+
+                        const double c = 1.0 - (isIncoming ? -ddn : -refractDir.dot(orientNormal));
+                        const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
+                        const double nnt2 = pow(isIncoming ? nc / nt : nt / nc, 2.0);
+                        const double Tr = (1.0 - Re) * nnt2;
+
+                        const double prob = 0.25 + 0.5 * Re;
+                        if (rng.randReal() < prob) { // Reflect
+                            nowSampledPdfOmega = 1.0;
+                            nowRay = Ray(hitpoint.position(), reflectDir);
+                            throughputMC = Re * currentObj->color().cwiseMultiply(throughputMC) / toNextVertex.normalize().dot(orientNormal);
+                            totalPdfArea *= Re;
+                        } else { // Refract
+                            nowSampledPdfOmega = 1.0;
+                            nowRay = Ray(hitpoint.position(), refractDir);
+                            throughputMC = Tr * currentObj->color().cwiseMultiply(throughputMC) / toNextVertex.normalize().dot(orientNormal);
+                        }
+                    }
+                }
+                prevNormal = orientNormal;
+            }
+        }
+
+        void executePathTracing(const Scene& scene, const Camera& camera, int x, int y, const Random& rng, std::vector<Vertex>& vertices) {
+
+        }
+
+    }  // unnamed namespace
     
     BPTRenderer::BPTRenderer(int width, int height, int samples, int supsamples)
         : RendererBase(width, height, samples, supsamples)
@@ -78,39 +252,5 @@ namespace spica {
 
     void BPTRenderer::executeBPT(const Scene& scene, int x, int y) {
 
-    }
-
-    void BPTRenderer::executeLightTracing(const Scene& scene, int x, int y) {
-        // Generate sample on the light
-        double pdfOnLight = 1.0;
-
-        const Sphere* lightSphere = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightId()));
-
-        double randZ = rng.randReal();
-        double randSZ = sqrt(1.0 - randZ * randZ);
-        double randPhi = rng.randReal() * 2.0 * PI;
-
-        const Vector3 positionOnLight = lightSphere->center() + sample_sphere(lightSphere->radius(), rng, pdfOnLight);
-        const Vector3 normalOnLight = (positionOnLight - lightSphere->center()).normalize();
-        double totalPdf = pdfOnLight;
-
-        Color throughputMC = lightSphere->emission();
-
-        double nowSampledPdfOmega;
-        const Vector3 nextDir = sample_hemisphere_cos_term(normalOnLight, rng, nowSampledPdfOmega);
-
-        Ray nowRay(positionOnLight, nextDir);
-        Vector3 prevNormal = normalOnLight;
-
-        for (;;) {
-            Intersection intersection;
-            const bool isHitScene = scene.intersect(nowRay, intersection);
-
-            // Check if ray hits lens
-
-        }
-    }
-
-    void BPTRenderer::executePathTracing(const Scene& scene, int x, int y) {
     }
 }

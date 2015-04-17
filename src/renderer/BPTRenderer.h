@@ -28,9 +28,6 @@ namespace spica {
 
     private:
         void executeBPT(const Scene& scene, int x, int y);
-
-        void executeLightTracing(const Scene& scene, int x, int y);
-        void executePathTracing(const Scene& scene, int x, int y);
     };
 
 }

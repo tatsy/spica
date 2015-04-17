@@ -160,6 +160,7 @@ namespace spica {
     Camera::Camera()
         : _width(0)
         , _height(0)
+        , _distSensorToLens(0.0)
         , _sensor()
         , _lens()
         , _objplane()
@@ -170,6 +171,7 @@ namespace spica {
                    double distSensorToLens, double focalLength, double lensRadius, double sensorSensitivity)
         : _width(imageWidth)
         , _height(imageHeight)
+        , _distSensorToLens(distSensorToLens)
         , _sensor()
         , _lens()
         , _objplane()
@@ -201,6 +203,7 @@ namespace spica {
     Camera::Camera(const Camera& camera)
         : _width(camera._width)
         , _height(camera._height)
+        , _distSensorToLens(camera._distSensorToLens)
         , _sensor(camera._sensor)
         , _lens(camera._lens)
         , _objplane(camera._objplane)
@@ -214,14 +217,23 @@ namespace spica {
     Camera& Camera::operator=(const Camera& camera) {
         this->_width = camera._width;
         this->_height = camera._height;
+        this->_distSensorToLens = camera._distSensorToLens;
         this->_sensor = camera._sensor;
         this->_lens = camera._lens;
         this->_objplane = camera._objplane;
         return *this;
     }
 
-    bool Camera::intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positionOnObjplane, Vector3& positionOnSensor, double& distance) {
+    bool Camera::intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positionOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const {
+        msg_assert(false, "Not implemented");
         return false;    
+    }
+
+    double Camera::contribSensitivity(const Vector3& x0xV, const Vector3& x0xI, const Vector3& x0x1) const {
+        double lengthRatio = x0xV.dot(x0xV) / x0xI.dot(x0xI);
+        double a = _distSensorToLens * (x0xI.normalize().dot(-1.0 * _sensor._direction.normalize()));
+        double b = _lens._focalLength * (x0x1.normalize().dot(_sensor._direction.normalize()));
+        return _sensor._sensitivity * lengthRatio * pow(a / b, 2.0); 
     }
 }
 

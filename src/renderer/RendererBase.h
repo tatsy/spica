@@ -35,7 +35,7 @@ namespace spica {
 
         RendererBase& operator=(const RendererBase& renderer);
         
-        virtual int render(const Scene& scene) = 0;
+        //virtual int render(const Scene& scene); // = 0;
     };
 
 }

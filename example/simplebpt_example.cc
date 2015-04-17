@@ -4,7 +4,7 @@
 using namespace spica;
 
 int main(int argc, char **argv) {
-    std::cout << "Path tracing" << std::endl << std::endl;
+    std::cout << "Bidirectional path tracing" << std::endl << std::endl;
 
     Scene scene;
     scene.addSphere(Sphere(1.0e5, Vector3(1.0e5 + 1.0, 40.8, 81.6),   Color(),           Color(0.75, 0.25, 0.25), REFLECTION_DIFFUSE));        // Left wall (red)
@@ -18,8 +18,18 @@ int main(int argc, char **argv) {
     scene.addSphere(Sphere(16.5,  Vector3(77.0, 16.5, 78),            Color(),           Color(0.99, 0.99, 0.99), REFLECTION_REFRACTION));     // Glass ball
     scene.addSphere(Sphere( 7.5,  Vector3(50.0, 72.5, 81.6),          Color(16, 16, 16), Color(),                 REFLECTION_DIFFUSE), true);  // Light
 
-    Renderer renderer(256, 256, 4, 2);
-    renderer.render(scene);
+    Camera camera(200, 200, 
+                  Vector3(50.0, 40.8, 220.0),
+                  Vector3(0.0, 0.0, -1.0),
+                  Vector3(0.0, 1.0, 0.0),
+                  30.0,
+                  30.0,
+                  140.0,
+                  5.0,
+                  28.0);
+
+    BPTRenderer renderer(200, 200, 10, 2);
+    renderer.render(scene, camera);
 
     return 0;
 }

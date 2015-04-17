@@ -323,6 +323,7 @@ namespace spica {
 
                     // Geometry term
                     const double G = x0x1.normalize().dot(camera.sensor().direction().normalize()) * (-1.0) * (x0x1.normalize().dot(prevNormal) / x0x1.dot(x0x1));
+
                     vertices.push_back(Vertex(positionOnLens, camera.sensor().direction().normalize(), camera.sensor().direction().normalize(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfArea, throughputMC));
                 
                     const Color result = (camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfArea;
@@ -424,7 +425,6 @@ namespace spica {
             camera.samplePoints(x, y, rng, positionOnSensor, positionOnObjplane, positionOnLens, PImage, PLens);
 
             double totalPdfA = PLens;
-
             Color throughputMC = Color(1.0, 1.0, 1.0);
 
             vertices.push_back(Vertex(positionOnLens, camera.lens().normal(), camera.lens().normal(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
@@ -584,8 +584,8 @@ namespace spica {
                     int targetY = y;
                     const Vertex& eyeEnd = eyeVerts[eyeVertId - 1];
                     const Vertex& lightEnd = lightVerts[lightVertId - 1];
-                    //std::cout << "  eye: " << eyeVerts[eyeVertId-1].throughput << std::endl;
-                    //std::cout << "light: " << lightVerts[lightVertId-1].throughput << std::endl;
+                    std::cout << "eye: " << eyeVerts[eyeVertId-1].throughput << std::endl;
+                    std::cout << "eye: " << eyeVerts[eyeVertId-1].throughput << endl;
 
                     const double totalPdfA = eyeEnd.totalPdfA * lightEnd.totalPdfA;
                     if (totalPdfA == 0.0) {

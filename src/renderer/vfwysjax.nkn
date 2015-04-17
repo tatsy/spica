@@ -470,6 +470,8 @@ namespace spica {
                 if (currentObj->emission().norm() > 0.0) {
                     vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughputMC));
                     const Color result = throughputMC.cwiseMultiply(currentObj->emission()) / totalPdfA;
+                    //printf("totalPdfA = %f\n", totalPdfA);
+                    //std::cout << "hogehoge: " << result << std::endl;
                     return PathTracingResult(result, x, y, true);
                 }
 

@@ -8,5 +8,7 @@
 #include "../src/geometry/Sphere.h"
 #include "../src/renderer/Renderer.h"
 #include "../src/renderer/Scene.h"
+#include "../src/renderer/Camera.h"
+#include "../src/renderer/BPTRenderer.h"
 
 #endif  // SPICA_H_

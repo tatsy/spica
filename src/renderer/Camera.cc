@@ -193,9 +193,11 @@ namespace spica {
         _objplane = ObjectPlane(objplaneCenter, _sensor._u, _sensor._v);
 
         _lens._radius = lensRadius;
+        _lens._focalLength = focalLength;
         _lens._center = sensorCenter + distSensorToLens * sensorDir;
         _lens._u = lensRadius * _sensor._u.normalize();
         _lens._v = lensRadius * _sensor._v.normalize();
+        _lens._normal = sensorDir.normalize();
 
         _sensor._sensitivity = sensorSensitivity / (_sensor._pixelWidth * _sensor._pixelHeight);
     }

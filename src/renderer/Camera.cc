@@ -230,7 +230,7 @@ namespace spica {
         double ratio = _distSensorToLens / _lens._focalLength;
         double lengthRatio = x0xV.dot(x0xV) / x0x1.dot(x0x1);
         double dirRatio = (-1.0 * x0x1).normalize().dot(orientNormal) / x0x1.normalize().dot(_sensor._direction);
-        return ratio * ratio * lengthRatio * dirRatio;
+        return PImage * ratio * ratio * lengthRatio * dirRatio;
     }
 
     double Camera::samplingPdfOnLens() const {

@@ -26,6 +26,10 @@ namespace spica {
         BPTRenderer& operator=(const BPTRenderer& renderer);
 
         int render(const Scene& scene, const Camera& camera);
+
+        int renderPT(const Scene& scene, const Camera& camera);
+
+        int renderLT(const Scene& scene, const Camera& camera);
     };
 
 }

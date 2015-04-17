@@ -284,13 +284,13 @@ namespace spica {
 
         LightTracingResult executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
             // Generate sample on the light
-            double pdfAreaOnLight = 1.0;
-
+            double pdfAreaOnLight;
             const int lightId = scene.lightId();
             const Sphere* lightSphere = reinterpret_cast<const Sphere*>(scene.getObjectPtr(lightId));
 
             const Vector3 positionOnLight = lightSphere->center() + sample_sphere(lightSphere->radius(), rng, pdfAreaOnLight);
             const Vector3 normalOnLight = (positionOnLight - lightSphere->center()).normalize();
+
             double totalPdfA = pdfAreaOnLight;
 
             vertices.push_back(Vertex(positionOnLight, normalOnLight, normalOnLight, lightId, Vertex::OBJECT_TYPE_LIGHT, totalPdfA, Color(0, 0, 0)));
@@ -348,7 +348,7 @@ namespace spica {
 
                 const Vector3 toNextVertex = nowRay.origin() - hitpoint.position();
                 const double nowSampledPdfArea = nowSampledPdfOmega * (toNextVertex.normalize().dot(orientNormal) / toNextVertex.dot(toNextVertex));
-                totalPdfA *= rouletteProb;
+                totalPdfA *= nowSampledPdfArea;
 
                 const double G = toNextVertex.normalize().dot(orientNormal) * (-1.0 * toNextVertex).normalize().dot(prevNormal) / toNextVertex.dot(toNextVertex);
                 throughputMC = G * throughputMC;
@@ -616,7 +616,6 @@ namespace spica {
 
                     const double weightMIS = calcMISWeight(scene, camera, totalPdfA, eyeVerts, lightVerts, eyeVertId, lightVertId);
                     if (isnan(weightMIS)) {
-                        printf("MIS = %f\n", weightMIS);
                         continue;
                     }
 
@@ -686,10 +685,77 @@ namespace spica {
             }
         }
 
-        image.savePPM("simplebpt.ppm");
+        Image output(_width, _height);
+        for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _width; x++) {
+                output.pixel(x, y) = image.pixel(_width - x - 1, y) / _samplePerPixel;
+            }
+        }
+
+        output.savePPM("simplebpt.ppm");
         return 0;
     }
 
+    int BPTRenderer::renderPT(const Scene& scene, const Camera& camera) {
+        const int width = camera.imageWidth();
+        const int height = camera.imageHeight();
+        const int spp = _samplePerPixel;
 
+        Image image(width, height);
+        for (int sample = 0; sample < spp; sample++) {
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    std::vector<Vertex> vertices;
+                    const PathTracingResult result = executePathTracing(scene, camera, x, y, rng, vertices);
 
+                    if (result.isLightHit) {
+                        if (isValidValue(result.value)) {
+                            image.pixel(x, y) += result.value;
+                        }
+                    }
+                }
+            }
+        }
+
+        Image output(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                output.pixel(x, y) = image.pixel(width - x - 1, y) / spp;
+            }
+        }
+
+        output.savePPM("simplebt1.ppm");
+        return 0;
+    }
+
+    int BPTRenderer::renderLT(const Scene& scene, const Camera& camera) {
+        const int width = camera.imageWidth();
+        const int height = camera.imageHeight();
+        const int spp = _samplePerPixel * width * height;
+
+        Image image(width, height);
+
+        for (int sample = 0; sample < spp; sample++) {
+            std::vector<Vertex> vertices;
+            LightTracingResult result = executeLightTracing(scene, camera, rng, vertices);
+
+            if (result.isLensHit) {
+                if (isValidValue(result.value)) {
+                    int x = result.imageX;
+                    int y = result.imageY;
+                    image.pixel(x, y) += result.value;
+                }
+            }
+        }
+
+        Image output(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                output.pixel(x, y) = image.pixel(width - x - 1, y) / spp;
+            }
+        }
+
+        output.savePPM("simplelt1.ppm");
+        return 0;
+    }
 }

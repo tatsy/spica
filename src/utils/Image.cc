@@ -68,6 +68,8 @@ namespace spica {
     }
 
     unsigned char Image::toByte(double d) {
-        return (unsigned char)(255.0 * std::max(0.0, std::min(d, 1.0)));
+        static const double invgamma = 1.0 / 2.2;
+        d = std::max(0.0, std::min(d, 1.0));
+        return (unsigned char)(255.0 * pow(d, invgamma));
     }
 }

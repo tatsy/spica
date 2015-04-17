@@ -40,6 +40,11 @@ namespace spica {
         double x() const;
         double y() const;
         double z() const;
+
+        inline void setX(double x) { _x = x; }
+        inline void setY(double y) { _y = y; }
+        inline void setZ(double z) { _z = z; }
+
     };  // class Vector3
 
 }  // namespace spica

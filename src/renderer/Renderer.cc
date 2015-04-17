@@ -90,34 +90,6 @@ namespace spica {
         return 0;
     }
 
-    double Fdr(double eta) {
-        if (eta >= 1.0) {
-            return -1.4399 / (eta * eta) + 0.7099 / eta + 0.6681 + 0.636 * eta;
-        } else {
-            return -0.4399 + 0.7099 / eta - 0.3319 / (eta * eta) + 0.0636 / (eta * eta * eta);
-        }
-    }
-
-    double sssReduct(double r) {
-        static const double sigmap_s = 1.0;
-        static const double sigma_a = 1.0;
-        static const double eta = indexOfRef;
-
-        const double A = (1.0 + Fdr(eta)) / (10 - Fdr(eta));
-        const double sigmap_t = sigma_a + sigmap_s;
-        const double sigma_tr = sqrt(3.0 * sigma_a * sigmap_t);
-        const double alphap = sigmap_s / sigmap_t;
-        const double zpos = 1.0 / sigmap_t;
-        const double zneg = zpos * (1.0 + (4.0 / 3.0) * A);
-
-        const double dpos = sqrt(r * r + zpos * zpos);
-        const double dneg = sqrt(r * r + zneg * zneg);
-        const double t1 = (zpos * (dpos * sigma_tr + 1.0)) * exp(-sigma_tr * dpos) / (dpos * dpos * dpos);
-        const double t2 = (zneg * (dneg * sigma_tr + 1.0)) * exp(-sigma_tr * dneg) / (dneg * dneg * dneg);
-        const double Rd = (1.0 / (4.0 * PI)) * (t1 - t2);
-        return Rd;
-    }
-
     Color Renderer::radiance(const Scene& scene, const Ray& ray, const int depth) {
         Intersection intersection;
 
@@ -179,8 +151,8 @@ namespace spica {
             const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
             // Snell's rule
-            const double nc = 1.0;
-            const double nt = indexOfRef;
+            const double nc = IOR_VACCUM;
+            const double nt = IOR_OBJECT;
             const double nnt = isIncoming ? nc / nt : nt / nc;
             const double ddn = ray.direction().dot(orientNormal);
             const double cos2t = 1.0 - nnt * nnt * (1.0  - ddn * ddn);

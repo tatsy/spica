@@ -231,9 +231,48 @@ namespace spica {
         return ratio * ratio * lengthRatio * dirRatio;
     }
 
-    bool Camera::intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positionOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const {
-        msg_assert(false, "Not implemented");
-        return false;    
+    double Camera::samplingPdfOnLens() const {
+        return 1.0 / (PI * _lens._radius * _lens._radius);
+    }
+
+    double plane_intersection(const Vector3& normal, const Vector3& pos, const Ray& ray) {
+        const double pn = pos.dot(normal);
+        const double on = ray.origin().dot(normal);
+        const double dn = ray.direction().dot(normal);
+
+        if (abs(dn) > EPS) {
+            const double t = (pn - on) / dn;
+            return t;
+        }
+        return -INFTY;
+    }
+
+    double Camera::intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positionOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const {
+        const Vector3 lensNormal = _sensor._direction.normalize();
+        const Vector3 objplaneNormal = lensNormal;
+
+        const double lensT = plane_intersection(lensNormal, _lens._center, ray);
+        if (EPS < lensT) {
+            positionOnLens = ray.origin() + lensT * ray.direction();
+            if ((positionOnLens - _lens._center).norm() < _lens._radius && _lens._normal.dot(ray.direction()) <= 0.0) {
+                const double objplaneT = plane_intersection(objplaneNormal, _objplane._center, ray);
+                positionOnObjplane = ray.origin() + objplaneT * ray.direction();
+                const double uOnObjplane = (positionOnObjplane - _objplane._center).dot(_objplane._u.normalize()) / _objplane._u.norm();
+                const double vOnObjplane = (positionOnObjplane - _objplane._center).dot(_objplane._v.normalize()) / _objplane._v.norm();
+
+                const double ratio = _distSensorToLens / _lens._focalLength;
+                const double uOnSensor = -ratio * uOnObjplane;
+                const double vOnSensor = -ratio * vOnObjplane;
+                positionOnSensor = _sensor._center + uOnSensor * _sensor._u + vOnObjplane * _sensor._v;
+
+                if (-0.5 <= uOnSensor && uOnSensor < 0.5 && -0.5 <= vOnSensor && vOnSensor < 0.5) {
+                    uvOnSensor.setX((uOnSensor + 0.5) * _width);
+                    uvOnSensor.setY((vOnSensor + 0.5) * _height);
+                    return lensT;
+                }
+            }
+        }
+        return -INFTY;
     }
 
     double Camera::contribSensitivity(const Vector3& x0xV, const Vector3& x0xI, const Vector3& x0x1) const {
@@ -242,6 +281,8 @@ namespace spica {
         double b = _lens._focalLength * (x0x1.normalize().dot(_sensor._direction.normalize()));
         return _sensor._sensitivity * lengthRatio * pow(a / b, 2.0); 
     }
+
+
 
     void Camera::samplePoints(const int imageX, const int imageY, const Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const {
         const double uOnPixel = rng.randReal();
@@ -263,7 +304,7 @@ namespace spica {
         positionOnLens = _lens._center + uOnLens * _lens._u + vOnLens * _lens._v;
 
         PImage = 1.0 / (_sensor._pixelWidth * _sensor._pixelHeight);
-        PLens = 1.0 / (PI * _lens._radius * _lens._radius);
+        PLens = samplingPdfOnLens();
     }
 
 }

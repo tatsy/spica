@@ -12,7 +12,10 @@ namespace spica {
         REFLECTION_SUBSURFACE = 0x08,
     };
 
-    const double indexOfRef = 1.5;
+    // const double indexOfRef = 1.5;
+
+    const double IOR_VACCUM = 1.0;
+    const double IOR_OBJECT = 1.5;
 }
 
 #endif

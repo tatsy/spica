@@ -10,6 +10,10 @@ namespace spica {
 
     namespace {
 
+        // --------------------------------------------------
+        // Structs for storing path/light tracing results
+        // --------------------------------------------------
+
         struct LightTracingResult {
             Color value;
             int imageX;
@@ -40,6 +44,9 @@ namespace spica {
             }
         };
 
+
+        /* Struct for storing traced vertices
+         */
         struct Vertex {
             double totalPdfA;
             Color throughput;
@@ -69,6 +76,11 @@ namespace spica {
             {
             }
         };
+
+
+        // --------------------------------------------------
+        // Sample functions
+        // --------------------------------------------------
 
         double sample_hemisphere_pdf_omega(const Vector3& normal, const Vector3& direction) {
             return std::max(normal.dot(direction), 0.0) / PI;
@@ -108,6 +120,166 @@ namespace spica {
 
             return R * Vector3(sz * cos(phi), sz * sin(phi), z);
         }
+
+        // --------------------------------------------------
+        // Specular reflectance model
+        // --------------------------------------------------
+        Vector3 reflectionVec(const Vector3& v, const Vector3& n) {
+            return (v - n * 2.0 * n.dot(v)).normalize();
+        }
+
+        bool isTotalReflection(const bool isIncoming, const Vector3& position, const Vector3& in, const Vector3& normal, const Vector3& orientNormal,
+                               Vector3& reflectDir, Vector3& refractDir, double& fresnelRef, double& fresnelTransmit) {
+            reflectDir = reflectionVec(in, normal);
+
+            // Snell's rule
+            const double nnt = isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM;
+            const double ddn = in.dot(orientNormal);
+            const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
+
+            if (cos2t < 0.0) {  // Total reflection
+                refractDir = Vector3();
+                fresnelRef = 1.0;
+                fresnelTransmit = 0.0;
+                return true;
+            }
+
+            refractDir = (in * nnt - normal * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalize();
+
+            const double a = IOR_OBJECT - IOR_VACCUM;
+            const double b = IOR_OBJECT + IOR_VACCUM;
+            const double R0 = (a * a) / (b * b);
+
+            const double c = 1.0 - (isIncoming ? -ddn : refractDir.dot(-orientNormal));
+            fresnelRef = R0 + (1.0 - R0) * pow(c, 5.0);
+            fresnelTransmit = 1.0 - fresnelRef;
+
+            return false;
+        }
+
+        // --------------------------------------------------
+        // Multiple importance sampling
+        // --------------------------------------------------
+
+        double calcPdfA(const Scene& scene, const Camera& camera, const std::vector<const Vertex*>& verts, const int prevFromIdx, const int fromIdx, const int nextIdx) {
+            static const double reflectProb = 0.5;
+
+            const Vertex& fromVert = *verts[fromIdx];
+            const Vertex& nextVert = *verts[nextIdx];
+            Vertex const* prevFromVertex = NULL;
+            if (0 <= prevFromIdx && prevFromIdx < verts.size()) {
+                prevFromVertex = verts[prevFromIdx];
+            }
+
+            const Vector3 to = nextVert.position - fromVert.position;
+            const Vector3 normalizedTo = to.normalize();
+            double pdf = 0.0;
+
+            if (fromVert.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
+                pdf = sample_hemisphere_pdf_omega(fromVert.orientNormal, normalizedTo);
+            } else if (fromVert.objtype == Vertex::OBJECT_TYPE_LENS) {
+                const Ray testRay(nextVert.position, -normalizedTo);
+                Vector3 positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor;
+                const double lensT = camera.intersectLens(testRay, positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor);
+                if (EPS < lensT) {
+                    const Vector3 x0xI = positionOnSensor - positionOnLens;
+                    const Vector3 x0xV = positionOnObjplane - positionOnLens;
+                    const Vector3 x0x1 = testRay.origin() - positionOnLens;
+
+                    const double PImage = 1.0 / (camera.sensor().width() * camera.sensor().height());
+                    const double PAx1 = camera.PImageToPAx1(PImage, x0xV, x0x1, nextVert.orientNormal);
+                    return 0.0;
+                }
+            } else if (fromVert.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
+                const Primitive* tempObj = scene.getObjectPtr(fromVert.objectId);
+                if (tempObj->reftype() == REFLECTION_SPECULAR) {
+                    if (prevFromVertex != NULL) {
+                        const Vector3 intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalize();
+                        const bool isIncoming = intoFromVertexDir.dot(fromVert.objectNormal) < 0.0;
+                        const Vector3 fromNewOrientNormal = isIncoming ? fromVert.objectNormal : -fromVert.objectNormal;
+
+                        Vector3 reflectDir;
+                        Vector3 refractDir;
+                        double fresnelRef;
+                        double fresnelTransmit;
+                        if (isTotalReflection(isIncoming, fromVert.position, intoFromVertexDir, fromVert.objectNormal, fromNewOrientNormal,
+                                              reflectDir, refractDir, fresnelRef, fresnelTransmit)) {
+                            pdf = 1.0;
+                        } else {
+                            pdf = fromNewOrientNormal.dot(normalizedTo) > 0.0 ? reflectProb : 1.0 - reflectProb;
+                        }
+                    }
+                } else {
+                    pdf = 1.0;
+                }
+            }
+
+            const Vector3 nextNewOrientNormal = to.dot(nextVert.objectNormal) < 0.0 ? nextVert.objectNormal : -nextVert.objectNormal;
+            return pdf * (-1.0 * normalizedTo).dot(nextNewOrientNormal) / to.dot(to);
+         }
+
+        double calcMISWeight(const Scene& scene, const Camera& camera, const double totalPdfA, const std::vector<Vertex>& eyeVerts, const std::vector<Vertex>& lightVerts, const int nEyeVerts, const int nLightVerts) {
+            const Primitive* tempObj;
+            double rouletteProb;
+
+            std::vector<const Vertex*> verts(nEyeVerts + nLightVerts);
+            std::vector<double> pi1pi(nEyeVerts + nLightVerts);
+            const Sphere* lightSphere = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightId()));
+            const double PAy0 = sample_sphere_pdf_A(lightSphere->radius());
+            const double PAx0 = camera.samplingPdfOnLens();
+
+            const int k = nEyeVerts + nLightVerts - 1;
+            for (int i = 0; i < nLightVerts; i++) {
+                verts[i] = &lightVerts[i];
+            }
+            for (int i = nEyeVerts - 1; i >= 0; i--) {
+                verts[nLightVerts + nEyeVerts - i - 1] = &eyeVerts[i]; 
+            }
+
+            // Russian roulette probability
+            tempObj = scene.getObjectPtr(verts[0]->objectId);
+            rouletteProb = tempObj->emission().norm() > 1.0 ? 1.0 : std::max(tempObj->emission().x(), std::max(tempObj->emission().y(), tempObj->emission().z()));
+            pi1pi[0] = PAy0 / (calcPdfA(scene, camera, verts, 2, 1, 0) * rouletteProb);
+            for (int i = 1; i < k; i++) {
+                const double a = calcPdfA(scene, camera, verts, i - 2, i - 1, i);
+                const double b = calcPdfA(scene, camera, verts, i + 2, i + 1, i);
+                pi1pi[i] = a / b;
+            }
+
+            tempObj = scene.getObjectPtr(verts[k]->objectId);
+            rouletteProb = tempObj->emission().norm() > 1.0 ? 1.0 : std::max(tempObj->emission().x(), std::max(tempObj->emission().y(), tempObj->emission().z()));
+            pi1pi[k] = (calcPdfA(scene, camera, verts, k - 2, k - 1, k) * rouletteProb);
+
+            // require p
+            std::vector<double> p(nEyeVerts + nLightVerts + 1);
+            p[nLightVerts] = totalPdfA;
+            for (int i = nLightVerts; i <= k; i++) {
+                p[i + 1] = p[i] * pi1pi[i];
+            }
+            for (int i = nLightVerts - 1; i >= 0; i--) {
+                p[i] = p[i + 1] / pi1pi[i];
+            }
+
+            // Specular
+            for (int i = 0; i < verts.size(); i++) {
+                if (verts[i]->objtype == Vertex::OBJECT_TYPE_SPECULAR) {
+                    p[i] = 0.0;
+                    p[i + 1] = 0.0;
+                }
+            }
+
+            // Power-heuristic
+            double MIS = 0.0;
+            for (int i = 0; i < p.size(); i++) {
+                const double v = p[i] / p[nLightVerts];
+                MIS += v * v;
+            }
+            return 1.0 / MIS;
+        }
+
+        // --------------------------------------------------
+        // Light and path tracer
+        // --------------------------------------------------
 
         LightTracingResult executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
             // Generate sample on the light
@@ -162,7 +334,7 @@ namespace spica {
                     break;
                 }
 
-                const Primitive* currentObj = scene.getObjectPtr(intersection.objectId);
+                const Primitive* currentObj = scene.getObjectPtr(intersection.objectId());
                 const HitPoint& hitpoint = intersection.hitPoint();
 
                 const Vector3 orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -1.0 * hitpoint.normal();
@@ -181,7 +353,7 @@ namespace spica {
                 const double G = toNextVertex.normalize().dot(orientNormal) * (-1.0 * toNextVertex).normalize().dot(prevNormal) / toNextVertex.dot(toNextVertex);
                 throughputMC = G * throughputMC;
 
-                vertices.push_back(Vertex(hitpoint.position, orientNormal, hitpoint.normal(), intersection.objectId(),
+                vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(),
                                           currentObj->reftype() == REFLECTION_DIFFUSE ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
                                           totalPdfArea, throughputMC));
 
@@ -203,8 +375,8 @@ namespace spica {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
                     // Snell's rule
-                    const double nc = 1.0;
-                    const double nt = indexOfRef;
+                    const double nc = IOR_VACCUM;
+                    const double nt = IOR_OBJECT;
                     const double nnt = isIncoming ? nc / nt : nt / nc;
                     const double ddn = nowRay.direction().dot(orientNormal);
                     const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
@@ -296,12 +468,12 @@ namespace spica {
                 throughputMC = G * throughputMC;
 
                 if (currentObj->emission().norm() > 0.0) {
-                    vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId, Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughputMC));
+                    vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughputMC));
                     const Color result = throughputMC.cwiseMultiply(currentObj->emission()) / totalPdfA;
                     return PathTracingResult(result, x, y, true);
                 }
 
-                vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId,
+                vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(),
                                           currentObj->reftype() == REFLECTION_DIFFUSE ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
                                           totalPdfA, throughputMC));
 
@@ -323,8 +495,8 @@ namespace spica {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
                     // Snell's rule
-                    const double nc = 1.0;
-                    const double nt = indexOfRef;
+                    const double nc = IOR_VACCUM;
+                    const double nt = IOR_OBJECT;
                     const double nnt = isIncoming ? nc / nt : nt / nc;
                     const double ddn = nowRay.direction().dot(orientNormal);
                     const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
@@ -366,6 +538,138 @@ namespace spica {
             return PathTracingResult(Color(), 0, 0, false);
         }
 
+        struct Sample {
+            int imageX;
+            int imageY;
+            Color value;
+            bool startFromPixel;
+
+            Sample(const int imageX_, const int imageY_, const Color& value_, const bool startFromPixel_)
+                : imageX(imageX_)
+                , imageY(imageY_)
+                , value(value_)
+                , startFromPixel(startFromPixel_)
+            {
+            }
+        };
+
+        struct BPTResult {
+            std::vector<Sample> samples;
+        };
+
+        BPTResult executeBPT(const Scene& scene, const Camera& camera, const Random& rng, int x, int y) {
+            BPTResult bptResult;
+
+            std::vector<Vertex> eyeVerts, lightVerts;
+            const PathTracingResult ptResult = executePathTracing(scene, camera, x, y, rng, eyeVerts);
+            const LightTracingResult ltResult = executeLightTracing(scene, camera, rng, lightVerts);
+
+            if (ptResult.isLightHit) {
+                const double weightMIS = calcMISWeight(scene, camera, eyeVerts[eyeVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, (const int)eyeVerts.size(), 0);
+                const Color result = weightMIS * ptResult.value;
+                bptResult.samples.push_back(Sample(x, y, result, true));
+            }
+
+            if (ltResult.isLensHit) {
+                const double weightMIS = calcMISWeight(scene, camera, lightVerts[lightVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, 0, (const int)lightVerts.size());
+                const int lx = ltResult.imageX;
+                const int ly = ltResult.imageY;
+                const Color result = weightMIS * ltResult.value;
+                bptResult.samples.push_back(Sample(lx, ly, result, false));
+            }
+
+            for (int eyeVertId = 1; eyeVertId <= eyeVerts.size(); eyeVertId++) {
+                for (int lightVertId = 1; lightVertId <= lightVerts.size(); lightVertId++) {
+                    int targetX = x;
+                    int targetY = y;
+                    const Vertex& eyeEnd = eyeVerts[eyeVertId - 1];
+                    const Vertex& lightEnd = lightVerts[lightVertId - 1];
+
+                    const double totalPdfA = eyeEnd.totalPdfA * lightEnd.totalPdfA;
+                    if (totalPdfA == 0.0) {
+                        continue;
+                    }
+
+                    Color eyeThoughput = eyeEnd.throughput;
+                    Color lightThrouput = lightEnd.throughput;
+                    Color connectedThrought = Color(1.0, 1.0, 1.0);
+
+                    if (lightVertId == 1) {
+                        lightThrouput = scene.getObjectPtr(lightVerts[0].objectId)->emission();
+                    }
+
+                    // End-to-end ray tracing
+                    Intersection intersection;
+                    const Vector3 lendToEend = eyeEnd.position - lightEnd.position;
+                    const Ray testRay(lightEnd.position, lendToEend.normalize());
+                    scene.intersect(testRay, intersection);
+
+                    if (eyeEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
+                        const Primitive* eyeEndObj = scene.getObjectPtr(eyeEnd.objectId);
+                        connectedThrought = connectedThrought.cwiseMultiply(eyeEndObj->color()) / PI;
+                        if ((intersection.hitPoint().position() - eyeEnd.position).norm() >= EPS) {
+                            continue;
+                        }
+                    } else if (eyeEnd.objtype == Vertex::OBJECT_TYPE_LENS) {
+                        Vector3 positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor;
+                        const double lensT = camera.intersectLens(testRay, positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor);
+                        if (EPS < lensT && lensT < intersection.hitPoint().distance()) {
+                            const Vector3 x0xI = positionOnSensor - positionOnLens;
+                            const Vector3 x0xV = positionOnObjplane - positionOnLens;
+                            const Vector3 x0x1 = testRay.origin() - positionOnLens;
+
+                            targetX = (int)uvOnSensor.x();
+                            targetY = (int)uvOnSensor.y();
+                            targetX = targetX < 0 ? 0 : targetX > camera.imageWidth() ? camera.imageWidth() - 1 : targetX;
+                            targetY = targetY < 0 ? 0 : targetY > camera.imageHeight() ? camera.imageHeight() - 1 : targetY;
+
+                            connectedThrought = camera.contribSensitivity(x0xV, x0xI, x0x1) * connectedThrought;
+                        } else {
+                            continue;
+                        }
+                    } else if (eyeEnd.objtype == Vertex::OBJECT_TYPE_LIGHT || eyeEnd.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
+                        continue;
+                    }
+
+                    if (lightEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
+                        const Primitive* tempObj = scene.getObjectPtr(lightEnd.objectId);
+                        connectedThrought = connectedThrought.cwiseMultiply(tempObj->color()) / PI;
+                    } else if (lightEnd.objtype == Vertex::OBJECT_TYPE_LIGHT) {
+
+                    } else if (lightEnd.objtype == Vertex::OBJECT_TYPE_LENS || lightEnd.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
+                        continue;
+                    }
+
+                    double G = std::max(0.0, (-1.0 * lendToEend.normalize().dot(eyeEnd.orientNormal)));
+                    G *= std::max(0.0, lendToEend.normalize().dot(lightEnd.orientNormal));
+                    G /= lendToEend.dot(lendToEend);
+                    connectedThrought = G * connectedThrought;
+
+                    const double weightMIS = calcMISWeight(scene, camera, totalPdfA, eyeVerts, lightVerts, eyeVertId, lightVertId);
+                    if (isnan(weightMIS)) {
+                        continue;
+                    }
+
+                    const Color result = weightMIS * connectedThrought.cwiseMultiply(eyeThoughput).cwiseMultiply(lightThrouput) / totalPdfA;
+                    bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId >= 1 ? false : true));
+                }
+            }
+
+            return bptResult;
+        }
+
+        bool isInvalidValue(const Color& color) {
+            if (isnan(color.x()) || isnan(color.y()) || isnan(color.z())) return true;
+            if (color.x() < 0.0 || INFTY < color.x()) return true;
+            if (color.y() < 0.0 || INFTY < color.y()) return true;
+            if (color.z() < 0.0 || INFTY < color.z()) return true;
+            return false;
+        }
+
+        bool isValidValue(const Color& color) {
+            return !isInvalidValue(color);
+        }
+
     }  // unnamed namespace
     
     BPTRenderer::BPTRenderer(int width, int height, int samples, int supsamples)
@@ -387,18 +691,34 @@ namespace spica {
         return *this;
     }
 
-    int BPTRenderer::render(const Scene& scene) {
-        for (int i = 0; i < _samplePerPixel; i++) {
+    int BPTRenderer::render(const Scene& scene, const Camera& camera) {
+        Image image(_width, _height);
+
+        for (int it = 0; it < _samplePerPixel; it++) {
             for (int y = 0; y < _height; y++) {
                 for (int x = 0; x < _width; x++) {
+                    BPTResult bptResult = executeBPT(scene, camera, rng, x, y);
                     
+                    for (int i = 0; i < bptResult.samples.size(); i++) {
+                        const int ix = bptResult.samples[i].imageX;
+                        const int iy = bptResult.samples[i].imageY;
+                        if (isValidValue(bptResult.samples[i].value)) {
+                            if (bptResult.samples[i].startFromPixel) {
+                                image.pixel(ix, iy) += bptResult.samples[i].value;                                
+                            } else {
+                                image.pixel(ix, iy) += bptResult.samples[i].value / ((double)_width * _height);
+                            }
+                        }
+
+                    }
                 }
             }
         }
+
+        image.savePPM("simplebpt.ppm");
         return 0;
     }
 
-    void BPTRenderer::executeBPT(const Scene& scene, int x, int y) {
 
-    }
+
 }

@@ -132,7 +132,9 @@ namespace spica {
 
         double PImageToPAx1(const double PImage, const Vector3& x0xV, const Vector3& x0x1, const Vector3& orientNormal) const;
 
-        bool intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positonOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const;
+        double samplingPdfOnLens() const;
+
+        double intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positonOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const;
 
         double contribSensitivity(const Vector3& x0xV, const Vector3& x0xI, const Vector3& x0x1) const;
 

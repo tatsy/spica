@@ -11,6 +11,7 @@
     #define SPICA_BPT_RENDERER_DLL
 #endif
 
+#include "Camera.h"
 #include "RendererBase.h"
 
 namespace spica {
@@ -24,10 +25,7 @@ namespace spica {
 
         BPTRenderer& operator=(const BPTRenderer& renderer);
 
-        int render(const Scene& scene);
-
-    private:
-        void executeBPT(const Scene& scene, int x, int y);
+        int render(const Scene& scene, const Camera& camera);
     };
 
 }

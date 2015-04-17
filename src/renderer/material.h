@@ -16,6 +16,7 @@ namespace spica {
 
     const double IOR_VACCUM = 1.0;
     const double IOR_OBJECT = 1.5;
+    const double REFLECT_PROBABLITY = 0.5;
 }
 
 #endif

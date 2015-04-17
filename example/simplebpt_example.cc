@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     scene.addSphere(Sphere(16.5,  Vector3(77.0, 16.5, 78),            Color(),           Color(0.99, 0.99, 0.99), REFLECTION_REFRACTION));     // Glass ball
     scene.addSphere(Sphere( 7.5,  Vector3(50.0, 72.5, 81.6),          Color(16, 16, 16), Color(),                 REFLECTION_DIFFUSE), true);  // Light
 
-    Camera camera(200, 200, 
+    Camera camera(640, 480, 
                   Vector3(50.0, 40.8, 220.0),
                   Vector3(0.0, 0.0, -1.0),
                   Vector3(0.0, 1.0, 0.0),
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
                   5.0,
                   28.0);
 
-    BPTRenderer renderer(200, 200, 10, 2);
+    BPTRenderer renderer(640, 480, 10, 2);
     renderer.render(scene, camera);
 
     return 0;

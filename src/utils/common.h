@@ -30,8 +30,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Parameter constants
 // ----------------------------------------------------------------------------
 static const double PI = 4.0 * atan(1.0);
-static const double INFTY = 1.0e20;
-static const double EPS = 1.0e-8;
+static const double INFTY = 1.0e128;
+static const double EPS = 1.0e-6;
 
 // ----------------------------------------------------------------------------
 // Parallel for

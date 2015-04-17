@@ -13,6 +13,7 @@
 
 #include "../geometry/Plane.h"
 #include "../utils/Image.h"
+#include "../utils/Random.h"
 
 namespace spica {
 
@@ -78,6 +79,8 @@ namespace spica {
         ~Lens();
 
         Lens& operator=(const Lens& lens);
+
+        inline Vector3 normal() const { return _normal; }
     };
 
 
@@ -127,14 +130,19 @@ namespace spica {
 
         Camera& operator=(const Camera& camera);
 
+        double PImageToPAx1(const double PImage, const Vector3& x0xV, const Vector3& x0x1, const Vector3& orientNormal) const;
+
         bool intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positonOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const;
 
         double contribSensitivity(const Vector3& x0xV, const Vector3& x0xI, const Vector3& x0x1) const;
 
+        void samplePoints(const int imageX, const int imageY, const Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const;
+
         inline unsigned int imageWidth() const { return _width; }
         inline unsigned int imageHeight() const { return _height; }
+        
         inline const ImageSensor& sensor() const { return _sensor; }
-
+        inline const Lens& lens() const { return _lens; }
         
     };
 

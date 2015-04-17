@@ -224,6 +224,13 @@ namespace spica {
         return *this;
     }
 
+    double Camera::PImageToPAx1(const double PImage, const Vector3& x0xV, const Vector3& x0x1, const Vector3& orientNormal) const {
+        double ratio = _distSensorToLens / _lens._focalLength;
+        double lengthRatio = x0xV.dot(x0xV) / x0x1.dot(x0x1);
+        double dirRatio = (-1.0 * x0x1).normalize().dot(orientNormal) / x0x1.normalize().dot(_sensor._direction);
+        return ratio * ratio * lengthRatio * dirRatio;
+    }
+
     bool Camera::intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positionOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const {
         msg_assert(false, "Not implemented");
         return false;    
@@ -235,5 +242,29 @@ namespace spica {
         double b = _lens._focalLength * (x0x1.normalize().dot(_sensor._direction.normalize()));
         return _sensor._sensitivity * lengthRatio * pow(a / b, 2.0); 
     }
+
+    void Camera::samplePoints(const int imageX, const int imageY, const Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const {
+        const double uOnPixel = rng.randReal();
+        const double vOnPixel = rng.randReal();
+
+        const double uOnSensor = ((imageX + uOnPixel) / this->_width - 0.5);
+        const double vOnSensor = ((imageY + vOnPixel) / this->_height - 0.5);
+        positionOnSensor = _sensor._center + uOnSensor * _sensor._u + vOnSensor * _sensor._v;
+
+        const double ratio = _lens._focalLength / _distSensorToLens;
+        const double uOnObjplane = -ratio * uOnSensor;
+        const double vOnObjplane = -ratio * vOnSensor;
+        positionOnObjplane = _objplane._center + uOnObjplane * _objplane._u + vOnObjplane * _objplane._v;
+
+        const double r0 = sqrt(rng.randReal());
+        const double r1 = rng.randReal() * 2.0 * PI;
+        const double uOnLens = r0 * cos(r1);
+        const double vOnLens = r0 * sin(r1);
+        positionOnLens = _lens._center + uOnLens * _lens._u + vOnLens * _lens._v;
+
+        PImage = 1.0 / (_sensor._pixelWidth * _sensor._pixelHeight);
+        PLens = 1.0 / (PI * _lens._radius * _lens._radius);
+    }
+
 }
 

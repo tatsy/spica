@@ -10,6 +10,36 @@ namespace spica {
 
     namespace {
 
+        struct LightTracingResult {
+            Color value;
+            int imageX;
+            int imageY;
+            bool isLensHit;
+
+            LightTracingResult(const Color& value_, const int imageX_, const int imageY_, const bool isLensHit_)
+                : value(value_)
+                , imageX(imageX_)
+                , imageY(imageY_)
+                , isLensHit(isLensHit_)
+            {
+            }
+        };
+
+        struct PathTracingResult {
+            Color value;
+            int imageX;
+            int imageY;
+            bool isLightHit;
+
+            PathTracingResult(const Color& value_, const int imageX_, const int imageY_, const bool isLightHit_)
+                : value(value_)
+                , imageX(imageX_)
+                , imageY(imageY_)
+                , isLightHit(isLightHit_)
+            {
+            }
+        };
+
         struct Vertex {
             double totalPdfA;
             Color throughput;
@@ -79,7 +109,7 @@ namespace spica {
             return R * Vector3(sz * cos(phi), sz * sin(phi), z);
         }
 
-        void executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
+        LightTracingResult executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
             // Generate sample on the light
             double pdfAreaOnLight = 1.0;
 
@@ -90,7 +120,7 @@ namespace spica {
             const Vector3 normalOnLight = (positionOnLight - lightSphere->center()).normalize();
             double totalPdfArea = pdfAreaOnLight;
 
-            vertices.push_back(Vertex(positionOnLight, normalOnLight, normalOnLight, lightId, Vertex::OBJECT_TYPE_LIGHT, totalPdfArea, Color(0, 0, 0));
+            vertices.push_back(Vertex(positionOnLight, normalOnLight, normalOnLight, lightId, Vertex::OBJECT_TYPE_LIGHT, totalPdfArea, Color(0, 0, 0)));
 
             Color throughputMC = lightSphere->emission();
 
@@ -212,10 +242,128 @@ namespace spica {
                 }
                 prevNormal = orientNormal;
             }
+
+            return LightTracingResult(Color(), 0, 0, false);
         }
 
-        void executePathTracing(const Scene& scene, const Camera& camera, int x, int y, const Random& rng, std::vector<Vertex>& vertices) {
+        PathTracingResult executePathTracing(const Scene& scene, const Camera& camera, int x, int y, const Random& rng, std::vector<Vertex>& vertices) {
+            Vector3 positionOnSensor, positionOnObjplane, positionOnLens;
 
+            double PImage, PLens;
+            camera.samplePoints(x, y, rng, positionOnSensor, positionOnObjplane, positionOnLens, PImage, PLens);
+
+            double totalPdfA = PLens;
+            Color throughputMC = Color(1.0, 1.0, 1.0);
+
+            vertices.push_back(Vertex(positionOnLens, camera.lens().normal(), camera.lens().normal(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
+        
+            Ray nowRay(positionOnLens, (positionOnObjplane - positionOnLens).normalize());
+            double nowSampledPdfOmega = 1.0;
+            Vector3 prevNormal = camera.lens().normal();
+
+            for (int nowVertexIndex = 1; ; nowVertexIndex++) {
+                Intersection intersection;
+                if (!scene.intersect(nowRay, intersection)) {
+                    break;
+                }
+
+                const Primitive* currentObj = scene.getObjectPtr(intersection.objectId());
+                const HitPoint& hitpoint = intersection.hitPoint();
+
+                const Vector3 orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+                const double rouletteProb = currentObj->emission().norm() > 1.0 ? 1.0 : std::max(currentObj->emission().x(), std::max(currentObj->emission().y(), currentObj->emission().z()));
+
+                if (rng.randReal() >= rouletteProb) {
+                    break;
+                }
+
+                totalPdfA *= rouletteProb;
+
+                const Vector3 toNextVertex = nowRay.origin() - hitpoint.position();
+                if (nowVertexIndex == 1) {
+                    const Vector3 x0xI = positionOnSensor - positionOnLens;
+                    const Vector3 x0xV = positionOnObjplane - positionOnLens;
+                    const Vector3 x0x1 = hitpoint.position() - positionOnLens;
+                    const double PAx1 = camera.PImageToPAx1(PImage, x0xV, x0x1, orientNormal);
+
+                    throughputMC = camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC;
+                } else {
+                    const double nowSampledPdfA = nowSampledPdfOmega * (toNextVertex.normalize().dot(orientNormal)) / toNextVertex.dot(toNextVertex);
+                    totalPdfA *= nowSampledPdfA;
+                }
+
+                const double G = toNextVertex.normalize().dot(orientNormal) * (-1.0 * toNextVertex).normalize().dot(prevNormal) / toNextVertex.dot(toNextVertex);
+                throughputMC = G * throughputMC;
+
+                if (currentObj->emission().norm() > 0.0) {
+                    vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId, Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughputMC));
+                    const Color result = throughputMC.cwiseMultiply(currentObj->emission()) / totalPdfA;
+                    return PathTracingResult(result, x, y, true);
+                }
+
+                vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId,
+                                          currentObj->reftype() == REFLECTION_DIFFUSE ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
+                                          totalPdfA, throughputMC));
+
+                if (currentObj->reftype() == REFLECTION_DIFFUSE) {
+                    const Vector3 nextDir = sample_hemisphere_cos_term(orientNormal, rng, nowSampledPdfOmega);
+                    nowRay = Ray(hitpoint.position(), nextDir);
+                    throughputMC = currentObj->color().cwiseMultiply(throughputMC) / PI;
+
+                } else if (currentObj->reftype() == REFLECTION_SPECULAR) {
+                    nowSampledPdfOmega = 1.0;
+                    const Vector3 nextDir = nowRay.direction() - (2.0 * hitpoint.normal().dot(nowRay.direction())) * hitpoint.normal();
+                    nowRay = Ray(hitpoint.position(), nextDir);
+                    throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
+                } else if (currentObj->reftype() == REFLECTION_REFRACTION) {
+                    Vector3 reflectDir = nowRay.direction() - (2.0 * hitpoint.normal().dot(nowRay.direction())) * hitpoint.normal();
+                    const Ray reflectRay = Ray(hitpoint.position(), reflectDir);
+
+                    // Incoming or outgoing
+                    const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
+
+                    // Snell's rule
+                    const double nc = 1.0;
+                    const double nt = indexOfRef;
+                    const double nnt = isIncoming ? nc / nt : nt / nc;
+                    const double ddn = nowRay.direction().dot(orientNormal);
+                    const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
+
+                    if (cos2t < 0.0) { // Total reflection
+                        nowSampledPdfOmega = 1.0;
+                        nowRay = Ray(hitpoint.position(), reflectDir);
+                        throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
+                    } else {
+                        Vector3 refractDir = (nowRay.direction() * nnt - hitpoint.normal() * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalize();
+                        const Ray refractRay = Ray(hitpoint.position(), refractDir);
+
+                        // Schlick's approximation of Fresnel coefficient
+                        const double a = nt - nc;
+                        const double b = nt + nc;
+                        const double R0 = (a * a) / (b * b);
+
+                        const double c = 1.0 - (isIncoming ? -ddn : -refractDir.dot(orientNormal));
+                        const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
+                        const double nnt2 = pow(isIncoming ? nc / nt : nt / nc, 2.0);
+                        const double Tr = (1.0 - Re) * nnt2;
+
+                        const double prob = 0.25 + 0.5 * Re;
+                        if (rng.randReal() < prob) { // Reflect
+                            nowSampledPdfOmega = 1.0;
+                            nowRay = Ray(hitpoint.position(), reflectDir);
+                            throughputMC = Re * currentObj->color().cwiseMultiply(throughputMC) / toNextVertex.normalize().dot(orientNormal);
+                            totalPdfA *= Re;
+                        } else { // Refract
+                            nowSampledPdfOmega = 1.0;
+                            nowRay = Ray(hitpoint.position(), refractDir);
+                            throughputMC = Tr * currentObj->color().cwiseMultiply(throughputMC) / toNextVertex.normalize().dot(orientNormal);
+                        }
+                    }
+                }
+                prevNormal = orientNormal;
+            }
+
+            return PathTracingResult(Color(), 0, 0, false);
         }
 
     }  // unnamed namespace

@@ -4,14 +4,14 @@ spica
 [![Build Status](https://travis-ci.org/tatsy/spica.svg?branch=master)](https://travis-ci.org/tatsy/spica)
 [![Coverage Status](https://coveralls.io/repos/tatsy/spica/badge.svg?branch=master)](https://coveralls.io/r/tatsy/spica?branch=master)
 
-> **spica** is a rendering library for global illumination.
+> **spica** is a rendering library for ray tracing (under construction).
 
 ## Current features
 
 ### Renderer
 
 * Monte-Carlo path tracing
-*
+* Bidirectional path tracing
 
 ### Geometry
 
@@ -20,14 +20,12 @@ spica
 * Triangle
 * Quad
 
-
 ## Future support
 
-* Bidirectional path tracing
-* Photon mapping
 * Metropolis light transport
+* Photon mapping
 
-## To Do
+## ToDo
 
 * ImageSensor, Lens, and ObjectPlane classes should be inner class of Camera.
 

@@ -1,6 +1,7 @@
 #define SPICA_IMAGE_EXPORT
 #include "Image.h"
 
+#include <cmath>
 #include <cstring>
 #include <fstream>
 #include <algorithm>

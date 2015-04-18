@@ -443,6 +443,7 @@ namespace spica {
                     const Vector3 x0xV = positionOnObjplane - positionOnLens;
                     const Vector3 x0x1 = hitpoint.position() - positionOnLens;
                     const double PAx1 = camera.PImageToPAx1(PImage, x0xV, x0x1, orientNormal);
+                    totalPdfA *= PAx1;
 
                     throughputMC = camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC;
                 } else {

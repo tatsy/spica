@@ -39,6 +39,11 @@ namespace spica {
 
         Vector3 cwiseMultiply(const Vector3& v) const;
 
+        // Compute reflection vector of v w.r.t n
+        // @param[in] v: a vector to be reflected
+        // @param[in] n: a normal vector of reflection point
+        static Vector3 reflect(const Vector3& v, const Vector3& n);
+
         double x() const;
         double y() const;
         double z() const;

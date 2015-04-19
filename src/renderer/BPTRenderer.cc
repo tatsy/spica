@@ -250,7 +250,7 @@ namespace spica {
 
             // tempObj = scene.getObjectPtr(verts[k]->objectId);
             // rouletteProb = tempObj->emission().norm() > 1.0 ? 1.0 : std::max(tempObj->color().x(), std::max(tempObj->color().y(), tempObj->color().z()));
-            pi1pi[k] = EPS; //(calcPdfA(scene, camera, verts, k - 2, k - 1, k) * rouletteProb) / PAx0;
+            pi1pi[k] = 0.0; //(calcPdfA(scene, camera, verts, k - 2, k - 1, k) * rouletteProb) / PAx0;
 
             // require p
             std::vector<double> p(nEyeVerts + nLightVerts + 1);
@@ -325,6 +325,7 @@ namespace spica {
 
                     // Geometry term
                     const double G = x0x1.normalize().dot(camera.sensor().direction().normalize()) * (-1.0) * (x0x1.normalize().dot(prevNormal) / x0x1.dot(x0x1));
+                    throughputMC *= G;
                     vertices.push_back(Vertex(positionOnLens, camera.sensor().direction().normalize(), camera.sensor().direction().normalize(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
                 
                     const Color result = (camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfA;
@@ -365,7 +366,7 @@ namespace spica {
 
                 } else if (currentObj->reftype() == REFLECTION_SPECULAR) {
                     nowSampledPdfOmega = 1.0;
-                    const Vector3 nextDir = nowRay.direction() - (2.0 * hitpoint.normal().dot(nowRay.direction())) * hitpoint.normal();
+                    const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
                 } else if (currentObj->reftype() == REFLECTION_REFRACTION) {
@@ -451,6 +452,7 @@ namespace spica {
                     totalPdfA *= nowSampledPdfA;
                 }
 
+                // Geometry term
                 const double G = toNextVertex.normalize().dot(orientNormal) * (-1.0 * toNextVertex).normalize().dot(prevNormal) / toNextVertex.dot(toNextVertex);
                 throughputMC = G * throughputMC;
 
@@ -471,9 +473,10 @@ namespace spica {
 
                 } else if (currentObj->reftype() == REFLECTION_SPECULAR) {
                     nowSampledPdfOmega = 1.0;
-                    const Vector3 nextDir = nowRay.direction() - (2.0 * hitpoint.normal().dot(nowRay.direction())) * hitpoint.normal();
+                    const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
+
                 } else if (currentObj->reftype() == REFLECTION_REFRACTION) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
@@ -591,8 +594,8 @@ namespace spica {
 
                             targetX = (int)uvOnSensor.x();
                             targetY = (int)uvOnSensor.y();
-                            targetX = targetX < 0 ? 0 : targetX > camera.imageWidth() ? camera.imageWidth() - 1 : targetX;
-                            targetY = targetY < 0 ? 0 : targetY > camera.imageHeight() ? camera.imageHeight() - 1 : targetY;
+                            targetX = targetX < 0 ? 0 : targetX >= camera.imageWidth() ? camera.imageWidth() - 1 : targetX;
+                            targetY = targetY < 0 ? 0 : targetY >= camera.imageHeight() ? camera.imageHeight() - 1 : targetY;
 
                             connectedThrought = camera.contribSensitivity(x0xV, x0xI, x0x1) * connectedThrought;
                         } else {
@@ -622,7 +625,7 @@ namespace spica {
                     }
 
                     const Color result = weightMIS * connectedThrought.cwiseMultiply(eyeThoughput).cwiseMultiply(lightThrouput) / totalPdfA;
-                    bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId > 1));
+                    bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId > 1.0));
                 }
             }
 
@@ -726,7 +729,7 @@ namespace spica {
             }
         }
 
-        output.savePPM("simplebt1.ppm");
+        output.savePPM("bpt_pt_part.ppm");
         return 0;
     }
 
@@ -754,10 +757,11 @@ namespace spica {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 output.pixel(x, y) = image.pixel(width - x - 1, y) / spp;
+                const Color& color = output(x, y);
             }
         }
 
-        output.savePPM("simplelt1.ppm");
+        output.savePPM("bpt_lt_part.ppm");
         return 0;
     }
 }

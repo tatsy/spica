@@ -88,6 +88,10 @@ namespace spica {
         return Vector3(this->_x * v._x, this->_y * v._y, this->_z * v._z);
     }
 
+    Vector3 Vector3::reflect(const Vector3& v, const Vector3& n) {
+        return (v - n * 2.0 * n.dot(v));
+    }
+
     double Vector3::x() const {
         return _x;
     }

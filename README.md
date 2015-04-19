@@ -6,24 +6,31 @@ spica
 
 > **spica** is a rendering library for ray tracing (under construction).
 
-## Current features
+## Renderer
 
-### Renderer
+#### Supported
 
 * Monte-Carlo path tracing
 * Bidirectional path tracing
 
-### Geometry
+#### Future support
+
+* Metropolis light transport
+* Precomputed radiance transfer
+* Photon mapping
+
+## Geometry
+
+#### Supported
 
 * Plane
 * Sphere
+
+#### Future support
+
+* Disk
 * Triangle
 * Quad
-
-## Future support
-
-* Metropolis light transport
-* Photon mapping
 
 ## ToDo
 
@@ -31,4 +38,5 @@ spica
 
 ## License
 
-MIT license 2015, Tatsuya Yatagawa (tatsy). The part of this code is largely inspired by [edupt](https://github.com/githole/edupt.git).
+* MIT license 2015, Tatsuya Yatagawa (tatsy).
+* The part of this code is largely inspired by [edupt](https://github.com/githole/edupt.git).

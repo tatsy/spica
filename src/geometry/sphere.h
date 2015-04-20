@@ -12,7 +12,7 @@
 #endif
 
 #include "primitive.h"
-#include "../utils/Vector3.h"
+#include "../utils/vector3.h"
 #include "../renderer/material.h"
 #include "../renderer/ray.h"
 

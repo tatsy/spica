@@ -1,15 +1,15 @@
 set(SOURCES ${SOURCES}
-    ${CMAKE_CURRENT_LIST_DIR}/Plane.cc
-    ${CMAKE_CURRENT_LIST_DIR}/Primitive.cc
-    ${CMAKE_CURRENT_LIST_DIR}/Quad.cc
-    ${CMAKE_CURRENT_LIST_DIR}/Sphere.cc
-    ${CMAKE_CURRENT_LIST_DIR}/Triangle.cc
+    ${CMAKE_CURRENT_LIST_DIR}/plane.cc
+    ${CMAKE_CURRENT_LIST_DIR}/primitive.cc
+    ${CMAKE_CURRENT_LIST_DIR}/quad.cc
+    ${CMAKE_CURRENT_LIST_DIR}/sphere.cc
+    ${CMAKE_CURRENT_LIST_DIR}/triangle.cc
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
-    ${CMAKE_CURRENT_LIST_DIR}/Plane.h
-    ${CMAKE_CURRENT_LIST_DIR}/Primitive.h
-    ${CMAKE_CURRENT_LIST_DIR}/Quad.h
-    ${CMAKE_CURRENT_LIST_DIR}/Sphere.h
-    ${CMAKE_CURRENT_LIST_DIR}/Triangle.h
+    ${CMAKE_CURRENT_LIST_DIR}/plane.h
+    ${CMAKE_CURRENT_LIST_DIR}/primitive.h
+    ${CMAKE_CURRENT_LIST_DIR}/quad.h
+    ${CMAKE_CURRENT_LIST_DIR}/sphere.h
+    ${CMAKE_CURRENT_LIST_DIR}/triangle.h
     PARENT_SCOPE)

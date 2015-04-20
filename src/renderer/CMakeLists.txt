@@ -1,21 +1,21 @@
 # Add source files
 set(SOURCES
     ${SOURCES}
-    ${CMAKE_CURRENT_LIST_DIR}/Ray.cc
-    ${CMAKE_CURRENT_LIST_DIR}/Camera.cc
-    ${CMAKE_CURRENT_LIST_DIR}/Scene.cc
-    ${CMAKE_CURRENT_LIST_DIR}/Renderer.cc
-    ${CMAKE_CURRENT_LIST_DIR}/RendererBase.cc
-    ${CMAKE_CURRENT_LIST_DIR}/BPTRenderer.cc
+    ${CMAKE_CURRENT_LIST_DIR}/ray.cc
+    ${CMAKE_CURRENT_LIST_DIR}/camera.cc
+    ${CMAKE_CURRENT_LIST_DIR}/scene.cc
+    ${CMAKE_CURRENT_LIST_DIR}/renderer.cc
+    ${CMAKE_CURRENT_LIST_DIR}/renderer_base.cc
+    ${CMAKE_CURRENT_LIST_DIR}/bpt_renderer.cc
     PARENT_SCOPE)
 
 set(HEADERS
     ${HEADERS}
-    ${CMAKE_CURRENT_LIST_DIR}/Ray.h
-    ${CMAKE_CURRENT_LIST_DIR}/Camera.h
-    ${CMAKE_CURRENT_LIST_DIR}/Scene.h
-    ${CMAKE_CURRENT_LIST_DIR}/Renderer.h
-    ${CMAKE_CURRENT_LIST_DIR}/RendererBase.h
-    ${CMAKE_CURRENT_LIST_DIR}/BPTRenderer.h
+    ${CMAKE_CURRENT_LIST_DIR}/ray.h
+    ${CMAKE_CURRENT_LIST_DIR}/camera.h
+    ${CMAKE_CURRENT_LIST_DIR}/scene.h
+    ${CMAKE_CURRENT_LIST_DIR}/renderer.h
+    ${CMAKE_CURRENT_LIST_DIR}/renderer_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/bpt_renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/material.h
     PARENT_SCOPE)

@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "Camera.h"
+#include "camera.h"
 
 namespace spica {
 

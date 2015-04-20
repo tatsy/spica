@@ -1,5 +1,5 @@
 #define SPICA_PRIMITIVE_EXPORT
-#include "Primitive.h"
+#include "primitive.h"
 
 namespace spica {
 

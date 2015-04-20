@@ -13,10 +13,10 @@
 
 #include <string>
 
-#include "RendererBase.h"
-#include "Ray.h"
-#include "Scene.h"
-#include "../utils/Random.h"
+#include "renderer_base.h"
+#include "ray.h"
+#include "scene.h"
+#include "../utils/random.h"
 #include "material.h"
 
 

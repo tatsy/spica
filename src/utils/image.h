@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include "Color.h"
+#include "color.h"
 
 namespace spica {
 

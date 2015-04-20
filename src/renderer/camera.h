@@ -11,9 +11,9 @@
     #define SPICA_CAMERA_DLL
 #endif
 
-#include "../geometry/Plane.h"
-#include "../utils/Image.h"
-#include "../utils/Random.h"
+#include "../geometry/plane.h"
+#include "../utils/image.h"
+#include "../utils/random.h"
 
 namespace spica {
 

@@ -11,8 +11,8 @@
     #define SPICA_BPT_RENDERER_DLL
 #endif
 
-#include "Camera.h"
-#include "RendererBase.h"
+#include "camera.h"
+#include "renderer_base.h"
 
 namespace spica {
     

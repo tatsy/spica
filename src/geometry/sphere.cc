@@ -1,5 +1,5 @@
 #define SPICA_SPHERE_EXPORT
-#include "Sphere.h"
+#include "sphere.h"
 
 #include <cmath>
 

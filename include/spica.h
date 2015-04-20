@@ -2,13 +2,13 @@
 #define SPICA_H_
 
 #include "../src/utils/common.h"
-#include "../src/utils/Vector3.h"
-#include "../src/geometry/Primitive.h"
-#include "../src/geometry/Plane.h"
-#include "../src/geometry/Sphere.h"
-#include "../src/renderer/Renderer.h"
-#include "../src/renderer/Scene.h"
-#include "../src/renderer/Camera.h"
-#include "../src/renderer/BPTRenderer.h"
+#include "../src/utils/vector3.h"
+#include "../src/geometry/primitive.h"
+#include "../src/geometry/plane.h"
+#include "../src/geometry/sphere.h"
+#include "../src/renderer/renderer.h"
+#include "../src/renderer/scene.h"
+#include "../src/renderer/camera.h"
+#include "../src/renderer/bpt_renderer.h"
 
 #endif  // SPICA_H_

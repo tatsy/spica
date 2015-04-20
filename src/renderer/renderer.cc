@@ -1,14 +1,14 @@
 #define SPICA_RENDERER_EXPORT
-#include "Renderer.h"
+#include "renderer.h"
 
 #include <iostream>
 #include <fstream>
 #include <algorithm>
 
 #include "../utils/common.h"
-#include "../utils/Vector3.h"
+#include "../utils/vector3.h"
 #include "material.h"
-#include "Scene.h"
+#include "scene.h"
 
 namespace spica {
 

@@ -1,5 +1,5 @@
 #define SPICA_IMAGE_EXPORT
-#include "Image.h"
+#include "image.h"
 
 #include <cmath>
 #include <cstring>

@@ -11,7 +11,7 @@
     #define SPICA_PLANE_DLL
 #endif
 
-#include "Primitive.h"
+#include "primitive.h"
 
 namespace spica {
 

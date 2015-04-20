@@ -1,5 +1,5 @@
 #define SPICA_PLANE_EXPORT
-#include "Plane.h"
+#include "plane.h"
 
 namespace spica {
     Plane::Plane()

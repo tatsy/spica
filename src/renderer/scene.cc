@@ -1,5 +1,5 @@
 #define SPICA_SCENE_EXPORT
-#include "Scene.h"
+#include "scene.h"
 
 #include <cstring>
 

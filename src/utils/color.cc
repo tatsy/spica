@@ -1,5 +1,5 @@
 #define SPICA_COLOR_EXPORT
-#include "Color.h"
+#include "color.h"
 
 namespace spica {
 

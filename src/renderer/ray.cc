@@ -1,5 +1,5 @@
 #define SPICA_RAY_EXPORT
-#include "Ray.h"
+#include "ray.h"
 #include "../utils/common.h"
 
 namespace spica {

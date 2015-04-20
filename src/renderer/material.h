@@ -1,7 +1,7 @@
 #ifndef SPICA_MATERIAL_H_
 #define SPICA_MATERIAL_H_
 
-#include "../utils/Color.h"
+#include "../utils/color.h"
 
 namespace spica {
 

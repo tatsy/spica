@@ -11,7 +11,7 @@
     #define SPICA_COLOR_DLL
 #endif
 
-#include "Vector3.h"
+#include "vector3.h"
 
 namespace spica {
 

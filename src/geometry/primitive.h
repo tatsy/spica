@@ -12,7 +12,7 @@
 #endif
 
 #include "../utils/common.h"
-#include "../renderer/Ray.h"
+#include "../renderer/ray.h"
 #include "../renderer/material.h"
 
 namespace spica {

@@ -1,5 +1,5 @@
 #define SPICA_RENDERER_BASE_EXPORT
-#include "RendererBase.h"
+#include "renderer_base.h"
 
 namespace spica {
 

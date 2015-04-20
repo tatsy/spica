@@ -12,10 +12,10 @@
 #endif
 
 #include "../utils/common.h"
-#include "../utils/Vector3.h"
-#include "../geometry/Plane.h"
-#include "../geometry/Sphere.h"
-#include "Ray.h"
+#include "../utils/vector3.h"
+#include "../geometry/plane.h"
+#include "../geometry/sphere.h"
+#include "ray.h"
 
 namespace spica {
     

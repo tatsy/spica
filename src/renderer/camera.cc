@@ -1,5 +1,5 @@
 #define SPICA_CAMERA_EXPORT
-#include "Camera.h"
+#include "camera.h"
 
 namespace spica {
 

@@ -50,6 +50,6 @@ class Random {
 
 }  // namespace lime
 
-#include "Random_detail.h"
+#include "random_detail.h"
 
 #endif  // SPICA_RANDOM_H_ */

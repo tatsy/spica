@@ -11,8 +11,8 @@
     #define SPICA_RENDERER_BASE_DLL
 #endif
 
-#include "../utils/Random.h"
-#include "Scene.h"
+#include "../utils/random.h"
+#include "scene.h"
 
 namespace spica {
 

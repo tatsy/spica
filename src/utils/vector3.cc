@@ -1,5 +1,5 @@
 #define SPICA_VECTOR3_EXPORT
-#include "Vector3.h"
+#include "vector3.h"
 #include "common.h"
 
 namespace spica {

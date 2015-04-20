@@ -265,7 +265,7 @@ namespace spica {
                 const double ratio = _distSensorToLens / _lens._focalLength;
                 const double uOnSensor = -ratio * uOnObjplane;
                 const double vOnSensor = -ratio * vOnObjplane;
-                positionOnSensor = _sensor._center + uOnSensor * _sensor._u + vOnObjplane * _sensor._v;
+                positionOnSensor = _sensor._center + uOnSensor * _sensor._u + vOnSensor * _sensor._v;
 
                 if (-0.5 <= uOnSensor && uOnSensor < 0.5 && -0.5 <= vOnSensor && vOnSensor < 0.5) {
                     uvOnSensor.setX((uOnSensor + 0.5) * _width);

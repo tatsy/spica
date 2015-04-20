@@ -11,10 +11,10 @@
     #define SPICA_SPHERE_DLL
 #endif
 
-#include "Primitive.h"
+#include "primitive.h"
 #include "../utils/Vector3.h"
 #include "../renderer/material.h"
-#include "../renderer/Ray.h"
+#include "../renderer/ray.h"
 
 namespace spica {
 

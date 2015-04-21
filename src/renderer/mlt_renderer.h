@@ -22,7 +22,7 @@ namespace spica {
         MLTRenderer();
         ~MLTRenderer();
 
-        int render(const Scene& scene, const Camera& camera);
+		int render(const Scene& scene, const int mlt_num, const int mutation, Image& image, const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, const int maxDepth, const Random& rng);
 	};
 
 }  // namespace spica

@@ -10,5 +10,6 @@
 #include "../src/renderer/scene.h"
 #include "../src/renderer/camera.h"
 #include "../src/renderer/bpt_renderer.h"
+#include "../src/renderer/mlt_renderer.h"
 
 #endif  // SPICA_H_

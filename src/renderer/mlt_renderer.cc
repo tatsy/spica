@@ -1,6 +1,7 @@
 #define SPICA_MLT_RENDERER_EXPORT
 #include "mlt_renderer.h"
 
+#include <iostream>
 #include <algorithm>
 #include <vector>
 #include <stack>
@@ -20,8 +21,10 @@ namespace spica {
 
         struct KelemenMLT {
         private:
+			static const int num_init_primary_samples = 128;
+
             inline double mutate(const double x) {
-                const double r = rng.randReal();
+                const double r = rng->randReal();
                 const double s1 = 1.0 / 512.0;
                 const double s2 = 1.0 / 16.0;
                 const double dx = s1 / (s1 / s2 + abs(2.0 * r - 1.0)) - s1 / (s1 / s2 + 1.0);
@@ -35,17 +38,26 @@ namespace spica {
             }
 
         public:
+			
             int global_time;
             int large_step;
             int large_step_time;
             int used_rand_coords;
+			const Random* rng;
 
             std::vector<PrimarySample> primary_samples;
             std::stack<PrimarySample> primary_samples_stack;
 
-            KelemenMLT() {
-                global_time = large_step = large_step_time = used_rand_coords = 0;
-                primary_samples.resize(128);
+            KelemenMLT(const Random& rng = Random::getRNG()) 
+				: global_time(0)
+				, large_step(0)
+				, large_step_time(0)
+				, used_rand_coords(0)
+				, rng(&rng)
+				, primary_samples()
+				, primary_samples_stack() 
+			{
+                primary_samples.resize(num_init_primary_samples);
             }
 
             void initUsedRandCoords() {
@@ -61,11 +73,11 @@ namespace spica {
                     if (large_step > 0) {
                         primary_samples_stack.push(primary_samples[used_rand_coords]);
                         primary_samples[used_rand_coords].modify_time = global_time;
-                        primary_samples[used_rand_coords].value = rng.randReal();
+                        primary_samples[used_rand_coords].value = rng->randReal();
                     } else {
                         if (primary_samples[used_rand_coords].modify_time < large_step_time) {
                             primary_samples[used_rand_coords].modify_time = large_step_time;
-                            primary_samples[used_rand_coords].value = rng.randReal();
+                            primary_samples[used_rand_coords].value = rng->randReal();
                         }
 
                         while (primary_samples[used_rand_coords].modify_time < global_time - 1) {
@@ -84,7 +96,7 @@ namespace spica {
             }
         };
 
-        Color radiance(const Scene& scene, const Ray& ray, const int depth, KelemenMLT& mlt) {
+        Color radiance(const Scene& scene, const Ray& ray, const int depth, const int maxDepth, KelemenMLT& mlt) {
             Intersection intersection;
             if (!scene.intersect(ray, intersection)) {
                 return Color(0.0, 0.0, 0.0);
@@ -217,7 +229,7 @@ namespace spica {
 			}
 		};
 
-		PathSample generate_new_path(const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, KelemenMLT& mlt, int x, int y) {
+		PathSample generate_new_path(const Scene& scene, const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, KelemenMLT& mlt, int x, int y) {
 			double weight = 4.0;
 			if (x < 0) {
 				weight *= width;
@@ -245,7 +257,7 @@ namespace spica {
 			Vector3 dir = cx * (((sx + 0.5 + dx) / 2.0 + x) / width - 0.5) + cy * (((sy + 0.5 + dy) / 2.0 + y) / height - 0.5) + camera.direction();
 			const Ray ray = Ray(camera.origin() + camera.direction() * 130.0, dir.normalize());
 
-			Color c = radiance(scene, ray, 0, mlt);
+			Color c = radiance(scene, ray, 0, maxDepth, mlt);
 
 			return PathSample(x, y, c, weight);
 		}
@@ -264,7 +276,7 @@ namespace spica {
 		const int width = camera.imageWidth();
 		const int height = camera.imageHeight();
 		const int mlt_num = width * height; // TODO: Revise
-		Image image(width, height);
+		Image tmp_image(width, height);
 		for (int mi = 0; mi < mlt_num; mi++) {
 			KelemenMLT mlt;
 
@@ -286,6 +298,71 @@ namespace spica {
 
 				sumI += luminance(sample.F);
 				seed_paths[i] = sample;
+			}
+
+			// Compute first path
+			const double rnd = rng.randReal() * sumI;
+			int selected_path = 0;
+			double accumulated_importance = 0.0;
+			for (int i = 0; i < seed_path_max; i++) {
+				accumulated_importance += luminance(seed_paths[i].F);
+				if (accumulated_importance >= rnd) {
+					selected_path = i;
+					break;
+				}
+			}
+
+			// --
+			const double b = sumI / seed_path_max;
+			const double p_large = 0.5;
+			const int M = mutation;
+			int accept = 0;
+			int reject = 0;
+			PathSample old_path = seed_paths[selected_path];
+			int progress = 0;
+			for (int i = 0; i < M; i++) {
+				if ((i + 1) % (M / 10) == 0) {
+					progress += 10;
+					std::cout << progress << " % ";
+					std::cout << "Accept: " << accept << ", Reject: " << reject;
+					std::cout << ", Rate: " << (100.0 * accept / (accept + reject)) << " %" << std::endl;
+				}
+
+				mlt.large_step = rng.randReal() < p_large;
+				mlt.initUsedRandCoords();
+				PathSample new_sample = generate_new_path(scene, camera.lens().normal(), cx, cy, width, height, -1, -1);
+
+				double a = std::min(1.0, luminance(new_path.F) / luminance(old_path.F));
+				const double new_path_weight = (a + mlt.large_step) / (luminance(new_path.F) / b + p_large) / M;
+				const double old_path_weight = (1.0 - a) / (luminance(old_path.F) / b + p_large) / M;
+
+				tmp_image.pixel(new_path.x, new_path.y) += new_path_weight * new_path_weight * new_path.F;
+				tmp_image.pixel(old_path.x, old_path.y) += old_path_weight * old_path_weight * old_path.F;
+
+				if (rng.randReal() < a) {  // Accept
+					accept++;
+					old_path = new_path;
+					if (mlt.large_step) {
+						mlt.large_step_time += mlt.global_time;
+					}
+					mlt.global_time++;
+					while (!mlt.primary_samples_stack.empty()) {
+						mlt.primary_samples_stack.pop();
+					}
+				} else {  // Reject
+					reject++;
+					int idx = mlt.used_rand_coords - 1;
+					while (!mlt.primary_samples_stack.empty()) {
+						mlt.primary_samples[idx--] = mlt.primary_samples_stack.top();
+						mlt.primary_samples_stack.pop();
+					}
+				}
+			}
+
+			for (int y = 0; y < height; y++) {
+				for (int x = 0; x < width; x++) {
+					image.pixel(x, y) += tmp_image.pixel(x, y) / mlt_num;
+				}
 			}
 		}
     }

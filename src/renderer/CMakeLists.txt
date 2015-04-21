@@ -7,6 +7,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/renderer.cc
     ${CMAKE_CURRENT_LIST_DIR}/renderer_base.cc
     ${CMAKE_CURRENT_LIST_DIR}/bpt_renderer.cc
+    ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.cc
     PARENT_SCOPE)
 
 set(HEADERS
@@ -18,4 +19,5 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/renderer_base.h
     ${CMAKE_CURRENT_LIST_DIR}/bpt_renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/material.h
+    ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.h
     PARENT_SCOPE)

@@ -93,11 +93,10 @@ namespace spica {
                         primary_samples[used_rand_coords].value = mutate(primary_samples[used_rand_coords].value);
                         primary_samples[used_rand_coords].modify_time = global_time;
                     }
-
-                    used_rand_coords++;
-                    return primary_samples[used_rand_coords - 1].value;
                 }
-            }
+				used_rand_coords++;
+				return primary_samples[used_rand_coords - 1].value;
+			}
         };
 
 		double luminance(const Color& color) {
@@ -108,7 +107,7 @@ namespace spica {
 			const double r1 = 2.0 * PI * mlt.nextSample();
 			const double r2 = 1.0 - 2.0 * mlt.nextSample();
 			const Sphere* light_ptr = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightId()));
-			const Vector3 light_pos = light_ptr->center() + ((light_ptr->radius() + EPS) * Vector3(sqrt(1.0 - r2 * r2) * cos(r1), sqrt(1.0 - r2 * r2) * cos(r1), r2));
+			const Vector3 light_pos = light_ptr->center() + (light_ptr->radius() * Vector3(sqrt(1.0 - r2 * r2) * cos(r1), sqrt(1.0 - r2 * r2) * sin(r1), r2));
 
 			// --
 			const Vector3 light_normal = (light_pos - light_ptr->center()).normalize();
@@ -121,13 +120,12 @@ namespace spica {
 			if (dot0 >= 0.0 && dot1 >= 0.0) {
 				const double G = dot0 * dot1 / dist2;
 				Intersection intersection;
-				if (scene.intersect(Ray(v0, light_dir), intersection)) {
-					const Primitive* obj_ptr = scene.getObjectPtr(intersection.objectId());
+				if (scene.intersect(Ray(v0, light_dir), intersection) && intersection.objectId() == scene.lightId()) {
+					const Primitive* obj_ptr = scene.getObjectPtr(id);
 					const double light_radius = light_ptr->radius();
-					return obj_ptr->color().cwiseMultiply(light_ptr->emission()) * (1.0 / PI) * G * (1.0 / (4.0 * PI * light_radius * light_radius));
+					return obj_ptr->color().cwiseMultiply(light_ptr->emission()) * (1.0 / PI) * G * (4.0 * PI * light_radius * light_radius);
 				}
 			}
-
 			return Color(0.0, 0.0, 0.0);
 		}
 
@@ -141,8 +139,8 @@ namespace spica {
             const HitPoint& hitpoint = intersection.hitPoint();
             const Vector3 orient_normal = hitpoint.normal().dot(ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
-            const Color& light_color = obj_ptr->color();
-            double roulette_probability = std::max(light_color.red(), std::max(light_color.green(), light_color.blue()));
+            const Color& obj_color = obj_ptr->color();
+            double roulette_probability = std::max(obj_color.red(), std::max(obj_color.green(), obj_color.blue()));
 
             if (depth > maxDepth) {
                 if (mlt.nextSample() >= roulette_probability) {
@@ -175,7 +173,7 @@ namespace spica {
                     Vector3 next_dir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalize();
 
                     const Color next_bounce_color = radiance(scene, Ray(hitpoint.position(), next_dir), depth + 1, maxDepth, mlt);
-                    return direct_light + light_color.cwiseMultiply(next_bounce_color) / roulette_probability;
+                    return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
                 } else if (depth == 0) {
                     return obj_ptr->emission();
                 } else {
@@ -184,17 +182,17 @@ namespace spica {
             }
             else if (obj_ptr->reftype() == REFLECTION_SPECULAR) {
                 Intersection light_intersect;
-                Ray reflection_ray = Ray(hitpoint.position(), ray.direction() - hitpoint.normal() * 2.0 * hitpoint.normal().dot(ray.direction()));
+				Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
                 scene.intersect(reflection_ray, light_intersect);
                 Vector3 direct_light;
                 if (light_intersect.objectId() == scene.lightId()) {
                     direct_light = scene.getObjectPtr(scene.lightId())->emission();
                 }
                 const Color next_bounce_color = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
-                return direct_light + obj_ptr->color().cwiseMultiply(next_bounce_color) / roulette_probability;
+                return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
             } else if (obj_ptr->reftype() == REFLECTION_REFRACTION) {
                 Intersection light_intersect;
-                Ray reflection_ray = Ray(hitpoint.position(), ray.direction() - hitpoint.normal() * 2.0 * hitpoint.normal().dot(ray.direction()));
+				Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
                 scene.intersect(reflection_ray, light_intersect);
                 Vector3 direct_light;
                 if (light_intersect.objectId() == scene.lightId()) {
@@ -210,12 +208,12 @@ namespace spica {
                 const double ddn = ray.direction().dot(orient_normal);
                 const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
-                if (cos2t < 0.0) {
+                if (cos2t < 0.0) {  // Total reflection
                     const Color next_bounce_color = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
-                    return direct_light + obj_ptr->color().cwiseMultiply(next_bounce_color) / roulette_probability;
+                    return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
                 }
 
-                Vector3 tdir = (ray.direction() * nnt - hitpoint.normal() * (is_incoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t)));
+                Vector3 tdir = (ray.direction() * nnt - hitpoint.normal() * (is_incoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalize();
 
                 // Schlick
                 const double a = nt - nc;
@@ -227,25 +225,26 @@ namespace spica {
                 const double probability = 0.25 + 0.5 * Re;
 
                 Ray refraction_ray = Ray(hitpoint.position(), tdir);
-                scene.intersect(reflection_ray, light_intersect);
+				Intersection light_intersect_refract;
+                scene.intersect(reflection_ray, light_intersect_refract);
                 Vector3 direct_light_refraction;
-                if (light_intersect.objectId() == scene.lightId()) {
+                if (light_intersect_refract.objectId() == scene.lightId()) {
                     direct_light_refraction = scene.getObjectPtr(scene.lightId())->emission();
                 }
 
                 if (depth > 2) {
                     if (mlt.nextSample() < probability) {
                         const Color next_bounce_color = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
-                        return obj_ptr->color().cwiseMultiply(direct_light + Re * next_bounce_color) / (probability * roulette_probability);
+                        return obj_color.cwiseMultiply(direct_light + Re * next_bounce_color) / (probability * roulette_probability);
                     } else {
                         const Color next_bounce_color = radiance(scene, refraction_ray, depth + 1, maxDepth, mlt);
-                        return obj_ptr->color().cwiseMultiply(direct_light_refraction + Tr * next_bounce_color) / ((1.0 - probability) * roulette_probability);
+                        return obj_color.cwiseMultiply(direct_light_refraction + Tr * next_bounce_color) / ((1.0 - probability) * roulette_probability);
                     }
                 } else {
-                    const Color next_bounce_color_reflect = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
-                    const Color next_bounce_color_refract = radiance(scene, refraction_ray, depth + 1, maxDepth, mlt);
+                    const Color next_bounce_color_reflect = direct_light + radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
+                    const Color next_bounce_color_refract = direct_light_refraction + radiance(scene, refraction_ray, depth + 1, maxDepth, mlt);
                     const Color next_bounce_color = Re * next_bounce_color_reflect + Tr * next_bounce_color_refract;
-                    return obj_ptr->color().cwiseMultiply(direct_light + next_bounce_color) / roulette_probability;
+                    return obj_color.cwiseMultiply(next_bounce_color) / roulette_probability;
                 }
             }
             return Color(0.0, 0.0, 0.0);
@@ -290,7 +289,7 @@ namespace spica {
 			const double dx = r1 < 1.0 ? sqrt(r1) - 1.0 : 1.0 - sqrt(2.0 - r1);
 			const double dy = r2 < 1.0 ? sqrt(r2) - 1.0 : 1.0 - sqrt(2.0 - r2);
 			Vector3 dir = cx * (((sx + 0.5 + dx) / 2.0 + x) / width - 0.5) + cy * (((sy + 0.5 + dy) / 2.0 + y) / height - 0.5) + camera.direction();
-			const Ray ray = Ray(camera.origin() + camera.direction() * 130.0, dir.normalize());
+			const Ray ray = Ray(camera.origin() + dir * 130.0, dir.normalize());
 
 			Color c = radiance(scene, ray, 0, maxDepth, mlt);
 
@@ -308,13 +307,11 @@ namespace spica {
     }
 
 	int MLTRenderer::render(const Scene& scene, const int mlt_num, const int mutation, Image& image, const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, const int maxDepth, const Random& rng) {
-		Image tmp_image(width, height);
 		for (int mi = 0; mi < mlt_num; mi++) {
-			printf("mi = %d\n", mi);
-
+			Image tmp_image(width, height);
 			KelemenMLT mlt;
 
-			int seed_path_max = 10000; // width * height;
+			int seed_path_max = width * height;
 			if (seed_path_max <= 0) {
 				seed_path_max = 1;
 			}
@@ -323,7 +320,6 @@ namespace spica {
 			double sumI = 0.0;
 			mlt.large_step = 1;
 			for (int i = 0; i < seed_path_max; i++) {
-				printf("i = %d / %d\n", i, seed_path_max);
 				mlt.initUsedRandCoords();
 				PathSample sample = generate_new_path(scene, camera, cx, cy, width, height, mlt, -1, -1, maxDepth);
 				mlt.global_time++;
@@ -334,7 +330,6 @@ namespace spica {
 				sumI += luminance(sample.F);
 				seed_paths[i] = sample;
 			}
-			printf("hogehoge\n");
 
 			// Compute first path
 			const double rnd = rng.randReal() * sumI;
@@ -364,7 +359,7 @@ namespace spica {
 					std::cout << ", Rate: " << (100.0 * accept / (accept + reject)) << " %" << std::endl;
 				}
 
-				mlt.large_step = rng.randReal() < p_large;
+				mlt.large_step = rng.randReal() < p_large ? 1 : 0;
 				mlt.initUsedRandCoords();
 				PathSample new_path = generate_new_path(scene, camera, cx, cy, width, height, mlt, -1, -1, maxDepth);
 
@@ -372,14 +367,14 @@ namespace spica {
 				const double new_path_weight = (a + mlt.large_step) / (luminance(new_path.F) / b + p_large) / M;
 				const double old_path_weight = (1.0 - a) / (luminance(old_path.F) / b + p_large) / M;
 
-				tmp_image.pixel(new_path.x, new_path.y) += new_path_weight * new_path_weight * new_path.F;
-				tmp_image.pixel(old_path.x, old_path.y) += old_path_weight * old_path_weight * old_path.F;
-
+				tmp_image.pixel(new_path.x, new_path.y) += new_path.weight * new_path_weight * new_path.F;
+				tmp_image.pixel(old_path.x, old_path.y) += old_path.weight * old_path_weight * old_path.F;
+				
 				if (rng.randReal() < a) {  // Accept
 					accept++;
 					old_path = new_path;
 					if (mlt.large_step) {
-						mlt.large_step_time += mlt.global_time;
+						mlt.large_step_time = mlt.global_time;
 					}
 					mlt.global_time++;
 					while (!mlt.primary_samples_stack.empty()) {
@@ -397,7 +392,7 @@ namespace spica {
 
 			for (int y = 0; y < height; y++) {
 				for (int x = 0; x < width; x++) {
-					image.pixel(x, y) += tmp_image.pixel(x, y) / mlt_num;
+					image.pixel(x, height - y - 1) += tmp_image.pixel(x, y) / mlt_num;
 				}
 			}
 		}

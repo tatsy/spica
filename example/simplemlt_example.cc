@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
 	const int width = 320;
 	const int height = 240;
 	const int mutation = 32 * width * height;
-	const int mlt_num = 1;
+	const int mlt_num = 32;
 	const int maxDepth = 5;
 	Random rng = Random::getRNG();
 

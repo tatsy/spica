@@ -203,7 +203,54 @@ namespace spica {
             }
             return Color(0.0, 0.0, 0.0);
         }
-    }
+
+		struct PathSample {
+			int x, y;
+			Color F;
+			double weight;
+			PathSample(const int x_ = 0, const int y_ = 0, const Color& F_ = Color(), const double weight_ = 1.0)
+				: x(x_)
+				, y(y_)
+				, F(F_)
+				, weight(weight_)
+			{
+			}
+		};
+
+		PathSample generate_new_path(const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, KelemenMLT& mlt, int x, int y) {
+			double weight = 4.0;
+			if (x < 0) {
+				weight *= width;
+				x = mlt.nextSample() * width;
+				if (x == width) {
+					x = 0;
+				}
+			}
+
+			if (y < 0) {
+				weight *= height;
+				y = mlt.nextSample() * height;
+				if (y == height) {
+					y = 0;
+				}
+			}
+
+			int sx = mlt.nextSample() < 0.5 ? 0 : 1;
+			int sy = mlt.nextSample() < 0.5 ? 0 : 1;
+
+			const double r1 = 2.0 * mlt.nextSample();
+			const double r2 = 2.0 * mlt.nextSample();
+			const double dx = r1 < 1.0 ? sqrt(r1) - 1.0 : 1.0 - sqrt(2.0 - r1);
+			const double dy = r2 < 1.0 ? sqrt(r2) - 1.0 : 1.0 - sqrt(2.0 - r2);
+			Vector3 dir = cx * (((sx + 0.5 + dx) / 2.0 + x) / width - 0.5) + cy * (((sy + 0.5 + dy) / 2.0 + y) / height - 0.5) + camera.direction();
+			const Ray ray = Ray(camera.origin() + camera.direction() * 130.0, dir.normalize());
+
+			Color c = radiance(scene, ray, 0, mlt);
+
+			return PathSample(x, y, c, weight);
+		}
+
+    }  // anonymous namespace
 
     MLTRenderer::MLTRenderer()
     {
@@ -214,6 +261,33 @@ namespace spica {
     }
 
     int MLTRenderer::render(const Scene& scene, const Camera& camera) {
+		const int width = camera.imageWidth();
+		const int height = camera.imageHeight();
+		const int mlt_num = width * height; // TODO: Revise
+		Image image(width, height);
+		for (int mi = 0; mi < mlt_num; mi++) {
+			KelemenMLT mlt;
+
+			int seed_path_max = width * height;
+			if (seed_path_max <= 0) {
+				seed_path_max = 1;
+			}
+
+			std::vector<PathSample> seed_paths(seed_path_max);
+			double sumI = 0.0;
+			mlt.large_step = 1;
+			for (int i = 0; i < seed_path_max; i++) {
+				mlt.initUsedRandCoords();
+				PathSample smaple = generate_new_path(scene, camera.lens().normal(), cx, cy, width, height, mlt, -1, -1);
+				mlt.global_time++;
+				while (!mlt.primary_samples_stack.empty()) {
+					mlt.primary_samples_stack.pop();
+				}
+
+				sumI += luminance(sample.F);
+				seed_paths[i] = sample;
+			}
+		}
     }
 
 }  // namespace spica

@@ -6,6 +6,8 @@
 #include <fstream>
 #include <algorithm>
 
+#include "common.h"
+
 namespace spica {
 
     Image::Image()
@@ -18,8 +20,10 @@ namespace spica {
     Image::Image(int width, int height)
         : _width(width)
         , _height(height)
-        , _pixels(new Color[width * height])
+        , _pixels(0)
     {
+		msg_assert(width >= 0 && height >= 0, "Image size must be positive");
+		_pixels = new Color[_width * _height];
     }
 
     Image::Image(const Image& image) 
@@ -47,11 +51,13 @@ namespace spica {
     }
 
     const Color& Image::operator()(int x, int y) const {
+		msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
     Color& Image::pixel(int x, int y) {
-        return _pixels[y * _width + x];
+		msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+		return _pixels[y * _width + x];
     }
 
     void Image::savePPM(const std::string& filename) const {

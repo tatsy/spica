@@ -26,7 +26,7 @@ if (${BUILD_TEST} STREQUAL "ON")
     set(GTEST_INCLUDE_DIRS $ENV{GTEST_INCLUDE_DIRS})
   endif()
 
-  set(TEST_NAME spica_tests)
+  set(TEST_NAME test_spica)
   set(SOURCE_FILES all_tests.cc test_geometry.cc test_vector.cc test_image.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})

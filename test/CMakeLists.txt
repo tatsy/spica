@@ -34,7 +34,7 @@ if (${BUILD_TEST} STREQUAL "ON")
   target_link_libraries(${TEST_NAME} ${GTEST_MAIN_LIBRARY})
   target_link_libraries(${TEST_NAME} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
 
-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS test_vector test_geometry)
+  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS ${TEST_NAME})
 
   include_directories(${CMAKE_CURRENT_LIST_DIR})
   include_directories(${GTEST_INCLUDE_DIRS})

@@ -20,8 +20,10 @@ namespace spica {
     Image::Image(int width, int height)
         : _width(width)
         , _height(height)
-        , _pixels(new Color[width * height])
+        , _pixels(0)
     {
+		msg_assert(width >= 0 && height >= 0, "Image size must be positive");
+		_pixels = new Color[_width * _height];
     }
 
     Image::Image(const Image& image) 

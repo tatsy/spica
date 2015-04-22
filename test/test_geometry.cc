@@ -59,7 +59,7 @@ TEST(PrimitiveTest, InstanceTest) {
 }
 
 // ------------------------------
-// Sphere class test
+// Plane class test
 // ------------------------------
 TEST(PlaneTest, InstanceTest) {
     Plane pl(3.0, Vector3(-1.0, 0.0, 0.0), Color(0.1, 0.2, 0.3), Color(0.25, 0.50, 0.75), REFLECTION_DIFFUSE);
@@ -94,6 +94,12 @@ TEST(PlaneTest, InstanceTest) {
 // Sphere class test
 // ------------------------------
 TEST(SphereTest, InstanceTest) {
+	Sphere sp0;
+	EXPECT_EQ(0.0, sp0.center().x());
+	EXPECT_EQ(0.0, sp0.center().y());
+	EXPECT_EQ(0.0, sp0.center().z());
+	EXPECT_EQ(0.0, sp0.radius());
+
     Sphere sp(2.0, Vector3(0.0, 0.0, 0.0), Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE);
 
     EXPECT_EQ(0.0, sp.center().x());
@@ -110,6 +116,21 @@ TEST(SphereTest, InstanceTest) {
 
     EXPECT_EQ(REFLECTION_DIFFUSE, sp.reftype());
 
+	// copy constructor
+	sp0 = sp;
+	EXPECT_EQ(0.0, sp0.center().x());
+	EXPECT_EQ(0.0, sp0.center().y());
+	EXPECT_EQ(0.0, sp0.center().z());
+
+	EXPECT_EQ(0.0, sp0.emission().x());
+	EXPECT_EQ(0.0, sp0.emission().y());
+	EXPECT_EQ(0.0, sp0.emission().z());
+
+	EXPECT_EQ(0.75, sp0.color().x());
+	EXPECT_EQ(0.75, sp0.color().y());
+	EXPECT_EQ(0.75, sp0.color().z());
+
+	// intersection
     HitPoint hitpoint;
     EXPECT_TRUE(sp.intersect(Ray(Vector3(10.0, 0.0, 0.0), Vector3(-1.0, 0.0, 0.0)), hitpoint));
     EXPECT_EQ(2.0, hitpoint.position().x());

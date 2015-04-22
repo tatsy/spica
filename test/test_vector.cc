@@ -74,8 +74,3 @@ TEST(Vector3Test, AlgebraTest) {
     EXPECT_EQ(u.y() / nrm, w.y());
     EXPECT_EQ(u.z() / nrm, w.z());
 }
-
-int main(int argc, char **argv) {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}

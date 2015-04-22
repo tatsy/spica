@@ -26,7 +26,7 @@ if (${BUILD_TEST} STREQUAL "ON")
     set(GTEST_INCLUDE_DIRS $ENV{GTEST_INCLUDE_DIRS})
   endif()
 
-  set(TEST_NAME test_spica)
+  set(TEST_NAME spica_tests)
   set(SOURCE_FILES all_tests.cc test_geometry.cc test_vector.cc test_image.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})
@@ -34,6 +34,7 @@ if (${BUILD_TEST} STREQUAL "ON")
   target_link_libraries(${TEST_NAME} ${GTEST_MAIN_LIBRARY})
   target_link_libraries(${TEST_NAME} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
 
+  add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS ${TEST_NAME})
 
   include_directories(${CMAKE_CURRENT_LIST_DIR})

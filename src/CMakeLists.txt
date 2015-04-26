@@ -10,6 +10,8 @@ add_subdirectory(renderer)
 add_subdirectory(geometry)
 add_subdirectory(utils)
 add_subdirectory(scenes)
+add_subdirectory(structure)
+add_subdirectory(viewer)
 
 set(SOURCES ${SOURCES})
 set(HEADERS ${HEADERS} ../include/spica.h)

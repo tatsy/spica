@@ -8,17 +8,25 @@ before_install:
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
 install:
+  # install freeglut and glew
+  - sudo apt-get -qq install freeglut3 freeglut3-dev libglew-dev libglew1.10 
+
+  # install GTest
   - sudo apt-get install libgtest-dev
   - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib; cd -"
   - export GTEST_LIBRARY=/usr/local/lib/libgtest.a
   - export GTEST_MAIN_LIBRARY=/usr/local/lib/libgtest_main.a
   - export GTEST_INCLUDE_DIRS=/usr/include
+
+  # install lcov
   - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.11.orig.tar.gz
   - tar xf lcov_1.11.orig.tar.gz
   - sudo make -C lcov-1.11/ install
   - gem install coveralls-lcov
   - lcov --version
   - g++ --version
+
+  # build spica
   - cmake .
   - cmake --build .
 before_script:

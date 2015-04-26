@@ -35,6 +35,10 @@ spica
 #### Results
 
 
+#### ToDo
+
+* kd-tree implementation
+
 ## License
 
 * MIT license 2015, Tatsuya Yatagawa (tatsy).

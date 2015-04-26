@@ -12,8 +12,6 @@
 #include "material.h"
 #include "scene.h"
 
-
-
 namespace spica {
 
     PTRenderer::PTRenderer()
@@ -45,13 +43,20 @@ namespace spica {
 
         // Vectors spanning screen
         Image image(width, height);
+        int processed = 0;
+        
         ompfor (int y = 0; y < height; y++) {
-            std::cout << "Row: " << y << " is processing..." << std::endl;
-
             for (int x = 0; x < width; x++) {
-                image.pixel(x, y) = executePT(scene, camera, x, y, rng, samplePerPixel);
+                image.pixel(width - x - 1, y) = executePT(scene, camera, x, y, rng, samplePerPixel);
+            }
+
+            omplock
+            {
+                processed++;
+                printf("%6.2f %% processed...\n", 100.0 * processed / height);
             }
         }
+        
 
         image.savePPM("simplept.ppm");
 

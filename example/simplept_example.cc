@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
                   28.0);
 
     Random rng = Random::getRNG();
-    const int samplePerPixel = 32;
+    const int samplePerPixel = 128;
 
     PTRenderer renderer;
     renderer.render(scene, camera, rng, samplePerPixel);

@@ -9,7 +9,7 @@ before_install:
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
 install:
   # install freeglut and glew
-  - sudo apt-get -qq install freeglut3 freeglut3-dev libglew-dev libglew1.8 
+  - sudo apt-get -qq install freeglut3 freeglut3-dev libglew-dev libglew1.5
 
   # install GTest
   - sudo apt-get install libgtest-dev

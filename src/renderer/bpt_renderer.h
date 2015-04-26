@@ -11,25 +11,25 @@
     #define SPICA_BPT_RENDERER_DLL
 #endif
 
+#include "scene.h"
 #include "camera.h"
-#include "renderer_base.h"
 
 namespace spica {
     
-    class SPICA_BPT_RENDERER_DLL BPTRenderer : public RendererBase {
+    class SPICA_BPT_RENDERER_DLL BPTRenderer {
 
     public:
-        explicit BPTRenderer(int width = 512, int height = 512, int samples = 4, int supsamples = 2);
+        BPTRenderer();
         BPTRenderer(const BPTRenderer& renderer);
         ~BPTRenderer();
 
         BPTRenderer& operator=(const BPTRenderer& renderer);
 
-        int render(const Scene& scene, const Camera& camera);
+        int render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel);
 
-        int renderPT(const Scene& scene, const Camera& camera);
+        int renderPT(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel);
 
-        int renderLT(const Scene& scene, const Camera& camera);
+        int renderLT(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel);
     };
 
 }

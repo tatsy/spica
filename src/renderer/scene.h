@@ -23,8 +23,9 @@ namespace spica {
     private:
         unsigned int _nPrimitives;
         unsigned int _arraySize;
-        int _lightId;
+        int _lightID;
         Primitive** _primitives;
+        Color _bgColor;
 
     public:
         Scene();
@@ -39,7 +40,11 @@ namespace spica {
 
         bool intersect(const Ray& ray, Intersection& intersection) const;
 
-        inline int lightId() const { return _lightId; }
+        inline int lightID() const { return _lightID; }
+        inline const Color& bgColor() const { return _bgColor; }
+
+        inline void setBgColor(const Color& bgColor) { _bgColor = bgColor; }
+
 
     private:
         Scene(const Scene& scene);

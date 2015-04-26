@@ -30,8 +30,11 @@ int main(int argc, char **argv) {
                   5.0,
                   28.0);
 
-    BPTRenderer renderer(width, height, 50, 2);
-    renderer.render(scene, camera);
+    Random rng = Random::getRNG();
+    const int samplePerPixel = 32;
+
+    BPTRenderer renderer;
+    renderer.render(scene, camera, rng, samplePerPixel);
 
     return 0;
 }

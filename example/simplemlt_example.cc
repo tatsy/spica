@@ -25,9 +25,9 @@ int main(int argc, char **argv) {
 	const int maxDepth = 5;
 	Random rng = Random::getRNG();
 
-	Ray camera(Vector3(50.0, 52.0, 295.6), Vector3(0.0, -0.042612, -1.0).normalize());
+	Ray camera(Vector3(50.0, 52.0, 295.6), Vector3(0.0, -0.042612, -1.0).normalized());
 	Vector3 cx = Vector3(width * 0.5135 / height, 0.0, 0.0);
-	Vector3 cy = cx.cross(camera.direction()).normalize() * 0.5135;
+	Vector3 cy = cx.cross(camera.direction()).normalized() * 0.5135;
 	Image image(width, height);
 
 	MLTRenderer renderer;

@@ -59,7 +59,7 @@ namespace spica {
         }
 
         hitpoint.setPosition(ray.origin() + hitpoint.distance() * ray.direction());
-        hitpoint.setNormal((hitpoint.position() - _center).normalize());
+        hitpoint.setNormal((hitpoint.position() - _center).normalized());
 
         return true;
     }

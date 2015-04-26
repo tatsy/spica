@@ -32,6 +32,10 @@ after_success:
   - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
   - ./build/bin/simplept
   - sh ./update-gh-pages.sh
+branches:
+  only:
+    - master
+    - develop
 notifications:
   email:
     recipients: tatsy.mail@gmail.com

@@ -91,9 +91,9 @@ namespace spica {
             Vector3 w, u, v;
             w = normal;
             if (abs(w.x()) > EPS) {
-                u = Vector3(0.0, 1.0, 0.0).cross(w).normalize();
+                u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
             } else {
-                u = Vector3(1.0, 0.0, 0.0).cross(w).normalize();
+                u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
             }
             v = w.cross(u);
 
@@ -101,7 +101,7 @@ namespace spica {
             const double r2 = rng.randReal();
             const double r2s = sqrt(r2);
 
-            Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalize();
+            Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
 
             pdf_omega = sample_hemisphere_pdf_omega(normal, nextDir);
 
@@ -126,7 +126,7 @@ namespace spica {
         // Specular reflectance model
         // --------------------------------------------------
         Vector3 reflectionVec(const Vector3& v, const Vector3& n) {
-            return (v - n * 2.0 * n.dot(v)).normalize();
+            return (v - n * 2.0 * n.dot(v)).normalized();
         }
 
         bool isTotalReflection(const bool isIncoming, const Vector3& position, const Vector3& in, const Vector3& normal, const Vector3& orientNormal,
@@ -145,7 +145,7 @@ namespace spica {
                 return true;
             }
 
-            refractDir = (in * nnt - normal * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalize();
+            refractDir = (in * nnt - normal * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
 
             const double a = IOR_OBJECT - IOR_VACCUM;
             const double b = IOR_OBJECT + IOR_VACCUM;
@@ -173,7 +173,7 @@ namespace spica {
             }
 
             const Vector3 to = nextVert.position - fromVert.position;
-            const Vector3 normalizedTo = to.normalize();
+            const Vector3 normalizedTo = to.normalized();
             double pdf = 0.0;
 
             if (fromVert.objtype == Vertex::OBJECT_TYPE_LIGHT || fromVert.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
@@ -187,7 +187,7 @@ namespace spica {
                     const Vector3 x0xV = positionOnObjplane - positionOnLens;
                     const Vector3 x0x1 = testRay.origin() - positionOnLens;
 
-                    const double PImage = 1.0 / (camera.sensor().width() * camera.sensor().height());
+                    const double PImage = 1.0 / (camera.sensorW() * camera.sensorH());
                     const double PAx1 = camera.PImageToPAx1(PImage, x0xV, x0x1, nextVert.orientNormal);
                     return PAx1;
                 }
@@ -196,7 +196,7 @@ namespace spica {
                 const Primitive* tempObj = scene.getObjectPtr(fromVert.objectId);
                 if (tempObj->reftype() == REFLECTION_SPECULAR) {
                     if (prevFromVertex != NULL) {
-                        const Vector3 intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalize();
+                        const Vector3 intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalized();
                         const bool isIncoming = intoFromVertexDir.dot(fromVert.objectNormal) < 0.0;
                         const Vector3 fromNewOrientNormal = isIncoming ? fromVert.objectNormal : -fromVert.objectNormal;
 
@@ -226,7 +226,7 @@ namespace spica {
 
             std::vector<const Vertex*> verts(nEyeVerts + nLightVerts);
             std::vector<double> pi1pi(nEyeVerts + nLightVerts);
-            const Sphere* lightSphere = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightId()));
+            const Sphere* lightSphere = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightID()));
             const double PAy0 = sample_sphere_pdf_A(lightSphere->radius());
             const double PAx0 = camera.samplingPdfOnLens();
 
@@ -286,11 +286,11 @@ namespace spica {
         LightTracingResult executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
             // Generate sample on the light
             double pdfAreaOnLight;
-            const int lightId = scene.lightId();
+            const int lightId = scene.lightID();
             const Sphere* lightSphere = reinterpret_cast<const Sphere*>(scene.getObjectPtr(lightId));
 
             const Vector3 positionOnLight = lightSphere->center() + sample_sphere(lightSphere->radius(), rng, pdfAreaOnLight);
-            const Vector3 normalOnLight = (positionOnLight - lightSphere->center()).normalize();
+            const Vector3 normalOnLight = (positionOnLight - lightSphere->center()).normalized();
 
             double totalPdfA = pdfAreaOnLight;
 
@@ -317,16 +317,16 @@ namespace spica {
 
                     int x = (int)uvOnSensor.x();
                     int y = (int)uvOnSensor.y();
-                    x = x < 0 ? 0 : x >= camera.imageWidth() ? camera.imageWidth() - 1 : x;
-                    y = y < 0 ? 0 : y >= camera.imageHeight() ? camera.imageHeight() - 1 : y;
+                    x = x < 0 ? 0 : x >= camera.imageW() ? camera.imageW() - 1 : x;
+                    y = y < 0 ? 0 : y >= camera.imageH() ? camera.imageH() - 1 : y;
 
-                    const double nowSamplePdfArea = nowSampledPdfOmega * (x0x1.normalize().dot(camera.sensor().direction().normalize()) / x0x1.dot(x0x1));
+                    const double nowSamplePdfArea = nowSampledPdfOmega * (x0x1.normalized().dot(camera.direction().normalized()) / x0x1.dot(x0x1));
                     totalPdfA *= nowSamplePdfArea;
 
                     // Geometry term
-                    const double G = x0x1.normalize().dot(camera.sensor().direction().normalize()) * (-1.0) * (x0x1.normalize().dot(prevNormal) / x0x1.dot(x0x1));
+                    const double G = x0x1.normalized().dot(camera.direction().normalized()) * (-1.0) * (x0x1.normalized().dot(prevNormal) / x0x1.dot(x0x1));
                     throughputMC *= G;
-                    vertices.push_back(Vertex(positionOnLens, camera.sensor().direction().normalize(), camera.sensor().direction().normalize(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
+                    vertices.push_back(Vertex(positionOnLens, camera.direction().normalized(), camera.direction().normalized(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
                 
                     const Color result = (camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfA;
                     return LightTracingResult(result, x, y, true);
@@ -349,10 +349,10 @@ namespace spica {
                 totalPdfA *= rouletteProb;
 
                 const Vector3 toNextVertex = nowRay.origin() - hitpoint.position();
-                const double nowSampledPdfArea = nowSampledPdfOmega * (toNextVertex.normalize().dot(orientNormal) / toNextVertex.dot(toNextVertex));
+                const double nowSampledPdfArea = nowSampledPdfOmega * (toNextVertex.normalized().dot(orientNormal) / toNextVertex.dot(toNextVertex));
                 totalPdfA *= nowSampledPdfArea;
 
-                const double G = toNextVertex.normalize().dot(orientNormal) * (-1.0 * toNextVertex).normalize().dot(prevNormal) / toNextVertex.dot(toNextVertex);
+                const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.dot(toNextVertex);
                 throughputMC = G * throughputMC;
 
                 vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(),
@@ -368,7 +368,7 @@ namespace spica {
                     nowSampledPdfOmega = 1.0;
                     const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
+                    throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
                 } else if (currentObj->reftype() == REFLECTION_REFRACTION) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
@@ -382,19 +382,19 @@ namespace spica {
                         if (rng.randReal() < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
-                            throughputMC = fresnelRef * (currentObj->color().cwiseMultiply(throughputMC)) / (toNextVertex.normalize().dot(orientNormal));
+                            throughputMC = fresnelRef * (currentObj->color().cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= REFLECT_PROBABLITY;
                         } else {
                             const double nnt2 = pow(isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM, 2.0);
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), refractDir);
-                            throughputMC = nnt2 * fresnelTransmit * (currentObj->color().cwiseMultiply(throughputMC)) / (toNextVertex.normalize().dot(orientNormal));
+                            throughputMC = nnt2 * fresnelTransmit * (currentObj->color().cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= (1.0 - REFLECT_PROBABLITY);
                         }
                     } else { // Total reflection
                         nowSampledPdfOmega = 1.0;
                         nowRay = Ray(hitpoint.position(), reflectDir);
-                        throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
+                        throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
                     }
 
                 }
@@ -414,11 +414,11 @@ namespace spica {
 
             Color throughputMC = Color(1.0, 1.0, 1.0);
 
-            vertices.push_back(Vertex(positionOnLens, camera.lens().normal(), camera.lens().normal(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
+            vertices.push_back(Vertex(positionOnLens, camera.lensNormal(), camera.lensNormal(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
         
-            Ray nowRay(positionOnLens, (positionOnObjplane - positionOnLens).normalize());
+            Ray nowRay(positionOnLens, (positionOnObjplane - positionOnLens).normalized());
             double nowSampledPdfOmega = 1.0;
-            Vector3 prevNormal = camera.lens().normal();
+            Vector3 prevNormal = camera.lensNormal();
 
             for (int nowVertexIndex = 1; ; nowVertexIndex++) {
                 Intersection intersection;
@@ -448,12 +448,12 @@ namespace spica {
 
                     throughputMC = camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC;
                 } else {
-                    const double nowSampledPdfA = nowSampledPdfOmega * (toNextVertex.normalize().dot(orientNormal)) / toNextVertex.dot(toNextVertex);
+                    const double nowSampledPdfA = nowSampledPdfOmega * (toNextVertex.normalized().dot(orientNormal)) / toNextVertex.dot(toNextVertex);
                     totalPdfA *= nowSampledPdfA;
                 }
 
                 // Geometry term
-                const double G = toNextVertex.normalize().dot(orientNormal) * (-1.0 * toNextVertex).normalize().dot(prevNormal) / toNextVertex.dot(toNextVertex);
+                const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.dot(toNextVertex);
                 throughputMC = G * throughputMC;
 
                 if (currentObj->emission().norm() > 0.0) {
@@ -475,7 +475,7 @@ namespace spica {
                     nowSampledPdfOmega = 1.0;
                     const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));
+                    throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
 
                 } else if (currentObj->reftype() == REFLECTION_REFRACTION) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
@@ -490,19 +490,19 @@ namespace spica {
                         if (rng.randReal() < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
-                            throughputMC = fresnelRef * (currentObj->color().cwiseMultiply(throughputMC)) / (toNextVertex.normalize().dot(orientNormal));
+                            throughputMC = fresnelRef * (currentObj->color().cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= REFLECT_PROBABLITY;
                         } else {
                             const double nnt2 = pow(isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM, 2.0);
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), refractDir);
-                            throughputMC = nnt2 * fresnelTransmit * (currentObj->color().cwiseMultiply(throughputMC)) / (toNextVertex.normalize().dot(orientNormal));
+                            throughputMC = nnt2 * fresnelTransmit * (currentObj->color().cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= (1.0 - REFLECT_PROBABLITY);
                         }
                     } else { // Total reflection
                         nowSampledPdfOmega = 1.0;
                         nowRay = Ray(hitpoint.position(), reflectDir);
-                        throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalize().dot(orientNormal));                    
+                        throughputMC = currentObj->color().cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));                    
                     }
                 }
                 prevNormal = orientNormal;
@@ -574,7 +574,7 @@ namespace spica {
                     // End-to-end ray tracing
                     Intersection intersection;
                     const Vector3 lendToEend = eyeEnd.position - lightEnd.position;
-                    const Ray testRay(lightEnd.position, lendToEend.normalize());
+                    const Ray testRay(lightEnd.position, lendToEend.normalized());
                     scene.intersect(testRay, intersection);
 
                     if (eyeEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
@@ -594,8 +594,8 @@ namespace spica {
 
                             targetX = (int)uvOnSensor.x();
                             targetY = (int)uvOnSensor.y();
-                            targetX = targetX < 0 ? 0 : targetX >= camera.imageWidth() ? camera.imageWidth() - 1 : targetX;
-                            targetY = targetY < 0 ? 0 : targetY >= camera.imageHeight() ? camera.imageHeight() - 1 : targetY;
+                            targetX = targetX < 0 ? 0 : targetX >= camera.imageW() ? camera.imageW() - 1 : targetX;
+                            targetY = targetY < 0 ? 0 : targetY >= camera.imageH() ? camera.imageH() - 1 : targetY;
 
                             connectedThrought = camera.contribSensitivity(x0xV, x0xI, x0x1) * connectedThrought;
                         } else {
@@ -614,8 +614,8 @@ namespace spica {
                         continue;
                     }
 
-                    double G = std::max(0.0, (-1.0 * lendToEend.normalize().dot(eyeEnd.orientNormal)));
-                    G *= std::max(0.0, lendToEend.normalize().dot(lightEnd.orientNormal));
+                    double G = std::max(0.0, (-1.0 * lendToEend.normalized().dot(eyeEnd.orientNormal)));
+                    G *= std::max(0.0, lendToEend.normalized().dot(lightEnd.orientNormal));
                     G /= lendToEend.dot(lendToEend);
                     connectedThrought = G * connectedThrought;
 
@@ -646,13 +646,11 @@ namespace spica {
 
     }  // unnamed namespace
     
-    BPTRenderer::BPTRenderer(int width, int height, int samples, int supsamples)
-        : RendererBase(width, height, samples, supsamples)
+    BPTRenderer::BPTRenderer()
     {
     }
 
     BPTRenderer::BPTRenderer(const BPTRenderer& renderer)
-        : RendererBase(renderer)
     {
     }
 
@@ -661,17 +659,18 @@ namespace spica {
     }
 
     BPTRenderer& BPTRenderer::operator=(const BPTRenderer& renderer) {
-        RendererBase::operator=(renderer);
         return *this;
     }
 
-    int BPTRenderer::render(const Scene& scene, const Camera& camera) {
-        Image image(_width, _height);
+    int BPTRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel) {
+        const int width  = camera.imageW();
+        const int height = camera.imageH();
+        Image image(width, height);
 
-        for (int it = 0; it < _samplePerPixel; it++) {
-            for (int y = 0; y < _height; y++) {
+        for (int it = 0; it < samplePerPixel; it++) {
+            for (int y = 0; y < height; y++) {
                 printf("%d - %d\n", it, y);
-                for (int x = 0; x < _width; x++) {
+                for (int x = 0; x < width; x++) {
                     BPTResult bptResult = executeBPT(scene, camera, rng, x, y);
                     
                     for (int i = 0; i < bptResult.samples.size(); i++) {
@@ -681,7 +680,7 @@ namespace spica {
                             if (bptResult.samples[i].startFromPixel) {
                                 image.pixel(ix, iy) += bptResult.samples[i].value;     
                             } else {
-                                image.pixel(ix, iy) += bptResult.samples[i].value / ((double)_width * _height);
+                                image.pixel(ix, iy) += bptResult.samples[i].value / ((double)width * height);
                             }
                         }
 
@@ -690,10 +689,10 @@ namespace spica {
             }
         }
 
-        Image output(_width, _height);
-        for (int y = 0; y < _height; y++) {
-            for (int x = 0; x < _width; x++) {
-                output.pixel(x, y) = image.pixel(_width - x - 1, y) / _samplePerPixel;
+        Image output(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                output.pixel(x, y) = image.pixel(width - x - 1, y) / samplePerPixel;
             }
         }
 
@@ -701,10 +700,10 @@ namespace spica {
         return 0;
     }
 
-    int BPTRenderer::renderPT(const Scene& scene, const Camera& camera) {
-        const int width = camera.imageWidth();
-        const int height = camera.imageHeight();
-        const int spp = _samplePerPixel;
+    int BPTRenderer::renderPT(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel) {
+        const int width = camera.imageW();
+        const int height = camera.imageH();
+        const int spp = samplePerPixel;
 
         Image image(width, height);
         for (int sample = 0; sample < spp; sample++) {
@@ -733,10 +732,10 @@ namespace spica {
         return 0;
     }
 
-    int BPTRenderer::renderLT(const Scene& scene, const Camera& camera) {
-        const int width = camera.imageWidth();
-        const int height = camera.imageHeight();
-        const int spp = _samplePerPixel * width * height;
+    int BPTRenderer::renderLT(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel) {
+        const int width = camera.imageW();
+        const int height = camera.imageH();
+        const int spp = samplePerPixel * width * height;
 
         Image image(width, height);
 

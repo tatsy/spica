@@ -9,6 +9,7 @@ namespace spica {
         : _nPrimitives(0)
         , _arraySize(1024)
         , _primitives(0)
+        , _bgColor(0.0, 0.0, 0.0)
     {
         _primitives = new Primitive*[_arraySize];
     }
@@ -29,13 +30,13 @@ namespace spica {
     }
 
     void Scene::addPlane(const Plane& plane, bool isLight) {
-        if (isLight) _lightId = _nPrimitives;
+        if (isLight) _lightID = _nPrimitives;
         _primitives[_nPrimitives++] = new Plane(plane);
         checkArraySize();
     }
 
     void Scene::addSphere(const Sphere& sphere, bool isLight) {
-        if (isLight) _lightId = _nPrimitives;
+        if (isLight) _lightID = _nPrimitives;
         _primitives[_nPrimitives++] = new Sphere(sphere);
         checkArraySize();
     }

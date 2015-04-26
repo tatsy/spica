@@ -17,135 +17,127 @@
 
 namespace spica {
 
-    class Camera;
-
-    // ------------------------------------------------------------
-    // Image sensor
-    // ------------------------------------------------------------
-
-    class ImageSensor {
-        friend class Camera;
-
+    class SPICA_CAMERA_DLL Camera {
     private:
-        double _width;
-        double _height;
-        double _pixelWidth;
-        double _pixelHeight;
-        Vector3 _center;
-        Vector3 _direction;
-        Vector3 _up;
-        Vector3 _u;
-        Vector3 _v;
-        double _sensitivity;
 
-    public:
-        ImageSensor();
-        ImageSensor(double width, double height, Vector3 center, Vector3 direction, Vector3 up, Vector3 u, Vector3 v, double sensitivity);
-        ImageSensor(const ImageSensor& sensor);
+        // ------------------------------------------------------------
+        // Image sensor
+        // ------------------------------------------------------------
 
-        ~ImageSensor();
-
-        ImageSensor& operator=(const ImageSensor& sensor);
-
-        inline double width() const { return _width; }
-        inline double height() const { return _height; }
-        inline Vector3 center() const { return _center; }
-        inline Vector3 direction() const { return _direction; }
-        inline Vector3 u() const { return _u; }
-        inline Vector3 v() const { return _v; }
-    };
+        struct ImageSensor {
+            double width;           // # of sensors along x-axis
+            double height;          // # of sensors along y-axis
+            double cellW;           // Width of one sensor cell
+            double cellH;           // Height of one sensor cell
+            Vector3 center;         // Center position of the sensor
+            Vector3 direction;      // Direction of the sensor
+            Vector3 up;             // Up direction of the sensor
+            Vector3 unitU;          // Unit vector of u-axis
+            Vector3 unitV;          // Unit vector of v-axis
+            double sensitivity;     // Sensor sensitivity
+        };
 
 
-    // ------------------------------------------------------------
-    // Lens
-    // ------------------------------------------------------------
+        // ------------------------------------------------------------
+        // Lens
+        // ------------------------------------------------------------
 
-    class Lens {
-        friend class Camera;
+        struct Lens {
+            double focalLength;     // Focal length
+            double radius;          // Lens radius
+            Vector3 center;         // Center position
+            Vector3 unitU;          // Unit vector of u-axis
+            Vector3 unitV;          // Unit vector of v-axis
+            Vector3 normal;         // Lens normal
 
-    private:
-        double _focalLength;
-        double _radius;
-        Vector3 _center;
-        Vector3 _u;
-        Vector3 _v;
-        Vector3 _normal;
-
-    public:
-        Lens();
-        Lens(double focalLength, double radius, Vector3 center, Vector3 u, Vector3 v, Vector3 normal);
-        Lens(const Lens& lens);
-        
-        ~Lens();
-
-        Lens& operator=(const Lens& lens);
-
-        inline Vector3 normal() const { return _normal; }
-    };
+            // Area of lens
+            double area() const {
+                return PI * radius * radius;
+            }
+        };
 
 
-    // ------------------------------------------------------------
-    // Object plane
-    // ------------------------------------------------------------
+        // ------------------------------------------------------------
+        // Object plane
+        // ------------------------------------------------------------
 
-    class ObjectPlane : public Plane {
-        friend class Camera;
-
-    private:
-        Vector3 _center;
-        Vector3 _u;
-        Vector3 _v;
-
-    public:
-        ObjectPlane();
-        ObjectPlane(Vector3 center, Vector3 u, Vector3 v);
-        ObjectPlane(const ObjectPlane& objplane);
-        ~ObjectPlane();
-
-        ObjectPlane& operator=(const ObjectPlane& objplane);
-    };
+        struct ObjectPlane {
+            double width;       // Width of the object plane
+            double height;      // Height of the object plane
+            Vector3 center;     // Center position
+            Vector3 normal;     // Normal of the object plane
+            Vector3 unitU;      // Unit vector of u-axis
+            Vector3 unitV;      // Unit vector of v-axis
+        };
 
     // ------------------------------------------------------------
     // Camera
     // ------------------------------------------------------------
 
-    class SPICA_CAMERA_DLL Camera {
     private:
         // Image size
-        unsigned int _width;
-        unsigned int _height;
-        double _distSensorToLens;
+        unsigned int width_;                // size of image
+        unsigned int height_;               // size of height
+        double       distSensorToLens_;
 
-        ImageSensor _sensor;
-        Lens _lens;
-        ObjectPlane _objplane;
+        ImageSensor sensor_;
+        Lens        lens_;
+        ObjectPlane objplane_;
 
     public:
         Camera();
-        Camera(int imageWidth, int imageHeight, const Vector3& sensorCenter, const Vector3& sensorDir,  const Vector3& sensorUp, double sensorSize,
-               double distSensorToLens, double focalLength, double lensRadius, double sensorSensitivity);
+        Camera(int    imageWidth,
+               int    imageHeight,
+               const  Vector3& sensorCenter,
+               const  Vector3& sensorDir,
+               const  Vector3& sensorUp,
+               double sensorSize,
+               double distSensorToLens,
+               double focalLength,
+               double lensRadius,
+               double sensorSensitivity);
+
         Camera(const Camera& camera);
 
         ~Camera();
 
         Camera& operator=(const Camera& camera);
 
+        /* Compute a ray from 
+         */
+        Ray rayToObjectPlane(double x, double y) const;
+
         double PImageToPAx1(const double PImage, const Vector3& x0xV, const Vector3& x0x1, const Vector3& orientNormal) const;
 
         double samplingPdfOnLens() const;
 
+        /* Return distance to the intersecting point on the lens
+         * @param[in] ray: a ray casted to lens
+         * @param[out] positionOnLens: hit point on lens
+         * @param[out] positionOnObjplane: hit point on object plane
+         * @param[out] uvOnSensor: uv coordinate on the sensor
+         */
         double intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positonOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const;
 
         double contribSensitivity(const Vector3& x0xV, const Vector3& x0xI, const Vector3& x0x1) const;
 
         void samplePoints(const int imageX, const int imageY, const Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const;
 
-        inline unsigned int imageWidth() const { return _width; }
-        inline unsigned int imageHeight() const { return _height; }
+        inline unsigned int imageW() const { return width_; }
+        inline unsigned int imageH() const { return height_; }
         
-        inline const ImageSensor& sensor() const { return _sensor; }
-        inline const Lens& lens() const { return _lens; }
-        
+        inline Vector3 center()    const { return sensor_.center; }
+        inline Vector3 direction() const { return sensor_.direction; }
+        inline Vector3 up()        const { return sensor_.up; }
+
+        inline double  sensorW()   const { return sensor_.width; }
+        inline double  sensorH()   const { return sensor_.height; }
+        inline Vector3 sensorU()   const { return sensor_.unitU; }
+        inline Vector3 sensorV()   const { return sensor_.unitV; }
+
+        inline Vector3 lensCenter() const { return lens_.center; }
+        inline Vector3 lensNormal() const { return lens_.normal; }
+        inline double  lensRadius() const { return lens_.radius; }
     };
 
 }

@@ -33,9 +33,15 @@ namespace spica {
         Vector3& operator/=(double s);
 
         double dot(const Vector3& v) const;
+        static double dot(const Vector3& v1, const Vector3& v2);
+
         Vector3 cross(const Vector3& v) const;
+        static Vector3 cross(const Vector3& v1, const Vector3& v2);
+
         double norm() const;
-        Vector3 normalize() const;
+
+        Vector3 normalized() const;
+        static Vector3 normalize(const Vector3& v);
 
         Vector3 cwiseMultiply(const Vector3& v) const;
 

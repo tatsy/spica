@@ -69,7 +69,7 @@ TEST(Vector3Test, AlgebraTest) {
     double nrm = u.norm();
     EXPECT_EQ(sqrt(14.0), nrm);
 
-    w = u.normalize();
+    w = u.normalized();
     EXPECT_EQ(u.x() / nrm, w.x());
     EXPECT_EQ(u.y() / nrm, w.y());
     EXPECT_EQ(u.z() / nrm, w.z());

@@ -106,13 +106,13 @@ namespace spica {
 		Color direct_radiance_sample(const Scene& scene, const Vector3& v0, const Vector3& normal, const int id, KelemenMLT& mlt) {
 			const double r1 = 2.0 * PI * mlt.nextSample();
 			const double r2 = 1.0 - 2.0 * mlt.nextSample();
-			const Sphere* light_ptr = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightId()));
+			const Sphere* light_ptr = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightID()));
 			const Vector3 light_pos = light_ptr->center() + (light_ptr->radius() * Vector3(sqrt(1.0 - r2 * r2) * cos(r1), sqrt(1.0 - r2 * r2) * sin(r1), r2));
 
 			// --
-			const Vector3 light_normal = (light_pos - light_ptr->center()).normalize();
+			const Vector3 light_normal = (light_pos - light_ptr->center()).normalized();
 			const Vector3 v_to_l = light_pos - v0;
-			const Vector3 light_dir = v_to_l.normalize();
+			const Vector3 light_dir = v_to_l.normalized();
 			const double dist2 = v_to_l.dot(v_to_l);
 			const double dot0 = normal.dot(light_dir);
 			const double dot1 = light_normal.dot(-1.0 * light_dir);
@@ -120,7 +120,7 @@ namespace spica {
 			if (dot0 >= 0.0 && dot1 >= 0.0) {
 				const double G = dot0 * dot1 / dist2;
 				Intersection intersection;
-				if (scene.intersect(Ray(v0, light_dir), intersection) && intersection.objectId() == scene.lightId()) {
+				if (scene.intersect(Ray(v0, light_dir), intersection) && intersection.objectId() == scene.lightID()) {
 					const Primitive* obj_ptr = scene.getObjectPtr(id);
 					const double light_radius = light_ptr->radius();
 					return obj_ptr->color().cwiseMultiply(light_ptr->emission()) * (1.0 / PI) * G * (4.0 * PI * light_radius * light_radius);
@@ -151,7 +151,7 @@ namespace spica {
             }
 
             if (obj_ptr->reftype() == REFLECTION_DIFFUSE) {
-                if (intersection.objectId() != scene.lightId()) {
+                if (intersection.objectId() != scene.lightID()) {
                     const int shadow_ray = 1;
                     Vector3 direct_light;
                     for (int i = 0; i < shadow_ray; i++) {
@@ -161,16 +161,16 @@ namespace spica {
                     Vector3 w, u, v;
                     w = orient_normal;
                     if (abs(w.x()) > EPS) {
-                        u = Vector3(0.0, 1.0, 0.0).cross(w).normalize();
+                        u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
                     } else {
-                        u = Vector3(1.0, 0.0, 0.0).cross(w).normalize();
+                        u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
                     }
                     v = w.cross(u);
 
                     const double r1 = 2.0 * PI * mlt.nextSample();
                     const double r2 = mlt.nextSample();
                     const double r2s = sqrt(r2);
-                    Vector3 next_dir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalize();
+                    Vector3 next_dir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
 
                     const Color next_bounce_color = radiance(scene, Ray(hitpoint.position(), next_dir), depth + 1, maxDepth, mlt);
                     return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
@@ -185,8 +185,8 @@ namespace spica {
 				Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
                 scene.intersect(reflection_ray, light_intersect);
                 Vector3 direct_light;
-                if (light_intersect.objectId() == scene.lightId()) {
-                    direct_light = scene.getObjectPtr(scene.lightId())->emission();
+                if (light_intersect.objectId() == scene.lightID()) {
+                    direct_light = scene.getObjectPtr(scene.lightID())->emission();
                 }
                 const Color next_bounce_color = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
                 return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
@@ -195,8 +195,8 @@ namespace spica {
 				Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
                 scene.intersect(reflection_ray, light_intersect);
                 Vector3 direct_light;
-                if (light_intersect.objectId() == scene.lightId()) {
-                    direct_light = scene.getObjectPtr(scene.lightId())->emission();
+                if (light_intersect.objectId() == scene.lightID()) {
+                    direct_light = scene.getObjectPtr(scene.lightID())->emission();
                 }
 
                 bool is_incoming = hitpoint.normal().dot(orient_normal) > 0.0;
@@ -213,7 +213,7 @@ namespace spica {
                     return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
                 }
 
-                Vector3 tdir = (ray.direction() * nnt - hitpoint.normal() * (is_incoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalize();
+                Vector3 tdir = (ray.direction() * nnt - hitpoint.normal() * (is_incoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
 
                 // Schlick
                 const double a = nt - nc;
@@ -228,8 +228,8 @@ namespace spica {
 				Intersection light_intersect_refract;
                 scene.intersect(reflection_ray, light_intersect_refract);
                 Vector3 direct_light_refraction;
-                if (light_intersect_refract.objectId() == scene.lightId()) {
-                    direct_light_refraction = scene.getObjectPtr(scene.lightId())->emission();
+                if (light_intersect_refract.objectId() == scene.lightID()) {
+                    direct_light_refraction = scene.getObjectPtr(scene.lightID())->emission();
                 }
 
                 if (depth > 2) {
@@ -289,7 +289,7 @@ namespace spica {
 			const double dx = r1 < 1.0 ? sqrt(r1) - 1.0 : 1.0 - sqrt(2.0 - r1);
 			const double dy = r2 < 1.0 ? sqrt(r2) - 1.0 : 1.0 - sqrt(2.0 - r2);
 			Vector3 dir = cx * (((sx + 0.5 + dx) / 2.0 + x) / width - 0.5) + cy * (((sy + 0.5 + dy) / 2.0 + y) / height - 0.5) + camera.direction();
-			const Ray ray = Ray(camera.origin() + dir * 130.0, dir.normalize());
+			const Ray ray = Ray(camera.origin() + dir * 130.0, dir.normalized());
 
 			Color c = radiance(scene, ray, 0, maxDepth, mlt);
 

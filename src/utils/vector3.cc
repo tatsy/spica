@@ -67,6 +67,10 @@ namespace spica {
         return this->_x * v._x + this->_y * v._y + this->_z * v._z;
     }
 
+    double Vector3::dot(const Vector3& v1, const Vector3& v2) {
+        return v1.dot(v2);
+    }
+
     Vector3 Vector3::cross(const Vector3& v) const {
         double x = this->_y * v._z - this->_z * v._y;
         double y = this->_z * v._x - this->_x * v._z;
@@ -74,14 +78,22 @@ namespace spica {
         return Vector3(x, y, z);
     }
 
+    Vector3 Vector3::cross(const Vector3& v1, const Vector3& v2) {
+        return v1.cross(v2);
+    }
+
     double Vector3::norm() const {
         return sqrt(this->dot(*this));
     }
 
-    Vector3 Vector3::normalize() const {
+    Vector3 Vector3::normalized() const {
         Vector3 ret = *this;
         ret /= ret.norm();
         return ret;
+    }
+
+    Vector3 Vector3::normalize(const Vector3& v) {
+        return v.normalized();
     }
 
     Vector3 Vector3::cwiseMultiply(const Vector3& v) const {

@@ -79,7 +79,7 @@ TEST(PlaneTest, InstanceTest) {
     EXPECT_EQ(0.75, pl.color().z());
 
     HitPoint hitpoint;
-    EXPECT_TRUE(pl.intersect(Ray(Vector3(0.0, 1.0, 1.0), Vector3(3.0, 4.0, 0.0).normalize()), hitpoint));
+    EXPECT_TRUE(pl.intersect(Ray(Vector3(0.0, 1.0, 1.0), Vector3(3.0, 4.0, 0.0).normalized()), hitpoint));
 
     EXPECT_EQ(3.0, hitpoint.position().x());
     EXPECT_EQ(5.0, hitpoint.position().y());

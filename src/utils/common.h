@@ -39,8 +39,10 @@ static const double EPS = 1.0e-6;
 #ifdef _OPENMP
 #include <omp.h>
 #define ompfor __pragma(omp parallel for) for
+#define omplock __pragma(omp critical)
 #else  // _OPENMP
 #define ompfor for
+#define omplock
 #endif  // _OPENMP
 
 // ----------------------------------------------------------------------------

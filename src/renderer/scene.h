@@ -36,7 +36,7 @@ namespace spica {
 
         const Primitive* getObjectPtr(int id) const;
 
-        void release();
+        void clear();
 
         bool intersect(const Ray& ray, Intersection& intersection) const;
 
@@ -49,6 +49,9 @@ namespace spica {
     private:
         Scene(const Scene& scene);
         Scene& operator=(const Scene& scene);
+
+        void init();
+        void release();
 
         void checkArraySize();
     };

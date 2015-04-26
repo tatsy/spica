@@ -9,6 +9,7 @@ endif()
 add_subdirectory(renderer)
 add_subdirectory(geometry)
 add_subdirectory(utils)
+add_subdirectory(scenes)
 
 set(SOURCES ${SOURCES})
 set(HEADERS ${HEADERS} ../include/spica.h)

@@ -7,11 +7,11 @@ namespace spica {
     
     Scene::Scene()
         : _nPrimitives(0)
-        , _arraySize(1024)
+        , _arraySize(0)
         , _primitives(0)
         , _bgColor(0.0, 0.0, 0.0)
     {
-        _primitives = new Primitive*[_arraySize];
+        init();
     }
 
     Scene::~Scene()
@@ -44,6 +44,18 @@ namespace spica {
     const Primitive* Scene::getObjectPtr(int id) const {
         msg_assert(id >= 0 && id < _nPrimitives, "Object index out of bounds");
         return _primitives[id];
+    }
+
+    void Scene::init() {
+        this->_nPrimitives = 0;
+        this->_arraySize = 1024;
+        _primitives = new Primitive*[_arraySize];
+        _bgColor = Color(0.0, 0.0, 0.0);
+    }
+
+    void Scene::clear() {
+        release();
+        init();
     }
 
     void Scene::release() {

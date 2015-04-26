@@ -17,7 +17,7 @@ before_install:
 
   # update cmake
   - wget http://www.cmake.org/files/v3.2/cmake-3.2.2.tar.gz
-  - tar xvf cmake-3.2.2.tar.gz
+  - tar xf cmake-3.2.2.tar.gz
   - ls -l
   - cd cmake-3.2.2
   - mkdir build

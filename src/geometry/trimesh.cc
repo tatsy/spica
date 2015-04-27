@@ -71,7 +71,7 @@ namespace spica {
         std::cout << "Extention: " << ext << std::endl;
         msg_assert(ext == ".ply", "Mesh loader only accepts .ply file format");
 
-        std::ifstream in(filename, std::ios::in);
+        std::ifstream in(filename.c_str(), std::ios::in);
         msg_assert(in.is_open(), "Failed to open mesh file");
 
         std::string format, key, name, val;

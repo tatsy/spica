@@ -17,7 +17,7 @@ TEST(PrimitiveTest, InstanceTest) {
     EXPECT_EQ(0.0, p.color().y());
     EXPECT_EQ(0.0, p.color().z());
 
-    EXPECT_EQ(0, p.reftype());
+    EXPECT_EQ(REFLECTION_DIFFUSE, p.reftype());
 
     Ray ray;
     HitPoint hitpoint;

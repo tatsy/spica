@@ -32,9 +32,12 @@ spica
 * Triangle
 * Quad
 
-## ToDo
+#### Results
 
-* ImageSensor, Lens, and ObjectPlane classes should be inner class of Camera.
+
+#### ToDo
+
+* kd-tree implementation
 
 ## License
 

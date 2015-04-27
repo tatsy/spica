@@ -4,6 +4,7 @@ set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/quad.cc
     ${CMAKE_CURRENT_LIST_DIR}/sphere.cc
     ${CMAKE_CURRENT_LIST_DIR}/triangle.cc
+    ${CMAKE_CURRENT_LIST_DIR}/trimesh.cc
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
@@ -12,4 +13,5 @@ set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/quad.h
     ${CMAKE_CURRENT_LIST_DIR}/sphere.h
     ${CMAKE_CURRENT_LIST_DIR}/triangle.h
+    ${CMAKE_CURRENT_LIST_DIR}/trimesh.h
     PARENT_SCOPE)

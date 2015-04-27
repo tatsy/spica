@@ -1,0 +1,11 @@
+set(SOURCES
+    ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/kd_tree.cc
+    ${CMAKE_CURRENT_LIST_DIR}/bbox.cc
+    PARENT_SCOPE)
+
+set(HEADERS
+    ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/kd_tree.h
+    ${CMAKE_CURRENT_LIST_DIR}/bbox.h
+    PARENT_SCOPE)

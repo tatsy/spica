@@ -22,7 +22,7 @@ namespace spica {
 
     public:
         Plane();
-        Plane(double distance, const Vector3& normal, const Color& emission, const Color& color, ReflectionType reftype);
+        Plane(double distance, const Vector3& normal, const Material& material);
         Plane(const Plane& plane);
         virtual ~Plane();
 

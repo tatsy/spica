@@ -15,6 +15,8 @@
 #include "../utils/vector3.h"
 #include "../geometry/plane.h"
 #include "../geometry/sphere.h"
+#include "../geometry/trimesh.h"
+
 #include "ray.h"
 
 namespace spica {
@@ -33,14 +35,16 @@ namespace spica {
 
         void addPlane(const Plane& plane, bool isLight = false);
         void addSphere(const Sphere& sphere, bool isLight = false);
+        void addTrimesh(const Trimesh& trimesh, bool isLight = false);
 
         const Primitive* getObjectPtr(int id) const;
 
-        void release();
+        void clear();
 
         bool intersect(const Ray& ray, Intersection& intersection) const;
 
         inline int lightID() const { return _lightID; }
+        inline int numObjects() const { return _nPrimitives; }
         inline const Color& bgColor() const { return _bgColor; }
 
         inline void setBgColor(const Color& bgColor) { _bgColor = bgColor; }
@@ -49,6 +53,9 @@ namespace spica {
     private:
         Scene(const Scene& scene);
         Scene& operator=(const Scene& scene);
+
+        void init();
+        void release();
 
         void checkArraySize();
     };

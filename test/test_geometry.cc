@@ -17,13 +17,13 @@ TEST(PrimitiveTest, InstanceTest) {
     EXPECT_EQ(0.0, p.color().y());
     EXPECT_EQ(0.0, p.color().z());
 
-    EXPECT_EQ(0, p.reftype());
+    EXPECT_EQ(REFLECTION_DIFFUSE, p.reftype());
 
     Ray ray;
     HitPoint hitpoint;
     ASSERT_DEATH(p.intersect(ray, hitpoint), "");
 
-    Primitive q(Color(0.25, 0.50, 0.75), Color(0.1, 0.2, 0.3), REFLECTION_REFRACTION);
+    Primitive q(Material(Color(0.25, 0.50, 0.75), Color(0.1, 0.2, 0.3), REFLECTION_REFRACTION));
     
     EXPECT_EQ(0.25, q.emission().x());
     EXPECT_EQ(0.50, q.emission().y());
@@ -62,7 +62,7 @@ TEST(PrimitiveTest, InstanceTest) {
 // Plane class test
 // ------------------------------
 TEST(PlaneTest, InstanceTest) {
-    Plane pl(3.0, Vector3(-1.0, 0.0, 0.0), Color(0.1, 0.2, 0.3), Color(0.25, 0.50, 0.75), REFLECTION_DIFFUSE);
+    Plane pl(3.0, Vector3(-1.0, 0.0, 0.0), Material(Color(0.1, 0.2, 0.3), Color(0.25, 0.50, 0.75), REFLECTION_DIFFUSE));
 
     EXPECT_EQ(3.0, pl.distance());
 
@@ -100,7 +100,7 @@ TEST(SphereTest, InstanceTest) {
 	EXPECT_EQ(0.0, sp0.center().z());
 	EXPECT_EQ(0.0, sp0.radius());
 
-    Sphere sp(2.0, Vector3(0.0, 0.0, 0.0), Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE);
+    Sphere sp(2.0, Vector3(0.0, 0.0, 0.0), Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE));
 
     EXPECT_EQ(0.0, sp.center().x());
     EXPECT_EQ(0.0, sp.center().y());

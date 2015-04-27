@@ -86,8 +86,6 @@ namespace spica {
             }
             glPopMatrix();
         }
-
-        //glFlush();
     }
 
 }  // namespace spica

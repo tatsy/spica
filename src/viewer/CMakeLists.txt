@@ -35,12 +35,17 @@ if (${BUILD_VIEWER} STREQUAL "ON")
                  qgl_render_widget.cc
                  qgl_render_widget.h)
 
+  configure_file(${CMAKE_SOURCE_DIR}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
+
   qt5_use_modules(scene_viewer Widgets OpenGL)
 
   target_link_libraries(scene_viewer "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
   target_link_libraries(scene_viewer ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY})
 
-  set(QT_LIB_LIST Qt5Widgets Qt5Core Qt5Gui)
+  set(QT_LIB_LIST Qt5Widgets Qt5Core Qt5Gui Qt5OpenGL)
+  if (WIN32)
+    set(QT_LIB_LIST ${QT_LIB_LIST} icuin53 icuuc53 icudt53)
+  endif()
 
   if (MSVC)
     foreach (qtlib ${QT_LIB_LIST})

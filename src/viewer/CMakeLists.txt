@@ -15,13 +15,13 @@ if (${BUILD_VIEWER} STREQUAL "ON")
 
   if (WIN32)
     set(Your_freeglut_DIR "C:/CLibrary/glut/")
-    set(FREEGLUT_INCLUDE_DIR "${Your_freeglut_DIR}/include/")
-    set(FREEGLUT_LIBRARY_DIR "${Your_freeglut_DIR}/lib/x64/")
-    set(FREEGLUT_LIBRARY freeglut.lib)
-    link_directories(${FREEGLUT_LIBRARY_DIR})
-    include_directories(${FREEGLUT_INCLUDE_DIR})
+    set(GLUT_INCLUDE_DIR "${Your_freeglut_DIR}/include/")
+    set(GLUT_LIBRARY_DIR "${Your_freeglut_DIR}/lib/x64/")
+    set(GLUT_LIBRARY freeglut.lib)
+    link_directories(${GLUT_LIBRARY_DIR})
+    include_directories(${GLUT_INCLUDE_DIR})
   else()
-    find_package(freeglut REQUIRED)
+    set(GLUT_LIBRARY libglut.a)
   endif()
 
   set(CMAKE_AUTOMOC ON)
@@ -38,7 +38,7 @@ if (${BUILD_VIEWER} STREQUAL "ON")
   qt5_use_modules(scene_viewer Widgets OpenGL)
 
   target_link_libraries(scene_viewer "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
-  target_link_libraries(scene_viewer ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${FREEGLUT_LIBRARY})
+  target_link_libraries(scene_viewer ${QT_LIBRARIES} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY})
 
   set(QT_LIB_LIST Qt5Widgets Qt5Core Qt5Gui)
 

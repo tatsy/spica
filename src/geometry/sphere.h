@@ -25,7 +25,7 @@ namespace spica {
 
     public:
         Sphere();
-        Sphere(double radius, const Vector3& center, const Color& emission, const Color& color, ReflectionType reftype);
+        Sphere(double radius, const Vector3& center, const Material& material);
         Sphere(const Sphere& sphere);
         ~Sphere();
 

@@ -4,23 +4,17 @@
 namespace spica {
 
     Primitive::Primitive()
-        : _emission()
-        , _color()
-        , _reftype()
+        : _material()
     {
     }
 
-    Primitive::Primitive(const Color& emission, const Color& color, ReflectionType reftype)
-        : _emission(emission)
-        , _color(color)
-        , _reftype(reftype)
+    Primitive::Primitive(const Material& material)
+        : _material(material)
     {
     }
 
     Primitive::Primitive(const Primitive& primitive)
-        : _emission(primitive._emission)
-        , _color(primitive._color)
-        , _reftype(primitive._reftype)
+        : _material(primitive._material)
     {
     }
 
@@ -29,9 +23,7 @@ namespace spica {
     }
 
     Primitive& Primitive::operator=(const Primitive& primitive) {
-        this->_emission = primitive._emission;
-        this->_color = primitive._color;
-        this->_reftype = primitive._reftype;
+        this->_material = primitive._material;
         return *this;
     }
 

@@ -41,6 +41,12 @@ namespace spica {
         checkArraySize();
     }
 
+    void Scene::addTrimesh(const Trimesh& trimesh, bool isLight) {
+        if (isLight) _lightID = _nPrimitives;
+        _primitives[_nPrimitives++] = new Trimesh(trimesh);
+        checkArraySize();
+    }
+
     const Primitive* Scene::getObjectPtr(int id) const {
         msg_assert(id >= 0 && id < _nPrimitives, "Object index out of bounds");
         return _primitives[id];

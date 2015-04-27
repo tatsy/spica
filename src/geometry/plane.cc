@@ -9,8 +9,8 @@ namespace spica {
     {
     }
 
-    Plane::Plane(double distance, const Vector3& normal, const Color& emission, const Color& color, ReflectionType reftype)
-        : Primitive(emission, color, reftype)
+    Plane::Plane(double distance, const Vector3& normal, const Material& material)
+        : Primitive(material)
         , _distance(distance)
         , _normal(normal)
     {

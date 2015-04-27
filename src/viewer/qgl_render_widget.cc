@@ -1,7 +1,7 @@
-#include "qgl_render_widget.h"
+#include <GL/glew.h>
+#include <GL/glut.h>
 
-#include <gl/glut.h>
-#include <gl/glew.h>
+#include "qgl_render_widget.h"
 
 namespace spica {
 
@@ -17,6 +17,9 @@ namespace spica {
     void QGLRenderWidget::setScene(const Scene& scene, const Camera& camera) {
         printf("%d %d\n", camera.imageW(), camera.imageH());
         this->resize(camera.imageW(), camera.imageH());
+
+        const Sphere* sphere = reinterpret_cast<const Sphere*>(scene.getObjectPtr(0));
+        glutSolidSphere(sphere->radius(), 64, 64);
     }
 
     void QGLRenderWidget::initializeGL() {

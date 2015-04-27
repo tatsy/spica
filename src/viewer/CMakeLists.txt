@@ -3,7 +3,9 @@ option(BUILD_VIEWER "BUILD_VIEWER" ON)
 if (${BUILD_VIEWER} STREQUAL "ON")
 
   if (MSVC)
+    set(OPENGL_INC_DIR "OpenGL-Include" CACHE STRING "OPENGL_INC_DIR")
     set(CMAKE_PREFIX_PATH "C:/Qt/5.4/msvc2013_64_opengl/" CACHE STRING "CMAKE_PREFIX_PATH")
+    include_directories(${OPENGL_INC_DIR})
   endif()
 
   find_package(Qt5Widgets REQUIRED)

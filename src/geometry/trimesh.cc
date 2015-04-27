@@ -1,6 +1,8 @@
 #define SPICA_TRIMESH_EXPORT
 #include "trimesh.h"
 
+#include <cstring>
+#include <iostream>
 #include <fstream>
 #include <sstream>
 

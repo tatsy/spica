@@ -1,6 +1,7 @@
 #define SPICA_KDTREE_EXPORT
 #include "kd_tree.h"
 
+#include <cstring>
 #include <algorithm>
 
 namespace spica {

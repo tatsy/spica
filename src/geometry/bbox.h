@@ -11,6 +11,7 @@
 #define SPICA_BBOX_DLL
 #endif
 
+#include "../renderer/ray.h"
 #include "../utils/vector3.h"
 
 namespace spica {
@@ -32,6 +33,8 @@ namespace spica {
         ~BBox();
 
         BBox& operator=(const BBox& box);
+
+        bool intersect(const Ray& ray, double* tMin, double* tMax) const;
     };
 
 }  // namespace spica

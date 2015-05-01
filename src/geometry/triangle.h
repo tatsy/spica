@@ -11,6 +11,7 @@
     #define SPICA_TRIANGLE_DLL
 #endif
 
+#include "../renderer/ray.h"
 #include "../utils/vector3.h"
 
 namespace spica {
@@ -31,6 +32,11 @@ namespace spica {
 
         Vector3 gravity() const;
         Vector3 p(int id) const;
+
+        Vector3 normal() const;
+
+        // Compute ray-triangle intersection with Tomas Moller's algorithm
+        bool intersect(const Ray& ray, double* tHit) const;
 
         inline Vector3 p0() const { return _p0; }
         inline Vector3 p1() const { return _p1; }

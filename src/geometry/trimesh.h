@@ -13,9 +13,10 @@
 
 #include <string>
 
-#include "../utils/vector3.h"
-#include "triangle.h"
 #include "primitive.h"
+#include "triangle.h"
+#include "../utils/vector3.h"
+#include "../structure/kd_tree.h"
 
 namespace spica {
 
@@ -26,6 +27,7 @@ namespace spica {
         Vector3* _vertices;
         int* _faces;
         Vector3* _normals;
+        KdTree _kdtree;
 
     public:
         Trimesh();
@@ -35,7 +37,9 @@ namespace spica {
 
         Trimesh& operator=(const Trimesh& trimesh);
 
-        bool intersect(const Ray& ray, Intersection& intersect) const;
+        bool intersect(const Ray& ray, HitPoint& hitpoint) const;
+
+        void buildKdTreeAccel();
 
         void load(const std::string& filename);
 
@@ -44,6 +48,10 @@ namespace spica {
 
         inline unsigned long numVerts() const { return _numVerts; }
         inline unsigned long numFaces() const { return _numFaces; }
+
+    private:
+        bool intersectRec(KdTreeNode* node, const Ray& ray, HitPoint& hitpoint, double tMin, double tMax) const;
+
     };
 
 }  // namespace spica

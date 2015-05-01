@@ -43,7 +43,9 @@ namespace spica {
 
     void Scene::addTrimesh(const Trimesh& trimesh, bool isLight) {
         if (isLight) _lightID = _nPrimitives;
-        _primitives[_nPrimitives++] = new Trimesh(trimesh);
+        Trimesh* ptr = new Trimesh(trimesh);
+        ptr->buildKdTreeAccel();
+        _primitives[_nPrimitives++] = ptr;
         checkArraySize();
     }
 
@@ -82,7 +84,6 @@ namespace spica {
                 }
             }
         }
-
         return (intersection.objectId() != -1);
     }
 }

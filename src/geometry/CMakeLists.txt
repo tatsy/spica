@@ -1,4 +1,5 @@
 set(SOURCES ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/bbox.cc
     ${CMAKE_CURRENT_LIST_DIR}/plane.cc
     ${CMAKE_CURRENT_LIST_DIR}/primitive.cc
     ${CMAKE_CURRENT_LIST_DIR}/quad.cc
@@ -8,6 +9,7 @@ set(SOURCES ${SOURCES}
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/bbox.h
     ${CMAKE_CURRENT_LIST_DIR}/plane.h
     ${CMAKE_CURRENT_LIST_DIR}/primitive.h
     ${CMAKE_CURRENT_LIST_DIR}/quad.h

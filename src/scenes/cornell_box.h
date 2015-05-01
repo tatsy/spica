@@ -40,7 +40,7 @@ namespace spica {
         scene.addSphere(Sphere(1.0e5, Vector3(50.0, 1.0e5, 81.6),         Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE)));        // Floor (white)
         scene.addSphere(Sphere(1.0e5, Vector3(50.0, -1.0e5 + 81.6, 81.6), Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE)));        // Ceil (white)
         scene.addSphere(Sphere(16.5,  Vector3(77.0, 16.5, 78.0),          Material(Color(), Color(0.99, 0.99, 0.99), REFLECTION_REFRACTION)));     // Glass ball
-        scene.addTrimesh(Trimesh("../../../data/bunny.ply", Material(Color(), Color(0.99, 0.75, 0.75), REFLECTION_DIFFUSE)));                         // Bunny
+        scene.addTrimesh(Trimesh("../../data/bunny.ply", Material(Color(), Color(0.99, 0.75, 0.75), REFLECTION_DIFFUSE)));                         // Bunny
         camera = Camera(width, height, 
                         Vector3(50.0, 40.8, 220.0),
                         Vector3(0.0, 0.0, -1.0),

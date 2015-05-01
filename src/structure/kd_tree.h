@@ -13,12 +13,20 @@
 
 #include <vector>
 
-#include "bbox.h"
 #include "../utils/common.h"
+#include "../geometry/bbox.h"
 #include "../geometry/triangle.h"
 
 
 namespace spica {
+
+    struct KdTreeNode {
+        int startID;
+        int endID;
+        BBox bbox;
+        KdTreeNode* left;
+        KdTreeNode* right;
+    };
 
     class SPICA_KDTREE_DLL KdTree {
     private:
@@ -47,14 +55,6 @@ namespace spica {
             }
         };
 
-        struct KdTreeNode {
-            int startID;
-            int endID;
-            BBox bbox;
-            KdTreeNode* left;
-            KdTreeNode* right;
-        };
-
         int _numTriangles;          // # of triangles
         int _numNodes;              // # of nodes
         KdTreeNode* _nodes;         // k-d tree nodes
@@ -62,9 +62,18 @@ namespace spica {
 
     public:
         KdTree();
+        KdTree(const KdTree& kdtree);
         ~KdTree();
+
+        KdTree& operator=(const KdTree& kdtree);
         
         void construct(const std::vector<Triangle>& triangles);
+
+        inline bool empty() const { return _numTriangles == 0; }
+
+        inline const Triangle& getTriangle(int id) const { return _triangles[id]; }
+
+        inline KdTreeNode* root() const { return &_nodes[0]; }
 
     private:
         void release();

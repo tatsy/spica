@@ -13,9 +13,29 @@ namespace spica {
     {
     }
 
+    KdTree::KdTree(const KdTree& kdtree)
+        : _numTriangles(0)
+        , _numNodes(0)
+        , _nodes(0)
+        , _triangles(0)
+    {
+        operator=(kdtree);
+    }
+
     KdTree::~KdTree() 
     {
         release();
+    }
+
+    KdTree& KdTree::operator=(const KdTree& kdtree) {
+        release();
+        _numTriangles = kdtree._numTriangles;
+        _numNodes = kdtree._numNodes;
+        _triangles = new Triangle[_numTriangles];
+        _nodes = new KdTreeNode[_numNodes];
+        memcpy(_triangles, kdtree._triangles, sizeof(Triangle)* _numTriangles);
+        memcpy(_nodes, kdtree._nodes, sizeof(KdTreeNode) * _numNodes);
+        return *this;
     }
 
     void KdTree::release() {
@@ -53,7 +73,11 @@ namespace spica {
         return BBox(posMin, posMax);
     }
 
-    KdTree::KdTreeNode* KdTree::constructRec(int nodeID, int startID, int endID, int dim) {
+    KdTreeNode* KdTree::constructRec(int nodeID, int startID, int endID, int dim) {
+        if (startID + 1 >= endID) {
+            return NULL;
+        }
+
         // Sort triangles
         std::sort(_triangles + startID, _triangles + endID, AxisComparator(dim));
 

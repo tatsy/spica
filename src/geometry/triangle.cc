@@ -45,8 +45,44 @@ namespace spica {
         return Vector3();
     }
 
+    Vector3 Triangle::normal() const {
+        return Vector3::cross(_p2 - _p0, _p1 - _p0).normalized();
+    }
+
     Vector3 Triangle::gravity() const {
         return (_p0 + _p1 + _p2) / 3.0;
+    }
+
+    bool Triangle::intersect(const Ray& ray, double* tHit) const {
+        Vector3 qVec;
+        double t, u, v;
+        double inv_det;
+
+        Vector3 e1 = _p1 - _p0;
+        Vector3 e2 = _p2 - _p0;
+        Vector3 pVec = Vector3::cross(ray.direction(), e2);
+        double det = Vector3::dot(e1, pVec);
+
+        if (det > EPS) {
+            Vector3 tVec = ray.origin() - _p0;
+            u = Vector3::dot(tVec, pVec);
+            if (u < 0.0 || u > det) return false;
+
+            Vector3 qVec = Vector3::cross(tVec, e1);
+            v = Vector3::dot(ray.direction(), qVec);
+            if (v < 0.0 || u + v > det) return false;
+        } else if (det < -EPS) {
+            Vector3 tVec = ray.origin() - _p0;
+            u = Vector3::dot(tVec, pVec);
+            if (u > 0.0 || u < det) return false;
+
+            Vector3 qVec = Vector3::cross(tVec, e1);
+            v = Vector3::dot(tVec, e1);
+            if (v > 0.0 || v < det) return false;
+        }
+
+        *tHit = Vector3::dot(e2, qVec) / det;
+        return true;
     }
 
 }  // namespace spica

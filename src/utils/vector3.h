@@ -45,6 +45,9 @@ namespace spica {
 
         Vector3 cwiseMultiply(const Vector3& v) const;
 
+        static Vector3 minimum(const Vector3& v1, const Vector3& v2);
+        static Vector3 maximum(const Vector3& v1, const Vector3& v2);
+
         // Compute reflection vector of v w.r.t n
         // @param[in] v: a vector to be reflected
         // @param[in] n: a normal vector of reflection point

@@ -1,5 +1,8 @@
 #define SPICA_VECTOR3_EXPORT
 #include "vector3.h"
+
+#include <algorithm>
+
 #include "common.h"
 
 namespace spica {
@@ -99,6 +102,21 @@ namespace spica {
     Vector3 Vector3::cwiseMultiply(const Vector3& v) const {
         return Vector3(this->_x * v._x, this->_y * v._y, this->_z * v._z);
     }
+
+    Vector3 Vector3::minimum(const Vector3& v1, const Vector3& v2) {
+        double x = std::min(v1._x, v2._x);
+        double y = std::min(v1._y, v2._y);
+        double z = std::min(v1._x, v2._z);
+        return Vector3(x, y, z);
+    }
+
+    Vector3 Vector3::maximum(const Vector3& v1, const Vector3& v2) {
+        double x = std::max(v1._x, v2._x);
+        double y = std::max(v1._y, v2._y);
+        double z = std::max(v1._x, v2._z);
+        return Vector3(x, y, z);
+    }
+
 
     Vector3 Vector3::reflect(const Vector3& v, const Vector3& n) {
         return (v - n * 2.0 * n.dot(v));

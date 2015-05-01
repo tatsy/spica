@@ -29,6 +29,9 @@ namespace spica {
 
         Triangle& operator=(const Triangle& tri);
 
+        Vector3 gravity() const;
+        Vector3 p(int id) const;
+
         inline Vector3 p0() const { return _p0; }
         inline Vector3 p1() const { return _p1; }
         inline Vector3 p2() const { return _p2; }

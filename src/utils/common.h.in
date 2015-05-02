@@ -30,7 +30,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // ----------------------------------------------------------------------------
 // Parameter constants
 // ----------------------------------------------------------------------------
-static const std::string DATA_DIR = "C:/Users/Tatsuya/Documents/VS2013/Projects/spica/data/";
+static const std::string DATA_DIR = "@CMAKE_SOURCE_DIR@/data/";
 
 // ----------------------------------------------------------------------------
 // Parameter constants

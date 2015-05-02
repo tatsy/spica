@@ -55,8 +55,7 @@ namespace spica {
 
     bool Triangle::intersect(const Ray& ray, double* tHit) const {
         Vector3 qVec;
-        double t, u, v;
-        double inv_det;
+        double u, v;
 
         Vector3 e1 = _p1 - _p0;
         Vector3 e2 = _p2 - _p0;
@@ -68,7 +67,7 @@ namespace spica {
             u = Vector3::dot(tVec, pVec);
             if (u < 0.0 || u > det) return false;
 
-            Vector3 qVec = Vector3::cross(tVec, e1);
+            qVec = Vector3::cross(tVec, e1);
             v = Vector3::dot(ray.direction(), qVec);
             if (v < 0.0 || u + v > det) return false;
         } else if (det < -EPS) {
@@ -76,7 +75,7 @@ namespace spica {
             u = Vector3::dot(tVec, pVec);
             if (u > 0.0 || u < det) return false;
 
-            Vector3 qVec = Vector3::cross(tVec, e1);
+            qVec = Vector3::cross(tVec, e1);
             v = Vector3::dot(tVec, e1);
             if (v > 0.0 || v < det) return false;
         }

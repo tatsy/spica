@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBox(scene, camera, 320, 240);
+    cornellBoxBunny(scene, camera, 320, 240);
 
     Random rng = Random::getRNG();
     const int samplePerPixel = 32;

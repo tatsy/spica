@@ -3,6 +3,12 @@
 #include "../include/spica.h"
 using namespace spica;
 
+inline void EXPECT_EQ_VEC(const Vector3& v1, const Vector3& v2) {
+	EXPECT_EQ(v1.x(), v2.x());
+	EXPECT_EQ(v1.y(), v2.y());
+	EXPECT_EQ(v1.z(), v2.z());
+}
+
 // ------------------------------
 // Primitive class test
 // ------------------------------
@@ -142,5 +148,54 @@ TEST(SphereTest, InstanceTest) {
     EXPECT_EQ(0.0, hitpoint.normal().z());
 
     EXPECT_FALSE(sp.intersect(Ray(Vector3(10.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0)), hitpoint));
+}
+
+// ------------------------------
+// Triangle class test
+// ------------------------------
+TEST(TriangleTest, InstanceTest) {
+	Triangle t0;
+	EXPECT_EQ_VEC(Vector3(), t0.p0());
+	EXPECT_EQ_VEC(Vector3(), t0.p1());
+	EXPECT_EQ_VEC(Vector3(), t0.p2());
+
+	Triangle t1(Vector3(1, 2, 3),
+		        Vector3(2, 3, 4),
+				Vector3(3, 4, 5));
+	EXPECT_EQ_VEC(Vector3(1, 2, 3), t1.p0());
+	EXPECT_EQ_VEC(Vector3(2, 3, 4), t1.p1());
+	EXPECT_EQ_VEC(Vector3(3, 4, 5), t1.p2());
+
+	Triangle t2(Vector3(1, 0, 0),
+		        Vector3(0, 0, 0),
+				Vector3(0, 1, 0));
+	Ray ray(Vector3(0, 0, -1), (Vector3(1, 1, 1) - Vector3(0, 0, -1)).normalized());
+
+	double tHit;
+	EXPECT_TRUE(t2.intersect(ray, &tHit));
+	EXPECT_EQ(sqrt(6.0) / 2.0, tHit);
+}
+
+// ------------------------------
+// Trimesh class test
+// ------------------------------
+TEST(TrimeshTest, InstanceTest) {
+	Trimesh trimesh("../../data/bunny.ply");
+	Ray ray(Vector3(50.0, 40.8, 220.0), Vector3(-0.1, -0.1, -1.0).normalized());
+	double tHit = INFTY;
+	for (int i = 0; i < trimesh.numFaces(); i++) {
+		Triangle& tri = trimesh.getTriangle(i);
+		double tTemp;
+		if (tri.intersect(ray, &tTemp)) {
+			if (tHit > tTemp) {
+				tHit = tTemp;
+			}
+		}
+	}
+	trimesh.buildKdTreeAccel();
+	HitPoint hitpoint;
+
+	EXPECT_TRUE(trimesh.intersect(ray, hitpoint));
+	EXPECT_EQ(tHit, hitpoint.distance());
 }
 

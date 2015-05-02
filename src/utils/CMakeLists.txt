@@ -1,3 +1,8 @@
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/common.h.in
+               ${CMAKE_CURRENT_LIST_DIR}/common.h
+               @ONLY)
+
 set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/vector3.cc
     ${CMAKE_CURRENT_LIST_DIR}/color.cc

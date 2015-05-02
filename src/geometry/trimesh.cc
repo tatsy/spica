@@ -76,7 +76,7 @@ namespace spica {
 
         double tMin, tMax;
         KdTreeNode* node = _kdtree.root();
-        if (node->bbox.intersect(ray, &tMin, &tMax)) {
+        if (!node->bbox.intersect(ray, &tMin, &tMax)) {
             return false;
         }
 
@@ -110,8 +110,9 @@ namespace spica {
 
         // Check which child is nearer
         double lMin, lMax, rMin, rMax;
-        node->left->bbox.intersect(ray, &lMin, &lMax);
-        node->right->bbox.intersect(ray, &rMin, &rMax);
+		if (!node->left->bbox.intersect(ray, &lMin, &lMax) && !node->right->bbox.intersect(ray, &rMin, &rMax)) {
+			return false;
+		}
 
         KdTreeNode *nearer, *farther;
         if (lMin == tMin) {

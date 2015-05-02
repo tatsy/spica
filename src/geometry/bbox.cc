@@ -46,9 +46,14 @@ namespace spica {
         double yMax = (_posMax.y() - ray.origin().y()) / ray.direction().y();
         double zMin = (_posMin.z() - ray.origin().z()) / ray.direction().z();
         double zMax = (_posMax.z() - ray.origin().z()) / ray.direction().z();
+		
+		if (xMin > xMax) std::swap(xMin, xMax);
+		if (yMin > yMax) std::swap(yMin, yMax);
+		if (zMin > zMax) std::swap(zMin, zMax);
+
         *tMin = std::max(xMin, std::max(yMin, zMin));
         *tMax = std::min(xMax, std::min(yMax, zMax));
-        if (*tMin > *tMax) {
+        if (*tMin > *tMax || *tMin < 0.0 || *tMax < 0.0) {
             return false;
         }
         return true;

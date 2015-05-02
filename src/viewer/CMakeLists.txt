@@ -14,7 +14,7 @@ if (${BUILD_VIEWER} STREQUAL "ON")
   find_package(OpenGL REQUIRED)
 
   if (WIN32)
-    set(Your_freeglut_DIR "C:/CLibrary/glut/")
+    set(Your_freeglut_DIR "C:/CLibrary/glut/" CACHE STRING "Your_OpenGL_DIR")
     set(GLUT_INCLUDE_DIR "${Your_freeglut_DIR}/include/")
     set(GLUT_LIBRARY_DIR "${Your_freeglut_DIR}/lib/x64/")
     set(GLUT_LIBRARY freeglut.lib)

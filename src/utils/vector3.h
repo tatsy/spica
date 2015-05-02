@@ -31,6 +31,7 @@ namespace spica {
         Vector3  operator-() const;
         Vector3& operator*=(double s);
         Vector3& operator/=(double s);
+		bool operator==(const Vector3 v);
 
         double dot(const Vector3& v) const;
         static double dot(const Vector3& v1, const Vector3& v2);

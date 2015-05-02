@@ -184,7 +184,7 @@ TEST(TrimeshTest, InstanceTest) {
 	Ray ray(Vector3(50.0, 40.8, 220.0), Vector3(-0.1, -0.1, -1.0).normalized());
 	double tHit = INFTY;
 	for (int i = 0; i < trimesh.numFaces(); i++) {
-		Triangle& tri = trimesh.getTriangle(i);
+		Triangle tri = trimesh.getTriangle(i);
 		double tTemp;
 		if (tri.intersect(ray, &tTemp)) {
 			if (tHit > tTemp) {

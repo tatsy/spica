@@ -20,13 +20,11 @@ namespace spica {
      */
     class SPICA_PRIMITIVE_DLL Primitive {
     protected:
-        Color _emission;
-        Color _color;
-        ReflectionType _reftype;
+        Material _material;
 
     public:
         Primitive();
-        Primitive(const Color& emission, const Color& color, ReflectionType reftype);
+        Primitive(const Material& material);
         Primitive(const Primitive& primitive);
         virtual ~Primitive();
 
@@ -34,9 +32,11 @@ namespace spica {
 
         virtual bool intersect(const Ray& ray, HitPoint& hitpoint) const;
 
-        inline Color emission() const { return _emission; }
-        inline Color color()    const { return _color;    }
-        inline ReflectionType reftype() const { return _reftype; }
+        inline Color emission() const { return _material.emission; }
+        inline Color color()    const { return _material.color;    }
+        inline ReflectionType reftype() const { return _material.reftype; }
+
+        inline void setMaterial(const Material& material) { _material = material; }
     };
 }
 

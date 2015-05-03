@@ -14,8 +14,8 @@ namespace spica {
     {
     }
 
-    Sphere::Sphere(double radius, const Vector3& center, const Color& emission, const Color& color, ReflectionType reftype)
-        : Primitive(emission, color, reftype)
+    Sphere::Sphere(double radius, const Vector3& center, const Material& material)
+        : Primitive(material)
         , _radius(radius)
         , _center(center)
     {

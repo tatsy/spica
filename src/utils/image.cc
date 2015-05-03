@@ -22,8 +22,8 @@ namespace spica {
         , _height(height)
         , _pixels(0)
     {
-		msg_assert(width >= 0 && height >= 0, "Image size must be positive");
-		_pixels = new Color[_width * _height];
+        msg_assert(width >= 0 && height >= 0, "Image size must be positive");
+        _pixels = new Color[_width * _height];
     }
 
     Image::Image(const Image& image) 
@@ -51,13 +51,13 @@ namespace spica {
     }
 
     const Color& Image::operator()(int x, int y) const {
-		msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+        msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
     Color& Image::pixel(int x, int y) {
-		msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
-		return _pixels[y * _width + x];
+        msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+        return _pixels[y * _width + x];
     }
 
     void Image::savePPM(const std::string& filename) const {

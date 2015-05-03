@@ -13,19 +13,19 @@ namespace spica {
         struct PrimarySample {
             int modify_time;
             double value;
-			static const Random rnd;
+            static const Random rnd;
 
-			PrimarySample() {
+            PrimarySample() {
                 modify_time = 0;
                 value = rnd.randReal();
             }
         };
 
-		const Random PrimarySample::rnd = Random::getRNG();
+        const Random PrimarySample::rnd = Random::getRNG();
 
         struct KelemenMLT {
         private:
-			static const int num_init_primary_samples = 128;
+            static const int num_init_primary_samples = 128;
 
             inline double mutate(const double x) {
                 const double r = rng->randReal();
@@ -42,25 +42,25 @@ namespace spica {
             }
 
         public:
-			
+            
             int global_time;
             int large_step;
             int large_step_time;
             int used_rand_coords;
-			const Random* rng;
+            const Random* rng;
 
             std::vector<PrimarySample> primary_samples;
             std::stack<PrimarySample> primary_samples_stack;
 
             KelemenMLT(const Random& rng = Random::getRNG()) 
-				: global_time(0)
-				, large_step(0)
-				, large_step_time(0)
-				, used_rand_coords(0)
-				, rng(&rng)
-				, primary_samples()
-				, primary_samples_stack() 
-			{
+                : global_time(0)
+                , large_step(0)
+                , large_step_time(0)
+                , used_rand_coords(0)
+                , rng(&rng)
+                , primary_samples()
+                , primary_samples_stack() 
+            {
                 primary_samples.resize(num_init_primary_samples);
             }
 
@@ -94,40 +94,40 @@ namespace spica {
                         primary_samples[used_rand_coords].modify_time = global_time;
                     }
                 }
-				used_rand_coords++;
-				return primary_samples[used_rand_coords - 1].value;
-			}
+                used_rand_coords++;
+                return primary_samples[used_rand_coords - 1].value;
+            }
         };
 
-		double luminance(const Color& color) {
-			return Vector3(0.2126, 0.7152, 0.0722).dot(color);
-		}
+        double luminance(const Color& color) {
+            return Vector3(0.2126, 0.7152, 0.0722).dot(color);
+        }
 
-		Color direct_radiance_sample(const Scene& scene, const Vector3& v0, const Vector3& normal, const int id, KelemenMLT& mlt) {
-			const double r1 = 2.0 * PI * mlt.nextSample();
-			const double r2 = 1.0 - 2.0 * mlt.nextSample();
-			const Sphere* light_ptr = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightID()));
-			const Vector3 light_pos = light_ptr->center() + (light_ptr->radius() * Vector3(sqrt(1.0 - r2 * r2) * cos(r1), sqrt(1.0 - r2 * r2) * sin(r1), r2));
+        Color direct_radiance_sample(const Scene& scene, const Vector3& v0, const Vector3& normal, const int id, KelemenMLT& mlt) {
+            const double r1 = 2.0 * PI * mlt.nextSample();
+            const double r2 = 1.0 - 2.0 * mlt.nextSample();
+            const Sphere* light_ptr = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightID()));
+            const Vector3 light_pos = light_ptr->center() + (light_ptr->radius() * Vector3(sqrt(1.0 - r2 * r2) * cos(r1), sqrt(1.0 - r2 * r2) * sin(r1), r2));
 
-			// --
-			const Vector3 light_normal = (light_pos - light_ptr->center()).normalized();
-			const Vector3 v_to_l = light_pos - v0;
-			const Vector3 light_dir = v_to_l.normalized();
-			const double dist2 = v_to_l.dot(v_to_l);
-			const double dot0 = normal.dot(light_dir);
-			const double dot1 = light_normal.dot(-1.0 * light_dir);
+            // --
+            const Vector3 light_normal = (light_pos - light_ptr->center()).normalized();
+            const Vector3 v_to_l = light_pos - v0;
+            const Vector3 light_dir = v_to_l.normalized();
+            const double dist2 = v_to_l.dot(v_to_l);
+            const double dot0 = normal.dot(light_dir);
+            const double dot1 = light_normal.dot(-1.0 * light_dir);
 
-			if (dot0 >= 0.0 && dot1 >= 0.0) {
-				const double G = dot0 * dot1 / dist2;
-				Intersection intersection;
-				if (scene.intersect(Ray(v0, light_dir), intersection) && intersection.objectId() == scene.lightID()) {
-					const Primitive* obj_ptr = scene.getObjectPtr(id);
-					const double light_radius = light_ptr->radius();
-					return obj_ptr->color().cwiseMultiply(light_ptr->emission()) * (1.0 / PI) * G * (4.0 * PI * light_radius * light_radius);
-				}
-			}
-			return Color(0.0, 0.0, 0.0);
-		}
+            if (dot0 >= 0.0 && dot1 >= 0.0) {
+                const double G = dot0 * dot1 / dist2;
+                Intersection intersection;
+                if (scene.intersect(Ray(v0, light_dir), intersection) && intersection.objectId() == scene.lightID()) {
+                    const Primitive* obj_ptr = scene.getObjectPtr(id);
+                    const double light_radius = light_ptr->radius();
+                    return obj_ptr->color().cwiseMultiply(light_ptr->emission()) * (1.0 / PI) * G * (4.0 * PI * light_radius * light_radius);
+                }
+            }
+            return Color(0.0, 0.0, 0.0);
+        }
 
         Color radiance(const Scene& scene, const Ray& ray, const int depth, const int maxDepth, KelemenMLT& mlt) {
             Intersection intersection;
@@ -182,7 +182,7 @@ namespace spica {
             }
             else if (obj_ptr->reftype() == REFLECTION_SPECULAR) {
                 Intersection light_intersect;
-				Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
+                Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
                 scene.intersect(reflection_ray, light_intersect);
                 Vector3 direct_light;
                 if (light_intersect.objectId() == scene.lightID()) {
@@ -192,7 +192,7 @@ namespace spica {
                 return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
             } else if (obj_ptr->reftype() == REFLECTION_REFRACTION) {
                 Intersection light_intersect;
-				Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
+                Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
                 scene.intersect(reflection_ray, light_intersect);
                 Vector3 direct_light;
                 if (light_intersect.objectId() == scene.lightID()) {
@@ -225,7 +225,7 @@ namespace spica {
                 const double probability = 0.25 + 0.5 * Re;
 
                 Ray refraction_ray = Ray(hitpoint.position(), tdir);
-				Intersection light_intersect_refract;
+                Intersection light_intersect_refract;
                 scene.intersect(reflection_ray, light_intersect_refract);
                 Vector3 direct_light_refraction;
                 if (light_intersect_refract.objectId() == scene.lightID()) {
@@ -250,51 +250,51 @@ namespace spica {
             return Color(0.0, 0.0, 0.0);
         }
 
-		struct PathSample {
-			int x, y;
-			Color F;
-			double weight;
-			PathSample(const int x_ = 0, const int y_ = 0, const Color& F_ = Color(), const double weight_ = 1.0)
-				: x(x_)
-				, y(y_)
-				, F(F_)
-				, weight(weight_)
-			{
-			}
-		};
+        struct PathSample {
+            int x, y;
+            Color F;
+            double weight;
+            PathSample(const int x_ = 0, const int y_ = 0, const Color& F_ = Color(), const double weight_ = 1.0)
+                : x(x_)
+                , y(y_)
+                , F(F_)
+                , weight(weight_)
+            {
+            }
+        };
 
-		PathSample generate_new_path(const Scene& scene, const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, KelemenMLT& mlt, int x, int y, int maxDepth) {
-			double weight = 4.0;
-			if (x < 0) {
-				weight *= width;
-				x = mlt.nextSample() * width;
-				if (x == width) {
-					x = 0;
-				}
-			}
+        PathSample generate_new_path(const Scene& scene, const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, KelemenMLT& mlt, int x, int y, int maxDepth) {
+            double weight = 4.0;
+            if (x < 0) {
+                weight *= width;
+                x = mlt.nextSample() * width;
+                if (x == width) {
+                    x = 0;
+                }
+            }
 
-			if (y < 0) {
-				weight *= height;
-				y = mlt.nextSample() * height;
-				if (y == height) {
-					y = 0;
-				}
-			}
+            if (y < 0) {
+                weight *= height;
+                y = mlt.nextSample() * height;
+                if (y == height) {
+                    y = 0;
+                }
+            }
 
-			int sx = mlt.nextSample() < 0.5 ? 0 : 1;
-			int sy = mlt.nextSample() < 0.5 ? 0 : 1;
+            int sx = mlt.nextSample() < 0.5 ? 0 : 1;
+            int sy = mlt.nextSample() < 0.5 ? 0 : 1;
 
-			const double r1 = 2.0 * mlt.nextSample();
-			const double r2 = 2.0 * mlt.nextSample();
-			const double dx = r1 < 1.0 ? sqrt(r1) - 1.0 : 1.0 - sqrt(2.0 - r1);
-			const double dy = r2 < 1.0 ? sqrt(r2) - 1.0 : 1.0 - sqrt(2.0 - r2);
-			Vector3 dir = cx * (((sx + 0.5 + dx) / 2.0 + x) / width - 0.5) + cy * (((sy + 0.5 + dy) / 2.0 + y) / height - 0.5) + camera.direction();
-			const Ray ray = Ray(camera.origin() + dir * 130.0, dir.normalized());
+            const double r1 = 2.0 * mlt.nextSample();
+            const double r2 = 2.0 * mlt.nextSample();
+            const double dx = r1 < 1.0 ? sqrt(r1) - 1.0 : 1.0 - sqrt(2.0 - r1);
+            const double dy = r2 < 1.0 ? sqrt(r2) - 1.0 : 1.0 - sqrt(2.0 - r2);
+            Vector3 dir = cx * (((sx + 0.5 + dx) / 2.0 + x) / width - 0.5) + cy * (((sy + 0.5 + dy) / 2.0 + y) / height - 0.5) + camera.direction();
+            const Ray ray = Ray(camera.origin() + dir * 130.0, dir.normalized());
 
-			Color c = radiance(scene, ray, 0, maxDepth, mlt);
+            Color c = radiance(scene, ray, 0, maxDepth, mlt);
 
-			return PathSample(x, y, c, weight);
-		}
+            return PathSample(x, y, c, weight);
+        }
 
     }  // anonymous namespace
 
@@ -306,98 +306,98 @@ namespace spica {
     {
     }
 
-	int MLTRenderer::render(const Scene& scene, const int mlt_num, const int mutation, Image& image, const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, const int maxDepth, const Random& rng) {
-		for (int mi = 0; mi < mlt_num; mi++) {
-			Image tmp_image(width, height);
-			KelemenMLT mlt;
+    int MLTRenderer::render(const Scene& scene, const int mlt_num, const int mutation, Image& image, const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, const int maxDepth, const Random& rng) {
+        for (int mi = 0; mi < mlt_num; mi++) {
+            Image tmp_image(width, height);
+            KelemenMLT mlt;
 
-			int seed_path_max = width * height;
-			if (seed_path_max <= 0) {
-				seed_path_max = 1;
-			}
+            int seed_path_max = width * height;
+            if (seed_path_max <= 0) {
+                seed_path_max = 1;
+            }
 
-			std::vector<PathSample> seed_paths(seed_path_max);
-			double sumI = 0.0;
-			mlt.large_step = 1;
-			for (int i = 0; i < seed_path_max; i++) {
-				mlt.initUsedRandCoords();
-				PathSample sample = generate_new_path(scene, camera, cx, cy, width, height, mlt, -1, -1, maxDepth);
-				mlt.global_time++;
-				while (!mlt.primary_samples_stack.empty()) {
-					mlt.primary_samples_stack.pop();
-				}
+            std::vector<PathSample> seed_paths(seed_path_max);
+            double sumI = 0.0;
+            mlt.large_step = 1;
+            for (int i = 0; i < seed_path_max; i++) {
+                mlt.initUsedRandCoords();
+                PathSample sample = generate_new_path(scene, camera, cx, cy, width, height, mlt, -1, -1, maxDepth);
+                mlt.global_time++;
+                while (!mlt.primary_samples_stack.empty()) {
+                    mlt.primary_samples_stack.pop();
+                }
 
-				sumI += luminance(sample.F);
-				seed_paths[i] = sample;
-			}
+                sumI += luminance(sample.F);
+                seed_paths[i] = sample;
+            }
 
-			// Compute first path
-			const double rnd = rng.randReal() * sumI;
-			int selected_path = 0;
-			double accumulated_importance = 0.0;
-			for (int i = 0; i < seed_path_max; i++) {
-				accumulated_importance += luminance(seed_paths[i].F);
-				if (accumulated_importance >= rnd) {
-					selected_path = i;
-					break;
-				}
-			}
+            // Compute first path
+            const double rnd = rng.randReal() * sumI;
+            int selected_path = 0;
+            double accumulated_importance = 0.0;
+            for (int i = 0; i < seed_path_max; i++) {
+                accumulated_importance += luminance(seed_paths[i].F);
+                if (accumulated_importance >= rnd) {
+                    selected_path = i;
+                    break;
+                }
+            }
 
-			// --
-			const double b = sumI / seed_path_max;
-			const double p_large = 0.5;
-			const int M = mutation;
-			int accept = 0;
-			int reject = 0;
-			PathSample old_path = seed_paths[selected_path];
-			int progress = 0;
-			for (int i = 0; i < M; i++) {
-				if ((i + 1) % (M / 10) == 0) {
-					progress += 10;
-					std::cout << progress << " % ";
-					std::cout << "Accept: " << accept << ", Reject: " << reject;
-					std::cout << ", Rate: " << (100.0 * accept / (accept + reject)) << " %" << std::endl;
-				}
+            // --
+            const double b = sumI / seed_path_max;
+            const double p_large = 0.5;
+            const int M = mutation;
+            int accept = 0;
+            int reject = 0;
+            PathSample old_path = seed_paths[selected_path];
+            int progress = 0;
+            for (int i = 0; i < M; i++) {
+                if ((i + 1) % (M / 10) == 0) {
+                    progress += 10;
+                    std::cout << progress << " % ";
+                    std::cout << "Accept: " << accept << ", Reject: " << reject;
+                    std::cout << ", Rate: " << (100.0 * accept / (accept + reject)) << " %" << std::endl;
+                }
 
-				mlt.large_step = rng.randReal() < p_large ? 1 : 0;
-				mlt.initUsedRandCoords();
-				PathSample new_path = generate_new_path(scene, camera, cx, cy, width, height, mlt, -1, -1, maxDepth);
+                mlt.large_step = rng.randReal() < p_large ? 1 : 0;
+                mlt.initUsedRandCoords();
+                PathSample new_path = generate_new_path(scene, camera, cx, cy, width, height, mlt, -1, -1, maxDepth);
 
-				double a = std::min(1.0, luminance(new_path.F) / luminance(old_path.F));
-				const double new_path_weight = (a + mlt.large_step) / (luminance(new_path.F) / b + p_large) / M;
-				const double old_path_weight = (1.0 - a) / (luminance(old_path.F) / b + p_large) / M;
+                double a = std::min(1.0, luminance(new_path.F) / luminance(old_path.F));
+                const double new_path_weight = (a + mlt.large_step) / (luminance(new_path.F) / b + p_large) / M;
+                const double old_path_weight = (1.0 - a) / (luminance(old_path.F) / b + p_large) / M;
 
-				tmp_image.pixel(new_path.x, new_path.y) += new_path.weight * new_path_weight * new_path.F;
-				tmp_image.pixel(old_path.x, old_path.y) += old_path.weight * old_path_weight * old_path.F;
-				
-				if (rng.randReal() < a) {  // Accept
-					accept++;
-					old_path = new_path;
-					if (mlt.large_step) {
-						mlt.large_step_time = mlt.global_time;
-					}
-					mlt.global_time++;
-					while (!mlt.primary_samples_stack.empty()) {
-						mlt.primary_samples_stack.pop();
-					}
-				} else {  // Reject
-					reject++;
-					int idx = mlt.used_rand_coords - 1;
-					while (!mlt.primary_samples_stack.empty()) {
-						mlt.primary_samples[idx--] = mlt.primary_samples_stack.top();
-						mlt.primary_samples_stack.pop();
-					}
-				}
-			}
+                tmp_image.pixel(new_path.x, new_path.y) += new_path.weight * new_path_weight * new_path.F;
+                tmp_image.pixel(old_path.x, old_path.y) += old_path.weight * old_path_weight * old_path.F;
+                
+                if (rng.randReal() < a) {  // Accept
+                    accept++;
+                    old_path = new_path;
+                    if (mlt.large_step) {
+                        mlt.large_step_time = mlt.global_time;
+                    }
+                    mlt.global_time++;
+                    while (!mlt.primary_samples_stack.empty()) {
+                        mlt.primary_samples_stack.pop();
+                    }
+                } else {  // Reject
+                    reject++;
+                    int idx = mlt.used_rand_coords - 1;
+                    while (!mlt.primary_samples_stack.empty()) {
+                        mlt.primary_samples[idx--] = mlt.primary_samples_stack.top();
+                        mlt.primary_samples_stack.pop();
+                    }
+                }
+            }
 
-			for (int y = 0; y < height; y++) {
-				for (int x = 0; x < width; x++) {
-					image.pixel(x, height - y - 1) += tmp_image.pixel(x, y) / mlt_num;
-				}
-			}
-		}
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    image.pixel(x, height - y - 1) += tmp_image.pixel(x, y) / mlt_num;
+                }
+            }
+        }
 
-		return 0;
+        return 0;
     }
 
 }  // namespace spica

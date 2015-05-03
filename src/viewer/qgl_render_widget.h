@@ -28,33 +28,33 @@ namespace spica {
         void resizeGL(int width, int height);
         void paintGL();
 
-		void wheelEvent(QWheelEvent* e);
-		void mousePressEvent(QMouseEvent* e);
-		void mouseMoveEvent(QMouseEvent* e);
-		void mouseReleaseEvent(QMouseEvent* e);
+        void wheelEvent(QWheelEvent* e);
+        void mousePressEvent(QMouseEvent* e);
+        void mouseMoveEvent(QMouseEvent* e);
+        void mouseReleaseEvent(QMouseEvent* e);
 
-		void updateMouse();
-		QVector3D getArcBallVector(int x, int y);
+        void updateMouse();
+        QVector3D getArcBallVector(int x, int y);
 
-	protected slots:
-		void animate();
+    protected slots:
+        void animate();
 
-	protected:
-		bool _useArcBall;
-		double _scrallDelta;
-		bool _isRotate;
-		double _newX;
-		double _newY;
-		double _oldX;
-		double _oldY;
+    protected:
+        bool _useArcBall;
+        double _scrallDelta;
+        bool _isRotate;
+        double _newX;
+        double _newY;
+        double _oldX;
+        double _oldY;
 
-		QMatrix4x4 rotationMat;
+        QMatrix4x4 rotationMat;
 
     private:
-		QTimer* timer;
-		QOpenGLShaderProgram* shaderProgram;
-		
-		const Scene* scene;
+        QTimer* timer;
+        QOpenGLShaderProgram* shaderProgram;
+        
+        const Scene* scene;
         const Camera* camera;
 
     };

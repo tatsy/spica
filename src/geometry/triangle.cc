@@ -77,7 +77,7 @@ namespace spica {
 
             qVec = Vector3::cross(tVec, e1);
             v = Vector3::dot(tVec, e1);
-            if (v > 0.0 || v < det) return false;
+            if (v > 0.0 || u + v < det) return false;
         }
 
         *tHit = Vector3::dot(e2, qVec) / det;

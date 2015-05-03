@@ -1,5 +1,5 @@
 #include "qgl_render_widget.h"
-#include "qmath.h"
+#include <QtMath>
 
 #include <cmath>
 #include <algorithm>

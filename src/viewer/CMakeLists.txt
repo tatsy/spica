@@ -33,7 +33,9 @@ if (${BUILD_VIEWER} STREQUAL "ON")
                  scene_viewer.cc
                  scene_viewer.h
                  qgl_render_widget.cc
-                 qgl_render_widget.h)
+                 qgl_render_widget.h
+                 blinn_phong.vs
+                 blinn_phong.fs)
 
   configure_file(${CMAKE_SOURCE_DIR}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
 

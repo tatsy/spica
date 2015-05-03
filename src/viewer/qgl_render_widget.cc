@@ -1,5 +1,4 @@
 #include "qgl_render_widget.h"
-#include <qmath.h>
 
 #include <cmath>
 #include <algorithm>
@@ -134,7 +133,8 @@ namespace spica {
 		QVector3D objSpaceRotAxis = eye2ObjSpaceMat * rotAxis;
 
 		QMatrix4x4 temp;
-		temp.rotate(4.0 * qRadiansToDegrees(angle), objSpaceRotAxis);
+		double angleByDegree = 180.0 * angle / PI;
+		temp.rotate(4.0 * angleByDegree, objSpaceRotAxis);
 		
 		rotationMat = temp * rotationMat;
 	}

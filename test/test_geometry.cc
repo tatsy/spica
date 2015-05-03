@@ -165,6 +165,9 @@ TEST(TriangleTest, InstanceTest) {
 	EXPECT_EQ_VEC(Vector3(1, 2, 3), t1.p0());
 	EXPECT_EQ_VEC(Vector3(2, 3, 4), t1.p1());
 	EXPECT_EQ_VEC(Vector3(3, 4, 5), t1.p2());
+	EXPECT_EQ_VEC(Vector3(1, 2, 3), t1.p(0));
+	EXPECT_EQ_VEC(Vector3(2, 3, 4), t1.p(1));
+	EXPECT_EQ_VEC(Vector3(3, 4, 5), t1.p(2));
 
 	Triangle t2(Vector3(1, 0, 0),
 		        Vector3(0, 0, 0),
@@ -176,11 +179,22 @@ TEST(TriangleTest, InstanceTest) {
 	EXPECT_EQ(sqrt(6.0) / 2.0, tHit);
 }
 
+TEST(BBoxTest, InstanceTest) {
+	BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+	EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), b0.posMin());
+	EXPECT_EQ_VEC(Vector3(1.0, 1.0, 1.0), b0.posMax());
+
+	double tMin, tMax;
+	b0.intersect(Ray(Vector3(0.5, 0.5, -1.0), Vector3(0.0, 0.0, 1.0)), &tMin, &tMax);
+	EXPECT_EQ(1.0, tMin);
+	EXPECT_EQ(2.0, tMax);
+}
+
 // ------------------------------
 // Trimesh class test
 // ------------------------------
 TEST(TrimeshTest, InstanceTest) {
-	Trimesh trimesh("../../data/bunny.ply");
+	Trimesh trimesh(DATA_DIR + "bunny.ply");
 	Ray ray(Vector3(50.0, 40.8, 220.0), Vector3(-0.1, -0.1, -1.0).normalized());
 	double tHit = INFTY;
 	for (int i = 0; i < trimesh.numFaces(); i++) {

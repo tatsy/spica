@@ -11,5 +11,5 @@ void main(void) {
     vec3 L = normalize(VtoL);
     float NdotL = dot(N, L);
     vec4 diffuse = vec4(max(0.0, NdotL));
-    color = color_fs * diffuse;
+    color = color_fs * diffuse + 0.2 * color_fs;
 }

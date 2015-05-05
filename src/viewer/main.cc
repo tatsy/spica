@@ -11,7 +11,7 @@ int main(int argc, char** argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxBunny(scene, camera, 640, 480);
+    cornellBox(scene, camera, 640, 480);
 
     SceneViewer viewer;
     viewer.show();

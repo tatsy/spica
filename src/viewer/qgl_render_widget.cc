@@ -31,14 +31,13 @@ namespace spica {
         delete shaderProgram;
     }
 
-    void QGLRenderWidget::setScene(const Scene& scene_, const Camera& camera_) {
-        scene = &scene_;
-        camera = &camera_;
+    void QGLRenderWidget::setScene(const Scene& scene, const Camera& camera_) {
+        this->camera = &camera_;
 
-        this->resize(camera->imageW(), camera->imageH());
+        this->resize(camera_.imageW(), camera_.imageH());
 
-        for (int i = 0; i < scene_.numObjects(); i++) {
-            vbo.add(scene_.get(i), scene_.getMaterial(i).color);
+        for (int i = 0; i < scene.numObjects(); i++) {
+            vbo.add(scene.get(i), scene.getMaterial(i).color);
         }
     }
 
@@ -63,14 +62,15 @@ namespace spica {
     }
 
     void QGLRenderWidget::paintGL() {
-        const Vector3 eye = camera->center();
+        const Vector3 eye = camera->lensCenter();
         const Vector3 lookTo = eye + camera->direction();
         const Vector3 up = camera->up();
+        const double verticalAngle = 2.0 * atan(camera->sensorH() / (2.0 * camera->distSL()));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         QMatrix4x4 projMat, viewMat, modelMat;
-        projMat.perspective(30.0f, (float)width() / (float)height(), 1.0f, 1000.0f);
+        projMat.perspective(5.0, (float)width() / (float)height(), 1.0f, 1000.0f);
         
         viewMat.lookAt(QVector3D(eye.x(), eye.y(), eye.z()),
                        QVector3D(lookTo.x(), lookTo.y(), lookTo.z()),

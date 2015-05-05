@@ -127,6 +127,7 @@ namespace spica {
         inline unsigned int imageH() const { return height_; }
         inline void imageW(int width) { width_ = width; }
         inline void imageH(int height) { height_ = height; }
+        inline double distSL() const { return distSensorToLens_; }
         
         inline Vector3 center()    const { return sensor_.center; }
         inline Vector3 direction() const { return sensor_.direction; }

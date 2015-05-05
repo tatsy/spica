@@ -37,7 +37,7 @@ namespace spica {
             double r1 = rng.randReal();
             double r2 = rng.randReal();
             
-            *position = r1 * e1 + r2 * e2;
+            *position = quad.p0() + r1 * e1 + r2 * e2;
             *normal = quad.normal();
         }
 

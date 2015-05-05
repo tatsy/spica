@@ -108,7 +108,7 @@ TEST(BBoxTest, InstanceTest) {
 // ------------------------------
 TEST(TrimeshTest, InstanceTest) {
     Trimesh trimesh(DATA_DIR + "bunny.ply");
-    Ray ray(Vector3(50.0, 40.8, 220.0), Vector3(-0.1, -0.1, -1.0).normalized());
+    Ray ray(Vector3(0.0, 0.8, 100.0), Vector3(0.0, 0.0, -1.0).normalized());
 
     Hitpoint hpGT;
     for (int i = 0; i < trimesh.numFaces(); i++) {

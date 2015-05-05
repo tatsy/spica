@@ -43,7 +43,7 @@ namespace spica {
         hitpoint->setDistance(tHit);
         hitpoint->setPosition(ray.origin() + tHit * ray.direction());
         hitpoint->setNormal(ray.direction().dot(_normal) < 0.0 ? _normal : -_normal);
-        return (hitpoint->position() - _center).norm() < _radius;            
+        return (hitpoint->position() - _center).norm() <= _radius;            
     }
 
     double Disk::area() const {

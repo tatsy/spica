@@ -44,8 +44,8 @@ namespace spica {
             checkArraySize();
         }
 
-        inline const Primitive* get(int id) const;
-        inline const Material& getMaterial(int id) const;
+        const Primitive* get(int id) const;
+        const Material& getMaterial(int id) const;
 
         void clear();
 

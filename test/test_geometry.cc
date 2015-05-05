@@ -93,6 +93,30 @@ TEST(TriangleTest, InstanceTest) {
 }
 
 // ------------------------------
+// Quad class test
+// ------------------------------
+TEST(QuadTest, InstanceTest) {
+    Quad quad;
+    EXPECT_EQ_VEC(Vector3(), quad.p0());
+    EXPECT_EQ_VEC(Vector3(), quad.p1());
+    EXPECT_EQ_VEC(Vector3(), quad.p2());
+    EXPECT_EQ_VEC(Vector3(), quad.p3());
+
+    quad = Quad(Vector3(-1.0, -1.0, 0.0),
+                Vector3( 1.0, -1.0, 0.0),
+                Vector3( 1.0,  1.0, 0.0),
+                Vector3(-1.0,  1.0, 0.0));
+    EXPECT_EQ_VEC(Vector3(-1.0, -1.0, 0.0), quad.p0());
+    EXPECT_EQ_VEC(Vector3( 1.0, -1.0, 0.0), quad.p1());
+    EXPECT_EQ_VEC(Vector3( 1.0,  1.0, 0.0), quad.p2());
+    EXPECT_EQ_VEC(Vector3(-1.0,  1.0, 0.0), quad.p3());
+    
+    Hitpoint hitpoint;
+    EXPECT_TRUE(quad.intersect(Ray(Vector3(0.0, 0.0, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_EQ(1.0, hitpoint.distance());
+}
+
+// ------------------------------
 // Disk class test
 // ------------------------------
 TEST(DiskTest, InstanceTest) {
@@ -101,14 +125,14 @@ TEST(DiskTest, InstanceTest) {
     EXPECT_EQ_VEC(Vector3(), disk.normal());
     EXPECT_EQ(0.0, disk.radius());
 
-    disk = Disk(Vector3(2.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), 1.0);
-    EXPECT_EQ_VEC(Vector3(2.0, 0.0, 0.0), disk.center());
+    disk = Disk(Vector3(1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), 1.0);
+    EXPECT_EQ_VEC(Vector3(1.0, 0.0, 0.0), disk.center());
     EXPECT_EQ_VEC(Vector3(0.0, 1.0, 0.0), disk.normal());
     EXPECT_EQ(1.0, disk.radius());
 
     Hitpoint hitpoint;
-    disk.intersect(Ray(Vector3(1.0, 0.0, 0.0), Vector3(0.0, -1.0, 0.0)), &hitpoint);
-
+    EXPECT_TRUE(disk.intersect(Ray(Vector3(1.0, 1.0, 0.0), Vector3(0.0, -1.0, 0.0)), &hitpoint));
+    EXPECT_EQ(1.0, hitpoint.distance());
 }
 
 // ------------------------------

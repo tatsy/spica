@@ -1,5 +1,6 @@
 #include "vbo.h"
 
+#include <typeinfo>
 #include <string>
 
 namespace spica {

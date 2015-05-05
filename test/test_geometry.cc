@@ -92,6 +92,28 @@ TEST(TriangleTest, InstanceTest) {
     EXPECT_EQ(sqrt(6.0) / 2.0, hitpoint.distance());
 }
 
+// ------------------------------
+// Disk class test
+// ------------------------------
+TEST(DiskTest, InstanceTest) {
+    Disk disk;
+    EXPECT_EQ_VEC(Vector3(), disk.center());
+    EXPECT_EQ_VEC(Vector3(), disk.normal());
+    EXPECT_EQ(0.0, disk.radius());
+
+    disk = Disk(Vector3(2.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), 1.0);
+    EXPECT_EQ_VEC(Vector3(2.0, 0.0, 0.0), disk.center());
+    EXPECT_EQ_VEC(Vector3(0.0, 1.0, 0.0), disk.normal());
+    EXPECT_EQ(1.0, disk.radius());
+
+    Hitpoint hitpoint;
+    disk.intersect(Ray(Vector3(1.0, 0.0, 0.0), Vector3(0.0, -1.0, 0.0)), &hitpoint);
+
+}
+
+// ------------------------------
+// BBox class test
+// ------------------------------
 TEST(BBoxTest, InstanceTest) {
     BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
     EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), b0.posMin());

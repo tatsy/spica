@@ -1,6 +1,8 @@
 #define SPICA_DISK_EXPORT
 #include "disk.h"
 
+#include "../utils/common.h"
+
 namespace spica {
 
     Disk::Disk()
@@ -36,10 +38,16 @@ namespace spica {
         return *this;
     }
 
-    bool Disk::intersect(const Ray& ray, double* tHit) const {
-        *tHit = (_center - ray.origin()).dot(ray.direction());
-        Vector3 posHit = ray.origin() + (*tHit) * ray.direction();
-        return (posHit - _center).norm() < _radius;            
+    bool Disk::intersect(const Ray& ray, Hitpoint* hitpoint) const {
+        double tHit = (_center - ray.origin()).dot(ray.direction());
+        hitpoint->setDistance(tHit);
+        hitpoint->setPosition(ray.origin() + tHit * ray.direction());
+        hitpoint->setNormal(ray.direction().dot(_normal) < 0.0 ? _normal : -_normal);
+        return (hitpoint->position() - _center).norm() < _radius;            
+    }
+
+    double Disk::area() const {
+        return PI * _radius * _radius;
     }
 
 }  // namepspace spica

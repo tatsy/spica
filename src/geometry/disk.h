@@ -11,12 +11,12 @@
     #define SPICA_DISK_DLL
 #endif
 
-#include "../renderer/ray.h"
 #include "../utils/vector3.h"
+#include "primitive.h"
 
 namespace spica {
 
-    class Disk {    
+    class SPICA_DISK_DLL Disk : public Primitive {    
     private:
         Vector3 _center;
         Vector3 _normal;
@@ -30,7 +30,9 @@ namespace spica {
 
         Disk& operator=(const Disk& disk);
 
-        bool intersect(const Ray& ray, double* tHit) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+
+        double area() const;
 
         inline Vector3 center() const { return _center; }
         inline Vector3 normal() const { return _normal; }

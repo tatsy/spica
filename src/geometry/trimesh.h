@@ -31,13 +31,15 @@ namespace spica {
 
     public:
         Trimesh();
-        Trimesh(const std::string& filename, const Material& material = Material());
+        Trimesh(const std::string& filename);
         Trimesh(const Trimesh& trimesh);
         virtual ~Trimesh();
 
         Trimesh& operator=(const Trimesh& trimesh);
 
-        bool intersect(const Ray& ray, HitPoint& hitpoint) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+
+        double area() const;
 
         void buildKdTreeAccel();
 
@@ -50,7 +52,7 @@ namespace spica {
         inline unsigned long numFaces() const { return _numFaces; }
 
     private:
-        bool intersectRec(KdTreeNode* node, const Ray& ray, HitPoint& hitpoint, double tMin, double tMax) const;
+        bool intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) const;
 
     };
 

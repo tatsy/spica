@@ -13,11 +13,10 @@
 
 #include "../utils/common.h"
 #include "../utils/vector3.h"
-#include "../geometry/plane.h"
-#include "../geometry/sphere.h"
-#include "../geometry/trimesh.h"
+#include "../geometry/geometry.h"
 
 #include "ray.h"
+#include "material.h"
 
 namespace spica {
     
@@ -26,22 +25,31 @@ namespace spica {
         unsigned int _nPrimitives;
         unsigned int _arraySize;
         int _lightID;
-        Primitive** _primitives;
+        const Primitive** _primitives;
+        Material* _materials;
         Color _bgColor;
 
     public:
         Scene();
         ~Scene();
 
-        void addPlane(const Plane& plane, bool isLight = false);
-        void addSphere(const Sphere& sphere, bool isLight = false);
-        void addTrimesh(const Trimesh& trimesh, bool isLight = false);
+        template <class Ty>
+        void add(const Ty& primitive, const Material& material, bool isLight = false) {
+            //msg_assert(std::is_same<Ty, Primitive>::value, "Input primitive is not instance of Primitive");
 
-        const Primitive* getObjectPtr(int id) const;
+            if (isLight) _lightID = _nPrimitives;
+            _primitives[_nPrimitives] = new Ty(primitive);
+            _materials[_nPrimitives] = material;
+            _nPrimitives++;
+            checkArraySize();
+        }
+
+        inline const Primitive* get(int id) const;
+        inline const Material& getMaterial(int id) const;
 
         void clear();
 
-        bool intersect(const Ray& ray, Intersection& intersection) const;
+        bool intersect(const Ray& ray, Intersection& isect) const;
 
         inline int lightID() const { return _lightID; }
         inline int numObjects() const { return _nPrimitives; }

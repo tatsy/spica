@@ -19,9 +19,11 @@ namespace spica {
 
     namespace sampler {
     
-        Vector3 onDisk(const Disk& disk);
+        void onDisk(const Disk& disk, Vector3* position, Vector3* normal);
 
-        Vector3 onQuad(const Quad& quad);
+        void onQuad(const Quad& quad, Vector3* position, Vector3* normal);
+
+        void on(const Primitive* primitive, Vector3* position, Vector3* normal);
     
     }  // namespace sampler
 

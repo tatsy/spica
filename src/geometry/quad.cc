@@ -32,16 +32,20 @@ namespace spica {
         return *this;
     }
 
-    bool Quad::intersect(const Ray& ray, double* tHit) const {
-        if (_t0.intersect(ray, tHit)) {
+    bool Quad::intersect(const Ray& ray, Hitpoint* hitpoint) const {
+        if (_t0.intersect(ray, hitpoint)) {
             return true;
         }
 
-        if (_t1.intersect(ray, tHit)) {
+        if (_t1.intersect(ray, hitpoint)) {
             return true;
         }
 
         return false;
+    }
+
+    double Quad::area() const {
+        return _t0.area() + _t1.area();
     }
 
 }  // namespace spica

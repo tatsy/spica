@@ -1,7 +1,6 @@
 set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/bbox.cc
     ${CMAKE_CURRENT_LIST_DIR}/plane.cc
-    ${CMAKE_CURRENT_LIST_DIR}/primitive.cc
     ${CMAKE_CURRENT_LIST_DIR}/quad.cc
     ${CMAKE_CURRENT_LIST_DIR}/disk.cc
     ${CMAKE_CURRENT_LIST_DIR}/sphere.cc

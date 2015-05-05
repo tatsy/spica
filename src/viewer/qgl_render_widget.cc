@@ -9,6 +9,7 @@ namespace spica {
     QGLRenderWidget::QGLRenderWidget(QWidget *parent)
         : QGLWidget(parent)
         , shaderProgram(0)
+        , vbo()
         , timer(0)
         , _useArcBall(false)
         , _scrallDelta(0.0)
@@ -35,6 +36,10 @@ namespace spica {
         camera = &camera_;
 
         this->resize(camera->imageW(), camera->imageH());
+
+        for (int i = 0; i < scene_.numObjects(); i++) {
+            vbo.add(scene_.get(i), scene_.getMaterial(i).color);
+        }
     }
 
     void QGLRenderWidget::initializeGL() {
@@ -44,6 +49,7 @@ namespace spica {
         glEnable(GL_LIGHT0);
         glEnable(GL_NORMALIZE);
         glEnable(GL_COLOR_MATERIAL);
+        glDisable(GL_CULL_FACE);
 
         // Initialize GLSL
         shaderProgram = new QOpenGLShaderProgram(this);
@@ -79,42 +85,20 @@ namespace spica {
         shaderProgram->setUniformValue("vMat", viewMat);
         shaderProgram->setUniformValue("pMat", projMat);
 
-        for (int i = 0; i < scene->numObjects(); i++) {
-            const Primitive* ptr = scene->getObjectPtr(i);
-            
-            if (i == scene->lightID()) {
-                const Sphere* lightSphere = reinterpret_cast<const Sphere*>(ptr);
-                float lightPos[4];
-                lightPos[0] = lightSphere->center().x();
-                lightPos[1] = lightSphere->center().y();
-                lightPos[2] = lightSphere->center().z();
-                lightPos[3] = 1.0f;
-                glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-            }
-            
-            glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-            glColor3f(ptr->color().red(), ptr->color().green(), ptr->color().blue());
+        shaderProgram->setAttributeArray("vertices", vbo.vertices(), 3);
+        shaderProgram->setAttributeArray("normals", vbo.normals(), 3);
+        shaderProgram->setAttributeArray("colors", vbo.colors(), 3);
 
-            glPushMatrix();
-            if (strcmp(typeid(*ptr).name(), "class spica::Sphere") == 0) {
-                const Sphere* sphere = reinterpret_cast<const Sphere*>(ptr);
-                glTranslated(sphere->center().x(), sphere->center().y(), sphere->center().z());
-                glutSolidSphere(sphere->radius(), 256, 256);
-            } else if (strcmp(typeid(*ptr).name(), "class spica::Trimesh") == 0) {
-                const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(ptr);
-                glBegin(GL_TRIANGLES);
-                for (int i = 0; i < trimesh->numFaces(); i++) {
-                    Triangle tri = trimesh->getTriangle(i);
-                    Vector3 normal = trimesh->getNormal(i);
-                    glNormal3d(normal.x(), normal.y(), normal.z());
-                    glVertex3d(tri.p0().x(), tri.p0().y(), tri.p0().z());
-                    glVertex3d(tri.p1().x(), tri.p1().y(), tri.p1().z());
-                    glVertex3d(tri.p2().x(), tri.p2().y(), tri.p2().z());
-                }
-                glEnd();
-            }
-            glPopMatrix();
-        }
+        float lightPos[4] = {0.0, 9.0, 0.0, 1.0};
+        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+
+        shaderProgram->enableAttributeArray("vertices");
+        shaderProgram->enableAttributeArray("normals");
+        shaderProgram->enableAttributeArray("colors");
+        glDrawElements(GL_TRIANGLES, vbo.numIndices(), GL_UNSIGNED_INT, vbo.indices());
+        shaderProgram->disableAttributeArray("vertices");
+        shaderProgram->disableAttributeArray("normals");
+        shaderProgram->disableAttributeArray("colors");
     }
 
     void QGLRenderWidget::animate() {

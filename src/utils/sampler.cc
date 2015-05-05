@@ -1,6 +1,8 @@
 #define SPICA_SAMPLER_EXPORT
 #include "sampler.h"
 
+#include <typeinfo>
+
 namespace spica {
 
     namespace {
@@ -11,7 +13,7 @@ namespace spica {
 
     namespace sampler {
 
-        Vector3 onDisk(const Disk& disk) {
+        void onDisk(const Disk& disk, Vector3* position, Vector3* normal) {
             double r0 = sqrt(rng.randReal());
             double r1 = rng.randNorm() * (2.0 * PI);
             double rx = disk.radius() * r0 * cos(r1);
@@ -25,16 +27,24 @@ namespace spica {
             }
             v = Vector3::cross(u, w);
 
-            return disk.center() + u * rx + v * ry;
+            *position = disk.center() + u * rx + v * ry;
+            *normal = disk.normal();
         }
 
-        Vector3 onQuad(const Quad& quad) {
+        void onQuad(const Quad& quad, Vector3* position, Vector3* normal) {
             Vector3 e1 = quad.p1() - quad.p0();
             Vector3 e2 = quad.p3() - quad.p0();
             double r1 = rng.randReal();
             double r2 = rng.randReal();
             
-            return r1 * e1 + r2 * e2;
+            *position = r1 * e1 + r2 * e2;
+            *normal = quad.normal();
+        }
+
+        void on(const Primitive* primitive, Vector3* position, Vector3* normal) {
+            std::cout << typeid(primitive).name() << std::endl;
+            if (typeid(primitive).name() == "spica::Sphere") {
+            }
         }
 
     }  // namespace sampler

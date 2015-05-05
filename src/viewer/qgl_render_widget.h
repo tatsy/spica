@@ -9,6 +9,7 @@
 
 #include <qevent.h>
 
+#include "vbo.h"
 #include "../renderer/scene.h"
 #include "../renderer/camera.h"
 
@@ -54,6 +55,7 @@ namespace spica {
         QTimer* timer;
         QOpenGLShaderProgram* shaderProgram;
         
+        VBO vbo;
         const Scene* scene;
         const Camera* camera;
 

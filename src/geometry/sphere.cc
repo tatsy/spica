@@ -14,9 +14,8 @@ namespace spica {
     {
     }
 
-    Sphere::Sphere(double radius, const Vector3& center, const Material& material)
-        : Primitive(material)
-        , _radius(radius)
+    Sphere::Sphere(double radius, const Vector3& center)
+        :  _radius(radius)
         , _center(center)
     {
     }
@@ -39,7 +38,7 @@ namespace spica {
         return *this;
     }
 
-    bool Sphere::intersect(const Ray& ray, HitPoint& hitpoint) const {
+    bool Sphere::intersect(const Ray& ray, Hitpoint* hitpoint) const {
         const Vector3 VtoC = _center - ray.origin();
         const double b = VtoC.dot(ray.direction());
         const double D4 = b * b - VtoC.dot(VtoC) + _radius * _radius;
@@ -53,15 +52,19 @@ namespace spica {
         if (t1 < EPS && t2 < EPS) return false;
 
         if (t1 > EPS) {
-            hitpoint.setDistance(t1);
+            hitpoint->setDistance(t1);
         } else {
-            hitpoint.setDistance(t2);
+            hitpoint->setDistance(t2);
         }
 
-        hitpoint.setPosition(ray.origin() + hitpoint.distance() * ray.direction());
-        hitpoint.setNormal((hitpoint.position() - _center).normalized());
+        hitpoint->setPosition(ray.origin() + hitpoint->distance() * ray.direction());
+        hitpoint->setNormal((hitpoint->position() - _center).normalized());
 
         return true;
+    }
+
+    double Sphere::area() const {
+        return 4.0 * PI * _radius * _radius;
     }
 
 }  // namespace spica

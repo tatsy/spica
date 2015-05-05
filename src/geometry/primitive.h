@@ -11,32 +11,16 @@
     #define SPICA_PRIMITIVE_DLL
 #endif
 
-#include "../utils/common.h"
 #include "../renderer/ray.h"
-#include "../renderer/material.h"
 
 namespace spica {
-    /* Interface class for shape primitives (Plane, Sphere etc.)
+    /* Interface class for geometries
      */
-    class SPICA_PRIMITIVE_DLL Primitive {
-    protected:
-        Material _material;
-
+    class SPICA_PRIMITIVE_DLL Primitive {    
     public:
-        Primitive();
-        Primitive(const Material& material);
-        Primitive(const Primitive& primitive);
-        virtual ~Primitive();
+        virtual bool intersect(const Ray& ray, Hitpoint* hitpoint) const = 0;
 
-        Primitive& operator=(const Primitive& primitive);
-
-        virtual bool intersect(const Ray& ray, HitPoint& hitpoint) const;
-
-        inline Color emission() const { return _material.emission; }
-        inline Color color()    const { return _material.color;    }
-        inline ReflectionType reftype() const { return _material.reftype; }
-
-        inline void setMaterial(const Material& material) { _material = material; }
+        virtual double area() const = 0;
     };
 }
 

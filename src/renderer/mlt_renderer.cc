@@ -6,6 +6,8 @@
 #include <vector>
 #include <stack>
 
+#include "../utils/sampler.h"
+
 namespace spica {
 
     namespace {
@@ -106,11 +108,12 @@ namespace spica {
         Color direct_radiance_sample(const Scene& scene, const Vector3& v0, const Vector3& normal, const int id, KelemenMLT& mlt) {
             const double r1 = 2.0 * PI * mlt.nextSample();
             const double r2 = 1.0 - 2.0 * mlt.nextSample();
-            const Sphere* light_ptr = reinterpret_cast<const Sphere*>(scene.getObjectPtr(scene.lightID()));
-            const Vector3 light_pos = light_ptr->center() + (light_ptr->radius() * Vector3(sqrt(1.0 - r2 * r2) * cos(r1), sqrt(1.0 - r2 * r2) * sin(r1), r2));
 
-            // --
-            const Vector3 light_normal = (light_pos - light_ptr->center()).normalized();
+            const Primitive* light = scene.get(scene.lightID());
+            const Material& lightMtrl = scene.getMaterial(scene.lightID());
+            Vector3 light_pos, light_normal;
+            sampler::on(light, &light_pos, &light_normal);
+
             const Vector3 v_to_l = light_pos - v0;
             const Vector3 light_dir = v_to_l.normalized();
             const double dist2 = v_to_l.dot(v_to_l);
@@ -121,9 +124,8 @@ namespace spica {
                 const double G = dot0 * dot1 / dist2;
                 Intersection intersection;
                 if (scene.intersect(Ray(v0, light_dir), intersection) && intersection.objectId() == scene.lightID()) {
-                    const Primitive* obj_ptr = scene.getObjectPtr(id);
-                    const double light_radius = light_ptr->radius();
-                    return obj_ptr->color().cwiseMultiply(light_ptr->emission()) * (1.0 / PI) * G * (4.0 * PI * light_radius * light_radius);
+                    const Material& mtrl = scene.getMaterial(id);
+                    return mtrl.color.cwiseMultiply(lightMtrl.emission) * (1.0 / PI) * G * light->area();
                 }
             }
             return Color(0.0, 0.0, 0.0);
@@ -135,11 +137,11 @@ namespace spica {
                 return Color(0.0, 0.0, 0.0);
             }
 
-            const Primitive* obj_ptr = scene.getObjectPtr(intersection.objectId());
-            const HitPoint& hitpoint = intersection.hitPoint();
+            const Material& mtrl = scene.getMaterial(intersection.objectId());
+            const Hitpoint& hitpoint = intersection.hitpoint();
             const Vector3 orient_normal = hitpoint.normal().dot(ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
-            const Color& obj_color = obj_ptr->color();
+            const Color& obj_color = mtrl.color;
             double roulette_probability = std::max(obj_color.red(), std::max(obj_color.green(), obj_color.blue()));
 
             if (depth > maxDepth) {
@@ -150,7 +152,7 @@ namespace spica {
                 roulette_probability = 1.0;
             }
 
-            if (obj_ptr->reftype() == REFLECTION_DIFFUSE) {
+            if (mtrl.reftype == REFLECTION_DIFFUSE) {
                 if (intersection.objectId() != scene.lightID()) {
                     const int shadow_ray = 1;
                     Vector3 direct_light;
@@ -175,28 +177,28 @@ namespace spica {
                     const Color next_bounce_color = radiance(scene, Ray(hitpoint.position(), next_dir), depth + 1, maxDepth, mlt);
                     return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
                 } else if (depth == 0) {
-                    return obj_ptr->emission();
+                    return mtrl.emission;
                 } else {
                     return Color(0.0, 0.0, 0.0);
                 }
             }
-            else if (obj_ptr->reftype() == REFLECTION_SPECULAR) {
+            else if (mtrl.reftype == REFLECTION_SPECULAR) {
                 Intersection light_intersect;
                 Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
                 scene.intersect(reflection_ray, light_intersect);
                 Vector3 direct_light;
                 if (light_intersect.objectId() == scene.lightID()) {
-                    direct_light = scene.getObjectPtr(scene.lightID())->emission();
+                    direct_light = scene.getMaterial(scene.lightID()).emission;
                 }
                 const Color next_bounce_color = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
                 return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
-            } else if (obj_ptr->reftype() == REFLECTION_REFRACTION) {
+            } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                 Intersection light_intersect;
                 Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
                 scene.intersect(reflection_ray, light_intersect);
                 Vector3 direct_light;
                 if (light_intersect.objectId() == scene.lightID()) {
-                    direct_light = scene.getObjectPtr(scene.lightID())->emission();
+                    direct_light = scene.getMaterial(scene.lightID()).emission;
                 }
 
                 bool is_incoming = hitpoint.normal().dot(orient_normal) > 0.0;
@@ -229,7 +231,7 @@ namespace spica {
                 scene.intersect(reflection_ray, light_intersect_refract);
                 Vector3 direct_light_refraction;
                 if (light_intersect_refract.objectId() == scene.lightID()) {
-                    direct_light_refraction = scene.getObjectPtr(scene.lightID())->emission();
+                    direct_light_refraction = scene.getMaterial(scene.lightID()).emission;
                 }
 
                 if (depth > 2) {

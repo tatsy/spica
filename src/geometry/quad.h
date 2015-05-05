@@ -16,7 +16,7 @@
 
 namespace spica {
 
-    class SPICA_QUAD_DLL Quad {
+    class SPICA_QUAD_DLL Quad : public Primitive {
     private:
         Triangle _t0;
         Triangle _t1;
@@ -29,12 +29,15 @@ namespace spica {
 
         Quad& operator=(const Quad& quad);
 
-        bool intersect(const Ray& ray, double* tHit) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+
+        double area() const;
 
         inline Vector3 p0() const { return _t0.p0(); }
         inline Vector3 p1() const { return _t0.p1(); }
         inline Vector3 p2() const { return _t0.p2(); }
         inline Vector3 p3() const { return _t1.p1(); }
+        inline Vector3 normal() const { return _t0.normal(); }
     };
 
 }  // namespace spica

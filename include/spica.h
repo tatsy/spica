@@ -4,9 +4,7 @@
 #include "../src/utils/common.h"
 #include "../src/utils/vector3.h"
 
-#include "../src/geometry/primitive.h"
-#include "../src/geometry/plane.h"
-#include "../src/geometry/sphere.h"
+#include "../src/geometry/geometry.h"
 
 #include "../src/renderer/scene.h"
 #include "../src/renderer/camera.h"

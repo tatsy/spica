@@ -13,18 +13,18 @@
 
 #include "random.h"
 #include "vector3.h"
+#include "../geometry/geometry.h"
 
 namespace spica {
 
-    class Sampler {
-    private:
-        static Random rng;
+    namespace sampler {
     
-    public:
-        static Vector3 onDisk(const Vector3& center, const Vector3& normal, double radius);
-    
-    };
+        Vector3 onDisk(const Disk& disk);
 
-}
+        Vector3 onQuad(const Quad& quad);
+    
+    }  // namespace sampler
+
+}  // namespace spica
 
 #endif  // SPICA_SAMPLER_H_

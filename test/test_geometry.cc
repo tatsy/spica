@@ -289,24 +289,37 @@ TEST(BBoxTest, IntersectionTest) {
 // ------------------------------
 // Trimesh class test
 // ------------------------------
-TEST(TrimeshTest, InstanceTest) {
+TEST(TrimeshTest, BoxIntersection) {
+    Trimesh trimesh;
+    trimesh.load(DATA_DIR + "box.ply");
+    trimesh.buildKdTreeAccel();
+
+    Ray ray(Vector3(0.0, 0.0, 100.0), Vector3(0.0, 0.0, -1.0));
+    Hitpoint hitpoint;
+    EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
+    EXPECT_EQ(99.5, hitpoint.distance());
+    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.5), hitpoint.position());
+    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 1.0), hitpoint.normal());
+}
+
+TEST(TrimeshTest, BunnyIntersection) {
     Trimesh trimesh(DATA_DIR + "bunny.ply");
-    Ray ray(Vector3(0.0, 0.8, 100.0), Vector3(0.0, 0.0, -1.0).normalized());
+    Ray ray(Vector3(0.0, 0.0, 100.0), Vector3(0.0, 0.0, -1.0));
 
     Hitpoint hpGT;
     for (int i = 0; i < trimesh.numFaces(); i++) {
         Triangle tri = trimesh.getTriangle(i);
         Hitpoint hpTemp;
         if (tri.intersect(ray, &hpTemp)) {
-            if (hpGT.distance() > hpTemp.distance() && hpTemp.distance() > 0.0) {
+            if (hpGT.distance() > hpTemp.distance()) {
                 hpGT = hpTemp;
             }
         }
     }
     trimesh.buildKdTreeAccel();
 
-    // Hitpoint hitpoint;
-    // EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
-    // EXPECT_EQ(hpGT.distance(), hitpoint.distance());
+    Hitpoint hitpoint;
+    EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
+    EXPECT_EQ(hpGT.distance(), hitpoint.distance());
 }
 

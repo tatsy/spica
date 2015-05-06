@@ -147,7 +147,7 @@ namespace spica {
     void Trimesh::load(const std::string& filename) {
         int dotPos = filename.find_last_of(".");
         std::string ext = filename.substr(dotPos);
-        std::cout << "Extention: " << ext << std::endl;
+        // std::cout << "Extention: " << ext << std::endl;
         msg_assert(ext == ".ply", "Mesh loader only accepts .ply file format");
 
         std::ifstream in(filename.c_str(), std::ios::in);
@@ -166,7 +166,7 @@ namespace spica {
                 in >> key;
                 if (key == "format" || key == "property") {
                     in >> name >> val;
-                    std::cout << key << " " << name << " " << val << std::endl;
+                    // std::cout << key << " " << name << " " << val << std::endl;
                 } else if (key == "element") {
                     in >> name;
                     if (name == "vertex") {

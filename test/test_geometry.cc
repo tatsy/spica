@@ -205,10 +205,12 @@ TEST(QuadTest, RandomIntersection) {
         Vector3 from(fx, fy, -1.0);
         Vector3 to(tx, ty, 0.0);
         Vector3 dir = (to - from).normalized();
+        double dist = (to - from).norm();
         Ray ray(from, dir);
         Hitpoint hitpoint;
         if (abs(tx) <= 1.0 && abs(ty) <= 1.0) {
-            EXPECT_TRUE(quad.intersect(ray, &hitpoint));
+            EXPECT_TRUE(quad.intersect(ray, &hitpoint)) << to;
+            EXPECT_TRUE(dist, hitpoint.distance());
         } else {
             EXPECT_FALSE(quad.intersect(ray, &hitpoint));
         }

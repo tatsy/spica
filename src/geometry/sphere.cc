@@ -8,8 +8,7 @@
 namespace spica {
 
     Sphere::Sphere()
-        : Primitive()
-        , _radius(0.0)
+        : _radius(0.0)
         , _center()
     {
     }
@@ -21,10 +20,10 @@ namespace spica {
     }
 
     Sphere::Sphere(const Sphere& sphere)
-        : Primitive(sphere)
-        , _radius(sphere._radius)
-        , _center(sphere._center)
+        : _radius()
+        , _center()
     {
+        operator=(sphere);
     }
 
     Sphere::~Sphere()
@@ -32,7 +31,6 @@ namespace spica {
     }
 
     Sphere& Sphere::operator=(const Sphere& sphere) {
-        Primitive::operator=(sphere);
         this->_radius = sphere._radius;
         this->_center = sphere._center;
         return *this;

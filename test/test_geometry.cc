@@ -38,18 +38,21 @@ TEST(SphereTest, InstanceTest) {
     EXPECT_EQ(0.0, sp0.radius());
 
     Sphere sp(2.0, Vector3(0.0, 0.0, 0.0));
-
     EXPECT_EQ(0.0, sp.center().x());
     EXPECT_EQ(0.0, sp.center().y());
     EXPECT_EQ(0.0, sp.center().z());
+}
 
-    // copy constructor
-    sp0 = sp;
+TEST(SphereTest, CopyConstructor) {
+    Sphere sp(2.0, Vector3(0.0, 0.0, 0.0));
+    Sphere sp0 = sp;
     EXPECT_EQ(0.0, sp0.center().x());
     EXPECT_EQ(0.0, sp0.center().y());
     EXPECT_EQ(0.0, sp0.center().z());
+}
 
-    // intersection
+TEST(SphereTest, IntersectionTest) {
+    Sphere sp(2.0, Vector3(0.0, 0.0, 0.0));
     Hitpoint hitpoint;
     EXPECT_TRUE(sp.intersect(Ray(Vector3(10.0, 0.0, 0.0), Vector3(-1.0, 0.0, 0.0)), &hitpoint));
     EXPECT_EQ(2.0, hitpoint.position().x());
@@ -61,6 +64,16 @@ TEST(SphereTest, InstanceTest) {
     EXPECT_EQ(0.0, hitpoint.normal().z());
 
     EXPECT_FALSE(sp.intersect(Ray(Vector3(10.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0)), &hitpoint));
+}
+
+TEST(SphereTest, AreaTest) {
+    double rad = 2.0;
+    double area = 4.0 * PI * rad * rad;
+    Sphere sp0(rad, Vector3(0.0, 0.0, 0.0));
+    EXPECT_EQ(area, sp0.area());
+
+    Sphere sp1(rad, Vector3(5.0, 4.0, 3.0));
+    EXPECT_EQ(area, sp1.area());
 }
 
 // ------------------------------
@@ -81,15 +94,24 @@ TEST(TriangleTest, InstanceTest) {
     EXPECT_EQ_VEC(Vector3(1, 2, 3), t1.p(0));
     EXPECT_EQ_VEC(Vector3(2, 3, 4), t1.p(1));
     EXPECT_EQ_VEC(Vector3(3, 4, 5), t1.p(2));
+}
 
-    Triangle t2(Vector3(1, 0, 0),
+TEST(TriangleTest, IntersectionTest) {
+    Triangle t0(Vector3(1, 0, 0),
                 Vector3(0, 0, 0),
                 Vector3(0, 1, 0));
     Ray ray(Vector3(0, 0, -1), (Vector3(1, 1, 1) - Vector3(0, 0, -1)).normalized());
 
     Hitpoint hitpoint;
-    EXPECT_TRUE(t2.intersect(ray, &hitpoint));
+    EXPECT_TRUE(t0.intersect(ray, &hitpoint));
     EXPECT_EQ(sqrt(6.0) / 2.0, hitpoint.distance());
+}
+
+TEST(TriangleTest, AreaTest) {
+    Triangle t0(Vector3(1, 0, 0),
+                Vector3(0, 0, 0),
+                Vector3(0, 1, 0));
+    EXPECT_EQ(0.5, t0.area());
 }
 
 // ------------------------------
@@ -101,6 +123,7 @@ TEST(QuadTest, InstanceTest) {
     EXPECT_EQ_VEC(Vector3(), quad.p1());
     EXPECT_EQ_VEC(Vector3(), quad.p2());
     EXPECT_EQ_VEC(Vector3(), quad.p3());
+    ASSERT_DEATH(quad.normal(), "");
 
     quad = Quad(Vector3(-1.0, -1.0, 0.0),
                 Vector3( 1.0, -1.0, 0.0),
@@ -110,10 +133,52 @@ TEST(QuadTest, InstanceTest) {
     EXPECT_EQ_VEC(Vector3( 1.0, -1.0, 0.0), quad.p1());
     EXPECT_EQ_VEC(Vector3( 1.0,  1.0, 0.0), quad.p2());
     EXPECT_EQ_VEC(Vector3(-1.0,  1.0, 0.0), quad.p3());
-    
+    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 1.0), quad.normal());
+}
+
+TEST(QuadTest, CopyConstructor) {
+    Quad q0(Vector3(-1.0, -1.0, 0.0),
+            Vector3( 1.0, -1.0, 0.0),
+            Vector3( 1.0,  1.0, 0.0),
+            Vector3(-1.0,  1.0, 0.0));
+
+    Quad quad(q0);
+    EXPECT_EQ_VEC(Vector3(-1.0, -1.0, 0.0), quad.p0());
+    EXPECT_EQ_VEC(Vector3( 1.0, -1.0, 0.0), quad.p1());
+    EXPECT_EQ_VEC(Vector3( 1.0,  1.0, 0.0), quad.p2());
+    EXPECT_EQ_VEC(Vector3(-1.0,  1.0, 0.0), quad.p3());
+    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 1.0), quad.normal());
+}
+ 
+TEST(QuadTest, IntersectionTest) {
+    Quad quad(Vector3(-1.0, -1.0, 0.0),
+              Vector3( 1.0, -1.0, 0.0),
+              Vector3( 1.0,  1.0, 0.0),
+              Vector3(-1.0,  1.0, 0.0));
+
     Hitpoint hitpoint;
+
+    // Hit in the center
     EXPECT_TRUE(quad.intersect(Ray(Vector3(0.0, 0.0, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
     EXPECT_EQ(1.0, hitpoint.distance());
+
+    // Hit on the lim
+    EXPECT_TRUE(quad.intersect(Ray(Vector3(-1.0, -1.0, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_EQ(1.0, hitpoint.distance());
+    EXPECT_TRUE(quad.intersect(Ray(Vector3(1.0, 1.0, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_EQ(1.0, hitpoint.distance());
+
+    // Not hit
+    EXPECT_FALSE(quad.intersect(Ray(Vector3(-1.1, -1.1, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Vector3(0.0, 0.0, 1.0), Vector3(0.0, 0.0, 1.0)), &hitpoint));
+}
+
+TEST(QuadTest, AreaTest) {
+    Quad q0(Vector3(-1.0, -1.0, 0.0),
+            Vector3( 1.0, -1.0, 0.0),
+            Vector3( 1.0,  1.0, 0.0),
+            Vector3(-1.0,  1.0, 0.0));
+    EXPECT_EQ(4.0, q0.area());
 }
 
 // ------------------------------
@@ -129,10 +194,28 @@ TEST(DiskTest, InstanceTest) {
     EXPECT_EQ_VEC(Vector3(1.0, 0.0, 0.0), disk.center());
     EXPECT_EQ_VEC(Vector3(0.0, 1.0, 0.0), disk.normal());
     EXPECT_EQ(1.0, disk.radius());
+}
 
+TEST(DiskTest, CopyConstructor) {
+    Disk d0(Vector3(1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), 1.0);
+    Disk d1(d0);
+    EXPECT_EQ_VEC(Vector3(1.0, 0.0, 0.0), d1.center());
+    EXPECT_EQ_VEC(Vector3(0.0, 1.0, 0.0), d1.normal());
+    EXPECT_EQ(1.0, d1.radius());
+}
+
+TEST(DiskTest, IntersectionTest) {
+    Disk disk(Vector3(1.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), 1.0);
     Hitpoint hitpoint;
     EXPECT_TRUE(disk.intersect(Ray(Vector3(1.0, 1.0, 0.0), Vector3(0.0, -1.0, 0.0)), &hitpoint));
     EXPECT_EQ(1.0, hitpoint.distance());
+}
+
+TEST(DiskTest, AreaTest) {
+    double rad = 5.0;
+    double area = PI * rad * rad;
+    Disk disk(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0), rad);
+    EXPECT_EQ(area, disk.area());    
 }
 
 // ------------------------------
@@ -142,7 +225,17 @@ TEST(BBoxTest, InstanceTest) {
     BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
     EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), b0.posMin());
     EXPECT_EQ_VEC(Vector3(1.0, 1.0, 1.0), b0.posMax());
+}
 
+TEST(BBoxTest, CopyConstructor) {
+    BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+    BBox b1(b0);
+    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), b1.posMin());
+    EXPECT_EQ_VEC(Vector3(1.0, 1.0, 1.0), b1.posMax());
+}
+
+TEST(BBoxTest, IntersectionTest) {
+    BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
     double tMin, tMax;
     b0.intersect(Ray(Vector3(0.5, 0.5, -1.0), Vector3(0.0, 0.0, 1.0)), &tMin, &tMax);
     EXPECT_EQ(1.0, tMin);

@@ -36,6 +36,16 @@ namespace spica {
         _nodes = new KdTreeNode[_numNodes];
         memcpy(_triangles, kdtree._triangles, sizeof(Triangle)* _numTriangles);
         memcpy(_nodes, kdtree._nodes, sizeof(KdTreeNode) * _numNodes);
+        for (int i = 0; i < _numNodes; i++) {
+            if (_nodes[i].left != 0) {
+                _nodes[i].left = _nodes + (kdtree._nodes[i].left - kdtree._nodes);
+            }
+
+            if (_nodes[i].right != 0) {
+                _nodes[i].right = _nodes + (kdtree._nodes[i].right - kdtree._nodes);
+            }
+        }
+
         return *this;
     }
 
@@ -51,13 +61,15 @@ namespace spica {
 
         // Sort bounding boxes
         _numTriangles = (int)triangles.size();
-        for (_numNodes = 1; _numNodes < _numTriangles * 2; _numNodes <<= 1) ;
+        for (_numNodes = 1; _numNodes < _numTriangles; _numNodes <<= 1) ;
         
+        _numNodes = _numNodes * 2 - 1;
         _nodes = new KdTreeNode[_numNodes];
-        _triangles = new Triangle[_numTriangles];
+        memset(_nodes, 0, sizeof(KdTreeNode)* _numNodes);
 
         // Copy triangles
-        memcpy(_triangles, &triangles[0], sizeof(Triangle) * _numTriangles);
+        _triangles = new Triangle[_numTriangles];
+        memcpy(_triangles, &triangles[0], sizeof(Triangle)* _numTriangles);
 
         constructRec(0, 0, _numTriangles, 0);
     }

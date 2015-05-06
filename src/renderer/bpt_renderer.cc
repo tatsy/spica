@@ -284,12 +284,12 @@ namespace spica {
 
         LightTracingResult executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
             // Generate sample on the light
-            double pdfAreaOnLight;
             const int lightId = scene.lightID();
             const Primitive* light = scene.get(lightId);
 
             Vector3 positionOnLight, normalOnLight;
             sampler::on(light, &positionOnLight, &normalOnLight);
+            double pdfAreaOnLight = 1.0 / light->area();
 
             double totalPdfA = pdfAreaOnLight;
 

@@ -20,6 +20,8 @@ namespace spica {
     namespace sampler {
 
         void onHemisphere(const Vector3& normal, Vector3* direction);
+
+        void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal);
     
         void onDisk(const Disk& disk, Vector3* position, Vector3* normal);
 

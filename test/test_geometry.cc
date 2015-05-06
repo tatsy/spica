@@ -303,8 +303,8 @@ TEST(TrimeshTest, InstanceTest) {
     }
     trimesh.buildKdTreeAccel();
 
-    Hitpoint hitpoint;
-    //EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
-    //EXPECT_EQ(hpGT.distance(), hitpoint.distance());
+    // Hitpoint hitpoint;
+    // EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
+    // EXPECT_EQ(hpGT.distance(), hitpoint.distance());
 }
 

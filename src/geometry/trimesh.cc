@@ -102,7 +102,7 @@ namespace spica {
         }
 
         // Check which child is nearer
-        double lMin, lMax, rMin, rMax;
+        double lMin = INFTY, lMax = INFTY, rMin = INFTY, rMax = INFTY;
         if (!node->left->bbox.intersect(ray, &lMin, &lMax) && !node->right->bbox.intersect(ray, &rMin, &rMax)) {
             return false;
         }

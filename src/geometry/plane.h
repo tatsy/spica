@@ -22,13 +22,15 @@ namespace spica {
 
     public:
         Plane();
-        Plane(double distance, const Vector3& normal, const Material& material);
+        Plane(double distance, const Vector3& normal);
         Plane(const Plane& plane);
         virtual ~Plane();
 
         Plane& operator=(const Plane& plane);
 
-        bool intersect(const Ray& ray, HitPoint& hitpoint) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+
+        double area() const;
 
         inline double distance() const { return _distance; }
         inline Vector3 normal() const { return _normal; }

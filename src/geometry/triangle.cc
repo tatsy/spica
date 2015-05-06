@@ -46,14 +46,14 @@ namespace spica {
     }
 
     Vector3 Triangle::normal() const {
-        return Vector3::cross(_p2 - _p0, _p1 - _p0).normalized();
+        return Vector3::cross(_p1 - _p0, _p2 - _p0).normalized();
     }
 
     Vector3 Triangle::gravity() const {
         return (_p0 + _p1 + _p2) / 3.0;
     }
 
-    bool Triangle::intersect(const Ray& ray, double* tHit) const {
+    bool Triangle::intersect(const Ray& ray, Hitpoint* hitpoint) const {
         Vector3 qVec;
         double u, v;
 
@@ -77,11 +77,19 @@ namespace spica {
 
             qVec = Vector3::cross(tVec, e1);
             v = Vector3::dot(tVec, e1);
-            if (v > 0.0 || v < det) return false;
+            if (v > 0.0 || u + v < det) return false;
         }
 
-        *tHit = Vector3::dot(e2, qVec) / det;
+        hitpoint->setDistance(Vector3::dot(e2, qVec) / det);
+        hitpoint->setNormal(this->normal());
+        hitpoint->setPosition(ray.origin() + hitpoint->distance() * ray.direction());
         return true;
+    }
+
+    double Triangle::area() const {
+        Vector3 e1 = _p1 - _p0;
+        Vector3 e2 = _p2 - _p1;
+        return 0.5 * Vector3::cross(e1, e2).norm();
     }
 
 }  // namespace spica

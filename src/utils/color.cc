@@ -14,8 +14,9 @@ namespace spica {
     }
 
     Color::Color(const Color& color)
-        : Vector3(color)
+        : Vector3()
     {
+        operator=(color);
     }
 
     Color::Color(const Vector3& v)

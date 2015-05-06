@@ -32,18 +32,18 @@ namespace spica {
         inline Vector3 direction() const { return _direction; }
     };
 
-    class SPICA_RAY_DLL HitPoint {
+    class SPICA_RAY_DLL Hitpoint {
     private:
         double _distance;
         Vector3 _normal;
         Vector3 _position;
 
     public:
-        HitPoint();
-        HitPoint(const HitPoint& hp);
-        ~HitPoint();
+        Hitpoint();
+        Hitpoint(const Hitpoint& hp);
+        ~Hitpoint();
 
-        HitPoint& operator=(const HitPoint& hp);
+        Hitpoint& operator=(const Hitpoint& hp);
 
         inline double distance() const { return _distance; }
         inline Vector3 normal() const { return _normal; }
@@ -56,7 +56,7 @@ namespace spica {
 
     class SPICA_RAY_DLL Intersection {
     private:
-        HitPoint _hitPoint;
+        Hitpoint _hitPoint;
         int _objectId;
 
     public:
@@ -69,9 +69,9 @@ namespace spica {
         double hittingDistance() const;
 
         inline int objectId() const { return _objectId; }
-        inline const HitPoint& hitPoint() const { return _hitPoint; }
+        inline const Hitpoint& hitpoint() const { return _hitPoint; }
 
-        inline void setHitPoint(const HitPoint& hitpoint) { _hitPoint = hitpoint; }
+        inline void setHitpoint(const Hitpoint& hitpoint) { _hitPoint = hitpoint; }
         inline void setObjectId(int id) { _objectId = id; }
     };
 

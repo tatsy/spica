@@ -29,11 +29,14 @@ if (${BUILD_VIEWER} STREQUAL "ON")
 
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
+
   add_executable(scene_viewer main.cc
                  scene_viewer.cc
                  scene_viewer.h
                  qgl_render_widget.cc
                  qgl_render_widget.h
+                 vbo.h
+                 vbo.cc
                  blinn_phong.vs
                  blinn_phong.fs)
 

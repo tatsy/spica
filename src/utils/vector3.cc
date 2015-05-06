@@ -66,9 +66,9 @@ namespace spica {
         return *this;
     }
 
-	bool Vector3::operator==(const Vector3 v) {
-		return (_x == v._x && _y == v._y && _z == v._z);
-	}
+    bool Vector3::operator==(const Vector3 v) {
+        return (_x == v._x && _y == v._y && _z == v._z);
+    }
 
     double Vector3::dot(const Vector3& v) const {
         return this->_x * v._x + this->_y * v._y + this->_z * v._z;

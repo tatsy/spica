@@ -25,7 +25,7 @@ namespace spica {
 
     public:
         Sphere();
-        Sphere(double radius, const Vector3& center, const Material& material);
+        Sphere(double radius, const Vector3& center);
         Sphere(const Sphere& sphere);
         ~Sphere();
 
@@ -36,7 +36,9 @@ namespace spica {
          * @param[out] hitpoint: if ray hits to the sphere, intersecting point is inserted
          * @param[return] boolean to represent if ray hits the sphere or not
          */
-        bool intersect(const Ray& ray, HitPoint& hitpoint) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+
+        double area() const;
 
         inline double radius() const { return _radius; }
         inline Vector3 center() const { return _center; }

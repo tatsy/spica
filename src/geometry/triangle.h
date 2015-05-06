@@ -11,12 +11,11 @@
     #define SPICA_TRIANGLE_DLL
 #endif
 
-#include "../renderer/ray.h"
-#include "../utils/vector3.h"
+#include "primitive.h"
 
 namespace spica {
 
-    class SPICA_TRIANGLE_DLL Triangle {
+    class SPICA_TRIANGLE_DLL Triangle : public Primitive {
     private:
         Vector3 _p0;
         Vector3 _p1;
@@ -36,7 +35,9 @@ namespace spica {
         Vector3 normal() const;
 
         // Compute ray-triangle intersection with Tomas Moller's algorithm
-        bool intersect(const Ray& ray, double* tHit) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+
+        double area() const;
 
         inline Vector3 p0() const { return _p0; }
         inline Vector3 p1() const { return _p1; }

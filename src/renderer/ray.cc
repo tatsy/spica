@@ -28,22 +28,22 @@ namespace spica {
         return *this;
     }
 
-    HitPoint::HitPoint()
+    Hitpoint::Hitpoint()
         : _distance(INFTY)
         , _normal()
         , _position() {
     }
 
-    HitPoint::HitPoint(const HitPoint& hp)
+    Hitpoint::Hitpoint(const Hitpoint& hp)
         : _distance(hp._distance)
         , _normal(hp._normal)
         , _position(hp._position) {
     }
 
-    HitPoint::~HitPoint() {
+    Hitpoint::~Hitpoint() {
     }
 
-    HitPoint& HitPoint::operator=(const HitPoint& hp) {
+    Hitpoint& Hitpoint::operator=(const Hitpoint& hp) {
         this->_distance = hp._distance;
         this->_normal = hp._normal;
         this->_position = hp._position;

@@ -36,8 +36,8 @@ namespace spica {
 
         bool intersect(const Ray& ray, double* tMin, double* tMax) const;
 
-		inline Vector3 posMin() const { return _posMin; }
-		inline Vector3 posMax() const { return _posMax; }
+        inline Vector3 posMin() const { return _posMin; }
+        inline Vector3 posMax() const { return _posMax; }
     };
 
 }  // namespace spica

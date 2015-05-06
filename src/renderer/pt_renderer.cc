@@ -34,13 +34,6 @@ namespace spica {
         const int width  = camera.imageW();
         const int height = camera.imageH();
 
-        // Screen size in world space
-        const double screenWidth = 30.0 * width / height;
-        const double screenHeight = 30.0;
-
-        // Distance to the screen
-        const double distToScreen = 40.0;
-
         // Vectors spanning screen
         Image image(width, height);
         int processed = 0;
@@ -57,7 +50,6 @@ namespace spica {
             }
         }
         
-
         image.savePPM("simplept.ppm");
 
         return 0;
@@ -86,52 +78,37 @@ namespace spica {
             return scene.bgColor();
         }
 
-        const Material& mater = scene.getMaterial(isect.objectId());
+        const Material& mtrl = scene.getMaterial(isect.objectId());
         const Hitpoint& hitpoint = isect.hitpoint();
-        const Vector3 orientNormal = hitpoint.normal().dot(ray.direction()) < 0.0 ? hitpoint.normal() : (-1.0 * hitpoint.normal());
+        const Vector3 orientNormal = Vector3::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
-        double rouletteProb =std::max(mater.color.x(), std::max(mater.color.y(), mater.color.z()));
+        double roulette =std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
 
         if (depth > depthLimit) {
-            rouletteProb *= pow(0.5, depth - depthLimit);
+            roulette *= pow(0.5, depth - depthLimit);
         }
 
         if (depth > maxDepth) {
-            if (rng.randReal() > rouletteProb) {
-                return mater.emission;
+            if (rng.randReal() > roulette) {
+                return mtrl.emission;
             }
         } else {
-            rouletteProb = 1.0;
+            roulette = 1.0;
         }
 
         Color incomingRad;
         Color weight = Color(1.0, 0.0, 0.0);
 
-        if (mater.reftype == REFLECTION_DIFFUSE) {
-            Vector3 u, v, w;
-            w = orientNormal;
-            if (abs(w.x()) > EPS) {
-                u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
-            } else {
-                u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
-            }
-
-            v = w.cross(u);
-
-            const double r1 = 2.0 * PI * rng.randReal();
-            const double r2 = rng.randReal();
-            const double r2s = sqrt(r2);
-            Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
-
+        if (mtrl.reftype == REFLECTION_DIFFUSE) {
+            Vector3 nextDir;
+            sampler::onHemisphere(orientNormal, &nextDir);
             incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
-            weight = mater.color / rouletteProb;
-
-        } else if (mater.reftype == REFLECTION_SPECULAR) {
+            weight = mtrl.color / roulette;
+        } else if (mtrl.reftype == REFLECTION_SPECULAR) {
             Vector3 nextDir = ray.direction() - (2.0 * hitpoint.normal().dot(ray.direction())) * hitpoint.normal();
             incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
-            weight = mater.color / rouletteProb;
-
-        } else if (mater.reftype == REFLECTION_REFRACTION) {
+            weight = mtrl.color / roulette;
+        } else if (mtrl.reftype == REFLECTION_REFRACTION) {
             Vector3 reflectDir = ray.direction() - (2.0 * hitpoint.normal().dot(ray.direction())) * hitpoint.normal();
             const Ray reflectRay = Ray(hitpoint.position(), reflectDir);
 
@@ -147,7 +124,7 @@ namespace spica {
 
             if (cos2t < 0.0) { // Total reflection
                 incomingRad = radiance(scene, reflectRay, rng, depth + 1);
-                weight = mater.color / rouletteProb;
+                weight = mtrl.color / roulette;
             } else {
                 Vector3 refractDir = (ray.direction() * nnt - hitpoint.normal() * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
                 const Ray refractRay = Ray(hitpoint.position(), refractDir);
@@ -166,21 +143,21 @@ namespace spica {
                 if (depth > 2) {
                     if (rng.randReal() < prob) {
                         incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re;
-                        weight = mater.color / (prob * rouletteProb);
+                        weight = mtrl.color / (prob * roulette);
                     } else {
                         incomingRad = radiance(scene, refractRay, rng, depth + 1) * Tr;
-                        weight = mater.color / ((1.0 - prob) * rouletteProb);
+                        weight = mtrl.color / ((1.0 - prob) * roulette);
                     }
                 } else {
                     incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re + radiance(scene, refractRay, rng, depth + 1) * Tr;
-                    weight = mater.color / rouletteProb;
+                    weight = mtrl.color / roulette;
                 }
             }
-        } else if (mater.reftype == REFLECTION_SUBSURFACE) {
+        } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
             msg_assert(false, "Future implementation");
         }
 
-        return mater.emission + weight.cwiseMultiply(incomingRad);
+        return mtrl.emission + weight.cwiseMultiply(incomingRad);
     }
 
 }  // namespace spica

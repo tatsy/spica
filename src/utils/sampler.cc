@@ -13,6 +13,23 @@ namespace spica {
 
     namespace sampler {
 
+        void onHemisphere(const Vector3& normal, Vector3* direction) {
+            Vector3 u, v, w;
+            w = normal;
+            if (abs(w.x()) > EPS) {
+                u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
+            } else {
+                u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
+            }
+
+            v = w.cross(u);
+
+            const double r1 = 2.0 * PI * rng.randReal();
+            const double r2 = rng.randReal();
+            const double r2s = sqrt(r2);
+            *direction = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
+        }
+
         void onDisk(const Disk& disk, Vector3* position, Vector3* normal) {
             double r0 = sqrt(rng.randReal());
             double r1 = rng.randNorm() * (2.0 * PI);

@@ -54,36 +54,30 @@ namespace spica {
     }
 
     bool Triangle::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        Vector3 qVec;
-        double u, v;
-
         Vector3 e1 = _p1 - _p0;
         Vector3 e2 = _p2 - _p0;
         Vector3 pVec = Vector3::cross(ray.direction(), e2);
         double det = Vector3::dot(e1, pVec);
+        if (det > -EPS && det <EPS) return false;
+        double invdet = 1.0 / det;
+        
+        Vector3 tVec = ray.origin() - _p0;
+        double u = Vector3::dot(tVec, pVec) * invdet;
+        if (u < 0.0 || u > 1.0) return false;
 
-        if (det > EPS) {
-            Vector3 tVec = ray.origin() - _p0;
-            u = Vector3::dot(tVec, pVec);
-            if (u < 0.0 || u > det) return false;
+        Vector3 qVec = Vector3::cross(tVec, e1);
+        double v = Vector3::dot(ray.direction(), qVec) * invdet;
+        if (v < 0.0 || u + v > 1.0) return false;
 
-            qVec = Vector3::cross(tVec, e1);
-            v = Vector3::dot(ray.direction(), qVec);
-            if (v < 0.0 || u + v > det) return false;
-        } else if (det < -EPS) {
-            Vector3 tVec = ray.origin() - _p0;
-            u = Vector3::dot(tVec, pVec);
-            if (u > 0.0 || u < det) return false;
-
-            qVec = Vector3::cross(tVec, e1);
-            v = Vector3::dot(tVec, e1);
-            if (v > 0.0 || u + v < det) return false;
+        double t = Vector3::dot(e2, qVec) * invdet;
+        if (t > EPS) {
+            hitpoint->setDistance(t);
+            hitpoint->setPosition(ray.origin() + t * ray.direction());
+            hitpoint->setNormal(this->normal());
+            return true;
         }
 
-        hitpoint->setDistance(Vector3::dot(e2, qVec) / det);
-        hitpoint->setNormal(this->normal());
-        hitpoint->setPosition(ray.origin() + hitpoint->distance() * ray.direction());
-        return true;
+        return false;
     }
 
     double Triangle::area() const {

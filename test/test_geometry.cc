@@ -100,11 +100,24 @@ TEST(TriangleTest, IntersectionTest) {
     Triangle t0(Vector3(1, 0, 0),
                 Vector3(0, 0, 0),
                 Vector3(0, 1, 0));
-    Ray ray(Vector3(0, 0, -1), (Vector3(1, 1, 1) - Vector3(0, 0, -1)).normalized());
-
+    Ray ray;
     Hitpoint hitpoint;
+
+    ray = Ray(Vector3(0, 0, -1), (Vector3(1, 1, 1) - Vector3(0, 0, -1)).normalized());
     EXPECT_TRUE(t0.intersect(ray, &hitpoint));
     EXPECT_EQ(sqrt(6.0) / 2.0, hitpoint.distance());
+
+    ray = Ray(Vector3(-0.1, -0.1, 1.0), Vector3(0.0, 0.0, -1.0));
+    EXPECT_FALSE(t0.intersect(ray, &hitpoint));
+
+    ray = Ray(Vector3(0.6, 0.6, 1.0), Vector3(0.0, 0.0, -1.0));
+    EXPECT_FALSE(t0.intersect(ray, &hitpoint));
+
+    ray = Ray(Vector3(-0.1, 1.1, 1.0), Vector3(0.0, 0.0, -1.0));
+    EXPECT_FALSE(t0.intersect(ray, &hitpoint));
+
+    ray = Ray(Vector3(1.1, -0.1, 1.0), Vector3(0.0, 0.0, -1.0));
+    EXPECT_FALSE(t0.intersect(ray, &hitpoint));
 }
 
 TEST(TriangleTest, AreaTest) {
@@ -169,8 +182,37 @@ TEST(QuadTest, IntersectionTest) {
     EXPECT_EQ(1.0, hitpoint.distance());
 
     // Not hit
-    EXPECT_FALSE(quad.intersect(Ray(Vector3(-1.1, -1.1, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
     EXPECT_FALSE(quad.intersect(Ray(Vector3(0.0, 0.0, 1.0), Vector3(0.0, 0.0, 1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Vector3(-1.1, -1.1, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Vector3(-1.1,  1.1, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Vector3( 1.1, -1.1, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Vector3( 1.1,  1.1, 1.0), Vector3(0.0, 0.0, -1.0)), &hitpoint));
+}
+
+TEST(QuadTest, RandomIntersection) {
+    Quad quad(Vector3(-1.0, -1.0, 0.0),
+              Vector3(1.0, -1.0, 0.0),
+              Vector3(1.0, 1.0, 0.0),
+              Vector3(-1.0, 1.0, 0.0));
+
+    Random rng = Random::getRNG();
+
+    for (int i = 0; i < 100; i++) {
+        double tx = rng.randReal() * 4.0 - 2.0;
+        double ty = rng.randReal() * 4.0 - 2.0;
+        double fx = rng.randReal() * 4.0 - 2.0;
+        double fy = rng.randReal() * 4.0 - 2.0;
+        Vector3 from(fx, fy, -1.0);
+        Vector3 to(tx, ty, 0.0);
+        Vector3 dir = (to - from).normalized();
+        Ray ray(from, dir);
+        Hitpoint hitpoint;
+        if (abs(tx) <= 1.0 && abs(ty) <= 1.0) {
+            EXPECT_TRUE(quad.intersect(ray, &hitpoint));
+        } else {
+            EXPECT_FALSE(quad.intersect(ray, &hitpoint));
+        }
+    }
 }
 
 TEST(QuadTest, AreaTest) {

@@ -53,9 +53,7 @@ install:
   - cmake --build .
 
 before_script:
-  - ls -la
-  - ./autogen.sh
-  - ./configure --enable-coverage
+  - lcov --directory . --zerocounters
 
 script:
   - CTEST_OUTPUT_ON_FAILURE=TRUE make check

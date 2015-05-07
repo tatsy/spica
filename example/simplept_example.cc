@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
     cornellBoxBunny(scene, camera, width, height);
 
     Random rng = Random::getRNG();
-    const int samplePerPixel = 64;
+    const int samplePerPixel = 1024;
 
     PTRenderer renderer;
     renderer.render(scene, camera, rng, samplePerPixel);

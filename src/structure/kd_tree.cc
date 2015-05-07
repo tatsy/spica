@@ -36,6 +36,8 @@ namespace spica {
         _nodes = new KdTreeNode[_numNodes];
         memcpy(_triangles, kdtree._triangles, sizeof(Triangle)* _numTriangles);
         memcpy(_nodes, kdtree._nodes, sizeof(KdTreeNode) * _numNodes);
+
+        // Update pointer with relative position from new _nodes head pointer
         for (int i = 0; i < _numNodes; i++) {
             if (_nodes[i].left != 0) {
                 _nodes[i].left = _nodes + (kdtree._nodes[i].left - kdtree._nodes);
@@ -65,7 +67,7 @@ namespace spica {
         
         _numNodes = _numNodes * 2 - 1;
         _nodes = new KdTreeNode[_numNodes];
-        memset(_nodes, 0, sizeof(KdTreeNode)* _numNodes);
+        memset(_nodes, 0, sizeof(KdTreeNode) * _numNodes);
 
         // Copy triangles
         _triangles = new Triangle[_numTriangles];

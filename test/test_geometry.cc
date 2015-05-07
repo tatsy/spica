@@ -307,6 +307,8 @@ TEST(TrimeshTest, BoxIntersection) {
 TEST(TrimeshTest, BunnyIntersection) {
     Trimesh trimesh;
     trimesh.load(DATA_DIR + "bunny.ply");
+    trimesh.buildKdTreeAccel();
+
     Ray ray(Vector3(0.0, 0.0, 100.0), Vector3(0.0, 0.0, -1.0));
 
     Hitpoint hpGT;
@@ -319,7 +321,6 @@ TEST(TrimeshTest, BunnyIntersection) {
             }
         }
     }
-    trimesh.buildKdTreeAccel();
 
     Hitpoint hitpoint;
     EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));

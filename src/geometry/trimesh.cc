@@ -89,7 +89,7 @@ namespace spica {
                 const Triangle& tri = _kdtree.getTriangle(i);
                 Hitpoint hpTemp;
                 if (tri.intersect(ray, &hpTemp)) {
-                    if (hitpoint->distance() > hpTemp.distance()) {
+                    if (hitpoint->distance() > hpTemp.distance() && Vector3::dot(ray.direction(), tri.normal()) < 0.0) {
                         *hitpoint = hpTemp;
                         triID = i;
                     }
@@ -104,17 +104,19 @@ namespace spica {
 
         // Check which child is nearer
         double lMin = INFTY, lMax = INFTY, rMin = INFTY, rMax = INFTY;
-        if (!node->left->bbox.intersect(ray, &lMin, &lMax) && !node->right->bbox.intersect(ray, &rMin, &rMax)) {
+        bool isectL = node->left->bbox.intersect(ray, &lMin, &lMax);
+        bool isectR = node->right->bbox.intersect(ray, &rMin, &rMax);
+        if (!isectL && !isectR) {
             // Intesecting NO children
             return false;
         }
 
         // Intersecting only one child
-        if (std::abs(lMin - tMin) < EPS && std::abs(lMax - tMax) < EPS) {
+        if (isectL && std::abs(lMin - tMin) < EPS && std::abs(lMax - tMax) < EPS) {
             return intersectRec(node->left, ray, hitpoint, lMin, lMax);
         }
 
-        if (std::abs(rMin - tMin) < EPS && std::abs(rMax - tMax) < EPS) {
+        if (isectR && std::abs(rMin - tMin) < EPS && std::abs(rMax - tMax) < EPS) {
             return intersectRec(node->right, ray, hitpoint, rMin, rMax);
         }
 

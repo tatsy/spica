@@ -6,15 +6,15 @@ using namespace spica;
 int main(int argc, char **argv) {
     std::cout << "Path tracing" << std::endl << std::endl;
 
-    const int width = 320;
-    const int height = 240;
+    const int width = 640;
+    const int height = 480;
 
     Scene scene;
     Camera camera;
     cornellBoxBunny(scene, camera, width, height);
 
     Random rng = Random::getRNG();
-    const int samplePerPixel = 1024;
+    const int samplePerPixel = 2048;
 
     PTRenderer renderer;
     renderer.render(scene, camera, rng, samplePerPixel);

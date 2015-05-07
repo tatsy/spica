@@ -42,7 +42,6 @@ install:
   - export GTEST_INCLUDE_DIRS=/usr/include
 
   # install lcov
-  - sudo apt-get install -y automake autoconf libtool
   - sudo apt-get install -y lcov
   - gem install coveralls-lcov
   - lcov --version
@@ -54,6 +53,7 @@ install:
   - cmake --build .
 
 before_script:
+  - ls -la
   - ./autogen.sh
   - ./configure --enable-coverage
 

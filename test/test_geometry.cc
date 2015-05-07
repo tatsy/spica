@@ -210,7 +210,7 @@ TEST(QuadTest, RandomIntersection) {
         Hitpoint hitpoint;
         if (abs(tx) <= 1.0 && abs(ty) <= 1.0) {
             EXPECT_TRUE(quad.intersect(ray, &hitpoint)) << to;
-            EXPECT_TRUE(dist, hitpoint.distance());
+            EXPECT_EQ(dist, hitpoint.distance());
         } else {
             EXPECT_FALSE(quad.intersect(ray, &hitpoint));
         }

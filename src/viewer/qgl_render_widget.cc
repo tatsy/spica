@@ -65,12 +65,12 @@ namespace spica {
         const Vector3 eye = camera->lensCenter();
         const Vector3 lookTo = eye + camera->direction();
         const Vector3 up = camera->up();
-        const double verticalAngle = 2.0 * atan(camera->sensorH() / (2.0 * camera->distSL()));
+        const double verticalAngle = 360.0 / PI * atan(camera->sensorH() / (2.0 * camera->distSL()));
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         QMatrix4x4 projMat, viewMat, modelMat;
-        projMat.perspective(5.0, (float)width() / (float)height(), 1.0f, 1000.0f);
+        projMat.perspective(verticalAngle, (float)width() / (float)height(), 1.0f, 1000.0f);
         
         viewMat.lookAt(QVector3D(eye.x(), eye.y(), eye.z()),
                        QVector3D(lookTo.x(), lookTo.y(), lookTo.z()),
@@ -139,7 +139,7 @@ namespace spica {
     }
 
     void QGLRenderWidget::wheelEvent(QWheelEvent* e) {
-        _scrallDelta += e->delta() / 120.0;
+        _scrallDelta += e->delta() / 1000.0;
     }
 
     void  QGLRenderWidget::mousePressEvent(QMouseEvent* e) {

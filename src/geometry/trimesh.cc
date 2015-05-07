@@ -105,11 +105,22 @@ namespace spica {
         // Check which child is nearer
         double lMin = INFTY, lMax = INFTY, rMin = INFTY, rMax = INFTY;
         if (!node->left->bbox.intersect(ray, &lMin, &lMax) && !node->right->bbox.intersect(ray, &rMin, &rMax)) {
+            // Intesecting NO children
             return false;
         }
 
+        // Intersecting only one child
+        if (std::abs(lMin - tMin) < EPS && std::abs(lMax - tMax) < EPS) {
+            return intersectRec(node->left, ray, hitpoint, lMin, lMax);
+        }
+
+        if (std::abs(rMin - tMin) < EPS && std::abs(rMax - tMax) < EPS) {
+            return intersectRec(node->right, ray, hitpoint, rMin, rMax);
+        }
+
+        // Intersecting two children
         KdTreeNode *nearer, *farther;
-        if (lMin == tMin) {
+        if (lMin < rMin) {
             nearer = node->left;
             farther = node->right;
         } else {
@@ -119,6 +130,7 @@ namespace spica {
             std::swap(lMax, rMax);
         }
 
+        // Check nearer child first
         if (intersectRec(nearer, ray, hitpoint, lMin, lMax)) {
             return true;
         }

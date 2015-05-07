@@ -321,10 +321,8 @@ TEST(TrimeshTest, BunnyIntersection) {
     }
     trimesh.buildKdTreeAccel();
 
-    /*
     Hitpoint hitpoint;
     EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
     EXPECT_EQ(hpGT.distance(), hitpoint.distance());
-    */
 }
 

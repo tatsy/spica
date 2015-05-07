@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include <cstdio>
+
 #include "../include/spica.h"
 using namespace spica;
 
@@ -209,8 +211,9 @@ TEST(QuadTest, RandomIntersection) {
         Ray ray(from, dir);
         Hitpoint hitpoint;
         if (abs(tx) <= 1.0 && abs(ty) <= 1.0) {
+            printf("(tx, ty) = (%f, %f)\n", tx, ty);
             EXPECT_TRUE(quad.intersect(ray, &hitpoint)) << to;
-            EXPECT_EQ(dist, hitpoint.distance());
+            EXPECT_NEAR(dist, hitpoint.distance(), 1.0e-8);
         } else {
             EXPECT_FALSE(quad.intersect(ray, &hitpoint));
         }
@@ -303,7 +306,8 @@ TEST(TrimeshTest, BoxIntersection) {
 }
 
 TEST(TrimeshTest, BunnyIntersection) {
-    Trimesh trimesh(DATA_DIR + "bunny.ply");
+    Trimesh trimesh;
+    trimesh.load(DATA_DIR + "bunny.ply");
     Ray ray(Vector3(0.0, 0.0, 100.0), Vector3(0.0, 0.0, -1.0));
 
     Hitpoint hpGT;

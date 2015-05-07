@@ -86,6 +86,8 @@ namespace spica {
 
         // Objects
         Trimesh bunny(DATA_DIR + "bunny.ply");
+        bunny.translate(Vector3(-3.0, 0.0, -3.0));
+        bunny.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
         bunny.buildKdTreeAccel();
         scene.add(bunny, Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE));                         
 

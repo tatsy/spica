@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include "../utils/common.h"
 
@@ -222,6 +223,24 @@ namespace spica {
                 }
                 break;
             }
+        }
+    }
+
+    void Trimesh::translate(const Vector3& move) {
+        for (int i = 0; i < _numVerts; i++) {
+            _vertices[i] += move;
+        }
+    }
+
+    void Trimesh::putOnPlane(const Plane& plane) {
+        // Find nearest point
+        double minval = INFTY;
+        for (int i = 0; i < _numVerts; i++) {
+            minval = std::min(minval, Vector3::dot(plane.normal(), _vertices[i]));
+        }
+
+        for (int i = 0; i < _numVerts; i++) {
+            _vertices[i] -= (minval + plane.distance()) * plane.normal();
         }
     }
 

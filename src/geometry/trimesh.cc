@@ -122,7 +122,7 @@ namespace spica {
 
         // Intersecting two children
         KdTreeNode *nearer, *farther;
-        if (lMin < rMin) {
+        if (lMin <= rMin) {
             nearer = node->left;
             farther = node->right;
         } else {

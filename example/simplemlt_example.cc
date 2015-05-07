@@ -12,10 +12,10 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBox(scene, camera, width, height);
+    cornellBoxBunny(scene, camera, width, height);
 
-    const int numMutate = 32 * width * height;
-    const int numMLT    = 32;
+    const int numMutate = 8 * width * height;
+    const int numMLT    = 8;
     const int maxDepth  = 5;
     Random rng = Random::getRNG();
 

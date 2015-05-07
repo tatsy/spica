@@ -21,8 +21,6 @@ namespace spica {
         MLTRenderer();
         ~MLTRenderer();
 
-        // int render(const Scene& scene, const int mlt_num, const int mutation, Image& image, const Ray& camera, const Vector3& cx, const Vector3& cy, const int width, const int height, const int maxDepth, const Random& rng);
-
         // ------------------------------------------------------------
         // MLT rendering process
         // ------------------------------------------------------------
@@ -31,7 +29,8 @@ namespace spica {
         // @param[in] rng: random number generator
         // @param[in] numMLT: # of independent MLT process to be executed
         // @param[in] numMutate: # of mutation in a single MLT process
-        int render(const Scene& scene, const Camera& camera, const Random& rng, int numMLT, int numMutate);
+        // @param[in] maxDepth: maximum depth for path tracing recursion
+        int render(const Scene& scene, const Camera& camera, const Random& rng, int numMLT, int numMutate, int maxDepth);
     };
 
 }  // namespace spica

@@ -138,9 +138,18 @@ namespace spica {
         inline Vector3 sensorU()   const { return sensor_.unitU; }
         inline Vector3 sensorV()   const { return sensor_.unitV; }
 
+        inline Vector3 lensU() const { return lens_.unitU; }
+        inline Vector3 lensV() const { return lens_.unitV; }
         inline Vector3 lensCenter() const { return lens_.center; }
         inline Vector3 lensNormal() const { return lens_.normal; }
         inline double  lensRadius() const { return lens_.radius; }
+        inline double  focalLength() const { return lens_.focalLength; }
+
+        inline Vector3 objplaneCenter() const { return objplane_.center; }
+        inline double  objplaneW() const { return objplane_.width; }
+        inline double  objplaneH() const { return objplane_.height; }
+        inline Vector3 objplaneU() const { return objplane_.unitU; }
+        inline Vector3 objplaneV() const { return objplane_.unitV; }
     };
 
 }

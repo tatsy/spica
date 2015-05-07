@@ -3,6 +3,8 @@
 
 #include <algorithm>
 
+#include "../utils/common.h"
+
 namespace spica {
 
     BBox::BBox()
@@ -53,8 +55,13 @@ namespace spica {
 
         *tMin = std::max(xMin, std::max(yMin, zMin));
         *tMax = std::min(xMax, std::min(yMax, zMax));
-        if (*tMin > *tMax || *tMin < 0.0 || *tMax < 0.0) {
+        if (*tMin > *tMax || (*tMin < 0.0 && *tMax < 0.0)) {
             return false;
+        }
+         
+        if (*tMin < 0.0 && *tMax >= 0.0) {
+            *tMin = *tMax;
+            *tMax = INFTY;
         }
         return true;
     }

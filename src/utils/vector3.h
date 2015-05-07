@@ -57,6 +57,7 @@ namespace spica {
         double x() const;
         double y() const;
         double z() const;
+        double get(int d) const;
 
         inline void setX(double x) { _x = x; }
         inline void setY(double y) { _y = y; }

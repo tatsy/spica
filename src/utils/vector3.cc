@@ -137,6 +137,14 @@ namespace spica {
     double Vector3::z() const {
         return _z;
     }
+
+    double Vector3::get(int d) const {
+        msg_assert(0 <= d && d <= 2, "Dimension must be between 0 and 2");
+        if (d == 0) return _x;
+        if (d == 1) return _y;
+        if (d == 2) return _z;
+        return 0.0;
+    }
 }
 
 spica::Vector3 operator+(const spica::Vector3& v1, const spica::Vector3& v2) {

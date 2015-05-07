@@ -83,10 +83,10 @@ namespace spica {
     }
 
     bool Trimesh::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) const {
-        if (node->left == NULL || node->right == NULL) {
+        if (node->isLeaf) {
             int triID = -1;
-            for (int i = node->startID; i < node->endID; i++) {
-                const Triangle& tri = _kdtree.getTriangle(i);
+            for (int i = 0; i < node->numTriangles; i++) {
+                const Triangle& tri = node->triangles[i];
                 Hitpoint hpTemp;
                 if (tri.intersect(ray, &hpTemp)) {
                     if (hitpoint->distance() > hpTemp.distance() && Vector3::dot(ray.direction(), tri.normal()) < 0.0) {

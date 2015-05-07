@@ -7,18 +7,14 @@
 namespace spica {
 
     KdTree::KdTree() 
-        : _numTriangles(0)
-        , _numNodes(0)
-        , _nodes(0)
-        , _triangles(0)
+        : _root(NULL)
+        , _numCopies(NULL)
     {
     }
 
     KdTree::KdTree(const KdTree& kdtree)
-        : _numTriangles(0)
-        , _numNodes(0)
-        , _nodes(0)
-        , _triangles(0)
+        : _root(NULL)
+        , _numCopies(NULL)
     {
         operator=(kdtree);
     }
@@ -30,80 +26,118 @@ namespace spica {
 
     KdTree& KdTree::operator=(const KdTree& kdtree) {
         release();
-        _numTriangles = kdtree._numTriangles;
-        _numNodes = kdtree._numNodes;
-        _triangles = new Triangle[_numTriangles];
-        _nodes = new KdTreeNode[_numNodes];
-        memcpy(_triangles, kdtree._triangles, sizeof(Triangle)* _numTriangles);
-        memcpy(_nodes, kdtree._nodes, sizeof(KdTreeNode) * _numNodes);
 
-        // Update pointer with relative position from new _nodes head pointer
-        for (int i = 0; i < _numNodes; i++) {
-            if (_nodes[i].left != 0) {
-                _nodes[i].left = _nodes + (kdtree._nodes[i].left - kdtree._nodes);
-            }
-
-            if (_nodes[i].right != 0) {
-                _nodes[i].right = _nodes + (kdtree._nodes[i].right - kdtree._nodes);
-            }
-        }
+        _root = kdtree._root;
+        _numCopies = kdtree._numCopies;
+        (*_numCopies) += 1;
 
         return *this;
     }
 
     void KdTree::release() {
-        _numTriangles = 0;
-        _numNodes = 0;
-        delete[] _nodes;
-        delete[] _triangles;        
+        if (_numCopies == 0) {
+            deleteNode(_root);
+            delete _numCopies;
+        } else {
+            _numCopies--;
+        }
     }
 
-    void KdTree::construct(const std::vector<Triangle>& triangles) {
+    void KdTree::deleteNode(KdTreeNode* node) {
+        if (node != NULL) {
+            if (node->left != NULL) {
+                deleteNode(node->left);
+            }
+
+            if (node->right != NULL) {
+                deleteNode(node->right);
+            }
+
+            delete node;
+        }
+    }
+
+    void KdTree::construct(std::vector<Triangle>& triangles) {
         release();
 
-        // Sort bounding boxes
-        _numTriangles = (int)triangles.size();
-        for (_numNodes = 1; _numNodes < _numTriangles; _numNodes <<= 1) ;
-        
-        _numNodes = _numNodes * 2 - 1;
-        _nodes = new KdTreeNode[_numNodes];
-        memset(_nodes, 0, sizeof(KdTreeNode) * _numNodes);
-
-        // Copy triangles
-        _triangles = new Triangle[_numTriangles];
-        memcpy(_triangles, &triangles[0], sizeof(Triangle)* _numTriangles);
-
-        constructRec(0, 0, _numTriangles, 0);
+        _root = constructRec(triangles, 0);
+        _numCopies = new unsigned int(0);
     }
 
-    BBox KdTree::enclosingBox(int startID, int endID) const {
+    BBox KdTree::enclosingBox(const std::vector<Triangle>& triangles) {
         Vector3 posMin(INFTY, INFTY, INFTY);
         Vector3 posMax(-INFTY, -INFTY, -INFTY);
-        for (int i = startID; i < endID; i++) {
+        const int nTri = (int)triangles.size();
+        for (int i = 0; i < nTri; i++) {
             for (int j = 0; j < 3; j++) {
-                posMin = Vector3::minimum(posMin, _triangles[i].p(j));
-                posMax = Vector3::maximum(posMax, _triangles[i].p(j));
+                posMin = Vector3::minimum(posMin, triangles[i].p(j));
+                posMax = Vector3::maximum(posMax, triangles[i].p(j));
             }
         }
         return BBox(posMin, posMax);
     }
 
-    KdTreeNode* KdTree::constructRec(int nodeID, int startID, int endID, int dim) {
-        if (startID + 1 >= endID) {
-            return NULL;
-        }
+    KdTreeNode* KdTree::constructRec(std::vector<Triangle>& triangles, int dim)  {
+        const int nTri = (int)triangles.size();
 
         // Sort triangles
-        std::sort(_triangles + startID, _triangles + endID, AxisComparator(dim));
+        std::sort(triangles.begin(), triangles.end(), AxisComparator(dim));
+        double sep = triangles[nTri / 2].gravity().get(dim);
 
-        const int mid = (startID + endID) / 2;
-        _nodes[nodeID].startID = startID;
-        _nodes[nodeID].endID = endID;
-        _nodes[nodeID].bbox = enclosingBox(startID, endID);
-        _nodes[nodeID].left = constructRec(nodeID * 2 + 1, startID, mid, (dim + 1) % 3);
-        _nodes[nodeID].right = constructRec(nodeID * 2 + 2, mid, endID, (dim + 1) % 3);
+        std::vector<Triangle> triLeft;
+        for (int i = 0; i < nTri; i++) {
+            bool inc = false;
+            for (int k = 0; k < 3; k++) {
+                if (triangles[i].p(k).get(dim) <= sep) {
+                    inc = true;
+                    break;
+                }
+            }
 
-        return &_nodes[nodeID];
+            if (inc) {
+                triLeft.push_back(triangles[i]);
+            } else {
+                break;
+            }
+        }
+
+        std::vector<Triangle> triRight;
+        for (int i = nTri - 1; i >= 0; i--) {
+            bool inc = false;
+            for (int k = 0; k < 3; k++) {
+                if (triangles[i].p(k).get(dim) >= sep) {
+                    inc = true;
+                    break;
+                }
+            }
+
+            if (inc) {
+                triRight.push_back(triangles[i]);
+            } else {
+                break;
+            }
+        }
+
+        if (triangles.size() <= _maxNodeSize || (triLeft.size() == nTri || triRight.size() == nTri)) {
+            KdTreeNode* node = new KdTreeNode();
+            node->numTriangles = nTri;
+            node->triangles = new Triangle[nTri];
+            memcpy(node->triangles, &triangles[0], sizeof(Triangle)* nTri);
+            node->left = NULL;
+            node->right = NULL;
+            node->isLeaf = true;
+            return node;
+        }
+
+        KdTreeNode* node = new KdTreeNode();
+        node->numTriangles = 0;
+        node->triangles = NULL;
+        node->bbox = enclosingBox(triangles);
+        node->left = constructRec(triLeft, (dim + 1) % 3);
+        node->right = constructRec(triRight, (dim + 1) % 3);
+        node->isLeaf = false;
+
+        return node;
     }
 
 }  // namespace spica

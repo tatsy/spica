@@ -59,7 +59,7 @@ script:
   - CTEST_OUTPUT_ON_FAILURE=TRUE make check
 
 after_success:
-  - lcov --directory . --capture --output-file coverage.info
+  - lcov --no-checksum --directory . --capture --output-file coverage.info
   - lcov --remove coverage.info 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
   - lcov --list coverage.info
   - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info

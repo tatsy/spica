@@ -28,6 +28,21 @@ namespace spica {
         KdTreeNode* left;
         KdTreeNode* right;
         bool isLeaf;
+
+        KdTreeNode()
+            : bbox()
+            , numTriangles(0)
+            , triangles(NULL)
+            , left(NULL)
+            , right(NULL)
+            , isLeaf(false)
+        {
+        }
+
+        ~KdTreeNode()
+        {
+            delete[] triangles;
+        }
     };
 
     class SPICA_KDTREE_DLL KdTree {

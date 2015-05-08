@@ -41,7 +41,7 @@ install:
   - export GTEST_MAIN_LIBRARY=/usr/local/lib/libgtest_main.a
   - export GTEST_INCLUDE_DIRS=/usr/include
 
-  # install lcov
+  # install cpp-coveralls
   - sudo apt-get install -y lcov
   - gem install coveralls-lcov
   - lcov --version
@@ -54,6 +54,7 @@ install:
 
 before_script:
   - lcov --directory . --zerocounters
+  - lcov --capture --initial --directory . --output-file coverage.info
 
 script:
   - CTEST_OUTPUT_ON_FAILURE=TRUE make check

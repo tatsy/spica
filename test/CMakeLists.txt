@@ -29,11 +29,13 @@ if (${BUILD_TEST} STREQUAL "ON")
   set(TEST_NAME spica_tests)
   set(SOURCE_FILES
       all_tests.cc
+      test_macros.h
       test_geometry.cc
       test_vector.cc
       test_image.cc
       test_material.cc
-      test_camera.cc)
+      test_camera.cc
+      test_trimesh.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARY})

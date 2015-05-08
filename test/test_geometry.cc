@@ -1,13 +1,12 @@
 #include "gtest/gtest.h"
 
+#include <cmath>
+
 #include "../include/spica.h"
 using namespace spica;
 
-inline void EXPECT_EQ_VEC(const Vector3& v1, const Vector3& v2) {
-    EXPECT_EQ(v1.x(), v2.x());
-    EXPECT_EQ(v1.y(), v2.y());
-    EXPECT_EQ(v1.z(), v2.z());
-}
+#include "test_macros.h"
+
 
 // ------------------------------
 // Plane class test
@@ -205,10 +204,12 @@ TEST(QuadTest, RandomIntersection) {
         Vector3 from(fx, fy, -1.0);
         Vector3 to(tx, ty, 0.0);
         Vector3 dir = (to - from).normalized();
+        double dist = (to - from).norm();
         Ray ray(from, dir);
         Hitpoint hitpoint;
-        if (abs(tx) <= 1.0 && abs(ty) <= 1.0) {
+        if (std::abs(tx) <= 1.0 && std::abs(ty) <= 1.0) {
             EXPECT_TRUE(quad.intersect(ray, &hitpoint));
+            EXPECT_NEAR(dist, hitpoint.distance(), 1.0e-8);
         } else {
             EXPECT_FALSE(quad.intersect(ray, &hitpoint));
         }
@@ -283,28 +284,3 @@ TEST(BBoxTest, IntersectionTest) {
     EXPECT_EQ(1.0, tMin);
     EXPECT_EQ(2.0, tMax);
 }
-
-// ------------------------------
-// Trimesh class test
-// ------------------------------
-TEST(TrimeshTest, InstanceTest) {
-    Trimesh trimesh(DATA_DIR + "bunny.ply");
-    Ray ray(Vector3(0.0, 0.8, 100.0), Vector3(0.0, 0.0, -1.0).normalized());
-
-    Hitpoint hpGT;
-    for (int i = 0; i < trimesh.numFaces(); i++) {
-        Triangle tri = trimesh.getTriangle(i);
-        Hitpoint hpTemp;
-        if (tri.intersect(ray, &hpTemp)) {
-            if (hpGT.distance() > hpTemp.distance() && hpTemp.distance() > 0.0) {
-                hpGT = hpTemp;
-            }
-        }
-    }
-    trimesh.buildKdTreeAccel();
-
-    Hitpoint hitpoint;
-    //EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
-    //EXPECT_EQ(hpGT.distance(), hitpoint.distance());
-}
-

@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 #include "../utils/common.h"
 
@@ -82,13 +83,13 @@ namespace spica {
     }
 
     bool Trimesh::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) const {
-        if (node->left == NULL || node->right == NULL) {
+        if (node->isLeaf) {
             int triID = -1;
-            for (int i = node->startID; i < node->endID; i++) {
-                const Triangle& tri = _kdtree.getTriangle(i);
+            for (int i = 0; i < node->numTriangles; i++) {
+                const Triangle& tri = node->triangles[i];
                 Hitpoint hpTemp;
                 if (tri.intersect(ray, &hpTemp)) {
-                    if (hitpoint->distance() > hpTemp.distance()) {
+                    if (hitpoint->distance() > hpTemp.distance() && Vector3::dot(ray.direction(), tri.normal()) < 0.0) {
                         *hitpoint = hpTemp;
                         triID = i;
                     }
@@ -102,13 +103,26 @@ namespace spica {
         }
 
         // Check which child is nearer
-        double lMin, lMax, rMin, rMax;
-        if (!node->left->bbox.intersect(ray, &lMin, &lMax) && !node->right->bbox.intersect(ray, &rMin, &rMax)) {
+        double lMin = INFTY, lMax = INFTY, rMin = INFTY, rMax = INFTY;
+        bool isectL = node->left->bbox.intersect(ray, &lMin, &lMax);
+        bool isectR = node->right->bbox.intersect(ray, &rMin, &rMax);
+        if (!isectL && !isectR) {
+            // Intesecting NO children
             return false;
         }
 
+        // Intersecting only one child
+        if (isectL && std::abs(lMin - tMin) < EPS && std::abs(lMax - tMax) < EPS) {
+            return intersectRec(node->left, ray, hitpoint, lMin, lMax);
+        }
+
+        if (isectR && std::abs(rMin - tMin) < EPS && std::abs(rMax - tMax) < EPS) {
+            return intersectRec(node->right, ray, hitpoint, rMin, rMax);
+        }
+
+        // Intersecting two children
         KdTreeNode *nearer, *farther;
-        if (lMin == tMin) {
+        if (lMin <= rMin) {
             nearer = node->left;
             farther = node->right;
         } else {
@@ -118,6 +132,7 @@ namespace spica {
             std::swap(lMax, rMax);
         }
 
+        // Check nearer child first
         if (intersectRec(nearer, ray, hitpoint, lMin, lMax)) {
             return true;
         }
@@ -147,7 +162,7 @@ namespace spica {
     void Trimesh::load(const std::string& filename) {
         int dotPos = filename.find_last_of(".");
         std::string ext = filename.substr(dotPos);
-        std::cout << "Extention: " << ext << std::endl;
+        // std::cout << "Extention: " << ext << std::endl;
         msg_assert(ext == ".ply", "Mesh loader only accepts .ply file format");
 
         std::ifstream in(filename.c_str(), std::ios::in);
@@ -166,7 +181,7 @@ namespace spica {
                 in >> key;
                 if (key == "format" || key == "property") {
                     in >> name >> val;
-                    std::cout << key << " " << name << " " << val << std::endl;
+                    // std::cout << key << " " << name << " " << val << std::endl;
                 } else if (key == "element") {
                     in >> name;
                     if (name == "vertex") {
@@ -222,6 +237,24 @@ namespace spica {
                 }
                 break;
             }
+        }
+    }
+
+    void Trimesh::translate(const Vector3& move) {
+        for (int i = 0; i < _numVerts; i++) {
+            _vertices[i] += move;
+        }
+    }
+
+    void Trimesh::putOnPlane(const Plane& plane) {
+        // Find nearest point
+        double minval = INFTY;
+        for (int i = 0; i < _numVerts; i++) {
+            minval = std::min(minval, Vector3::dot(plane.normal(), _vertices[i]));
+        }
+
+        for (int i = 0; i < _numVerts; i++) {
+            _vertices[i] -= (minval + plane.distance()) * plane.normal();
         }
     }
 

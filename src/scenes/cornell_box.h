@@ -14,7 +14,7 @@ namespace spica {
         Vector3 l01(-5.0, 9.99,  5.0);
         Vector3 l10( 5.0, 9.99, -5.0);
         Vector3 l11( 5.0, 9.99,  5.0);
-        scene.add(Quad(l00, l10, l11, l01), Material(Color(16.0, 16.0, 16.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
+        scene.add(Quad(l00, l10, l11, l01), Material(Color(20.0, 20.0, 20.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
 
         Vector3 v000(-10.0, -10.0, -10.0);
         Vector3 v100( 10.0, -10.0, -10.0);
@@ -60,7 +60,7 @@ namespace spica {
         Vector3 l01(-5.0, 9.99,  5.0);
         Vector3 l10( 5.0, 9.99, -5.0);
         Vector3 l11( 5.0, 9.99,  5.0);
-        scene.add(Quad(l00, l10, l11, l01), Material(Color(16.0, 16.0, 16.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
+        scene.add(Quad(l00, l10, l11, l01), Material(Color(20.0, 20.0, 20.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
 
         // Walls
         Vector3 v000(-10.0, -10.0, -10.0);
@@ -86,10 +86,12 @@ namespace spica {
 
         // Objects
         Trimesh bunny(DATA_DIR + "bunny.ply");
+        bunny.translate(Vector3(-3.0, 0.0, 0.0));
+        bunny.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
         bunny.buildKdTreeAccel();
-        scene.add(bunny, Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE));                         
+        scene.add(bunny, Material(Color(), Color(0.75, 0.75, 0.25), REFLECTION_DIFFUSE));                         
 
-        scene.add(Sphere(3.0,  Vector3(5.0, -7.0, 5.0)), Material(Color(), Color(0.25, 0.75, 0.25), REFLECTION_DIFFUSE));
+        scene.add(Sphere(3.0,  Vector3(5.0, -7.0, 5.0)), Material(Color(), Color(0.99, 0.99, 0.99), REFLECTION_REFRACTION));
 
         camera = Camera(width, height, 
                         Vector3(0.0, 0.0, 100.0),

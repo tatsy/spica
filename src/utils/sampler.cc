@@ -30,6 +30,18 @@ namespace spica {
             *direction = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
         }
 
+        void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal) {
+            double s = 2.0 * rng.randReal() - 1.0;
+            double c = sqrt(1.0 - s * s);
+            double p = 2.0 * PI * rng.randReal();
+            double x = c * cos(p);
+            double y = c * sin(p);
+            double z = s;
+
+            *normal = Vector3(x, y, z);
+            *position = sphere.radius() * Vector3(x, y, z) + sphere.center();
+        }
+
         void onDisk(const Disk& disk, Vector3* position, Vector3* normal) {
             double r0 = sqrt(rng.randReal());
             double r1 = rng.randNorm() * (2.0 * PI);
@@ -59,8 +71,18 @@ namespace spica {
         }
 
         void on(const Primitive* primitive, Vector3* position, Vector3* normal) {
-            std::cout << typeid(primitive).name() << std::endl;
-            if (typeid(primitive).name() == "spica::Sphere") {
+            std::string typname = typeid(*primitive).name();
+            if (typname == "class spica::Sphere") {
+                const Sphere* sphere = reinterpret_cast<const Sphere*>(primitive);
+                onSphere(*sphere, position, normal);
+            } else if (typname == "class spica::Quad") {
+                const Quad* quad = reinterpret_cast<const Quad*>(primitive);
+                onQuad(*quad, position, normal);
+            } else if (typname == "class spica::Disk") {
+                const Disk* disk = reinterpret_cast<const Disk*>(primitive);
+                onDisk(*disk, position, normal);
+            } else {
+                msg_assert(false, ("Invalid geometry type: " + typname).c_str());
             }
         }
 

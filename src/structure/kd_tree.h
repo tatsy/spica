@@ -14,18 +14,20 @@
 #include <vector>
 
 #include "../utils/common.h"
+#include "../utils/uncopyable.h"
 #include "../geometry/bbox.h"
 #include "../geometry/triangle.h"
 
 
 namespace spica {
 
-    struct KdTreeNode {
-        int startID;
-        int endID;
+    struct KdTreeNode : public Uncopyable {
         BBox bbox;
+        unsigned int numTriangles;
+        Triangle* triangles;
         KdTreeNode* left;
         KdTreeNode* right;
+        bool isLeaf;
     };
 
     class SPICA_KDTREE_DLL KdTree {
@@ -55,10 +57,9 @@ namespace spica {
             }
         };
 
-        int _numTriangles;          // # of triangles
-        int _numNodes;              // # of nodes
-        KdTreeNode* _nodes;         // k-d tree nodes
-        Triangle* _triangles;       // triangles contained in the tree
+        static const int _maxNodeSize = 5;
+        KdTreeNode* _root;          // tree root
+        unsigned int* _numCopies;   // # of tree copies
 
     public:
         KdTree();
@@ -67,18 +68,18 @@ namespace spica {
 
         KdTree& operator=(const KdTree& kdtree);
         
-        void construct(const std::vector<Triangle>& triangles);
+        void construct(std::vector<Triangle>& triangles);
 
-        inline bool empty() const { return _numTriangles == 0; }
+        inline bool empty() const { return _root == 0; }
 
-        inline const Triangle& getTriangle(int id) const { return _triangles[id]; }
-
-        inline KdTreeNode* root() const { return &_nodes[0]; }
+        inline KdTreeNode* root() const { return _root; }
 
     private:
         void release();
-        BBox enclosingBox(int startID, int endID) const;
-        KdTreeNode* constructRec(int nodeID, int startID, int endID, int dim);
+        void deleteNode(KdTreeNode* node);
+        KdTreeNode* constructRec(std::vector<Triangle>& triangles, int dim);
+
+        static BBox enclosingBox(const std::vector<Triangle>& triangles);
     };
 
 }

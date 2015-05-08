@@ -8,10 +8,10 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxBunny(scene, camera, 320, 240);
+    cornellBox(scene, camera, 320, 240);
 
     Random rng = Random::getRNG();
-    const int samplePerPixel = 32;
+    const int samplePerPixel = 64;
 
     BPTRenderer renderer;
     renderer.render(scene, camera, rng, samplePerPixel);

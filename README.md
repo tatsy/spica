@@ -32,10 +32,13 @@ spica
 * Triangle
 * Quad
 
-#### Results
+## Results
 
+#### Metropolis light transport
 
-#### ToDo
+<img src="./results/simplemlt.jpg" width="480" />
+
+## ToDo
 
 * kd-tree implementation
 

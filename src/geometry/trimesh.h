@@ -15,6 +15,7 @@
 
 #include "primitive.h"
 #include "triangle.h"
+#include "plane.h"
 #include "../utils/vector3.h"
 #include "../structure/kd_tree.h"
 
@@ -44,6 +45,9 @@ namespace spica {
         void buildKdTreeAccel();
 
         void load(const std::string& filename);
+
+        void translate(const Vector3& move);
+        void putOnPlane(const Plane& plane);
 
         Triangle getTriangle(int id) const;
         Vector3 getNormal(int id) const;

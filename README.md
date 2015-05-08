@@ -35,6 +35,10 @@ spica
 #### Results
 
 
+##### Metropolis light transport
+
+<img src="./results/simplemlt.jpg" width="480" />
+
 #### ToDo
 
 * kd-tree implementation

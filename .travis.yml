@@ -42,7 +42,8 @@ install:
   - export GTEST_INCLUDE_DIRS=/usr/include
 
   # install cpp-coveralls
-  - sudo apt-get install -y lcov
+  - git clone https://github.com/linux-test-project/lcov.git
+  - sudo make -C lcov/ install
   - gem install coveralls-lcov
   - lcov --version
   - g++ --version
@@ -54,13 +55,12 @@ install:
 
 before_script:
   - lcov --directory . --zerocounters
-  - lcov --capture --initial --directory . --output-file coverage.info
 
 script:
   - CTEST_OUTPUT_ON_FAILURE=TRUE make check
 
 after_success:
-  - lcov --no-checksum --directory . --capture --output-file coverage.info
+  - lcov --directory . --capture --output-file coverage.info
   - lcov --remove coverage.info 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
   - lcov --list coverage.info
   - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info

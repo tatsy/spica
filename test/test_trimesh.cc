@@ -57,15 +57,15 @@ TEST(TrimeshTest, BunnyIntersection) {
 
 TEST(TrimeshTest, RandomIntersection) {
     const int nTrial = 100;
-    Random rng = Random::getRNG();
+    Random rng = Random::getRNG(31415);
 
     Trimesh trimesh;
     trimesh.load(DATA_DIR + "bunny.ply");
     trimesh.buildKdTreeAccel();
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3 from  = Vector3(rng.randReal(), rng.randReal(), rng.randReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
-        Vector3 to    = Vector3(rng.randReal(), rng.randReal(), rng.randReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
+        Vector3 from  = Vector3(0.0, 0.0, 50.0);
+        Vector3 to    = Vector3(rng.randReal(), rng.randReal(), 0.0) * 20.0 - Vector3(10.0, 10.0, 10.0);
         Vector3 dir = (to - from).normalized();
         Ray ray(from, dir);
 
@@ -73,7 +73,11 @@ TEST(TrimeshTest, RandomIntersection) {
         bool isHit = trimeshIsectGT(trimesh, ray, &ans);
 
         Hitpoint hitpoint;
-        EXPECT_EQ(isHit, trimesh.intersect(ray, &hitpoint));
+        EXPECT_EQ(isHit, trimesh.intersect(ray, &hitpoint))
+            << "  from: " << from << std::endl
+            << "    to: " << to   << std::endl
+            << "   pos: " << ans.position() << std::endl
+            << "normal: " << ans.normal() << std::endl;
         EXPECT_EQ(ans.distance(), hitpoint.distance());
     }
 }

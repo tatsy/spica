@@ -96,13 +96,11 @@ namespace spica {
 
             if (inc) {
                 triLeft.push_back(triangles[i]);
-            } else {
-                break;
             }
         }
 
         std::vector<Triangle> triRight;
-        for (int i = nTri - 1; i >= 0; i--) {
+        for (int i = 0; i < nTri; i++) {
             bool inc = false;
             for (int k = 0; k < 3; k++) {
                 if (triangles[i].p(k).get(dim) >= sep) {
@@ -113,8 +111,6 @@ namespace spica {
 
             if (inc) {
                 triRight.push_back(triangles[i]);
-            } else {
-                break;
             }
         }
 
@@ -123,6 +119,7 @@ namespace spica {
             node->numTriangles = nTri;
             node->triangles = new Triangle[nTri];
             memcpy(node->triangles, &triangles[0], sizeof(Triangle)* nTri);
+            node->bbox = enclosingBox(triangles);
             node->left = NULL;
             node->right = NULL;
             node->isLeaf = true;

@@ -6,12 +6,14 @@ using namespace spica;
 int main(int argc, char **argv) {
     std::cout << "Bidirectional path tracing" << std::endl << std::endl;
 
+    const int width  = 640;
+    const int height = 480;
     Scene scene;
     Camera camera;
-    cornellBox(scene, camera, 320, 240);
+    cornellBox(scene, camera, width, height);
 
     Random rng = Random::getRNG();
-    const int samplePerPixel = 64;
+    const int samplePerPixel = 1024;
 
     BPTRenderer renderer;
     renderer.render(scene, camera, rng, samplePerPixel);

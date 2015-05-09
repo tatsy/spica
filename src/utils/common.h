@@ -36,7 +36,7 @@ static const std::string DATA_DIR = "C:/Users/Tatsuya/Documents/VS2013/Projects/
 // Parameter constants
 // ----------------------------------------------------------------------------
 static const double PI = 4.0 * atan(1.0);
-static const double INFTY = 1.0e128;
+static const double INFTY = 1.0e32;
 static const double EPS = 1.0e-6;
 
 // ----------------------------------------------------------------------------

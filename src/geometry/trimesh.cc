@@ -78,8 +78,7 @@ namespace spica {
             return false;
         }
 
-        bool ret =  intersectRec(node, ray, hitpoint, tMin, tMax);
-        return ret;
+        return intersectRec(node, ray, hitpoint, tMin, tMax);
     }
 
     bool Trimesh::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) const {
@@ -113,7 +112,7 @@ namespace spica {
 
         // Intersecting only one child
         if (isectL && std::abs(lMin - tMin) < EPS && std::abs(lMax - tMax) < EPS) {
-            return intersectRec(node->left, ray, hitpoint, lMin, lMax);
+            if (intersectRec(node->left, ray, hitpoint, lMin, lMax)) return true;
         }
 
         if (isectR && std::abs(rMin - tMin) < EPS && std::abs(rMax - tMax) < EPS) {

@@ -28,6 +28,21 @@ namespace spica {
         KdTreeNode* left;
         KdTreeNode* right;
         bool isLeaf;
+
+        KdTreeNode()
+            : bbox()
+            , numTriangles(0)
+            , triangles(NULL)
+            , left(NULL)
+            , right(NULL)
+            , isLeaf(false)
+        {
+        }
+
+        ~KdTreeNode()
+        {
+            delete[] triangles;
+        }
     };
 
     class SPICA_KDTREE_DLL KdTree {
@@ -45,15 +60,7 @@ namespace spica {
             }
 
             bool operator()(const Triangle& t1, const Triangle& t2) const {
-                bool ret = false;
-                if (dim == 0) {
-                    ret = t1.gravity().x() < t2.gravity().x();
-                } else if (dim == 1) {
-                    ret = t1.gravity().y() < t2.gravity().y();
-                } else if (dim == 2) {
-                    ret = t1.gravity().z() < t2.gravity().z();
-                }
-                return ret;
+                return t1.gravity().get(dim) < t2.gravity().get(dim);
             }
         };
 

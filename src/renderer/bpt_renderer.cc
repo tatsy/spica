@@ -668,7 +668,12 @@ namespace spica {
 
         for (int it = 0; it < samplePerPixel; it++) {
             for (int y = 0; y < height; y++) {
-                printf("%d - %d\n", it, y);
+                
+                if (y % 10 == 0) {
+                    double ratio = 100.0 * (it * height + y) / (samplePerPixel * height); 
+                    printf("%6.2f %% processed ...\n", ratio);
+                }
+
                 for (int x = 0; x < width; x++) {
                     BPTResult bptResult = executeBPT(scene, camera, rng, x, y);
                     

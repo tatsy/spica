@@ -3,11 +3,13 @@
 
 #include "../src/utils/common.h"
 #include "../src/utils/vector3.h"
+#include "../src/utils/sampler.h"
 
 #include "../src/geometry/geometry.h"
 
 #include "../src/renderer/scene.h"
 #include "../src/renderer/camera.h"
+
 
 // --------------------------------------------
 // Renderers

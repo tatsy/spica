@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include <algorithm>
+
 #include "../include/spica.h"
 using namespace spica;
 
@@ -73,4 +75,47 @@ TEST(Vector3Test, AlgebraTest) {
     EXPECT_EQ(u.x() / nrm, w.x());
     EXPECT_EQ(u.y() / nrm, w.y());
     EXPECT_EQ(u.z() / nrm, w.z());
+}
+
+TEST(Vector3Test, MaxMinTest) {
+    static const int nTrial = 100;
+    Random rng = Random::getRNG();
+
+    Vector3 minv(INFTY, INFTY, INFTY);
+    double minx = INFTY;
+    double miny = INFTY;
+    double minz = INFTY;
+
+    for (int i = 0; i < nTrial; i++) {
+        double x = rng.randReal();
+        double y = rng.randReal();
+        double z = rng.randReal();
+        minv = Vector3::minimum(minv, Vector3(x, y, z));
+        minx = std::min(minx, x);
+        miny = std::min(miny, y);
+        minz = std::min(minz, z);
+
+        EXPECT_EQ(minx, minv.x());
+        EXPECT_EQ(miny, minv.y());
+        EXPECT_EQ(minz, minv.z());
+    }
+
+    Vector3 maxv(-INFTY, -INFTY, -INFTY);
+    double maxx = -INFTY;
+    double maxy = -INFTY;
+    double maxz = -INFTY;
+
+    for (int i = 0; i < nTrial; i++) {
+        double x = rng.randReal();
+        double y = rng.randReal();
+        double z = rng.randReal();
+        maxv = Vector3::maximum(maxv, Vector3(x, y, z));
+        maxx = std::max(maxx, x);
+        maxy = std::max(maxy, y);
+        maxz = std::max(maxz, z);
+
+        EXPECT_EQ(maxx, maxv.x());
+        EXPECT_EQ(maxy, maxv.y());
+        EXPECT_EQ(maxz, maxv.z());
+    }
 }

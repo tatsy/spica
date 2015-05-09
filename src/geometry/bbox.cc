@@ -42,12 +42,17 @@ namespace spica {
     }
 
     bool BBox::intersect(const Ray& ray, double* tMin, double* tMax) const {
-        double xMin = (_posMin.x() - ray.origin().x()) / ray.direction().x();
-        double xMax = (_posMax.x() - ray.origin().x()) / ray.direction().x();
-        double yMin = (_posMin.y() - ray.origin().y()) / ray.direction().y();
-        double yMax = (_posMax.y() - ray.origin().y()) / ray.direction().y();
-        double zMin = (_posMin.z() - ray.origin().z()) / ray.direction().z();
-        double zMax = (_posMax.z() - ray.origin().z()) / ray.direction().z();
+
+        double invx = ray.direction().x() != 0.0 ? 1.0 / ray.direction().x() : INFTY;
+        double invy = ray.direction().y() != 0.0 ? 1.0 / ray.direction().y() : INFTY;
+        double invz = ray.direction().z() != 0.0 ? 1.0 / ray.direction().z() : INFTY;
+
+        double xMin = (_posMin.x() - ray.origin().x()) * invx;
+        double xMax = (_posMax.x() - ray.origin().x()) * invx;
+        double yMin = (_posMin.y() - ray.origin().y()) * invy;
+        double yMax = (_posMax.y() - ray.origin().y()) * invy;
+        double zMin = (_posMin.z() - ray.origin().z()) * invz;
+        double zMax = (_posMax.z() - ray.origin().z()) * invz;
         
         if (xMin > xMax) std::swap(xMin, xMax);
         if (yMin > yMax) std::swap(yMin, yMax);
@@ -55,6 +60,7 @@ namespace spica {
 
         *tMin = std::max(xMin, std::max(yMin, zMin));
         *tMax = std::min(xMax, std::min(yMax, zMax));
+
         if (*tMin > *tMax || (*tMin < 0.0 && *tMax < 0.0)) {
             return false;
         }

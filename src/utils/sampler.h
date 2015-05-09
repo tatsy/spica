@@ -19,15 +19,15 @@ namespace spica {
 
     namespace sampler {
 
-        void onHemisphere(const Vector3& normal, Vector3* direction);
+        SPICA_SAMPLER_DLL void onHemisphere(const Vector3& normal, Vector3* direction);
 
-        void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal);
+        SPICA_SAMPLER_DLL void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal);
     
-        void onDisk(const Disk& disk, Vector3* position, Vector3* normal);
+        SPICA_SAMPLER_DLL void onDisk(const Disk& disk, Vector3* position, Vector3* normal);
 
-        void onQuad(const Quad& quad, Vector3* position, Vector3* normal);
+        SPICA_SAMPLER_DLL void onQuad(const Quad& quad, Vector3* position, Vector3* normal);
 
-        void on(const Primitive* primitive, Vector3* position, Vector3* normal);
+        SPICA_SAMPLER_DLL void on(const Primitive* primitive, Vector3* position, Vector3* normal);
     
     }  // namespace sampler
 

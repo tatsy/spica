@@ -110,14 +110,14 @@ namespace spica {
     Vector3 Vector3::minimum(const Vector3& v1, const Vector3& v2) {
         double x = std::min(v1._x, v2._x);
         double y = std::min(v1._y, v2._y);
-        double z = std::min(v1._x, v2._z);
+        double z = std::min(v1._z, v2._z);
         return Vector3(x, y, z);
     }
 
     Vector3 Vector3::maximum(const Vector3& v1, const Vector3& v2) {
         double x = std::max(v1._x, v2._x);
         double y = std::max(v1._y, v2._y);
-        double z = std::max(v1._x, v2._z);
+        double z = std::max(v1._z, v2._z);
         return Vector3(x, y, z);
     }
 

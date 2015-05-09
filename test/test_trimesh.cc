@@ -13,7 +13,7 @@ namespace {
             Triangle tri = trimesh.getTriangle(i);
             Hitpoint hpTemp;
             if (tri.intersect(ray, &hpTemp)) {
-                if (hitpoint->distance() > hpTemp.distance()) {
+                if (hitpoint->distance() > hpTemp.distance() && Vector3::dot(ray.direction(), tri.normal()) < 0.0) {
                     *hitpoint = hpTemp;
                     ret = true;
                 }
@@ -64,8 +64,8 @@ TEST(TrimeshTest, RandomIntersection) {
     trimesh.buildKdTreeAccel();
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3 from  = Vector3(0.0, 0.0, 50.0);
-        Vector3 to    = Vector3(rng.randReal(), rng.randReal(), 0.0) * 20.0 - Vector3(10.0, 10.0, 10.0);
+        Vector3 from  = Vector3(rng.randReal(), rng.randReal(), rng.randReal()) * 20.0 - Vector3(10.0, 10.0, 0.0);
+        Vector3 to    = Vector3(rng.randReal(), rng.randReal(), rng.randReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
         Vector3 dir = (to - from).normalized();
         Ray ray(from, dir);
 

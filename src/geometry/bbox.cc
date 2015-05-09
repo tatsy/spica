@@ -42,6 +42,7 @@ namespace spica {
     }
 
     bool BBox::intersect(const Ray& ray, double* tMin, double* tMax) const {
+
         double invx = ray.direction().x() != 0.0 ? 1.0 / ray.direction().x() : INFTY;
         double invy = ray.direction().y() != 0.0 ? 1.0 / ray.direction().y() : INFTY;
         double invz = ray.direction().z() != 0.0 ? 1.0 / ray.direction().z() : INFTY;
@@ -59,6 +60,7 @@ namespace spica {
 
         *tMin = std::max(xMin, std::max(yMin, zMin));
         *tMax = std::min(xMax, std::min(yMax, zMax));
+
         if (*tMin > *tMax || (*tMin < 0.0 && *tMax < 0.0)) {
             return false;
         }

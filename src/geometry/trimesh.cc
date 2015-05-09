@@ -84,6 +84,7 @@ namespace spica {
     bool Trimesh::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) const {
         if (node->isLeaf) {
             int triID = -1;
+            // printf("ntri = %d\n", node->numTriangles);
             for (int i = 0; i < node->numTriangles; i++) {
                 const Triangle& tri = node->triangles[i];
                 Hitpoint hpTemp;
@@ -105,23 +106,24 @@ namespace spica {
         double lMin = INFTY, lMax = INFTY, rMin = INFTY, rMax = INFTY;
         bool isectL = node->left->bbox.intersect(ray, &lMin, &lMax);
         bool isectR = node->right->bbox.intersect(ray, &rMin, &rMax);
+
+        // Intesecting NO children
         if (!isectL && !isectR) {
-            // Intesecting NO children
             return false;
         }
 
         // Intersecting only one child
-        if (isectL && std::abs(lMin - tMin) < EPS && std::abs(lMax - tMax) < EPS) {
-            if (intersectRec(node->left, ray, hitpoint, lMin, lMax)) return true;
+        if (isectL && !isectR) {
+            return intersectRec(node->left, ray, hitpoint, lMin, lMax);
         }
 
-        if (isectR && std::abs(rMin - tMin) < EPS && std::abs(rMax - tMax) < EPS) {
+        if (isectR && !isectL) {
             return intersectRec(node->right, ray, hitpoint, rMin, rMax);
         }
 
         // Intersecting two children
         KdTreeNode *nearer, *farther;
-        if (lMin <= rMin) {
+        if (lMin < rMin || (lMin == rMin && lMax == INFTY)) {
             nearer = node->left;
             farther = node->right;
         } else {

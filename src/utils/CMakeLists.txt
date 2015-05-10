@@ -1,6 +1,6 @@
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/common.h.in
-               ${CMAKE_CURRENT_LIST_DIR}/common.h
+               ${CMAKE_CURRENT_BINARY_DIR}/common.h
                @ONLY)
 
 set(SOURCES ${SOURCES}
@@ -11,7 +11,7 @@ set(SOURCES ${SOURCES}
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
-    ${CMAKE_CURRENT_LIST_DIR}/common.h
+    ${CMAKE_CURRENT_BINARY_DIR}/common.h
     ${CMAKE_CURRENT_LIST_DIR}/uncopyable.h
     ${CMAKE_CURRENT_LIST_DIR}/random.h
     ${CMAKE_CURRENT_LIST_DIR}/random_detail.h
@@ -19,4 +19,5 @@ set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/color.h
     ${CMAKE_CURRENT_LIST_DIR}/image.h
     ${CMAKE_CURRENT_LIST_DIR}/sampler.h
+    ${CMAKE_CURRENT_LIST_DIR}/timer.h
     PARENT_SCOPE)

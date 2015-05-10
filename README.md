@@ -4,43 +4,51 @@ spica
 [![Build Status](https://travis-ci.org/tatsy/spica.svg?branch=master)](https://travis-ci.org/tatsy/spica)
 [![Coverage Status](https://coveralls.io/repos/tatsy/spica/badge.svg?branch=master)](https://coveralls.io/r/tatsy/spica?branch=master)
 
-> **spica** is a rendering library for ray tracing (under construction).
+> **spica** is a cross-platform physically-based renderer that is written in C++. 
 
 ## Renderer
 
-#### Supported
-
 * Monte-Carlo path tracing
 * Bidirectional path tracing
+* Metropolis light transport (Kelemen style)
 
 #### Future support
 
-* Metropolis light transport
-* Precomputed radiance transfer
 * Photon mapping
+* Precomputed radiance transfer
 
 ## Geometry
 
-#### Supported
-
 * Plane
+* Disk
 * Sphere
+* Triangle
+* Quad
+* Trimesh
+
+## Data structure for rendering acceleration
+
+* K-D tree
 
 #### Future support
 
-* Disk
-* Triangle
-* Quad
+* SIMD-accelerated QBVH
+
+#### Future support
 
 ## Results
+
+#### Path tracing
+
+<img src="./results/simplept.jpg" width="480" />
+
+#### Bidirectional path tracing
+
+<img src="./results/simplebpt.jpg" width="480" />
 
 #### Metropolis light transport
 
 <img src="./results/simplemlt.jpg" width="480" />
-
-## ToDo
-
-* kd-tree implementation
 
 ## License
 

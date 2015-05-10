@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <iostream>
 
 #include "../include/spica.h"
@@ -20,8 +21,11 @@ int main(int argc, char **argv) {
 
     Random rng = Random::getRNG();
 
+    Timer timer;
+    timer.start();
     PTRenderer renderer;
     renderer.render(scene, camera, rng, samplePerPixel);
+    printf("Timer: %f sec\n", timer.stop());
 
     return 0;
 }

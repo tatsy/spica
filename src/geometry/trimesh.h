@@ -17,7 +17,7 @@
 #include "triangle.h"
 #include "plane.h"
 #include "../utils/vector3.h"
-#include "../structure/kd_tree.h"
+#include "../accel/kd_tree_accel.h"
 
 namespace spica {
 
@@ -28,7 +28,7 @@ namespace spica {
         Vector3* _vertices;
         int* _faces;
         Vector3* _normals;
-        KdTree _kdtree;
+        KdTreeAccel _kdtree;
 
     public:
         Trimesh();

@@ -1,23 +1,20 @@
-#ifndef _SPICA_KDTREE_H_
-#define _SPICA_KDTREE_H_
+#ifndef _SPICA_KDTREE_ACCEL_H_
+#define _SPICA_KDTREE_ACCEL_H_
 
 #if defined(_WIN32) || defined(__WIN32__)
-    #ifndef SPICA_KDTREE_EXPORT
-        #define SPICA_KDTREE_DLL __declspec(dllexport)
+    #ifdef SPICA_KDTREE_ACCEL_EXPORT
+        #define SPICA_KDTREE_ACCEL_DLL __declspec(dllexport)
     #else
-        #define SPICA_KDTREE_DLL __declspec(dllimport)
+        #define SPICA_KDTREE_ACCEL_DLL __declspec(dllimport)
     #endif
 #else
-    #define SPICA_KDTREE_DLL 
+    #define SPICA_KDTREE_ACCEL_DLL 
 #endif
 
-#include <vector>
-
+#include "accel_base.h"
 #include "../utils/common.h"
 #include "../utils/uncopyable.h"
 #include "../geometry/bbox.h"
-#include "../geometry/triangle.h"
-
 
 namespace spica {
 
@@ -45,7 +42,7 @@ namespace spica {
         }
     };
 
-    class SPICA_KDTREE_DLL KdTree {
+    class SPICA_KDTREE_ACCEL_DLL KdTreeAccel : public AccelBase {
     private:
 
         // ----------------------------------------------
@@ -69,13 +66,13 @@ namespace spica {
         unsigned int* _numCopies;   // # of tree copies
 
     public:
-        KdTree();
-        KdTree(const KdTree& kdtree);
-        ~KdTree();
+        KdTreeAccel();
+        KdTreeAccel(const KdTreeAccel& kdtree);
+        ~KdTreeAccel();
 
-        KdTree& operator=(const KdTree& kdtree);
+        KdTreeAccel& operator=(const KdTreeAccel& kdtree);
         
-        void construct(std::vector<Triangle>& triangles);
+        void construct(const std::vector<Triangle>& triangles);
 
         inline bool empty() const { return _root == 0; }
 

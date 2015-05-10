@@ -1,9 +1,0 @@
-set(SOURCES
-    ${SOURCES}
-    ${CMAKE_CURRENT_LIST_DIR}/kd_tree.cc
-    PARENT_SCOPE)
-
-set(HEADERS
-    ${HEADERS}
-    ${CMAKE_CURRENT_LIST_DIR}/kd_tree.h
-    PARENT_SCOPE)

@@ -35,6 +35,8 @@ if (${BUILD_TEST} STREQUAL "ON")
       test_image.cc
       test_material.cc
       test_camera.cc
+      test_ray.cc
+      test_sampler.cc
       test_trimesh.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})

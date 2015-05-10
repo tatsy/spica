@@ -1,30 +1,30 @@
-#define SPICA_KDTREE_EXPORT
-#include "kd_tree.h"
+#define SPICA_KDTREE_ACCEL_EXPORT
+#include "kd_tree_accel.h"
 
 #include <cstring>
 #include <algorithm>
 
 namespace spica {
 
-    KdTree::KdTree() 
+    KdTreeAccel::KdTreeAccel() 
         : _root(NULL)
         , _numCopies(NULL)
     {
     }
 
-    KdTree::KdTree(const KdTree& kdtree)
+    KdTreeAccel::KdTreeAccel(const KdTreeAccel& kdtree)
         : _root(NULL)
         , _numCopies(NULL)
     {
         operator=(kdtree);
     }
 
-    KdTree::~KdTree() 
+    KdTreeAccel::~KdTreeAccel() 
     {
         release();
     }
 
-    KdTree& KdTree::operator=(const KdTree& kdtree) {
+    KdTreeAccel& KdTreeAccel::operator=(const KdTreeAccel& kdtree) {
         release();
 
         _root = kdtree._root;
@@ -34,7 +34,7 @@ namespace spica {
         return *this;
     }
 
-    void KdTree::release() {
+    void KdTreeAccel::release() {
         if (_numCopies == 0) {
             deleteNode(_root);
             delete _numCopies;
@@ -43,7 +43,7 @@ namespace spica {
         }
     }
 
-    void KdTree::deleteNode(KdTreeNode* node) {
+    void KdTreeAccel::deleteNode(KdTreeNode* node) {
         if (node != NULL) {
             if (node->left != NULL) {
                 deleteNode(node->left);
@@ -57,14 +57,15 @@ namespace spica {
         }
     }
 
-    void KdTree::construct(std::vector<Triangle>& triangles) {
+    void KdTreeAccel::construct(const std::vector<Triangle>& triangles) {
         release();
 
-        _root = constructRec(triangles, 0);
+        std::vector<Triangle> temp(triangles);
+        _root = constructRec(temp, 0);
         _numCopies = new unsigned int(0);
     }
 
-    BBox KdTree::enclosingBox(const std::vector<Triangle>& triangles) {
+    BBox KdTreeAccel::enclosingBox(const std::vector<Triangle>& triangles) {
         Vector3 posMin(INFTY, INFTY, INFTY);
         Vector3 posMax(-INFTY, -INFTY, -INFTY);
         const int nTri = (int)triangles.size();
@@ -77,7 +78,7 @@ namespace spica {
         return BBox(posMin, posMax);
     }
 
-    KdTreeNode* KdTree::constructRec(std::vector<Triangle>& triangles, int dim)  {
+    KdTreeNode* KdTreeAccel::constructRec(std::vector<Triangle>& triangles, int dim)  {
         const int nTri = (int)triangles.size();
 
         // Sort triangles

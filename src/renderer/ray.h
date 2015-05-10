@@ -19,6 +19,7 @@ namespace spica {
     private:
         Vector3 _origin;
         Vector3 _direction;
+        Vector3 _invdir;
 
     public:
         Ray();
@@ -30,6 +31,10 @@ namespace spica {
 
         inline Vector3 origin() const { return _origin; }
         inline Vector3 direction() const { return _direction; }
+        inline Vector3 invdir() const { return _invdir; }
+
+    private:
+        void calcInvdir();
     };
 
     class SPICA_RAY_DLL Hitpoint {

@@ -31,8 +31,6 @@ spica
 * K-D tree
 * QBVH (with SIMD)
 
-#### Future support
-
 ## Results
 
 #### Path tracing

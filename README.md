@@ -29,10 +29,7 @@ spica
 ## Data structure for rendering acceleration
 
 * K-D tree
-
-#### Future support
-
-* SIMD-accelerated QBVH
+* QBVH (with SIMD)
 
 #### Future support
 

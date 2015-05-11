@@ -2,21 +2,33 @@
 #include "ray.h"
 #include "../utils/common.h"
 
+#include <cmath>
+
 namespace spica {
 
     Ray::Ray()
         : _origin()
-        , _direction() {
+        , _direction()
+        , _invdir()
+    {
+        calcInvdir();
     }
 
     Ray::Ray(const Vector3& origin, const Vector3& direction)
         : _origin(origin)
-        , _direction(direction) {
+        , _direction(direction)
+        , _invdir()
+    {
+        msg_assert(std::abs(1.0 - direction.norm()) < EPS, "Direction must be unit vector");
+        calcInvdir();
     }
 
     Ray::Ray(const Ray& ray)
-        : _origin(ray._origin)
-        , _direction(ray._direction) {
+        : _origin()
+        , _direction()
+        , _invdir()
+    {
+        operator=(ray);
     }
 
     Ray::~Ray() {
@@ -25,7 +37,14 @@ namespace spica {
     Ray& Ray::operator=(const Ray& ray) {
         this->_origin = ray._origin;
         this->_direction = ray._direction;
+        this->_invdir = ray._invdir;
         return *this;
+    }
+
+    void Ray::calcInvdir() {
+        _invdir.setX(_direction.x() == 0.0 ? INFTY : 1.0 / _direction.x());
+        _invdir.setY(_direction.y() == 0.0 ? INFTY : 1.0 / _direction.y());
+        _invdir.setZ(_direction.z() == 0.0 ? INFTY : 1.0 / _direction.z());
     }
 
     Hitpoint::Hitpoint()

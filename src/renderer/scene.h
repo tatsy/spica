@@ -11,8 +11,6 @@
     #define SPICA_SCENE_DLL
 #endif
 
-#include <type_traits>
-
 #include "../utils/common.h"
 #include "../utils/vector3.h"
 #include "../geometry/geometry.h"

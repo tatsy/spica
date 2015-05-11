@@ -35,11 +35,14 @@ namespace spica {
     }
 
     void KdTreeAccel::release() {
-        if (_numCopies == 0) {
-            deleteNode(_root);
-            delete _numCopies;
-        } else {
-            _numCopies--;
+        if (_numCopies != NULL) {
+            if (*_numCopies == 0) {
+                deleteNode(_root);
+                delete _numCopies;
+                _numCopies = NULL;
+            } else {
+                (*_numCopies) -= 1;
+            }
         }
     }
 
@@ -65,55 +68,15 @@ namespace spica {
         _numCopies = new unsigned int(0);
     }
 
-    BBox KdTreeAccel::enclosingBox(const std::vector<Triangle>& triangles) {
-        Vector3 posMin(INFTY, INFTY, INFTY);
-        Vector3 posMax(-INFTY, -INFTY, -INFTY);
-        const int nTri = (int)triangles.size();
-        for (int i = 0; i < nTri; i++) {
-            for (int j = 0; j < 3; j++) {
-                posMin = Vector3::minimum(posMin, triangles[i].p(j));
-                posMax = Vector3::maximum(posMax, triangles[i].p(j));
-            }
-        }
-        return BBox(posMin, posMax);
-    }
-
-    KdTreeNode* KdTreeAccel::constructRec(std::vector<Triangle>& triangles, int dim)  {
+    KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<Triangle>& triangles, int dim)  {
         const int nTri = (int)triangles.size();
 
         // Sort triangles
         std::sort(triangles.begin(), triangles.end(), AxisComparator(dim));
-        double sep = triangles[nTri / 2].gravity().get(dim);
 
-        std::vector<Triangle> triLeft;
-        for (int i = 0; i < nTri; i++) {
-            bool inc = false;
-            for (int k = 0; k < 3; k++) {
-                if (triangles[i].p(k).get(dim) <= sep) {
-                    inc = true;
-                    break;
-                }
-            }
-
-            if (inc) {
-                triLeft.push_back(triangles[i]);
-            }
-        }
-
-        std::vector<Triangle> triRight;
-        for (int i = 0; i < nTri; i++) {
-            bool inc = false;
-            for (int k = 0; k < 3; k++) {
-                if (triangles[i].p(k).get(dim) >= sep) {
-                    inc = true;
-                    break;
-                }
-            }
-
-            if (inc) {
-                triRight.push_back(triangles[i]);
-            }
-        }
+        const int mid = nTri / 2;
+        std::vector<Triangle> triLeft(triangles.begin(), triangles.begin() + mid);
+        std::vector<Triangle> triRight(triangles.begin() + mid, triangles.end());
 
         if (triangles.size() <= _maxNodeSize || (triLeft.size() == nTri || triRight.size() == nTri)) {
             KdTreeNode* node = new KdTreeNode();
@@ -136,6 +99,74 @@ namespace spica {
         node->isLeaf = false;
 
         return node;
+    }
+
+    bool KdTreeAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
+        double tMin, tMax;
+        KdTreeNode* node = _root;
+        if (!node->bbox.intersect(ray, &tMin, &tMax)) {
+            return false;
+        }
+
+        return intersectRec(node, ray, hitpoint, tMin, tMax);
+    }
+
+    bool KdTreeAccel::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) {
+        if (node->isLeaf) {
+            int triID = -1;
+            for (int i = 0; i < node->numTriangles; i++) {
+                const Triangle& tri = node->triangles[i];
+                Hitpoint hpTemp;
+                if (tri.intersect(ray, &hpTemp)) {
+                    if (hitpoint->distance() > hpTemp.distance() && Vector3::dot(ray.direction(), tri.normal()) < 0.0) {
+                        *hitpoint = hpTemp;
+                        triID = i;
+                    }
+                }
+            }
+
+            if (triID != -1) {
+                return true;
+            }
+            return false;
+        }
+
+        // Check which child is nearer
+        double lMin = INFTY, lMax = INFTY, rMin = INFTY, rMax = INFTY;
+        bool isectL = node->left->bbox.intersect(ray, &lMin, &lMax);
+        bool isectR = node->right->bbox.intersect(ray, &rMin, &rMax);
+
+        // Intesecting NO children
+        if (!isectL && !isectR) {
+            return false;
+        }
+
+        // Intersecting only one child
+        if (isectL && !isectR) {
+            return intersectRec(node->left, ray, hitpoint, lMin, lMax);
+        }
+
+        if (isectR && !isectL) {
+            return intersectRec(node->right, ray, hitpoint, rMin, rMax);
+        }
+
+        // Intersecting two children
+        KdTreeNode *nearer, *farther;
+        if (lMin < rMin || (lMin == rMin && lMax == INFTY)) {
+            nearer = node->left;
+            farther = node->right;
+        } else {
+            nearer = node->right;
+            farther = node->left;
+            std::swap(lMin, rMin);
+            std::swap(lMax, rMax);
+        }
+
+        // Check nearer child first
+        if (intersectRec(nearer, ray, hitpoint, lMin, lMax)) {
+            return true;
+        }
+        return intersectRec(farther, ray, hitpoint, rMin, rMax);
     }
 
 }  // namespace spica

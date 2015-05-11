@@ -1,6 +1,7 @@
 #define SPICA_TRIMESH_EXPORT
 #include "trimesh.h"
 
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -17,7 +18,8 @@ namespace spica {
         , _vertices(0)
         , _faces(0)
         , _normals(0)
-        , _kdtree()
+        , _accel(NULL)
+        , _accelType(QBVH_ACCEL)
     {
     }
 
@@ -27,7 +29,8 @@ namespace spica {
         , _vertices(0)
         , _faces(0)
         , _normals(0)
-        , _kdtree()
+        , _accel(NULL)
+        , _accelType(QBVH_ACCEL)
     {
         load(filename);
     }
@@ -38,7 +41,8 @@ namespace spica {
         , _vertices(0)
         , _faces(0)
         , _normals(0)
-        , _kdtree()
+        , _accel(NULL)
+        , _accelType(QBVH_ACCEL)
     {
         operator=(trimesh);
     }
@@ -48,6 +52,7 @@ namespace spica {
         delete[] _vertices;
         delete[] _faces;
         delete[] _normals;
+        delete   _accel;
     }
 
     Trimesh& Trimesh::operator=(const Trimesh& trimesh) {
@@ -60,84 +65,21 @@ namespace spica {
         _vertices = new Vector3[trimesh._numVerts];
         _faces = new int[trimesh._numFaces * 3];
         _normals = new Vector3[trimesh._numFaces];
-        _kdtree = trimesh._kdtree;
+        _accel = NULL;
+        _accelType = trimesh._accelType;
         
         memcpy(_vertices, trimesh._vertices, sizeof(Vector3) * _numVerts);
         memcpy(_faces, trimesh._faces, sizeof(int) * _numFaces * 3);
         memcpy(_normals, trimesh._normals, sizeof(Vector3) * _numFaces);
 
+        buildAccel();
+
         return *this;
     }
 
     bool Trimesh::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        msg_assert(!_kdtree.empty(), "k-d tree accelator is not prepared.");
-
-        double tMin, tMax;
-        KdTreeNode* node = _kdtree.root();
-        if (!node->bbox.intersect(ray, &tMin, &tMax)) {
-            return false;
-        }
-
-        return intersectRec(node, ray, hitpoint, tMin, tMax);
-    }
-
-    bool Trimesh::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) const {
-        if (node->isLeaf) {
-            int triID = -1;
-            // printf("ntri = %d\n", node->numTriangles);
-            for (int i = 0; i < node->numTriangles; i++) {
-                const Triangle& tri = node->triangles[i];
-                Hitpoint hpTemp;
-                if (tri.intersect(ray, &hpTemp)) {
-                    if (hitpoint->distance() > hpTemp.distance() && Vector3::dot(ray.direction(), tri.normal()) < 0.0) {
-                        *hitpoint = hpTemp;
-                        triID = i;
-                    }
-                }
-            }
-
-            if (triID != -1) {
-                return true;
-            }
-            return false;
-        }
-
-        // Check which child is nearer
-        double lMin = INFTY, lMax = INFTY, rMin = INFTY, rMax = INFTY;
-        bool isectL = node->left->bbox.intersect(ray, &lMin, &lMax);
-        bool isectR = node->right->bbox.intersect(ray, &rMin, &rMax);
-
-        // Intesecting NO children
-        if (!isectL && !isectR) {
-            return false;
-        }
-
-        // Intersecting only one child
-        if (isectL && !isectR) {
-            return intersectRec(node->left, ray, hitpoint, lMin, lMax);
-        }
-
-        if (isectR && !isectL) {
-            return intersectRec(node->right, ray, hitpoint, rMin, rMax);
-        }
-
-        // Intersecting two children
-        KdTreeNode *nearer, *farther;
-        if (lMin < rMin || (lMin == rMin && lMax == INFTY)) {
-            nearer = node->left;
-            farther = node->right;
-        } else {
-            nearer = node->right;
-            farther = node->left;
-            std::swap(lMin, rMin);
-            std::swap(lMax, rMax);
-        }
-
-        // Check nearer child first
-        if (intersectRec(nearer, ray, hitpoint, lMin, lMax)) {
-            return true;
-        }
-        return intersectRec(farther, ray, hitpoint, rMin, rMax);
+        msg_assert(_accel != NULL, "Accelerator is not constructed");
+        return _accel->intersect(ray, hitpoint);
     }
 
     double Trimesh::area() const {
@@ -149,7 +91,14 @@ namespace spica {
         return ret;
     }
 
-    void Trimesh::buildKdTreeAccel() {
+    void Trimesh::setAccelType(AccelType accelType, bool doBuild) {
+        this->_accelType = accelType;
+        if (doBuild) {
+            buildAccel();
+        }
+    }
+
+    void Trimesh::buildAccel() {
         std::vector<Triangle> triangles(_numFaces);
         for (int i = 0; i < _numFaces; i++) {
             Vector3& p0 = _vertices[_faces[i * 3 + 0]];
@@ -157,7 +106,21 @@ namespace spica {
             Vector3& p2 = _vertices[_faces[i * 3 + 2]];
             triangles[i] = Triangle(p0, p1, p2);
         }
-        _kdtree.construct(triangles);
+
+        switch(_accelType) {
+        case KD_TREE_ACCEL:
+            printf("Accelerator: K-D tree\n");
+            _accel = new KdTreeAccel();
+            break;
+        case QBVH_ACCEL:
+            printf("Accelerator: QBVH\n");
+            _accel = new QBVHAccel();
+            break;
+        default:
+            msg_assert(false, "Unknown accelerator type!!");
+            break;
+        }
+        _accel->construct(triangles);
     }
 
     void Trimesh::load(const std::string& filename) {

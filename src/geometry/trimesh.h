@@ -17,7 +17,7 @@
 #include "triangle.h"
 #include "plane.h"
 #include "../utils/vector3.h"
-#include "../accel/kd_tree_accel.h"
+#include "../accel/accel.h"
 
 namespace spica {
 
@@ -28,7 +28,8 @@ namespace spica {
         Vector3* _vertices;
         int* _faces;
         Vector3* _normals;
-        KdTreeAccel _kdtree;
+        AccelBase* _accel;
+        AccelType _accelType;
 
     public:
         Trimesh();
@@ -42,7 +43,7 @@ namespace spica {
 
         double area() const;
 
-        void buildKdTreeAccel();
+        void setAccelType(AccelType accelType, bool doBuild = false);
 
         void load(const std::string& filename);
 
@@ -56,8 +57,7 @@ namespace spica {
         inline unsigned long numFaces() const { return _numFaces; }
 
     private:
-        bool intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) const;
-
+        void buildAccel();
     };
 
 }  // namespace spica

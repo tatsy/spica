@@ -11,6 +11,8 @@
     #define SPICA_SCENE_DLL
 #endif
 
+#include <type_traits>
+
 #include "../utils/common.h"
 #include "../utils/vector3.h"
 #include "../geometry/geometry.h"
@@ -35,8 +37,7 @@ namespace spica {
 
         template <class Ty>
         void add(const Ty& primitive, const Material& material, bool isLight = false) {
-            //msg_assert(std::is_same<Ty, Primitive>::value, "Input primitive is not instance of Primitive");
-
+            msg_assert(dynamic_cast<const Primitive*>(&primitive) != 0, "Input geometry must be instanceof Primitive class.");
             if (isLight) _lightID = _nPrimitives;
             _primitives[_nPrimitives] = new Ty(primitive);
             _materials[_nPrimitives] = material;

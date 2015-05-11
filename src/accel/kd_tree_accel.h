@@ -18,50 +18,33 @@
 
 namespace spica {
 
-    struct KdTreeNode : public Uncopyable {
-        BBox bbox;
-        unsigned int numTriangles;
-        Triangle* triangles;
-        KdTreeNode* left;
-        KdTreeNode* right;
-        bool isLeaf;
-
-        KdTreeNode()
-            : bbox()
-            , numTriangles(0)
-            , triangles(NULL)
-            , left(NULL)
-            , right(NULL)
-            , isLeaf(false)
-        {
-        }
-
-        ~KdTreeNode()
-        {
-            delete[] triangles;
-        }
-    };
-
     class SPICA_KDTREE_ACCEL_DLL KdTreeAccel : public AccelBase {
     private:
+        struct KdTreeNode : public Uncopyable {
+            BBox bbox;
+            unsigned int numTriangles;
+            Triangle* triangles;
+            KdTreeNode* left;
+            KdTreeNode* right;
+            bool isLeaf;
 
-        // ----------------------------------------------
-        // Comparator to sort triangles 
-        // ----------------------------------------------
-        struct AxisComparator {
-            int dim;
-            explicit AxisComparator(int dim_ = 0)
-                : dim(dim_)
+            KdTreeNode()
+                : bbox()
+                , numTriangles(0)
+                , triangles(NULL)
+                , left(NULL)
+                , right(NULL)
+                , isLeaf(false)
             {
-                msg_assert(0 <= dim_ && dim_ <= 2, "Dimension must be between 0 and 2");
             }
 
-            bool operator()(const Triangle& t1, const Triangle& t2) const {
-                return t1.gravity().get(dim) < t2.gravity().get(dim);
+            ~KdTreeNode()
+            {
+                delete[] triangles;
             }
         };
 
-        static const int _maxNodeSize = 5;
+        static const int _maxNodeSize = 2;
         KdTreeNode* _root;          // tree root
         unsigned int* _numCopies;   // # of tree copies
 
@@ -73,17 +56,14 @@ namespace spica {
         KdTreeAccel& operator=(const KdTreeAccel& kdtree);
         
         void construct(const std::vector<Triangle>& triangles);
-
-        inline bool empty() const { return _root == 0; }
-
-        inline KdTreeNode* root() const { return _root; }
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
 
     private:
         void release();
         void deleteNode(KdTreeNode* node);
         KdTreeNode* constructRec(std::vector<Triangle>& triangles, int dim);
 
-        static BBox enclosingBox(const std::vector<Triangle>& triangles);
+        static bool intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax);
     };
 
 }

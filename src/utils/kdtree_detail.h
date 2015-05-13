@@ -1,6 +1,9 @@
 #ifndef _SPICA_KDTREE_DETAIL_H_
 #define _SPICA_KDTREE_DETAIL_H_
 
+#include <cmath>
+#include <algorithm>
+
 namespace spica {
 
     template <class Ty>

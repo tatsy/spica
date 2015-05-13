@@ -38,7 +38,8 @@ if (${BUILD_TEST} STREQUAL "ON")
       test_ray.cc
       test_sampler.cc
       test_trimesh.cc
-      test_kdtree.cc)
+      test_kdtree.cc
+      test_renderer.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARY})

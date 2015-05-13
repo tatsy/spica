@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "camera.h"
+#include "renderer_helper.h"
 #include "../utils/common.h"
 #include "../utils/sampler.h"
 
@@ -93,42 +93,6 @@ namespace spica {
         }
 
         // --------------------------------------------------
-        // Specular reflectance model
-        // --------------------------------------------------
-        Vector3 reflectionVec(const Vector3& v, const Vector3& n) {
-            return (v - n * 2.0 * n.dot(v)).normalized();
-        }
-
-        bool isTotalReflection(const bool isIncoming, const Vector3& position, const Vector3& in, const Vector3& normal, const Vector3& orientNormal,
-                               Vector3& reflectDir, Vector3& refractDir, double& fresnelRef, double& fresnelTransmit) {
-            reflectDir = reflectionVec(in, normal);
-
-            // Snell's rule
-            const double nnt = isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM;
-            const double ddn = in.dot(orientNormal);
-            const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
-
-            if (cos2t < 0.0) {  // Total reflection
-                refractDir = Vector3();
-                fresnelRef = 1.0;
-                fresnelTransmit = 0.0;
-                return true;
-            }
-
-            refractDir = (in * nnt - normal * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
-
-            const double a = IOR_OBJECT - IOR_VACCUM;
-            const double b = IOR_OBJECT + IOR_VACCUM;
-            const double R0 = (a * a) / (b * b);
-
-            const double c = 1.0 - (isIncoming ? -ddn : refractDir.dot(-orientNormal));
-            fresnelRef = R0 + (1.0 - R0) * pow(c, 5.0);
-            fresnelTransmit = 1.0 - fresnelRef;
-
-            return false;
-        }
-
-        // --------------------------------------------------
         // Multiple importance sampling
         // --------------------------------------------------
 
@@ -174,8 +138,9 @@ namespace spica {
                         Vector3 refractDir;
                         double fresnelRef;
                         double fresnelTransmit;
-                        if (isTotalReflection(isIncoming, fromVert.position, intoFromVertexDir, fromVert.objectNormal, fromNewOrientNormal,
-                                              reflectDir, refractDir, fresnelRef, fresnelTransmit)) {
+                        
+                        if (helper::isTotalRef(isIncoming, fromVert.position, intoFromVertexDir, fromVert.objectNormal, fromNewOrientNormal,
+                                              &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
                             pdf = 1.0;
                         } else {
                             pdf = fromNewOrientNormal.dot(normalizedTo) > 0.0 ? reflectProb : 1.0 - reflectProb;
@@ -344,8 +309,8 @@ namespace spica {
                     Vector3 refractDir;
                     double fresnelRef;
                     double fresnelTransmit;
-                    if (!isTotalReflection(isIncoming, hitpoint.position(), nowRay.direction(), hitpoint.normal(), orientNormal,
-                        reflectDir, refractDir, fresnelRef, fresnelTransmit)) {
+                    if (!helper::isTotalRef(isIncoming, hitpoint.position(), nowRay.direction(), hitpoint.normal(), orientNormal,
+                        &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
 
                         if (rng.randReal() < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
@@ -454,8 +419,8 @@ namespace spica {
                     Vector3 refractDir;
                     double fresnelRef;
                     double fresnelTransmit;
-                    if (!isTotalReflection(isIncoming, hitpoint.position(), nowRay.direction(), hitpoint.normal(), orientNormal,
-                                           reflectDir, refractDir, fresnelRef, fresnelTransmit)) {
+                    if (!helper::isTotalRef(isIncoming, hitpoint.position(), nowRay.direction(), hitpoint.normal(), orientNormal,
+                                           &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
                     
                         if (rng.randReal() < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;

@@ -13,6 +13,7 @@
 
 #include "scene.h"
 #include "camera.h"
+#include "renderer_helper.h"
 
 namespace spica {
     

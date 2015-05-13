@@ -4,7 +4,7 @@
 #if defined(_WIN32) || defined(__WIN32__)
 #define SPICA_PRIMITIVE_DLL __declspec(dllexport)
 #else
-#define SPICA_PRIMITIVE_DLLT
+#define SPICA_PRIMITIVE_DLL
 #endif
 
 #include "../renderer/ray.h"

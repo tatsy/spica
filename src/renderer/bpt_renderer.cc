@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "camera.h"
+#include "../utils/common.h"
 #include "../utils/sampler.h"
 
 namespace spica {
@@ -75,27 +76,6 @@ namespace spica {
 
         double sample_hemisphere_pdf_omega(const Vector3& normal, const Vector3& direction) {
             return std::max(normal.dot(direction), 0.0) / PI;
-        }
-
-        Vector3 sample_hemisphere_cos_term(const Vector3& normal, const Random& rng, double& pdf_omega) {
-            Vector3 w, u, v;
-            w = normal;
-            if (abs(w.x()) > EPS) {
-                u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
-            } else {
-                u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
-            }
-            v = w.cross(u);
-
-            const double r1 = 2.0 * PI * rng.randReal();
-            const double r2 = rng.randReal();
-            const double r2s = sqrt(r2);
-
-            Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
-
-            pdf_omega = sample_hemisphere_pdf_omega(normal, nextDir);
-
-            return nextDir;
         }
 
         double sample_sphere_pdf_A(const double R) {
@@ -236,9 +216,7 @@ namespace spica {
                 pi1pi[i] = a / b;
             }
 
-            // tempObj = scene.getObjectPtr(verts[k]->objectId);
-            // rouletteProb = tempObj->emission().norm() > 1.0 ? 1.0 : std::max(tempObj->color().x(), std::max(tempObj->color().y(), tempObj->color().z()));
-            pi1pi[k] = 0.0; //(calcPdfA(scene, camera, verts, k - 2, k - 1, k) * rouletteProb) / PAx0;
+            pi1pi[k] = 0.0;
 
             // require p
             std::vector<double> p(nEyeVerts + nLightVerts + 1);
@@ -286,8 +264,9 @@ namespace spica {
 
             Color throughputMC = scene.getMaterial(lightId).emission;
 
-            double nowSampledPdfOmega;
-            const Vector3 nextDir = sample_hemisphere_cos_term(normalOnLight, rng, nowSampledPdfOmega);
+            Vector3 nextDir;
+            sampler::onHemisphere(normalOnLight, &nextDir);
+            double nowSampledPdfOmega = sample_hemisphere_pdf_omega(normalOnLight, nextDir);
 
             Ray nowRay(positionOnLight, nextDir);
             Vector3 prevNormal = normalOnLight;
@@ -348,7 +327,8 @@ namespace spica {
                                           totalPdfA, throughputMC));
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
-                    const Vector3 nextDir = sample_hemisphere_cos_term(orientNormal, rng, nowSampledPdfOmega);
+                    sampler::onHemisphere(orientNormal, &nextDir);
+                    nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughputMC = mtrl.color.cwiseMultiply(throughputMC) / PI;
 
@@ -455,7 +435,9 @@ namespace spica {
                                           totalPdfA, throughputMC));
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
-                    const Vector3 nextDir = sample_hemisphere_cos_term(orientNormal, rng, nowSampledPdfOmega);
+                    Vector3 nextDir;
+                    sampler::onHemisphere(orientNormal, &nextDir);
+                    nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughputMC = mtrl.color.cwiseMultiply(throughputMC) / PI;
 
@@ -653,14 +635,23 @@ namespace spica {
     int BPTRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
-        Image image(width, height);
+        
+        Image* buffer = new Image[OMP_NUM_CORE];
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            buffer[i] = Image(width, height);
+        }
 
-        for (int it = 0; it < samplePerPixel; it++) {
+        int proc = 0;
+        ompfor (int it = 0; it < samplePerPixel; it++) {
+            const int threadID = it % OMP_NUM_CORE;
             for (int y = 0; y < height; y++) {
-                
-                if (y % 10 == 0) {
-                    double ratio = 100.0 * (it * height + y) / (samplePerPixel * height); 
-                    printf("%6.2f %% processed ...\n", ratio);
+
+                omplock {
+                    proc++;
+                    if (y % 10 == 0) {
+                        double ratio = 100.0 * proc / (samplePerPixel * height);
+                        printf("%6.2f %% processed ...\n", ratio);
+                    }
                 }
 
                 for (int x = 0; x < width; x++) {
@@ -671,12 +662,11 @@ namespace spica {
                         const int iy = bptResult.samples[i].imageY;
                         if (isValidValue(bptResult.samples[i].value)) {
                             if (bptResult.samples[i].startFromPixel) {
-                                image.pixel(ix, iy) += bptResult.samples[i].value;     
+                                buffer[threadID].pixel(ix, iy) += bptResult.samples[i].value;     
                             } else {
-                                image.pixel(ix, iy) += bptResult.samples[i].value / ((double)width * height);
+                                buffer[threadID].pixel(ix, iy) += bptResult.samples[i].value / ((double)width * height);
                             }
                         }
-
                     }
                 }
             }
@@ -685,9 +675,12 @@ namespace spica {
         Image output(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                output.pixel(x, y) = image.pixel(width - x - 1, y) / samplePerPixel;
+                for (int it = 0; it < OMP_NUM_CORE; it++) {
+                    output.pixel(x, y) += buffer[it].pixel(width - x - 1, y) / samplePerPixel;
+                }
             }
         }
+        delete[] buffer;
 
         output.savePPM("simplebpt.ppm");
         return 0;

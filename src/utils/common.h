@@ -46,9 +46,11 @@ static const double EPS = 1.0e-6;
 #include <omp.h>
 #define ompfor __pragma(omp parallel for) for
 #define omplock __pragma(omp critical)
+const int OMP_NUM_CORE = omp_get_num_threads();
 #else  // _OPENMP
 #define ompfor for
 #define omplock
+const int OMP_NUM_CORE = 1;
 #endif  // _OPENMP
 
 // ----------------------------------------------------------------------------

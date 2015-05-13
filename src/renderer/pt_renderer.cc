@@ -43,8 +43,7 @@ namespace spica {
                 image.pixel(width - x - 1, y) = executePT(scene, camera, x, y, rng, samplePerPixel);
             }
 
-            omplock
-            {
+            omplock {
                 processed++;
                 printf("%6.2f %% processed...\n", 100.0 * processed / height);
             }

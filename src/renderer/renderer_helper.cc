@@ -1,6 +1,8 @@
 #define SPICA_RENDERER_HELPER_EXPORT
 #include "renderer_helper.h"
 
+#include <cmath>
+
 namespace spica {
 
     namespace helper {

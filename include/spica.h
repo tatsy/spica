@@ -19,6 +19,7 @@
 #include "../src/renderer/pt_renderer.h"
 #include "../src/renderer/bpt_renderer.h"
 #include "../src/renderer/mlt_renderer.h"
+#include "../src/renderer/photon_mapping.h"
 
 // --------------------------------------------
 // Scenes

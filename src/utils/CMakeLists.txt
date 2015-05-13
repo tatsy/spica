@@ -20,4 +20,7 @@ set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/image.h
     ${CMAKE_CURRENT_LIST_DIR}/sampler.h
     ${CMAKE_CURRENT_LIST_DIR}/timer.h
+    ${CMAKE_CURRENT_LIST_DIR}/axis_comparable.h
+    ${CMAKE_CURRENT_LIST_DIR}/kdtree.h
+    ${CMAKE_CURRENT_LIST_DIR}/kdtree_detail.h
     PARENT_SCOPE)

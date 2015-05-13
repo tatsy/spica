@@ -10,5 +10,6 @@ endfunction()
 generate_example(simplept)
 generate_example(simplebpt)
 generate_example(simplemlt)
+generate_example(photonmap)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})

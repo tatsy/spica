@@ -25,7 +25,7 @@ struct Pair {
 };
 
 TEST(KdTreeTest, KNNTest) {
-    const int numSample = 100;
+    const int numSample = 1000;
     Random rng = Random::getRNG();
     std::vector<Vector3> points;
     for (int i = 0; i < numSample; i++) {
@@ -41,15 +41,18 @@ TEST(KdTreeTest, KNNTest) {
     Vector3 query;
     std::vector<Vector3> results;
     const int K = 10;
-    const int eps = 0.5;
-    kdtree.knnSearch(query, KnnQuery(K_NEAREST | EPSILON_BALL, 0.5, 10), &results);
-    EXPECT_LE(results.size(), K);
+    const int eps = 2.0;
+    kdtree.knnSearch(query, KnnQuery(K_NEAREST | EPSILON_BALL, eps, K), &results);
 
     std::vector<Pair> expected;
     std::vector<Pair> actual;
+    int cnt = 0;
     for (int i = 0; i< numSample; i++) {
         double dist = (points[i] - query).norm();
         expected.push_back(Pair(dist, points[i]));
+        if (dist <= eps) {
+            cnt++;
+        }
     }
 
     for (int i = 0; i < results.size(); i++) {
@@ -58,7 +61,13 @@ TEST(KdTreeTest, KNNTest) {
         EXPECT_LE(dist, eps);
     }
 
+    std::sort(expected.begin(), expected.end());
+    std::sort(actual.begin(), actual.end());
+
+    cnt = std::min(cnt, K);
+    EXPECT_EQ(cnt, results.size());
     for (int i = 0; i < results.size(); i++) {
-        EXPECT_EQ_VEC(expected[i].v, actual[i].v);
+        EXPECT_EQ(expected[i].d, actual[i].d);
+        // EXPECT_EQ_VEC(expected[i].v, actual[i].v);
     }
 }

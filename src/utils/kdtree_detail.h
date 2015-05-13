@@ -70,7 +70,7 @@ namespace spica {
         KdTreeNode* node = new KdTreeNode();
         node->axis = dim;
         node->point = points[mid];
-        node->left = constructRec(points, startID, mid - 1, (dim + 1) % 3);
+        node->left = constructRec(points, startID, mid, (dim + 1) % 3);
         node->right = constructRec(points, mid + 1, endID, (dim + 1) % 3);
         return node;
     }

@@ -15,37 +15,26 @@ namespace spica {
         // --------------------------------------------------
         // Structs for storing path/light tracing results
         // --------------------------------------------------
+        enum HitObjectType {
+            HIT_ON_LIGHT,
+            HIT_ON_LENS,
+            HIT_ON_OBJECT
+        };
 
-        struct LightTracingResult {
+        struct TraceResult {
             Color value;
             int imageX;
             int imageY;
-            bool isLensHit;
+            HitObjectType hitObjType;
 
-            LightTracingResult(const Color& value_, const int imageX_, const int imageY_, const bool isLensHit_)
+            TraceResult(const Color& value_, const int imageX_, const int imageY_, HitObjectType hitObjType_)
                 : value(value_)
                 , imageX(imageX_)
                 , imageY(imageY_)
-                , isLensHit(isLensHit_)
+                , hitObjType(hitObjType_)
             {
             }
         };
-
-        struct PathTracingResult {
-            Color value;
-            int imageX;
-            int imageY;
-            bool isLightHit;
-
-            PathTracingResult(const Color& value_, const int imageX_, const int imageY_, const bool isLightHit_)
-                : value(value_)
-                , imageX(imageX_)
-                , imageY(imageY_)
-                , isLightHit(isLightHit_)
-            {
-            }
-        };
-
 
         /* Struct for storing traced vertices
          */
@@ -282,7 +271,7 @@ namespace spica {
         // Light and path tracer
         // --------------------------------------------------
 
-        LightTracingResult executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
+        TraceResult executeLightTracing(const Scene& scene, const Camera& camera, const Random& rng, std::vector<Vertex>& vertices) {
             // Generate sample on the light
             const int lightId = scene.lightID();
             const Primitive* light = scene.get(lightId);
@@ -328,7 +317,7 @@ namespace spica {
                     vertices.push_back(Vertex(positionOnLens, camera.direction().normalized(), camera.direction().normalized(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
                 
                     const Color result = (camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfA;
-                    return LightTracingResult(result, x, y, true);
+                    return TraceResult(result, x, y, HIT_ON_LENS);
                 }
 
                 if (!isHitScene) {
@@ -400,10 +389,10 @@ namespace spica {
                 prevNormal = orientNormal;
             }
 
-            return LightTracingResult(Color(), 0, 0, false);
+            return TraceResult(Color(), 0, 0, HIT_ON_OBJECT);
         }
 
-        PathTracingResult executePathTracing(const Scene& scene, const Camera& camera, int x, int y, const Random& rng, std::vector<Vertex>& vertices) {
+        TraceResult executePathTracing(const Scene& scene, const Camera& camera, int x, int y, const Random& rng, std::vector<Vertex>& vertices) {
             Vector3 positionOnSensor, positionOnObjplane, positionOnLens;
 
             double PImage, PLens;
@@ -458,7 +447,7 @@ namespace spica {
                 if (mtrl.emission.norm() > 0.0) {
                     vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughputMC));
                     const Color result = throughputMC.cwiseMultiply(mtrl.emission) / totalPdfA;
-                    return PathTracingResult(result, x, y, true);
+                    return TraceResult(result, x, y, HIT_ON_LIGHT);
                 }
 
                 vertices.push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(),
@@ -507,7 +496,7 @@ namespace spica {
                 prevNormal = orientNormal;
             }
 
-            return PathTracingResult(Color(), 0, 0, false);
+            return TraceResult(Color(), 0, 0, HIT_ON_OBJECT);
         }
 
         struct Sample {
@@ -533,16 +522,16 @@ namespace spica {
             BPTResult bptResult;
 
             std::vector<Vertex> eyeVerts, lightVerts;
-            const PathTracingResult ptResult = executePathTracing(scene, camera, x, y, rng, eyeVerts);
-            const LightTracingResult ltResult = executeLightTracing(scene, camera, rng, lightVerts);
+            const TraceResult ptResult = executePathTracing(scene, camera, x, y, rng, eyeVerts);
+            const TraceResult ltResult = executeLightTracing(scene, camera, rng, lightVerts);
 
-            if (ptResult.isLightHit) {
+            if (ptResult.hitObjType == HIT_ON_LIGHT) {
                 const double weightMIS = calcMISWeight(scene, camera, eyeVerts[eyeVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, (const int)eyeVerts.size(), 0);
                 const Color result = weightMIS * ptResult.value;
                 bptResult.samples.push_back(Sample(x, y, result, true));
             }
 
-            if (ltResult.isLensHit) {
+            if (ltResult.hitObjType == HIT_ON_LENS) {
                 const double weightMIS = calcMISWeight(scene, camera, lightVerts[lightVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, 0, (const int)lightVerts.size());
                 const int lx = ltResult.imageX;
                 const int ly = ltResult.imageY;
@@ -714,9 +703,9 @@ namespace spica {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     std::vector<Vertex> vertices;
-                    const PathTracingResult result = executePathTracing(scene, camera, x, y, rng, vertices);
+                    const TraceResult result = executePathTracing(scene, camera, x, y, rng, vertices);
 
-                    if (result.isLightHit) {
+                    if (result.hitObjType == HIT_ON_LIGHT) {
                         if (isValidValue(result.value)) {
                             image.pixel(x, y) += result.value;
                         }
@@ -745,9 +734,9 @@ namespace spica {
 
         for (int sample = 0; sample < spp; sample++) {
             std::vector<Vertex> vertices;
-            LightTracingResult result = executeLightTracing(scene, camera, rng, vertices);
+            TraceResult result = executeLightTracing(scene, camera, rng, vertices);
 
-            if (result.isLensHit) {
+            if (result.hitObjType == HIT_ON_LENS) {
                 if (isValidValue(result.value)) {
                     int x = result.imageX;
                     int y = result.imageY;

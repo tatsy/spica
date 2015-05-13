@@ -1,4 +1,4 @@
-#define SPICA_PHOTNO_MAPPING_EXPORT
+#define SPICA_PHOTON_MAPPING_EXPORT
 #include "photon_mapping.h"
 
 #include <algorithm>
@@ -11,24 +11,25 @@ namespace spica {
     // Photon map
     // --------------------------------------------------
     Photon::Photon()
-        : _position()
+        : Vector3()
         , _flux()
         , _direction()
     {
     }
 
     Photon::Photon(const Vector3& position, const Color& flux, const Vector3& direction)
-        : _position(position)
+        : Vector3(position)
         , _flux(flux)
         , _direction(direction)
     {
     }
 
     Photon::Photon(const Photon& photon)
-        : _position(photon._position)
-        , _flux(photon._flux)
-        , _direction(photon._direction)
+        : Vector3()
+        , _flux()
+        , _direction()
     {
+        operator=(photon);
     }
 
     Photon::~Photon()
@@ -36,14 +37,10 @@ namespace spica {
     }
 
     Photon& Photon::operator=(const Photon& photon) {
-        this->_position  = photon._position;
+        Vector3::operator=(photon);
         this->_flux      = photon._flux;
         this->_direction = photon._direction;
         return *this;
-    }
-
-    Photon::PhotonComparator Photon::compare(int dim) {
-        return PhotonComparator(dim);
     }
 
     // --------------------------------------------------

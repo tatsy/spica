@@ -13,9 +13,11 @@
 
 #include <iostream>
 
+#include "axis_comparable.h"
+
 namespace spica {
 
-    class SPICA_VECTOR3_DLL Vector3 {
+    class SPICA_VECTOR3_DLL Vector3 : public AxisComparable {
     protected:
         double _x, _y, _z;
 

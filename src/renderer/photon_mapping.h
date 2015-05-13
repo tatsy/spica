@@ -13,6 +13,7 @@
 
 #include "../utils/uncopyable.h"
 #include "../utils/vector3.h"
+#include "../utils/axis_comparable.h"
 #include "../utils/kdtree.h"
 #include "../renderer/material.h"
 #include "../renderer/scene.h"
@@ -20,9 +21,8 @@
 
 namespace spica {
 
-    class Photon {
+    class Photon : public Vector3 {
     private:
-        Vector3 _position;
         Color _flux;
         Vector3 _direction;
 
@@ -34,23 +34,8 @@ namespace spica {
 
         Photon& operator=(const Photon& photon);
 
-        inline Vector3 position()  const { return _position; }
         inline Color   flux()      const { return _flux; }
         inline Vector3 direction() const { return _direction; }
-
-        struct PhotonComparator {
-            int dim;
-            explicit PhotonComparator(int d = 0)
-                : dim(d)
-            {
-            }
-
-            bool operator()(const Photon& p1, const Photon& p2) const {
-                return p1.position().get(dim) < p2.position().get(dim);
-            }
-        };
-
-        static PhotonComparator compare(int dim);
     };
 
     class PhotonMap : public Uncopyable {

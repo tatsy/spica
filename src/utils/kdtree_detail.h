@@ -79,6 +79,8 @@ namespace spica {
     void KdTree<Ty>::knnSearch(const Ty& point, const KnnQuery& query, std::vector<Ty>* results) const {
         PriorityQueue que; 
         KnnQuery qq = query;
+        if ((qq.type & EPSILON_BALL) == 0) qq.epsilon = INFTY;
+
         knnSearchRec(_root, point, qq, &que);
 
         while (!que.empty()) {
@@ -99,9 +101,7 @@ namespace spica {
             if ((query.type & K_NEAREST) != 0 && results->size() > query.k) {
                 results->pop();
 
-                if ((query.type & EPSILON_BALL) == 0) {
-                    query.epsilon = dist;
-                }
+                query.epsilon = (results->top().t - point).norm();
             }
         }
 

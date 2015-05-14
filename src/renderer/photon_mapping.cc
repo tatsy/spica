@@ -91,7 +91,7 @@ namespace spica {
         return *this;
     }
 
-    int PMRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel) {
+    int PMRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numTargetPhotons, const double targetRadius) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         Image image(width, height);
@@ -100,7 +100,7 @@ namespace spica {
         for (int i = 0; i < samplePerPixel; i++) {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    image.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng) / samplePerPixel;
+                    image.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng, numTargetPhotons, targetRadius) / samplePerPixel;
                 }
 
                 proc += 1;
@@ -111,7 +111,7 @@ namespace spica {
         return 0;
     }
 
-    Color PMRenderer::executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng) const {
+    Color PMRenderer::executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng, const int numTargetPhotons, const double targetRadius) const {
         Vector3 posOnSensor;
         Vector3 posOnObjplane;
         Vector3 posOnLens;
@@ -119,7 +119,7 @@ namespace spica {
 
         camera.samplePoints(pixelX, pixelY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
         const Ray ray(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
-        return radiance(scene, ray, rng, 10, 10.0, 0) / (pImage * pLens);
+        return radiance(scene, ray, rng, numTargetPhotons, targetRadius, 0) / (pImage * pLens);
     }
 
     Color PMRenderer::radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {

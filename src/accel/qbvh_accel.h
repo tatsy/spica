@@ -64,8 +64,6 @@ namespace spica {
         void deleteNode(QBVHNode* node);
         
         QBVHNode* constructRec(std::vector<Triangle>& triangles, int dim);
-
-        static void splitVector(const std::vector<Triangle>& triangles, int dim, std::vector<Triangle>* left, std::vector<Triangle>* right);
     };
 
 }

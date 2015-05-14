@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
 
     const int width = argc >= 2 ? atoi(argv[1]) : 640;
     const int height = argc >= 3 ? atoi(argv[2]) : 480;
-    const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 16;
+    const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 128;
 
     std::cout << "      width: " << width << std::endl;
     std::cout << "     height: " << height << std::endl;

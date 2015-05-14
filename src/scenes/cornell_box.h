@@ -14,7 +14,7 @@ namespace spica {
         Vector3 l01(-5.0, 9.99,  5.0);
         Vector3 l10( 5.0, 9.99, -5.0);
         Vector3 l11( 5.0, 9.99,  5.0);
-        scene.add(Quad(l00, l10, l11, l01), Material(Color(20.0, 20.0, 20.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
+        scene.add(Quad(l00, l10, l11, l01), Material(Color(32.0, 32.0, 32.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
 
         Vector3 v000(-10.0, -10.0, -10.0);
         Vector3 v100( 10.0, -10.0, -10.0);

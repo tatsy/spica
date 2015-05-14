@@ -178,24 +178,25 @@ namespace spica {
         } else if (mtrl.reftype == REFLECTION_REFRACTION) {
             bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
             Vector3 reflectDir, refractDir;
-            double fresnelRef, fresnelTransmit;
-            if (helper::isTotalRef(isIncoming, hitpoint.position(), ray.direction(), hitpoint.normal(), orientNormal, &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
+            double fresnelRe, fresnelTr;
+            if (helper::isTotalRef(isIncoming, hitpoint.position(), ray.direction(), hitpoint.normal(), orientNormal, &reflectDir, &refractDir, &fresnelRe, &fresnelTr)) {
                 // Total reflection
                 Ray nextRay = Ray(hitpoint.position(), reflectDir);
                 Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
                 return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) / roulette;
             } else {
                 // Reflect or reflact
-                if (rng.randReal() < REFLECT_PROBABLITY) {
+                const double probRef = 0.25 + REFLECT_PROBABLITY * fresnelRe;
+                if (rng.randReal() < probRef) {
                     // Reflect
                     Ray nextRay = Ray(hitpoint.position(), reflectDir);
                     Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                    return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) / (REFLECT_PROBABLITY * roulette);
+                    return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelRe / (probRef * roulette));
                 } else {
                     // Refract
                     Ray nextRay = Ray(hitpoint.position(), refractDir);
                     Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                    return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) / ((1.0 - REFLECT_PROBABLITY) * roulette);
+                    return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelTr / ((1.0 - probRef) * roulette));
                 }
             }
         }
@@ -301,8 +302,7 @@ namespace spica {
                         // Reflection
                         currentRay = reflectRay;
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color);
-                    }
-                    else {
+                    } else {
                         // Reflaction
                         currentRay = Ray(hitpoint.position(), reflactDir);
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color);

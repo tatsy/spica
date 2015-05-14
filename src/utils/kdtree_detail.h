@@ -76,7 +76,7 @@ namespace spica {
     }
 
     template <class Ty>
-    void KdTree<Ty>::knnSearch(const Ty& point, const KnnQuery& query, std::vector<Ty>* results) {
+    void KdTree<Ty>::knnSearch(const Ty& point, const KnnQuery& query, std::vector<Ty>* results) const {
         PriorityQueue que; 
         KnnQuery qq = query;
         knnSearchRec(_root, point, qq, &que);
@@ -88,7 +88,7 @@ namespace spica {
     }
 
     template <class Ty>
-    void KdTree<Ty>::knnSearchRec(typename KdTree<Ty>::KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) {
+    void KdTree<Ty>::knnSearchRec(typename KdTree<Ty>::KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const {
         if (node == NULL) {
             return;
         }

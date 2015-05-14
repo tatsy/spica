@@ -160,7 +160,7 @@ namespace spica {
             std::vector<double> pi1pi(nEyeVerts + nLightVerts);
             const Primitive* light = scene.get(scene.lightID());
             const double PAy0 = 1.0 / light->area();
-            const double PAx0 = camera.samplingPdfOnLens();
+            const double PAx0 = 1.0 / camera.lensArea();
 
             const int k = nEyeVerts + nLightVerts - 1;
             for (int i = 0; i < nLightVerts; i++) {

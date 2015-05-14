@@ -96,10 +96,6 @@ namespace spica {
         return PImage * ratio * ratio * lengthRatio * dirRatio;
     }
 
-    double Camera::samplingPdfOnLens() const {
-        return 1.0 / lens_.area();
-    }
-
     double plane_intersection(const Vector3& normal, const Vector3& pos, const Ray& ray) {
         const double pn = pos.dot(normal);
         const double on = ray.origin().dot(normal);
@@ -166,7 +162,7 @@ namespace spica {
         positionOnLens = lens_.center + (uOnLens * lens_.radius) * lens_.unitU + (vOnLens * lens_.radius) * lens_.unitV;
 
         PImage = 1.0 / (sensor_.cellW * sensor_.cellH);
-        PLens = samplingPdfOnLens();
+        PLens  = 1.0 / lens_.area();
     }
 
 }

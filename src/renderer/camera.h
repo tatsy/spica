@@ -109,8 +109,6 @@ namespace spica {
 
         double PImageToPAx1(const double PImage, const Vector3& x0xV, const Vector3& x0x1, const Vector3& orientNormal) const;
 
-        double samplingPdfOnLens() const;
-
         /* Return distance to the intersecting point on the lens
          * @param[in] ray: a ray casted to lens
          * @param[out] positionOnLens: hit point on lens
@@ -143,6 +141,7 @@ namespace spica {
         inline Vector3 lensCenter() const { return lens_.center; }
         inline Vector3 lensNormal() const { return lens_.normal; }
         inline double  lensRadius() const { return lens_.radius; }
+        inline double  lensArea()   const { return lens_.area(); }
         inline double  focalLength() const { return lens_.focalLength; }
 
         inline Vector3 objplaneCenter() const { return objplane_.center; }

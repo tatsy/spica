@@ -306,7 +306,7 @@ namespace spica {
             Vector3 posOnLens = camera.lensCenter() 
                               + camera.lensRadius() * camera.lensU() * rx 
                               + camera.lensRadius() * camera.lensV() * ry;
-            weight *= camera.samplingPdfOnLens();
+            weight *= 1.0 / camera.lensArea();
 
             const Ray ray = Ray(posOnLens, (posOnOP - posOnLens).normalized());
             Color c = radiance(scene, ray, 0, maxDepth, mlt);

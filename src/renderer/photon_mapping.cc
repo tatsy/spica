@@ -116,10 +116,14 @@ namespace spica {
         Vector3 posOnObjplane;
         Vector3 posOnLens;
         double pImage, pLens;
-
         camera.samplePoints(pixelX, pixelY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
+        
+        Vector3 lens2sensor = posOnSensor - posOnLens;
+        const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
+        const double weight = cosine * cosine / lens2sensor.squaredNorm();
+
         const Ray ray(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
-        return radiance(scene, ray, rng, numTargetPhotons, targetRadius, 0) / (pImage * pLens);
+        return radiance(scene, ray, rng, numTargetPhotons, targetRadius, 0) * (weight * camera.sensitivity() / (pImage * pLens));
     }
 
     Color PMRenderer::radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {

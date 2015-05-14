@@ -6,6 +6,7 @@
 #include <vector>
 #include <stack>
 
+#include "renderer_helper.h"
 #include "../utils/sampler.h"
 
 namespace spica {
@@ -160,21 +161,9 @@ namespace spica {
                         direct_light = direct_light + direct_radiance_sample(scene, hitpoint.position(), orient_normal, intersection.objectId(), mlt) / shadow_ray;
                     }
 
-                    Vector3 w, u, v;
-                    w = orient_normal;
-                    if (abs(w.x()) > EPS) {
-                        u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
-                    } else {
-                        u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
-                    }
-                    v = w.cross(u);
-
-                    const double r1 = 2.0 * PI * mlt.nextSample();
-                    const double r2 = mlt.nextSample();
-                    const double r2s = sqrt(r2);
-                    Vector3 next_dir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
-
-                    const Color next_bounce_color = radiance(scene, Ray(hitpoint.position(), next_dir), depth + 1, maxDepth, mlt);
+                    Vector3 nextDir;
+                    sampler::onHemisphere(orient_normal, &nextDir);
+                    const Color next_bounce_color = radiance(scene, Ray(hitpoint.position(), nextDir), depth + 1, maxDepth, mlt);
                     return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
                 } else if (depth == 0) {
                     return mtrl.emission;
@@ -201,32 +190,17 @@ namespace spica {
                     direct_light = scene.getMaterial(scene.lightID()).emission;
                 }
 
-                bool is_incoming = hitpoint.normal().dot(orient_normal) > 0.0;
+                bool isIncoming = hitpoint.normal().dot(orient_normal) > 0.0;
 
-                // Snell
-                const double nc = 1.0;
-                const double nt = 1.5;
-                const double nnt = is_incoming ? nc / nt : nt / nc;
-                const double ddn = ray.direction().dot(orient_normal);
-                const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
-
-                if (cos2t < 0.0) {  // Total reflection
+                Vector3 reflectDir, refractDir;
+                double fresnelRe, fresnelTr;
+                if (helper::isTotalRef(isIncoming, hitpoint.position(), ray.direction(), hitpoint.normal(), orient_normal, &reflectDir, &refractDir, &fresnelRe, &fresnelTr)) {
+                    // Total reflection
                     const Color next_bounce_color = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
                     return (direct_light + obj_color.cwiseMultiply(next_bounce_color)) / roulette_probability;
                 }
 
-                Vector3 tdir = (ray.direction() * nnt - hitpoint.normal() * (is_incoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
-
-                // Schlick
-                const double a = nt - nc;
-                const double b = nt + nc;
-                const double R0 = (a * a) / (b * b);
-                const double c = 1.0 - (is_incoming ? -ddn : tdir.dot(hitpoint.normal()));
-                const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
-                const double Tr = 1.0 - Re;
-                const double probability = 0.25 + 0.5 * Re;
-
-                Ray refraction_ray = Ray(hitpoint.position(), tdir);
+                Ray refraction_ray = Ray(hitpoint.position(), refractDir);
                 Intersection light_intersect_refract;
                 scene.intersect(reflection_ray, light_intersect_refract);
                 Vector3 direct_light_refraction;
@@ -234,18 +208,21 @@ namespace spica {
                     direct_light_refraction = scene.getMaterial(scene.lightID()).emission;
                 }
 
+                const double probability = 0.25 + 0.5 * fresnelRe;
+
                 if (depth > 2) {
                     if (mlt.nextSample() < probability) {
                         const Color next_bounce_color = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
-                        return obj_color.cwiseMultiply(direct_light + Re * next_bounce_color) / (probability * roulette_probability);
+                        return obj_color.cwiseMultiply(fresnelRe * (direct_light + next_bounce_color)) / (probability * roulette_probability);
                     } else {
                         const Color next_bounce_color = radiance(scene, refraction_ray, depth + 1, maxDepth, mlt);
-                        return obj_color.cwiseMultiply(direct_light_refraction + Tr * next_bounce_color) / ((1.0 - probability) * roulette_probability);
+                        return obj_color.cwiseMultiply(fresnelTr * (direct_light_refraction + next_bounce_color)) / ((1.0 - probability) * roulette_probability);
                     }
                 } else {
-                    const Color next_bounce_color_reflect = direct_light + radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
-                    const Color next_bounce_color_refract = direct_light_refraction + radiance(scene, refraction_ray, depth + 1, maxDepth, mlt);
-                    const Color next_bounce_color = Re * next_bounce_color_reflect + Tr * next_bounce_color_refract;
+                    const Color next_bounce_color_reflect = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
+                    const Color next_bounce_color_refract = radiance(scene, refraction_ray, depth + 1, maxDepth, mlt);
+                    const Color next_bounce_color = fresnelRe * (direct_light + next_bounce_color_reflect) 
+                                                  + fresnelTr * (direct_light_refraction + next_bounce_color_refract);
                     return obj_color.cwiseMultiply(next_bounce_color) / roulette_probability;
                 }
             }
@@ -291,6 +268,8 @@ namespace spica {
             // Position on object plane
             const double uOnSensor = static_cast<double>(x) / width - 0.5;
             const double vOnSensor = static_cast<double>(y) / height - 0.5;
+            Vector3 posOnSensor = camera.center() + (uOnSensor * camera.sensorW()) * camera.sensorU() + (vOnSensor * camera.sensorH()) * camera.sensorV();
+
             const double ratio = camera.focalLength() / camera.distSL();
             const double uOnObjplane = -ratio * uOnSensor;
             const double vOnObjplane = -ratio * vOnSensor;
@@ -306,7 +285,15 @@ namespace spica {
             Vector3 posOnLens = camera.lensCenter() 
                               + camera.lensRadius() * camera.lensU() * rx 
                               + camera.lensRadius() * camera.lensV() * ry;
-            weight *= 1.0 / camera.lensArea();
+
+            const double pImage = 1.0 / (camera.cellW() * camera.cellH());
+            const double pLens  = 1.0 / (camera.lensArea());
+
+            Vector3 lens2sensor = posOnSensor - posOnLens;
+            const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
+            const double coeff  = cosine * cosine / lens2sensor.squaredNorm();
+            weight *= (coeff * camera.sensitivity() / (pImage * pLens));
+
 
             const Ray ray = Ray(posOnLens, (posOnOP - posOnLens).normalized());
             Color c = radiance(scene, ray, 0, maxDepth, mlt);

@@ -135,6 +135,9 @@ namespace spica {
         inline double  sensorH()   const { return sensor_.height; }
         inline Vector3 sensorU()   const { return sensor_.unitU; }
         inline Vector3 sensorV()   const { return sensor_.unitV; }
+        inline double  cellW() const { return sensor_.cellW; }
+        inline double  cellH() const { return sensor_.cellH; }
+        inline double  sensitivity() const { return sensor_.sensitivity; }
 
         inline Vector3 lensU() const { return lens_.unitU; }
         inline Vector3 lensV() const { return lens_.unitV; }

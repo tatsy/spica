@@ -6,14 +6,14 @@ if(MSVC)
   endif()
 endif()
 
+set(SOURCES ${SOURCES})
+set(HEADERS ${HEADERS} ../include/spica.h)
+
 add_subdirectory(renderer)
 add_subdirectory(geometry)
 add_subdirectory(utils)
 add_subdirectory(scenes)
 add_subdirectory(accel)
 add_subdirectory(viewer)
-
-set(SOURCES ${SOURCES})
-set(HEADERS ${HEADERS} ../include/spica.h)
 
 add_library(spica_renderer SHARED ${SOURCES} ${HEADERS})

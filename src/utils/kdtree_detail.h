@@ -4,6 +4,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include "common.h"
+
 namespace spica {
 
     template <class Ty>

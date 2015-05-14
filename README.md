@@ -45,6 +45,10 @@ spica
 
 <img src="./results/simplemlt.jpg" width="480" />
 
+#### Photon mapping
+
+<img src="./results/photonmap.jpg" width="480" />
+
 ## License
 
 * MIT license 2015, Tatsuya Yatagawa (tatsy).

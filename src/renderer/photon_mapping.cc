@@ -1,6 +1,8 @@
 #define SPICA_PHOTON_MAPPING_EXPORT
 #include "photon_mapping.h"
 
+#include <cmath>
+#include <cstdio>
 #include <algorithm>
 
 #include "renderer_helper.h"

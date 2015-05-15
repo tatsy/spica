@@ -17,7 +17,7 @@
 #include "scene.h"
 #include "camera.h"
 #include "material.h"
-#include "../utils/random.h"
+#include "../random/random.h"
 
 namespace spica {
 
@@ -34,7 +34,7 @@ namespace spica {
 
     private:
 
-        static Color executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng, const int samplePerPixel);
+        static Color executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng);
 
         static Color radiance(const Scene& scene, const Ray& ray, const Random& rng, const int depth, const int depthLimit = 64, const int maxDepth = 5);
     };

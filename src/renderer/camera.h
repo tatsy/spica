@@ -13,7 +13,7 @@
 
 #include "../geometry/plane.h"
 #include "../utils/image.h"
-#include "../utils/random.h"
+#include "../random/random.h"
 
 namespace spica {
 
@@ -109,8 +109,6 @@ namespace spica {
 
         double PImageToPAx1(const double PImage, const Vector3& x0xV, const Vector3& x0x1, const Vector3& orientNormal) const;
 
-        double samplingPdfOnLens() const;
-
         /* Return distance to the intersecting point on the lens
          * @param[in] ray: a ray casted to lens
          * @param[out] positionOnLens: hit point on lens
@@ -137,12 +135,16 @@ namespace spica {
         inline double  sensorH()   const { return sensor_.height; }
         inline Vector3 sensorU()   const { return sensor_.unitU; }
         inline Vector3 sensorV()   const { return sensor_.unitV; }
+        inline double  cellW() const { return sensor_.cellW; }
+        inline double  cellH() const { return sensor_.cellH; }
+        inline double  sensitivity() const { return sensor_.sensitivity; }
 
         inline Vector3 lensU() const { return lens_.unitU; }
         inline Vector3 lensV() const { return lens_.unitV; }
         inline Vector3 lensCenter() const { return lens_.center; }
         inline Vector3 lensNormal() const { return lens_.normal; }
         inline double  lensRadius() const { return lens_.radius; }
+        inline double  lensArea()   const { return lens_.area(); }
         inline double  focalLength() const { return lens_.focalLength; }
 
         inline Vector3 objplaneCenter() const { return objplane_.center; }

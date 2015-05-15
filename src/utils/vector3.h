@@ -42,6 +42,7 @@ namespace spica {
         static Vector3 cross(const Vector3& v1, const Vector3& v2);
 
         double norm() const;
+        double squaredNorm() const;
 
         Vector3 normalized() const;
         static Vector3 normalize(const Vector3& v);

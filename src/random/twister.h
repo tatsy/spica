@@ -19,37 +19,39 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
 
-#ifndef SPICA_RANDOM_H_
-#define SPICA_RANDOM_H_
+#ifndef _SPICA_TWISTER_H_
+#define _SPICA_TWISTER_H_
+
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef SPICA_TWISTER_EXPORT
+        #define SPICA_TWISTER_DLL __declspec(dllexport)
+    #else
+        #define SPICA_TWISTER_DLL __declspec(dllexport)
+    #endif
+#else
+    #define SPICA_TWISTER_DLL
+#endif
+
+#include "random_base.h"
 
 namespace spica {
 
-/*
- * A singleton class for generating random numbers
- */
-class Random {
- public:
-    static Random& getRNG(int seed = -1);
+    // --------------------------------------------------
+    // Random number generator with Mersenne twister
+    // --------------------------------------------------
+    class SPICA_TWISTER_DLL Twister : public RandomBase {
+    public:
+        explicit Twister(int seed = -1);
 
- private:
-    explicit Random(int seed = -1);
-    Random& operator=(const Random& rand);
+    public:
+        // Generate a random integer from [0, n-1]
+        int nextInt(const int n) const;
 
- public:
-    /* Generate a random integer from [0, n-1]
-        */
-    int randInt(const int n) const;
+        // Generate a floating point random number from [0, 1)
+        double nextReal() const;
 
-    /* Generate a floating point random number from [0, 1)
-        */
-    double randReal() const;
+    };  // class Twister
 
-    /* Genrate a random number from a normal distribution with mean = 0 and STD = 1 */
-    double randNorm() const;
-};  // class Random
+}  // namespace spica
 
-}  // namespace lime
-
-#include "random_detail.h"
-
-#endif  // SPICA_RANDOM_H_ */
+#endif  // _SPICA_TWISTER_H_

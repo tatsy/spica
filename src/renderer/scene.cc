@@ -8,6 +8,7 @@ namespace spica {
     Scene::Scene()
         : _nPrimitives(0)
         , _arraySize(0)
+        , _lightID(-1)
         , _primitives(0)
         , _materials(0)
         , _bgColor(0.0, 0.0, 0.0)

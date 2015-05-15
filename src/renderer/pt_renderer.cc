@@ -40,11 +40,12 @@ namespace spica {
         
         ompfor (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                image.pixel(width - x - 1, y) = executePT(scene, camera, x, y, rng, samplePerPixel);
+                for (int i = 0; i < samplePerPixel; i++) {
+                    image.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng) / samplePerPixel;
+                }
             }
 
-            omplock
-            {
+            omplock {
                 processed++;
                 printf("%6.2f %% processed...\n", 100.0 * processed / height);
             }
@@ -55,19 +56,20 @@ namespace spica {
         return 0;
     }
 
-    Color PTRenderer::executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng, const int samplePerPixel) {
+    Color PTRenderer::executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng) {
         Vector3 posOnSensor;        // Position on the image sensor
         Vector3 posOnObjplane;      // Position on the object plane
         Vector3 posOnLens;          // Position on the lens
         double  pImage, pLens;      // Sampling probability on image sensor and lens
 
-        Color throughput(0.0, 0.0, 0.0);
-        for (int i = 0; i < samplePerPixel; i++) {
-            camera.samplePoints(pixelX, pixelY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
-            const Ray ray(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
-            throughput += radiance(scene, ray, rng, 0) / (pImage * pLens);                    
-        }
-        return throughput / samplePerPixel;
+        camera.samplePoints(pixelX, pixelY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
+        const Ray ray(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
+
+        Vector3 lens2sensor = posOnSensor - posOnLens;
+        const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
+        const double weight = cosine * cosine / lens2sensor.squaredNorm();
+
+        return radiance(scene, ray, rng, 0) * (weight * camera.sensitivity() / (pImage * pLens));
     }
 
     Color PTRenderer::radiance(const Scene& scene, const Ray& ray, const Random& rng, const int depth, const int depthLimit, const int maxDepth) {
@@ -89,7 +91,7 @@ namespace spica {
         }
 
         if (depth > maxDepth) {
-            if (rng.randReal() > roulette) {
+            if (rng.nextReal() > roulette) {
                 return mtrl.emission;
             }
         } else {
@@ -141,7 +143,7 @@ namespace spica {
 
                 const double prob = 0.25 + 0.5 * Re;
                 if (depth > 2) {
-                    if (rng.randReal() < prob) {
+                    if (rng.nextReal() < prob) {
                         incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re;
                         weight = mtrl.color / (prob * roulette);
                     } else {

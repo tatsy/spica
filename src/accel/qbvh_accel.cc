@@ -160,67 +160,6 @@ namespace spica {
         return node;
     }
 
-    void QBVHAccel::splitVector(const std::vector<Triangle>& triangles, int dim, std::vector<Triangle>* left, std::vector<Triangle>* right) {
-
-        const int nTri = (int)triangles.size();
-
-        double lo = INFTY;
-        double hi = -INFTY;
-        for (int i = 0; i < nTri; i++) {
-            for (int k = 0; k < 3; k++) {
-                lo = std::min(lo, triangles[i].p(k).get(dim));
-                hi = std::max(hi, triangles[i].p(k).get(dim));
-            }
-        }
-
-        while (hi - lo > EPS) {
-            double mid = (lo + hi) / 2;
-            int cl = 0;
-            int cr = 0;
-            for (int i = 0; i < nTri; i++) {
-                bool bl = false;
-                bool br = false;
-                for (int k = 0; k < 3; k++) {
-                    if (!bl && triangles[i].p(k).get(dim) <= mid) {
-                        cl++;
-                        bl = true;
-                    }
-
-                    if (!br && triangles[i].p(k).get(dim) >= mid) {
-                        cr++;
-                        br = true;
-                    }
-                }
-            }
-
-            if (std::abs(cl - cr) <= 1) break;
-            else if (cl < cr) {
-                lo = mid;
-            } else {
-                hi = mid;
-            }
-        }
-
-        const double sep = lo;
-        left->clear();
-        right->clear();
-        for (int i = 0; i < nTri; i++) {
-            bool bl = false;
-            bool br = false;                
-            for (int k = 0; k < 3; k++) {
-                if (!bl && triangles[i].p(k).get(dim) <= sep) {
-                    left->push_back(triangles[i]);
-                    bl = true;
-                }
-
-                if (!br && triangles[i].p(k).get(dim) >= sep) {
-                    right->push_back(triangles[i]);
-                    br = true;
-                }
-            }
-        }
-    }
-
     bool QBVHAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
         // ray for SIMD arthimetic
         __m128 simdOrig[3];  // origin

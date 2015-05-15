@@ -2,7 +2,9 @@
 #include "../include/spica.h"
 using namespace spica;
 
-Random rng = Random::getRNG();
+namespace {
+    Random rng = Random();
+}
 
 TEST(ImageTest, InstanceTest) {
     const int width = 320;
@@ -28,7 +30,7 @@ TEST(ImageTest, InstanceTest) {
     Image rand(160, 120);
     for (int y = 0; y < rand.height(); y++) {
         for (int x = 0; x < rand.width(); x++) {
-            rand.pixel(x, y) = Color(rng.randReal(), rng.randReal(), rng.randReal());
+            rand.pixel(x, y) = Color(rng.nextReal(), rng.nextReal(), rng.nextReal());
         }
     }
 

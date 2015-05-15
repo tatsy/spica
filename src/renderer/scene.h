@@ -13,6 +13,7 @@
 
 #include "../utils/common.h"
 #include "../utils/vector3.h"
+#include "../utils/uncopyable.h"
 #include "../geometry/geometry.h"
 
 #include "ray.h"
@@ -20,7 +21,7 @@
 
 namespace spica {
     
-    class SPICA_SCENE_DLL Scene {
+    class SPICA_SCENE_DLL Scene : public Uncopyable {
     private:
         unsigned int _nPrimitives;
         unsigned int _arraySize;

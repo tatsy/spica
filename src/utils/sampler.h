@@ -11,9 +11,9 @@
     #define SPICA_SAMPLER_DLL
 #endif
 
-#include "random.h"
 #include "vector3.h"
 #include "../geometry/geometry.h"
+#include "../random/random.h"
 
 namespace spica {
 

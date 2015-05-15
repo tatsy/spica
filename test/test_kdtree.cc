@@ -26,12 +26,12 @@ struct Pair {
 
 TEST(KdTreeTest, KNNTest) {
     const int numSample = 1000;
-    Random rng = Random::getRNG();
+    Random rng = Random();
     std::vector<Vector3> points;
     for (int i = 0; i < numSample; i++) {
-        double x = rng.randReal() * 10.0 - 5.0;
-        double y = rng.randReal() * 10.0 - 5.0;
-        double z = rng.randReal() * 10.0 - 5.0;
+        double x = rng.nextReal() * 10.0 - 5.0;
+        double y = rng.nextReal() * 10.0 - 5.0;
+        double z = rng.nextReal() * 10.0 - 5.0;
         points.push_back(Vector3(x, y, z));
     }
 
@@ -68,6 +68,6 @@ TEST(KdTreeTest, KNNTest) {
     EXPECT_EQ(cnt, results.size());
     for (int i = 0; i < results.size(); i++) {
         EXPECT_EQ(expected[i].d, actual[i].d);
-        // EXPECT_EQ_VEC(expected[i].v, actual[i].v);
+        EXPECT_EQ_VEC(expected[i].v, actual[i].v);
     }
 }

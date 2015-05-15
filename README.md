@@ -11,10 +11,10 @@ spica
 * Monte-Carlo path tracing
 * Bidirectional path tracing
 * Metropolis light transport (Kelemen style)
+* Photon mapping
 
 #### Future support
 
-* Photon mapping
 * Precomputed radiance transfer
 
 ## Geometry
@@ -44,6 +44,10 @@ spica
 #### Metropolis light transport
 
 <img src="./results/simplemlt.jpg" width="480" />
+
+#### Photon mapping
+
+<img src="./results/photonmap.jpg" width="480" />
 
 ## License
 

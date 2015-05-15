@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <iostream>
 
 #include "../include/spica.h"
@@ -19,12 +20,15 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxBunny(scene, camera, width, height);
+    cornellBox(scene, camera, width, height);
 
     const int numMutate = width * height * samplePerPixel;
-    const int maxDepth  = 7;
-    Random rng = Random::getRNG();
+    const int maxDepth  = 6;
+    Random rng = Random();
 
+    Timer timer;
+    timer.start();
     MLTRenderer renderer;
     renderer.render(scene, camera, rng, numMLT, numMutate, maxDepth);
+    printf("Time: %f\n", timer.stop());
 }

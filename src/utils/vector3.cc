@@ -90,7 +90,11 @@ namespace spica {
     }
 
     double Vector3::norm() const {
-        return sqrt(this->dot(*this));
+        return sqrt(this->squaredNorm());
+    }
+
+    double Vector3::squaredNorm() const {
+        return this->dot(*this);
     }
 
     Vector3 Vector3::normalized() const {

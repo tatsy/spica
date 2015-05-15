@@ -72,7 +72,7 @@ namespace spica {
         KdTree& operator=(const KdTree<Ty>& kdtree);
 
         void construct(const std::vector<Ty>& points);
-        void knnSearch(const Ty& point, const KnnQuery& query, std::vector<Ty>* results);
+        void knnSearch(const Ty& point, const KnnQuery& query, std::vector<Ty>* results) const;
 
         void release();
 
@@ -80,7 +80,7 @@ namespace spica {
         void deleteNode(KdTreeNode* node);
 
         KdTreeNode* constructRec(std::vector<Ty>& points, int startID, int endID, int dim);
-        void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results);
+        void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const;
     };
 }
 

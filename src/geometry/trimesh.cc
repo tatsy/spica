@@ -15,9 +15,9 @@ namespace spica {
     Trimesh::Trimesh()
         : _numVerts(0)
         , _numFaces(0)
-        , _vertices(0)
-        , _faces(0)
-        , _normals(0)
+        , _vertices(NULL)
+        , _faces(NULL)
+        , _normals(NULL)
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
@@ -26,9 +26,9 @@ namespace spica {
     Trimesh::Trimesh(const std::string& filename)
         : _numVerts(0)
         , _numFaces(0)
-        , _vertices(0)
-        , _faces(0)
-        , _normals(0)
+        , _vertices(NULL)
+        , _faces(NULL)
+        , _normals(NULL)
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
@@ -38,9 +38,9 @@ namespace spica {
     Trimesh::Trimesh(const Trimesh& trimesh)
         : _numVerts(0)
         , _numFaces(0)
-        , _vertices(0)
-        , _faces(0)
-        , _normals(0)
+        , _vertices(NULL)
+        , _faces(NULL)
+        , _normals(NULL)
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
@@ -59,6 +59,7 @@ namespace spica {
         delete[] _vertices;
         delete[] _faces;
         delete[] _normals;
+        delete   _accel;
 
         _numVerts = trimesh._numVerts;
         _numFaces = trimesh._numFaces;
@@ -69,7 +70,7 @@ namespace spica {
         _accelType = trimesh._accelType;
         
         memcpy(_vertices, trimesh._vertices, sizeof(Vector3) * _numVerts);
-        memcpy(_faces, trimesh._faces, sizeof(int) * _numFaces * 3);
+        memcpy(_faces, trimesh._faces, sizeof(int) * (_numFaces * 3));
         memcpy(_normals, trimesh._normals, sizeof(Vector3) * _numFaces);
 
         buildAccel();
@@ -79,6 +80,7 @@ namespace spica {
 
     bool Trimesh::intersect(const Ray& ray, Hitpoint* hitpoint) const {
         msg_assert(_accel != NULL, "Accelerator is not constructed");
+        hitpoint->setDistance(INFTY);
         return _accel->intersect(ray, hitpoint);
     }
 

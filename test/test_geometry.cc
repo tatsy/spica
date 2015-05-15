@@ -194,13 +194,13 @@ TEST(QuadTest, RandomIntersection) {
               Vector3(1.0, 1.0, 0.0),
               Vector3(-1.0, 1.0, 0.0));
 
-    Random rng = Random::getRNG();
+    Random rng = Random();
 
     for (int i = 0; i < 100; i++) {
-        double tx = rng.randReal() * 4.0 - 2.0;
-        double ty = rng.randReal() * 4.0 - 2.0;
-        double fx = rng.randReal() * 4.0 - 2.0;
-        double fy = rng.randReal() * 4.0 - 2.0;
+        double tx = rng.nextReal() * 4.0 - 2.0;
+        double ty = rng.nextReal() * 4.0 - 2.0;
+        double fx = rng.nextReal() * 4.0 - 2.0;
+        double fy = rng.nextReal() * 4.0 - 2.0;
         Vector3 from(fx, fy, -1.0);
         Vector3 to(tx, ty, 0.0);
         Vector3 dir = (to - from).normalized();

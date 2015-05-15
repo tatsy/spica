@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     Camera camera;
     cornellBoxBunny(scene, camera, width, height);
 
-    Random rng = Random::getRNG();
+    Random rng = Random();
 
     Timer timer;
     timer.start();

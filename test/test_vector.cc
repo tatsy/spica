@@ -79,7 +79,7 @@ TEST(Vector3Test, AlgebraTest) {
 
 TEST(Vector3Test, MaxMinTest) {
     static const int nTrial = 100;
-    Random rng = Random::getRNG();
+    Random rng = Random();
 
     Vector3 minv(INFTY, INFTY, INFTY);
     double minx = INFTY;
@@ -87,9 +87,9 @@ TEST(Vector3Test, MaxMinTest) {
     double minz = INFTY;
 
     for (int i = 0; i < nTrial; i++) {
-        double x = rng.randReal();
-        double y = rng.randReal();
-        double z = rng.randReal();
+        double x = rng.nextReal();
+        double y = rng.nextReal();
+        double z = rng.nextReal();
         minv = Vector3::minimum(minv, Vector3(x, y, z));
         minx = std::min(minx, x);
         miny = std::min(miny, y);
@@ -106,9 +106,9 @@ TEST(Vector3Test, MaxMinTest) {
     double maxz = -INFTY;
 
     for (int i = 0; i < nTrial; i++) {
-        double x = rng.randReal();
-        double y = rng.randReal();
-        double z = rng.randReal();
+        double x = rng.nextReal();
+        double y = rng.nextReal();
+        double z = rng.nextReal();
         maxv = Vector3::maximum(maxv, Vector3(x, y, z));
         maxx = std::max(maxx, x);
         maxy = std::max(maxy, y);

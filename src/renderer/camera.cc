@@ -1,5 +1,6 @@
 #define SPICA_CAMERA_EXPORT
 #include "camera.h"
+#include "../utils/common.h"
 
 namespace spica {
 
@@ -143,8 +144,8 @@ namespace spica {
     }
 
     void Camera::samplePoints(const int imageX, const int imageY, const Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const {
-        const double uOnPixel = rng.randReal();
-        const double vOnPixel = rng.randReal();
+        const double uOnPixel = rng.nextReal();
+        const double vOnPixel = rng.nextReal();
 
         const double uOnSensor = ((imageX + uOnPixel) / this->width_  - 0.5);
         const double vOnSensor = ((imageY + vOnPixel) / this->height_ - 0.5);
@@ -155,8 +156,8 @@ namespace spica {
         const double vOnObjplane = -ratio * vOnSensor;
         positionOnObjplane = objplane_.center + (uOnObjplane * objplane_.width) * objplane_.unitU + (vOnObjplane * objplane_.height) * objplane_.unitV;
 
-        const double r0 = sqrt(rng.randReal());
-        const double r1 = rng.randReal() * (2.0 * PI);
+        const double r0 = sqrt(rng.nextReal());
+        const double r1 = rng.nextReal() * (2.0 * PI);
         const double uOnLens = r0 * cos(r1);
         const double vOnLens = r0 * sin(r1);
         positionOnLens = lens_.center + (uOnLens * lens_.radius) * lens_.unitU + (vOnLens * lens_.radius) * lens_.unitV;

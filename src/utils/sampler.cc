@@ -7,7 +7,7 @@ namespace spica {
 
     namespace {
         
-        Random rng = Random::getRNG();
+        Random rng = Random();
 
     }  // anonymous namespace
 
@@ -24,16 +24,16 @@ namespace spica {
 
             v = w.cross(u);
 
-            const double r1 = 2.0 * PI * rng.randReal();
-            const double r2 = rng.randReal();
+            const double r1 = 2.0 * PI * rng.nextReal();
+            const double r2 = rng.nextReal();
             const double r2s = sqrt(r2);
             *direction = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
         }
 
         void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal) {
-            double s = 2.0 * rng.randReal() - 1.0;
+            double s = 2.0 * rng.nextReal() - 1.0;
             double c = sqrt(1.0 - s * s);
-            double p = 2.0 * PI * rng.randReal();
+            double p = 2.0 * PI * rng.nextReal();
             double x = c * cos(p);
             double y = c * sin(p);
             double z = s;
@@ -43,8 +43,8 @@ namespace spica {
         }
 
         void onDisk(const Disk& disk, Vector3* position, Vector3* normal) {
-            double r0 = sqrt(rng.randReal());
-            double r1 = rng.randNorm() * (2.0 * PI);
+            double r0 = sqrt(rng.nextReal());
+            double r1 = rng.nextReal() * (2.0 * PI);
             double rx = disk.radius() * r0 * cos(r1);
             double ry = disk.radius() * r0 * sin(r1);
             Vector3 u, v, w;
@@ -63,8 +63,8 @@ namespace spica {
         void onQuad(const Quad& quad, Vector3* position, Vector3* normal) {
             Vector3 e1 = quad.p1() - quad.p0();
             Vector3 e2 = quad.p3() - quad.p0();
-            double r1 = rng.randReal();
-            double r2 = rng.randReal();
+            double r1 = rng.nextReal();
+            double r2 = rng.nextReal();
             
             *position = quad.p0() + r1 * e1 + r2 * e2;
             *normal = quad.normal();

@@ -77,15 +77,15 @@ TEST(TrimeshTest, BunnyIntersection) {
 
 TEST(TrimeshTest, RandomKdTreeIntersection) {
     const int nTrial = 100;
-    Random rng = Random::getRNG();
+    Random rng = Random();
 
     Trimesh trimesh;
     trimesh.load(DATA_DIR + "bunny.ply");
     trimesh.setAccelType(KD_TREE_ACCEL, true);
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3 from  = Vector3(rng.randReal(), rng.randReal(), rng.randReal()) * 20.0 - Vector3(10.0, 10.0, 0.0);
-        Vector3 to    = Vector3(rng.randReal(), rng.randReal(), rng.randReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
+        Vector3 from  = Vector3(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3(10.0, 10.0, 0.0);
+        Vector3 to    = Vector3(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
         Vector3 dir = (to - from).normalized();
         Ray ray(from, dir);
 
@@ -104,15 +104,15 @@ TEST(TrimeshTest, RandomKdTreeIntersection) {
 
 TEST(TrimeshTest, RandomQVBHIntersection) {
     const int nTrial = 100;
-    Random rng = Random::getRNG();
+    Random rng = Random();
 
     Trimesh trimesh;
     trimesh.load(DATA_DIR + "bunny.ply");
     trimesh.setAccelType(QBVH_ACCEL, true);
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3 from  = Vector3(rng.randReal(), rng.randReal(), rng.randReal()) * 20.0 - Vector3(10.0, 10.0, 0.0);
-        Vector3 to    = Vector3(rng.randReal(), rng.randReal(), rng.randReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
+        Vector3 from  = Vector3(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3(10.0, 10.0, 0.0);
+        Vector3 to    = Vector3(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
         Vector3 dir = (to - from).normalized();
         Ray ray(from, dir);
 

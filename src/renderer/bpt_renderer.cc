@@ -83,9 +83,9 @@ namespace spica {
         }
 
         Vector3 sample_sphere(const double R, const Random& rng, double& pdfA) {
-            const double z = rng.randReal() * 2.0 - 1.0;
+            const double z = rng.nextReal() * 2.0 - 1.0;
             const double sz = sqrt(1.0 - z * z);
-            const double phi = 2.0 * PI * rng.randReal();
+            const double phi = 2.0 * PI * rng.nextReal();
 
             pdfA = sample_sphere_pdf_A(R);
 
@@ -274,7 +274,7 @@ namespace spica {
                 const Vector3 orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -1.0 * hitpoint.normal();
                 const double rouletteProb = mtrl.emission.norm() > 1.0 ? 1.0 : std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
                 
-                if (rng.randReal() >= rouletteProb) {
+                if (rng.nextReal() >= rouletteProb) {
                     break;
                 }
 
@@ -312,7 +312,7 @@ namespace spica {
                     if (!helper::isTotalRef(isIncoming, hitpoint.position(), nowRay.direction(), hitpoint.normal(), orientNormal,
                         &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
 
-                        if (rng.randReal() < REFLECT_PROBABLITY) {
+                        if (rng.nextReal() < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
                             throughputMC = fresnelRef * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
@@ -365,7 +365,7 @@ namespace spica {
                 const Vector3 orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
                 const double rouletteProb = mtrl.emission.norm() > 1.0 ? 1.0 : std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
 
-                if (rng.randReal() >= rouletteProb) {
+                if (rng.nextReal() >= rouletteProb) {
                     break;
                 }
 
@@ -422,7 +422,7 @@ namespace spica {
                     if (!helper::isTotalRef(isIncoming, hitpoint.position(), nowRay.direction(), hitpoint.normal(), orientNormal,
                                            &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
                     
-                        if (rng.randReal() < REFLECT_PROBABLITY) {
+                        if (rng.nextReal() < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
                             throughputMC = fresnelRef * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));

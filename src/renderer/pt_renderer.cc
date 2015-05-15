@@ -91,7 +91,7 @@ namespace spica {
         }
 
         if (depth > maxDepth) {
-            if (rng.randReal() > roulette) {
+            if (rng.nextReal() > roulette) {
                 return mtrl.emission;
             }
         } else {
@@ -143,7 +143,7 @@ namespace spica {
 
                 const double prob = 0.25 + 0.5 * Re;
                 if (depth > 2) {
-                    if (rng.randReal() < prob) {
+                    if (rng.nextReal() < prob) {
                         incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re;
                         weight = mtrl.color / (prob * roulette);
                     } else {

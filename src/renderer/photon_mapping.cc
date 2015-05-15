@@ -140,7 +140,7 @@ namespace spica {
         // Russian roulette
         double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
         if (depth > maxDepth) {
-            if (rng.randReal() > roulette) {
+            if (rng.nextReal() > roulette) {
                 return mtrl.emission;
             }
         }
@@ -191,7 +191,7 @@ namespace spica {
             } else {
                 // Reflect or reflact
                 const double probRef = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-                if (rng.randReal() < probRef) {
+                if (rng.nextReal() < probRef) {
                     // Reflect
                     Ray nextRay = Ray(hitpoint.position(), reflectDir);
                     Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
@@ -258,7 +258,7 @@ namespace spica {
                     photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction()));
 
                     const double probContinueTrace = (mtrl.color.red() + mtrl.color.green() + mtrl.color.blue()) / 3.0;
-                    if (probContinueTrace > rng.randReal()) {
+                    if (probContinueTrace > rng.nextReal()) {
                         // Continue trace
                         sampler::onHemisphere(orientingNormal, &nextDir);
                         currentRay = Ray(hitpoint.position(), nextDir);
@@ -302,7 +302,7 @@ namespace spica {
                     const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
                     const double Tr = 1.0 - Re;
 
-                    if (rng.randReal() < Re) {
+                    if (rng.nextReal() < Re) {
                         // Reflection
                         currentRay = reflectRay;
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color);

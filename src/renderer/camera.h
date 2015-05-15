@@ -13,7 +13,7 @@
 
 #include "../geometry/plane.h"
 #include "../utils/image.h"
-#include "../utils/random.h"
+#include "../random/random.h"
 
 namespace spica {
 

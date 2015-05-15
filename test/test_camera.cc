@@ -100,7 +100,7 @@ TEST_F(CameraTest, LensIntersection) {
 
 TEST_F(CameraTest, SampleTest) {
     const int numSample = 100;
-    Random rng = Random::getRNG();
+    Random rng = Random();
 
     Vector3 posOnLens, posOnObjplane, posOnSensor, uvOnSensor;
     double pImage, pLens;

@@ -17,7 +17,7 @@
 #include "scene.h"
 #include "camera.h"
 #include "material.h"
-#include "../utils/random.h"
+#include "../random/random.h"
 
 namespace spica {
 

@@ -40,7 +40,8 @@ if (${BUILD_TEST} STREQUAL "ON")
       test_trimesh.cc
       test_kdtree.cc
       test_renderer.cc
-      test_scene.cc)
+      test_scene.cc
+      test_random.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARY})

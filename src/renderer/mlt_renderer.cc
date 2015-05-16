@@ -199,9 +199,9 @@ namespace spica {
 
                 Ray refractRay = Ray(hitpoint.position(), refractDir);
                 Intersection light_intersect_refract;
-                scene.intersect(reflectRay, light_intersect_refract);
+                
                 Vector3 direct_light_refraction;
-                if (light_intersect_refract.objectId() == scene.lightID()) {
+                if (scene.intersect(refractRay, light_intersect_refract) && light_intersect_refract.objectId() == scene.lightID()) {
                     direct_light_refraction = scene.getMaterial(scene.lightID()).emission;
                 }
 

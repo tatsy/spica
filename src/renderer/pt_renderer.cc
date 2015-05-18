@@ -51,7 +51,7 @@ namespace spica {
             }
         }
         
-        image.savePPM("simplept.ppm");
+        image.saveBMP("path_trace.bmp");
 
         return 0;
     }

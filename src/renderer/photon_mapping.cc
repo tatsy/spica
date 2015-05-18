@@ -107,7 +107,7 @@ namespace spica {
                 printf("%6.2f %% processed...\n", 100.0 * proc / (samplePerPixel * height));
             }
         }
-        image.savePPM("photonmap.ppm");
+        image.saveBMP("photonmap.bmp");
         return 0;
     }
 

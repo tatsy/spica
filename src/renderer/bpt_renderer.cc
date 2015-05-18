@@ -647,71 +647,8 @@ namespace spica {
         }
         delete[] buffer;
 
-        output.savePPM("simplebpt.ppm");
+        output.saveBMP("bd_path_trace.bmp");
         return 0;
     }
 
-    int BPTRenderer::renderPT(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel) {
-        const int width = camera.imageW();
-        const int height = camera.imageH();
-        const int spp = samplePerPixel;
-
-        Image image(width, height);
-        for (int sample = 0; sample < spp; sample++) {
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    std::vector<Vertex> vertices;
-                    const TraceResult result = executePathTracing(scene, camera, x, y, rng, vertices);
-
-                    if (result.hitObjType == HIT_ON_LIGHT) {
-                        if (isValidValue(result.value)) {
-                            image.pixel(x, y) += result.value;
-                        }
-                    }
-                }
-            }
-        }
-
-        Image output(width, height);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                output.pixel(x, y) = image.pixel(width - x - 1, y) / spp;
-            }
-        }
-
-        output.savePPM("bpt_pt_part.ppm");
-        return 0;
-    }
-
-    int BPTRenderer::renderLT(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel) {
-        const int width = camera.imageW();
-        const int height = camera.imageH();
-        const int spp = samplePerPixel * width * height;
-
-        Image image(width, height);
-
-        for (int sample = 0; sample < spp; sample++) {
-            std::vector<Vertex> vertices;
-            TraceResult result = executeLightTracing(scene, camera, rng, vertices);
-
-            if (result.hitObjType == HIT_ON_LENS) {
-                if (isValidValue(result.value)) {
-                    int x = result.imageX;
-                    int y = result.imageY;
-                    image.pixel(x, y) += result.value;
-                }
-            }
-        }
-
-        Image output(width, height);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                output.pixel(x, y) = image.pixel(width - x - 1, y) / spp;
-                const Color& color = output(x, y);
-            }
-        }
-
-        output.savePPM("bpt_lt_part.ppm");
-        return 0;
-    }
 }

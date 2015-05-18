@@ -36,6 +36,7 @@ namespace spica {
         Color& pixel(int x, int y);
 
         void savePPM(const std::string& filename) const;
+        void saveBMP(const std::string& filename) const;
 
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }

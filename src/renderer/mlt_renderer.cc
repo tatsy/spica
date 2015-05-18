@@ -401,7 +401,7 @@ namespace spica {
             }
         }
 
-        image.savePPM("simplemlt.ppm");
+        image.saveBMP("mlt.bmp");
         return 0;
     }
 

@@ -74,6 +74,8 @@ namespace spica {
         void construct(const std::vector<Ty>& points);
         void knnSearch(const Ty& point, const KnnQuery& query, std::vector<Ty>* results) const;
 
+        void getPoints(std::vector<Ty>& points) const;
+
         void release();
 
     private:
@@ -81,6 +83,8 @@ namespace spica {
 
         KdTreeNode* constructRec(std::vector<Ty>& points, int startID, int endID, int dim);
         void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const;
+
+        void getPointsSub(KdTreeNode* node, std::vector<Ty>& points) const;
     };
 }
 

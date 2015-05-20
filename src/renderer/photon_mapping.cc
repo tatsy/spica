@@ -220,9 +220,6 @@ namespace spica {
 
             Vector3 positionOnLignt, normalOnLight;
             sampler::on(light, &positionOnLignt, &normalOnLight);
-            double pdfAreaOnLight = 1.0 / light->area();
-
-            double totalPdfA = pdfAreaOnLight;
 
             Color currentFlux = light->area() * scene.getMaterial(lightID).emission / numPhotons;
             Vector3 nextDir;

@@ -49,6 +49,10 @@ spica
 
 <img src="./results/photonmap.jpg" width="480" />
 
+#### Progressive photon mapping
+
+<img src="./results/ppm.jpg" width="480" />
+
 ## License
 
 * MIT license 2015, Tatsuya Yatagawa (tatsy).

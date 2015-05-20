@@ -11,5 +11,6 @@ generate_example(simplept)
 generate_example(simplebpt)
 generate_example(simplemlt)
 generate_example(photonmap)
+generate_example(ppm)
 
 include_directories(${CMAKE_CURRENT_LIST_DIR})

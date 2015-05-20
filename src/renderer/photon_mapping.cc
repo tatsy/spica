@@ -263,17 +263,14 @@ namespace spica {
                         sampler::onHemisphere(orientingNormal, &nextDir);
                         currentRay = Ray(hitpoint.position(), nextDir);
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probContinueTrace;
-                    }
-                    else {
+                    } else {
                         // Absorb (finish trace)
                         break;
                     }
-                }
-                else if (mtrl.reftype == REFLECTION_SPECULAR) {
+                } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
-                }
-                else if (mtrl.reftype == REFLECTION_REFRACTION) {
+                } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     // Ray of reflection
                     Vector3 reflectDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
                     Ray reflectRay = Ray(hitpoint.position(), reflectDir);

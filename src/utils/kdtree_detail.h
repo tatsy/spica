@@ -122,20 +122,6 @@ namespace spica {
         }
     }
 
-    template <class Ty>
-    void KdTree<Ty>::getPoints(std::vector<Ty>& points) const {
-        getPointsSub(_root, values);
-    }
-
-    template <class Ty>
-    void KdTree<Ty>::getPointsSub(KdTreeNode* node, std::vector<Ty>& points) const {
-        if (node != NULL) {
-            getValuesSub(node->left, points);
-            values.push_back(node->point);
-            getPointsSub(node->right, points);
-        }
-    }
-
 }
 
 #endif  // _SPICA_KDTREE_DETAIL_H_

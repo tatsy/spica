@@ -128,6 +128,18 @@ namespace spica {
         return radiance(scene, ray, rng, numTargetPhotons, targetRadius, 0) * (weight * camera.sensitivity() / (pImage * pLens));
     }
 
+    double Rd(const double d2) {
+        static const double zpos = 0.5;
+        static const double zneg = 0.0;
+        static const double sigma_tr = 0.04;
+        double dpos = sqrt(d2 + zpos * zpos);
+        double dneg = sqrt(d2 + zneg * zneg);
+        double posTerm = zpos * (dpos * sigma_tr + 1.0 * exp(-sigma_tr * dpos)) / (dpos * dpos * dpos);
+        double negTerm = zneg * (dneg * sigma_tr + 1.0 * exp(-sigma_tr * dneg)) / (dneg * dneg * dneg);
+        double ret = (1.0 / (4.0 * PI)) * (posTerm - negTerm);
+        return ret;
+    }
+
     Color PMRenderer::radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {
         Intersection isect;
         if (!scene.intersect(ray, isect)) {
@@ -205,6 +217,33 @@ namespace spica {
                     return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelTr / ((1.0 - probRef) * roulette));
                 }
             }
+        } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
+            // Estimate irradiance with photon map
+            Photon query = Photon(hitpoint.position(), Color(), Vector3());
+            std::vector<Photon> photons;
+            photonMap.findKNN(query, &photons, numTargetPhotons, targetRadius * 4.0);
+
+            const int numPhotons = static_cast<int>(photons.size());
+            std::vector<double> dists(numPhotons);
+            double maxdist = 0.0;
+            for (int i = 0; i < numPhotons; i++) {
+                double dist = (photons[i] - query).norm();
+                dists[i] = dist;
+                maxdist = std::max(maxdist, dist);
+            }
+
+            // Dipole model
+            Color totalFlux = Color(0.0, 0.0, 0.0);
+            for (int i = 0; i < numPhotons; i++) {
+                Vector3 diff = photons[i] - hitpoint.position();
+                const double w = Rd(diff.squaredNorm());
+                const Color v = mtrl.color.cwiseMultiply(photons[i].flux()) / PI;
+                totalFlux += w * v;
+            }
+            
+            if (numPhotons != 0) {
+                return mtrl.emission + totalFlux / ((PI * maxdist * maxdist) * roulette); 
+            }
         }
 
         return Color();
@@ -254,19 +293,23 @@ namespace spica {
                     orientingNormal *= -1.0;
                 }
 
-                if (mtrl.reftype == REFLECTION_DIFFUSE) {
+                if (mtrl.reftype == REFLECTION_DIFFUSE || mtrl.reftype == REFLECTION_SUBSURFACE) {
                     omplock {
                         photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction()));
                     }
 
                     const double probContinueTrace = (mtrl.color.red() + mtrl.color.green() + mtrl.color.blue()) / 3.0;
-                    if (probContinueTrace > rng.nextReal()) {
-                        // Continue trace
-                        sampler::onHemisphere(orientingNormal, &nextDir);
-                        currentRay = Ray(hitpoint.position(), nextDir);
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probContinueTrace;
+                    if (mtrl.reftype == REFLECTION_DIFFUSE) {
+                        if (probContinueTrace > rng.nextReal()) {
+                            // Continue trace
+                            sampler::onHemisphere(orientingNormal, &nextDir);
+                            currentRay = Ray(hitpoint.position(), nextDir);
+                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probContinueTrace;
+                        } else {
+                            // Absorb (finish trace)
+                            break;
+                        }
                     } else {
-                        // Absorb (finish trace)
                         break;
                     }
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {

@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
     Random rng = Random();
 
-    const int numPhotons = 20000000;
+    const int numPhotons = 5000000;
     const int numTargetPhotons = 64;
     const double targetRadius = 20.0;
 

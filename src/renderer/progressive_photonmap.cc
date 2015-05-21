@@ -54,8 +54,7 @@ namespace spica {
             const int np = static_cast<int>(points.size());
             for (int i = 0; i < np; i++) {
                 const HPoint& hp = points[i];
-                const Color emission = hp.emission.cwiseMultiply(hp.weight);
-                image.pixel(width - hp.imageX - 1, hp.imageY) += (emission + hp.flux / (PI * hp.r2)) * (hp.coeff / (t + 1));
+                image.pixel(width - hp.imageX - 1, hp.imageY) += (hp.emission + hp.flux / (PI * hp.r2)) * (hp.coeff / (t + 1));
             }
 
             char filename[256];
@@ -246,7 +245,7 @@ namespace spica {
                 hp->normal = hitpoint.normal();
                 hp->weight = weight;
                 hp->coeff = coeff;
-                hp->emission += mtrl.emission;
+                hp->emission += weight.cwiseMultiply(mtrl.emission);
                 break;
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                 Vector3 nextDir = Vector3::reflect(ray.direction(), orientNormal);

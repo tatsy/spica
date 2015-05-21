@@ -97,14 +97,16 @@ namespace spica {
         Image image(width, height);
 
         int proc = 0;
-        for (int i = 0; i < samplePerPixel; i++) {
+        ompfor (int i = 0; i < samplePerPixel; i++) {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     image.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng, numTargetPhotons, targetRadius) / samplePerPixel;
                 }
 
-                proc += 1;
-                printf("%6.2f %% processed...\n", 100.0 * proc / (samplePerPixel * height));
+                omplock {
+                    proc += 1;
+                    printf("%6.2f %% processed...\n", 100.0 * proc / (samplePerPixel * height));
+                }
             }
         }
         image.saveBMP("photonmap.bmp");
@@ -213,7 +215,8 @@ namespace spica {
 
         // Shooting photons
         std::vector<Photon> photons;
-        for (int pid = 0; pid < numPhotons; pid++) {
+        int proc = 0;
+        ompfor (int pid = 0; pid < numPhotons; pid++) {
             // Generate sample on the light
             const int lightID = scene.lightID();
             const Primitive* light = scene.get(lightID);
@@ -252,7 +255,9 @@ namespace spica {
                 }
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
-                    photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction()));
+                    omplock {
+                        photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction()));
+                    }
 
                     const double probContinueTrace = (mtrl.color.red() + mtrl.color.green() + mtrl.color.blue()) / 3.0;
                     if (probContinueTrace > rng.nextReal()) {
@@ -308,7 +313,12 @@ namespace spica {
                 }
             }
 
-            printf("%6.2f %% processed...\r", 100.0 * pid / numPhotons);
+            omplock {
+                proc++;
+                if (proc % 1000 == 0) {
+                    printf("%6.2f %% processed...\r", 100.0 * proc / numPhotons);
+                }
+            }
         }
         printf("\n\n");
 

@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxBunny(scene, camera, width, height);
+    cornellBoxDragon(scene, camera, width, height);
 
     Random rng = Random();
 

@@ -25,6 +25,7 @@ namespace spica {
             Vector3 normal;
             Color flux;
             Color weight;
+            Color emission;
             double coeff;
             int imageX, imageY;
             double r2;
@@ -35,6 +36,7 @@ namespace spica {
                 , normal()
                 , flux()
                 , weight()
+                , emission()
                 , coeff(0.0)
                 , imageX(-1)
                 , imageY(-1)
@@ -43,30 +45,19 @@ namespace spica {
             {
             }
 
-            HPoint(Vector3 pos, Vector3 normal_, Vector3 weight_, double coeff_, int x_, int y_) 
-                : Vector3(pos)
-                , normal(normal_)
+            HPoint(const HPoint& hp)
+                : Vector3()
+                , normal()
                 , flux()
-                , weight(weight_)
-                , coeff(coeff_)
-                , imageX(x_)
-                , imageY(y_)
+                , weight()
+                , emission()
+                , coeff(0.0)
+                , imageX(-1)
+                , imageY(-1)
                 , r2(0.0)
                 , n(0)
             {
-            }
-
-            HPoint(const HPoint& hp)
-                : Vector3(hp)
-                , normal(hp.normal)
-                , flux(hp.flux)
-                , weight(hp.weight)
-                , coeff(hp.coeff)
-                , imageX(hp.imageX)
-                , imageY(hp.imageY)
-                , r2(hp.r2)
-                , n(hp.n)
-            {
+                operator=(hp);
             }
 
             HPoint& operator=(const HPoint& hp) {
@@ -74,12 +65,19 @@ namespace spica {
                 this->normal = hp.normal;
                 this->flux = hp.flux;
                 this->weight = hp.weight;
+                this->emission = hp.emission;
                 this->coeff = hp.coeff;
                 this->imageX = hp.imageX;
                 this->imageY = hp.imageY;
                 this->r2 = hp.r2;
                 this->n = hp.n;
                 return *this;
+            }
+
+            void setPosition(const Vector3& p) {
+                this->_x = p.x();
+                this->_y = p.y();
+                this->_z = p.z();
             }
         };
 
@@ -120,9 +118,11 @@ namespace spica {
 
                 // Update initial radius
                 for (int i = 0; i < numPoints; i++) {
-                    hpoints[i].r2 = irad * irad;
-                    hpoints[i].n  = 0;
-                    hpoints[i].flux = Color(0.0, 0.0, 0.0);
+                    if (hpoints[i].n == 0) {
+                        hpoints[i].r2 = irad * irad;
+                        hpoints[i].n  = 0;
+                        hpoints[i].flux = Color(0.0, 0.0, 0.0);
+                    }
 
                     posMin = Vector3::minimum(posMin, Vector3(hpoints[i].x() - irad, hpoints[i].y() - irad, hpoints[i].z() - irad));
                     posMax = Vector3::maximum(posMax, Vector3(hpoints[i].x() + irad, hpoints[i].y() + irad, hpoints[i].z() + irad));
@@ -186,12 +186,12 @@ namespace spica {
 
     private:
         // 1st pass: Trace rays from camera
-        void traceRays(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel);
+        void traceRays(const Scene& scene, const Camera& camera, const Random& rng, std::vector<HPoint>& hpoints);
 
         // 2nd pass: Trace photons from lights
         void tracePhotons(const Scene& scene, const Random& rng, const int numPhotons);
 
-        HPoint executePathTracing(const Scene& scene, const Camera& camera, const Random& rng, const int imageX, const int imageY, const int bounceLimit = 6);
+        void executePathTracing(const Scene& scene, const Camera& camera, const Random& rng, HPoint* hp, const int bounceLimit = 6);
     };
 
 }

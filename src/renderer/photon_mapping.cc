@@ -221,7 +221,7 @@ namespace spica {
             Vector3 positionOnLignt, normalOnLight;
             sampler::on(light, &positionOnLignt, &normalOnLight);
 
-            Color currentFlux = light->area() * scene.getMaterial(lightID).emission / numPhotons;
+            Color currentFlux = light->area() * scene.getMaterial(lightID).emission * PI / numPhotons;
             Vector3 nextDir;
             sampler::onHemisphere(normalOnLight, &nextDir);
 

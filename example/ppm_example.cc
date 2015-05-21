@@ -9,11 +9,11 @@ int main(int argc, char** argv) {
 
     const int width = argc >= 2 ? atoi(argv[1]) : 640;
     const int height = argc >= 3 ? atoi(argv[2]) : 480;
-    const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 32;
+    const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 128;
 
     std::cout << "      width: " << width << std::endl;
     std::cout << "     height: " << height << std::endl;
-    std::cout << "  sample/px: "  << samplePerPixel << std::endl;
+    std::cout << "  sample/px: "  << samplePerPixel << std::endl << std::endl;
 
     Scene scene;
     Camera camera;
@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
     Random rng = Random();
 
-    const int numPhotons = 20000000;
+    const int numPhotons = 2000000;
 
     PPMRenderer renderer;
 

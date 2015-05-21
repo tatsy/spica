@@ -11,6 +11,7 @@
 #include "../utils/image.h"
 #include "material.h"
 #include "scene.h"
+#include "renderer_helper.h"
 
 namespace spica {
 
@@ -91,7 +92,7 @@ namespace spica {
         }
 
         if (depth > maxDepth) {
-            if (rng.nextReal() > roulette) {
+            if (roulette < rng.nextReal()) {
                 return mtrl.emission;
             }
         } else {
@@ -99,7 +100,7 @@ namespace spica {
         }
 
         Color incomingRad;
-        Color weight = Color(1.0, 0.0, 0.0);
+        Color weight = Color(1.0, 1.0, 1.0);
 
         if (mtrl.reftype == REFLECTION_DIFFUSE) {
             Vector3 nextDir;
@@ -111,52 +112,46 @@ namespace spica {
             incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
             weight = mtrl.color / roulette;
         } else if (mtrl.reftype == REFLECTION_REFRACTION) {
-            Vector3 reflectDir = ray.direction() - (2.0 * hitpoint.normal().dot(ray.direction())) * hitpoint.normal();
-            const Ray reflectRay = Ray(hitpoint.position(), reflectDir);
-
-            // Incoming or outgoing
             const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
-            // Snell's rule
-            const double nc = IOR_VACCUM;
-            const double nt = IOR_OBJECT;
-            const double nnt = isIncoming ? nc / nt : nt / nc;
-            const double ddn = ray.direction().dot(orientNormal);
-            const double cos2t = 1.0 - nnt * nnt * (1.0  - ddn * ddn);
+            Vector3 reflectDir, transmitDir;
+            double fresnelRe, fresnelTr;
+            bool isTotRef = helper::isTotalRef(isIncoming,
+                                               hitpoint.position(),
+                                               ray.direction(),
+                                               hitpoint.normal(),
+                                               orientNormal,
+                                               &reflectDir,
+                                               &transmitDir,
+                                               &fresnelRe,
+                                               &fresnelTr);
 
-            if (cos2t < 0.0) { // Total reflection
+            Ray reflectRay(hitpoint.position(), reflectDir);
+
+            if (isTotRef) {
+                // Total reflection
                 incomingRad = radiance(scene, reflectRay, rng, depth + 1);
                 weight = mtrl.color / roulette;
             } else {
-                Vector3 refractDir = (ray.direction() * nnt - hitpoint.normal() * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
-                const Ray refractRay = Ray(hitpoint.position(), refractDir);
+                Ray transmitRay(hitpoint.position(), transmitDir);
 
-                // Schlick's approximation of Fresnel coefficient
-                const double a = nt - nc;
-                const double b = nt + nc;
-                const double R0 = (a * a) / (b * b);
-
-                const double c = 1.0 - (isIncoming ? -ddn : - refractDir.dot(orientNormal));
-                const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
-                const double nnt2 = pow(isIncoming ? nc / nt : nt / nc, 2.0);
-                const double Tr = (1.0 - Re) * nnt2;
-
-                const double prob = 0.25 + 0.5 * Re;
+                const double prob = 0.25 + REFLECT_PROBABLITY * fresnelRe;
                 if (depth > 2) {
                     if (rng.nextReal() < prob) {
-                        incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re;
+                        // Reflect
+                        incomingRad = radiance(scene, reflectRay, rng, depth + 1) * fresnelRe;
                         weight = mtrl.color / (prob * roulette);
                     } else {
-                        incomingRad = radiance(scene, refractRay, rng, depth + 1) * Tr;
+                        // Transmit
+                        incomingRad = radiance(scene, transmitRay, rng, depth + 1) * fresnelTr;
                         weight = mtrl.color / ((1.0 - prob) * roulette);
                     }
                 } else {
-                    incomingRad = radiance(scene, reflectRay, rng, depth + 1) * Re + radiance(scene, refractRay, rng, depth + 1) * Tr;
+                    // Both reflect and transmit
+                    incomingRad = radiance(scene, reflectRay, rng, depth + 1) * fresnelRe + radiance(scene, transmitRay, rng, depth + 1) * fresnelTr;
                     weight = mtrl.color / roulette;
                 }
             }
-        } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
-            msg_assert(false, "Future implementation");
         }
 
         return mtrl.emission + weight.cwiseMultiply(incomingRad);

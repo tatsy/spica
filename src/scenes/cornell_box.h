@@ -49,7 +49,7 @@ namespace spica {
                         42.0,
                         58.0,
                         1.0,
-                        30.0);
+                        90.0);
     }
 
     inline void cornellBoxBunny(Scene& scene, Camera& camera, const int width, const int height) {
@@ -100,18 +100,27 @@ namespace spica {
                         42.0,
                         58.0,
                         1.0,
-                        30.0);
+                        90.0);
     }
 
     inline void cornellBoxDragon(Scene& scene, Camera& camera, const int width, const int height) {
         scene.clear(); 
 
         // Light
+        Vector3 l00(-5.0, 9.99, -5.0);
+        Vector3 l01(-5.0, 9.99,  5.0);
+        Vector3 l10( 5.0, 9.99, -5.0);
+        Vector3 l11( 5.0, 9.99,  5.0);
+        scene.add(Quad(l00, l10, l11, l01), Material(Color(32.0, 32.0, 32.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
+
+        // Back light
+        /*
         Vector3 l00(-3.0, -3.0, -9.99);
         Vector3 l01(-3.0,  3.0, -9.99);
         Vector3 l10( 3.0, -3.0, -9.99);
         Vector3 l11( 3.0,  3.0, -9.99);
         scene.add(Quad(l00, l10, l11, l01), Material(Color(128.0, 128.0, 128.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
+        */
 
         // Walls
         Vector3 v000(-10.0, -10.0, -10.0);
@@ -138,9 +147,9 @@ namespace spica {
         // Objects
         Trimesh dragon(DATA_DIR + "dragon.ply");
         dragon.scale(70.0, 70.0, 70.0);
-        dragon.translate(Vector3(0.0, 0.0, 3.0));
+        dragon.translate(Vector3(0.0, 0.0, 0.0));
         dragon.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
-        scene.add(dragon, Material(Color(), Color(0.75, 0.75, 0.25), REFLECTION_SUBSURFACE));                         
+        scene.add(dragon, Material(Color(), Color(0.99, 0.99, 0.99), REFLECTION_SUBSURFACE));                         
 
         camera = Camera(width, height, 
                         Vector3(0.0, 0.0, 100.0),
@@ -150,7 +159,7 @@ namespace spica {
                         42.0,
                         58.0,
                         1.0,
-                        30.0);
+                        90.0);
     }
 }
 

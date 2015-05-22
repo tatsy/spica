@@ -27,7 +27,8 @@ namespace spica {
     int PPMRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numPhotons) {
         const int width = camera.imageW();
         const int height = camera.imageH();
-        std::vector<HPoint> hpoints(width * height);
+        const int numPoints = width * height;
+        std::vector<HPoint> hpoints(numPoints);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int id = y * width + x;
@@ -45,15 +46,10 @@ namespace spica {
             // 2nd pass: Trace photons from light source
             tracePhotons(scene, rng, numPhotons);
 
-            // Copy hash grid data to hit point array
-            std::copy(hashgrid.hps.begin(), hashgrid.hps.end(), hpoints.begin());
-
             // Save temporal image
             Image image(width, height);
-            const std::vector<HPoint>& points = hashgrid.hps;
-            const int np = static_cast<int>(points.size());
-            for (int i = 0; i < np; i++) {
-                const HPoint& hp = points[i];
+            for (int i = 0; i < numPoints; i++) {
+                const HPoint& hp = hpoints[i];
                 image.pixel(width - hp.imageX - 1, hp.imageY) += (hp.emission + hp.flux / (PI * hp.r2)) * (hp.coeff / (t + 1));
             }
 
@@ -63,6 +59,50 @@ namespace spica {
         }
 
         return 0;
+    }
+
+    void PPMRenderer::constructHashGrid(std::vector<HPoint>& hpoints, const int imageW, const int imageH) {
+
+        // Clear current data
+        hashgrid.clear();
+
+        const int numPoints = static_cast<int>(hpoints.size());
+
+        // Compute bounding box
+        BBox bbox;
+        for (int i = 0; i < numPoints; i++) {
+            bbox.merge(static_cast<Vector3>(hpoints[i]));
+        }
+
+        // Heuristic for initial radius
+        Vector3 boxSize = bbox.posMax() - bbox.posMin();
+        const double irad = ((boxSize.x() + boxSize.y() + boxSize.z()) / 3.0) / ((imageW + imageH) / 2.0) * 2.0;
+
+        // Update initial radius
+        Vector3 iradv(irad, irad, irad);
+        for (int i = 0; i < numPoints; i++) {
+            if (hpoints[i].n == 0) {
+                hpoints[i].r2 = irad * irad;
+                hpoints[i].n = 0;
+                hpoints[i].flux = Color(0.0, 0.0, 0.0);
+            }
+
+            bbox.merge(hpoints[i] + iradv);
+            bbox.merge(hpoints[i] - iradv);
+        }
+        
+        // Make each grid cell two times larger than the initial radius
+        const double hashScale = 1.0 / (irad * 2.0);
+        const int hashSize = numPoints;
+
+        hashgrid.init(hashSize, hashScale, bbox);
+
+        // Set hit points to the grid
+        for (int i = 0; i < numPoints; i++) {
+            Vector3 boxMin = static_cast<Vector3>(hpoints[i]) - iradv;
+            Vector3 boxMax = static_cast<Vector3>(hpoints[i]) + iradv;
+            hashgrid.add(&hpoints[i], boxMin, boxMax);
+        }
     }
 
     void PPMRenderer::traceRays(const Scene& scene, const Camera& camera, const Random& rng, std::vector<HPoint>& hpoints) {
@@ -87,7 +127,7 @@ namespace spica {
         printf("\nFinish !!\n");
 
         // Construct k-d tree
-        hashgrid.construct(hpoints, width, height);
+        constructHashGrid(hpoints, width, height);
         std::cout << "Hash grid constructed !!" << std::endl << std::endl;
     }
 
@@ -136,7 +176,7 @@ namespace spica {
                     // Gather hit points
                     std::vector<HPoint*> results;
                     omplock{
-                        results = hashgrid(hitpoint.position());
+                        results = hashgrid[hitpoint.position()];
                     }
 
                     // Update hit points

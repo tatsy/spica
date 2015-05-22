@@ -25,10 +25,11 @@ namespace spica {
     private:
         Color _flux;
         Vector3 _direction;
+        Vector3 _normal;
 
     public:
         Photon();
-        explicit Photon(const Vector3& position, const Color& flux, const Vector3& direction);
+        Photon(const Vector3& position, const Color& flux, const Vector3& direction, const Vector3& normal);
         Photon(const Photon& photon);
         ~Photon();
 
@@ -36,6 +37,7 @@ namespace spica {
 
         inline Color   flux()      const { return _flux; }
         inline Vector3 direction() const { return _direction; }
+        inline Vector3 normal()    const { return _normal; }
     };
 
     class PhotonMap : public Uncopyable {

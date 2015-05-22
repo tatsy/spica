@@ -11,6 +11,7 @@
 #define SPICA_BBOX_DLL
 #endif
 
+#include "triangle.h"
 #include "../renderer/ray.h"
 #include "../utils/vector3.h"
 
@@ -35,6 +36,11 @@ namespace spica {
         BBox& operator=(const BBox& box);
 
         bool intersect(const Ray& ray, double* tMin, double* tMax) const;
+
+        // Enlarge box to contain vertex or box
+        void merge(const Vector3& v);
+        void merge(const BBox& box);
+        void merge(const Triangle& t);
 
         inline Vector3 posMin() const { return _posMin; }
         inline Vector3 posMax() const { return _posMax; }

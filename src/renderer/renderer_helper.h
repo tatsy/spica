@@ -12,7 +12,11 @@
 #endif
 
 #include "material.h"
+#include "scene.h"
+#include "camera.h"
+
 #include "../utils/vector3.h"
+#include "../utils/color.h"
 
 namespace spica {
 
@@ -27,6 +31,15 @@ namespace spica {
                                                   Vector3* refractDir,
                                                   double* fresnelRef,
                                                   double* fresnelTransmit);
+
+        // Standard radiance simulator
+        // @param[in] scene: rendered scene
+        // @param[in] ray: ray casted from camera
+        // @param[in] rng: random number generator
+        // @param[in] depth: depth of recursion
+        // @param[in] depthLimit: maximum depth of recursion
+        // @param[in] depthMin: depth in which recursion begin to be terminated with Russian roulette
+        Color radiance(const Scene& scene, const Ray& ray, const Random& rng, const int depth, const int depthLimit = 64, const int depthMin = 5);
     
     }
 

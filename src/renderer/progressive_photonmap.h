@@ -15,6 +15,7 @@
 #include "camera.h"
 #include "../utils/uncopyable.h"
 #include "../utils/kdtree.h"
+#include "../utils/hash_grid.h"
 
 namespace spica {
 
@@ -81,6 +82,7 @@ namespace spica {
             }
         };
 
+        /*
         struct HashGrid {
             int hashsize;
             BBox bbox;
@@ -173,8 +175,9 @@ namespace spica {
                 return data[hash(ix, iy, iz)];
             }
         };
+        */
 
-        HashGrid hashgrid;
+        HashGrid<HPoint*> hashgrid;
         static const double ALPHA;
 
     public:
@@ -192,6 +195,8 @@ namespace spica {
         void tracePhotons(const Scene& scene, const Random& rng, const int numPhotons);
 
         void executePathTracing(const Scene& scene, const Camera& camera, const Random& rng, HPoint* hp, const int bounceLimit = 6);
+
+        void constructHashGrid(std::vector<HPoint>& hpoints, const int imageW, const int imageH);
     };
 
 }

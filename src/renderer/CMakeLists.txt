@@ -10,6 +10,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.cc
     ${CMAKE_CURRENT_LIST_DIR}/photon_mapping.cc
     ${CMAKE_CURRENT_LIST_DIR}/progressive_photonmap.cc
+    ${CMAKE_CURRENT_LIST_DIR}/sss_renderer.cc
     PARENT_SCOPE)
 
 set(HEADERS
@@ -24,4 +25,5 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/photon_mapping.h
     ${CMAKE_CURRENT_LIST_DIR}/progressive_photonmap.h
+    ${CMAKE_CURRENT_LIST_DIR}/sss_renderer.h
     PARENT_SCOPE)

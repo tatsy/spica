@@ -5,7 +5,7 @@
 using namespace spica;
 
 int main(int argc, char** argv) {
-    std::cout << "*** spica: Photon mapping ***" << std::endl;
+    std::cout << "*** spica: Subsurface scattering ***" << std::endl;
 
     const int width = argc >= 2 ? atoi(argv[1]) : 320;
     const int height = argc >= 3 ? atoi(argv[2]) : 240;
@@ -21,15 +21,12 @@ int main(int argc, char** argv) {
 
     Random rng = Random();
 
-    const int numPhotons = 5000000;
-    const int numTargetPhotons = 500;
-    const double targetRadius = 5.0;
+    const int samplePerPoint = 128;
 
-    PMRenderer renderer;
-    renderer.buildPM(scene, camera, rng, numPhotons);
+    SSSRenderer renderer;
 
     Timer timer;
     timer.start();
-    renderer.render(scene, camera, rng, samplePerPixel, numTargetPhotons, targetRadius);
+    renderer.render(scene, camera, rng, samplePerPixel, samplePerPoint);
     printf("Time: %f sec\n", timer.stop());
 }

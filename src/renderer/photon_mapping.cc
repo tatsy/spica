@@ -17,13 +17,15 @@ namespace spica {
         : Vector3()
         , _flux()
         , _direction()
+        , _normal()
     {
     }
 
-    Photon::Photon(const Vector3& position, const Color& flux, const Vector3& direction)
+    Photon::Photon(const Vector3& position, const Color& flux, const Vector3& direction, const Vector3& normal)
         : Vector3(position)
         , _flux(flux)
         , _direction(direction)
+        , _normal(normal)
     {
     }
 
@@ -31,6 +33,7 @@ namespace spica {
         : Vector3()
         , _flux()
         , _direction()
+        , _normal()
     {
         operator=(photon);
     }
@@ -43,6 +46,7 @@ namespace spica {
         Vector3::operator=(photon);
         this->_flux      = photon._flux;
         this->_direction = photon._direction;
+        this->_normal = photon._normal;
         return *this;
     }
 
@@ -128,18 +132,8 @@ namespace spica {
         return radiance(scene, ray, rng, numTargetPhotons, targetRadius, 0) * (weight * camera.sensitivity() / (pImage * pLens));
     }
 
-    double Rd(const double d2) {
-        static const double zpos = 0.5;
-        static const double zneg = 0.0;
-        static const double sigma_tr = 0.04;
-        double dpos = sqrt(d2 + zpos * zpos);
-        double dneg = sqrt(d2 + zneg * zneg);
-        double posTerm = zpos * (dpos * sigma_tr + 1.0 * exp(-sigma_tr * dpos)) / (dpos * dpos * dpos);
-        double negTerm = zneg * (dneg * sigma_tr + 1.0 * exp(-sigma_tr * dneg)) / (dneg * dneg * dneg);
-        double ret = (1.0 / (4.0 * PI)) * (posTerm - negTerm);
-        return ret;
-    }
-
+    
+    
     Color PMRenderer::radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {
         Intersection isect;
         if (!scene.intersect(ray, isect)) {
@@ -162,7 +156,7 @@ namespace spica {
 
         if (mtrl.reftype == REFLECTION_DIFFUSE) {
             // Estimate irradiance with photon map
-            Photon query = Photon(hitpoint.position(), Color(), Vector3());
+            Photon query = Photon(hitpoint.position(), Color(), ray.direction(), hitpoint.normal());
             std::vector<Photon> photons;
             photonMap.findKNN(query, &photons, numTargetPhotons, targetRadius);
 
@@ -218,31 +212,61 @@ namespace spica {
                 }
             }
         } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
-            // Estimate irradiance with photon map
-            Photon query = Photon(hitpoint.position(), Color(), Vector3());
-            std::vector<Photon> photons;
-            photonMap.findKNN(query, &photons, numTargetPhotons, targetRadius * 4.0);
+            bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
+            Vector3 reflectDir, refractDir;
+            double fresnelRe, fresnelTr;
 
-            const int numPhotons = static_cast<int>(photons.size());
-            std::vector<double> dists(numPhotons);
-            double maxdist = 0.0;
-            for (int i = 0; i < numPhotons; i++) {
-                double dist = (photons[i] - query).norm();
-                dists[i] = dist;
-                maxdist = std::max(maxdist, dist);
-            }
-
-            // Dipole model
-            Color totalFlux = Color(0.0, 0.0, 0.0);
-            for (int i = 0; i < numPhotons; i++) {
-                Vector3 diff = photons[i] - hitpoint.position();
-                const double w = Rd(diff.squaredNorm());
-                const Color v = mtrl.color.cwiseMultiply(photons[i].flux()) / PI;
-                totalFlux += w * v;
+            bool isTotRef = helper::isTotalRef(isIncoming,
+                                               hitpoint.position(),
+                                               ray.direction(),
+                                               hitpoint.normal(),
+                                               orientNormal,
+                                               &reflectDir,
+                                               &refractDir,
+                                               &fresnelRe,
+                                               &fresnelTr);
+            
+            if (isTotRef) {
+                // Total reflection
+                Ray nextRay(hitpoint.position(), reflectDir);
+                Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
+                return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) / roulette;
             }
             
-            if (numPhotons != 0) {
-                return mtrl.emission + totalFlux / ((PI * maxdist * maxdist) * roulette); 
+            const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
+            if (rng.nextReal() < probability) {
+                // Reflect
+                Ray nextRay = Ray(hitpoint.position(), reflectDir);
+                Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
+                return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelRe / (probability * roulette));
+            } else {
+                // Transmit, then estimate irradiance with photon map
+                Photon query = Photon(hitpoint.position(), Color(), ray.direction(), hitpoint.normal());
+                std::vector<Photon> photons;
+                photonMap.findKNN(query, &photons, numTargetPhotons, targetRadius);
+
+                const int numPhotons = static_cast<int>(photons.size());
+                std::vector<double> dists(numPhotons);
+                double maxdist = 0.0;
+                for (int i = 0; i < numPhotons; i++) {
+                    double dist = (photons[i] - query).norm();
+                    dists[i] = dist;
+                    maxdist = std::max(maxdist, dist);
+                }
+        
+                // Dipole model
+                Color totalFlux = Color(0.0, 0.0, 0.0);
+                DiffusionReflectance Rd(0.1, 100.0, 1.3);
+                for (int i = 0; i < numPhotons; i++) {
+                    Vector3 diff = photons[i] - hitpoint.position();
+                    const double w = Rd(diff.squaredNorm());
+                    const Color v = mtrl.color.cwiseMultiply(photons[i].flux());
+                    totalFlux += w * v / PI;
+                }
+            
+                if (numPhotons != 0) {
+                    return mtrl.emission + totalFlux * (fresnelTr / ((1.0 - probability) * roulette)); 
+                }
             }
         }
 
@@ -293,65 +317,96 @@ namespace spica {
                     orientingNormal *= -1.0;
                 }
 
-                if (mtrl.reftype == REFLECTION_DIFFUSE || mtrl.reftype == REFLECTION_SUBSURFACE) {
+                if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     omplock {
-                        photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction()));
+                        photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction(), hitpoint.normal()));
                     }
 
                     const double probContinueTrace = (mtrl.color.red() + mtrl.color.green() + mtrl.color.blue()) / 3.0;
-                    if (mtrl.reftype == REFLECTION_DIFFUSE) {
-                        if (probContinueTrace > rng.nextReal()) {
-                            // Continue trace
-                            sampler::onHemisphere(orientingNormal, &nextDir);
-                            currentRay = Ray(hitpoint.position(), nextDir);
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probContinueTrace;
-                        } else {
-                            // Absorb (finish trace)
-                            break;
-                        }
+                    if (probContinueTrace > rng.nextReal()) {
+                        // Continue trace
+                        sampler::onHemisphere(orientingNormal, &nextDir);
+                        currentRay = Ray(hitpoint.position(), nextDir);
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probContinueTrace;
                     } else {
+                        // Absorb (finish trace)
                         break;
                     }
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
-                    // Ray of reflection
-                    Vector3 reflectDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
+                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientingNormal) > 0.0;
+
+                    Vector3 reflectDir, transmitDir;
+                    double fresnelRe, fresnelTr;
+                    bool isTotRef = helper::isTotalRef(isIncoming,
+                                                       hitpoint.position(),
+                                                       currentRay.direction(),
+                                                       hitpoint.normal(),
+                                                       orientingNormal,
+                                                       &reflectDir,
+                                                       &transmitDir,
+                                                       &fresnelRe,
+                                                       &fresnelTr);
+
+
                     Ray reflectRay = Ray(hitpoint.position(), reflectDir);
 
-                    // Determine reflact or not
-                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientingNormal) > 0.0;
-                    const double nnt = isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM;
-                    const double ddn = Vector3::dot(currentRay.direction(), orientingNormal);
-                    const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
-
-                    if (cos2t < 0.0) {
+                    if (isTotRef) {
                         // Total reflection
                         currentRay = reflectRay;
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color);
                         continue;
                     }
 
-                    // Ray of reflaction
-                    Vector3 reflactDir = Vector3::normalize(currentRay.direction() * nnt - ((isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))) * hitpoint.normal());
+                    const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
 
-                    // Compute reflaction ratio
-                    const double a = IOR_VACCUM - IOR_OBJECT;
-                    const double b = IOR_VACCUM + IOR_OBJECT;
-                    const double R0 = (a * a) / (b * b);
-                    const double c = 1.0 - (isIncoming ? -ddn : Vector3::dot(reflactDir, hitpoint.normal()));
-                    const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
-                    const double Tr = 1.0 - Re;
-
-                    if (rng.nextReal() < Re) {
+                    if (rng.nextReal() < probability) {
                         // Reflection
                         currentRay = reflectRay;
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
                     } else {
                         // Reflaction
-                        currentRay = Ray(hitpoint.position(), reflactDir);
+                        currentRay = Ray(hitpoint.position(), transmitDir);
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                    }
+                } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
+                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientingNormal) > 0.0;
+
+                    Vector3 reflectDir, transmitDir;
+                    double fresnelRe, fresnelTr;
+                    bool isTotRef = helper::isTotalRef(isIncoming,
+                                                       hitpoint.position(),
+                                                       currentRay.direction(),
+                                                       hitpoint.normal(),
+                                                       orientingNormal,
+                                                       &reflectDir,
+                                                       &transmitDir,
+                                                       &fresnelRe,
+                                                       &fresnelTr);
+
+                    Ray reflectRay(hitpoint.position(), reflectDir);
+                    if (isTotRef) {
+                        // Total reflection
+                        currentRay = reflectRay;
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        continue;
+                    }
+
+                    const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
+
+                    if (rng.nextReal() < probability) {
+                        // Reflection
+                        currentRay = reflectRay;
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                    } else {
+                        // Transmit (Absorption)
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                        omplock {
+                            photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction(), hitpoint.normal()));
+                        }
+                        break;
                     }
                 }
             }

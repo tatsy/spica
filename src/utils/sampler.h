@@ -28,6 +28,9 @@ namespace spica {
         SPICA_SAMPLER_DLL void onQuad(const Quad& quad, Vector3* position, Vector3* normal);
 
         SPICA_SAMPLER_DLL void on(const Primitive* primitive, Vector3* position, Vector3* normal);
+
+        SPICA_SAMPLER_DLL void poissonDisk(const Trimesh& trimesh, const double minDist, const double maxDist, std::vector<Vector3>* points, std::vector<Vector3>* normals);
+
     
     }  // namespace sampler
 

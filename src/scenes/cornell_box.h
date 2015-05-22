@@ -49,7 +49,7 @@ namespace spica {
                         42.0,
                         58.0,
                         1.0,
-                        30.0);
+                        90.0);
     }
 
     inline void cornellBoxBunny(Scene& scene, Camera& camera, const int width, const int height) {
@@ -100,7 +100,7 @@ namespace spica {
                         42.0,
                         58.0,
                         1.0,
-                        30.0);
+                        90.0);
     }
 
     inline void cornellBoxDragon(Scene& scene, Camera& camera, const int width, const int height) {
@@ -150,7 +150,7 @@ namespace spica {
                         42.0,
                         58.0,
                         1.0,
-                        30.0);
+                        90.0);
     }
 }
 

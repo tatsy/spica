@@ -4,7 +4,7 @@ spica
 [![Build Status](https://travis-ci.org/tatsy/spica.svg?branch=master)](https://travis-ci.org/tatsy/spica)
 [![Coverage Status](https://coveralls.io/repos/tatsy/spica/badge.svg?branch=master)](https://coveralls.io/r/tatsy/spica?branch=master)
 
-> **spica** is a cross-platform physically-based renderer that is written in C++. 
+> **spica** is a cross-platform physically-based renderer that is written in C++.
 
 ## Renderer
 
@@ -35,15 +35,15 @@ spica
 
 #### Path tracing
 
-<img src="./results/simplept.jpg" width="480" />
+<img src="./results/pathtrace.jpg" width="480" />
 
 #### Bidirectional path tracing
 
-<img src="./results/simplebpt.jpg" width="480" />
+<img src="./results/bdpt.jpg" width="480" />
 
 #### Metropolis light transport
 
-<img src="./results/simplemlt.jpg" width="480" />
+<img src="./results/mlt.jpg" width="480" />
 
 #### Photon mapping
 
@@ -51,7 +51,7 @@ spica
 
 #### Progressive photon mapping
 
-<img src="./results/ppm.jpg" width="480" />
+<img src="./results/sppm.jpg" width="480" />
 
 ## License
 

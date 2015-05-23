@@ -149,7 +149,7 @@ namespace spica {
         dragon.scale(70.0, 70.0, 70.0);
         dragon.translate(Vector3(0.0, 0.0, 0.0));
         dragon.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
-        scene.add(dragon, Material(Color(), Color(0.99, 0.99, 0.99), REFLECTION_SUBSURFACE));                         
+        scene.add(dragon, Material(Color(), Color(0.70, 0.60, 0.40), REFLECTION_SUBSURFACE));                         
 
         camera = Camera(width, height, 
                         Vector3(0.0, 0.0, 100.0),

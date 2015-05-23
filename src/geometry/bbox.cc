@@ -57,6 +57,12 @@ namespace spica {
         }
     }
 
+    bool BBox::inside(const Vector3& v) const {
+        return (_posMin.x() <= v.x() && v.x() <= _posMax.x()) &&
+               (_posMin.y() <= v.y() && v.y() <= _posMax.y()) &&
+               (_posMin.z() <= v.z() && v.z() <= _posMax.z());
+    }
+
     bool BBox::intersect(const Ray& ray, double* tMin, double* tMax) const {
         double xMin = (_posMin.x() - ray.origin().x()) * ray.invdir().x();
         double xMax = (_posMax.x() - ray.origin().x()) * ray.invdir().x();

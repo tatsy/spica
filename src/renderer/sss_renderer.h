@@ -44,14 +44,35 @@ namespace spica {
                 , irad(irad_)
             {
             }
+
+            IrradiancePoint(const IrradiancePoint& p)
+                : pos()
+                , normal()
+                , area(0.0)
+                , irad()
+            {
+                this->operator=(p);
+            }
+
+            IrradiancePoint& operator=(const IrradiancePoint& p) {
+                this->pos = p.pos;
+                this->normal = p.normal;
+                this->area = p.area;
+                this->irad = p.irad;
+                return *this;
+            }
         };
 
         struct OctreeNode {
             IrradiancePoint pt;
+            BBox bbox;
             OctreeNode* children[8];
+            bool isLeaf;
 
             OctreeNode()
                 : pt()
+                , bbox()
+                , isLeaf(false)
             {
                 for (int i = 0; i < 8; i++) {
                     children[i] = NULL;
@@ -81,7 +102,7 @@ namespace spica {
             void deleteNode(OctreeNode* node);
             OctreeNode* constructRec(std::vector<IrradiancePoint>& iradPoints, const BBox& bbox);
 
-            Color iradSubsurfaceRec(const Vector3& pos, const DiffusionReflectance& Rd);
+            Color iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const DiffusionReflectance& Rd);
         };
 
         Octree octree;

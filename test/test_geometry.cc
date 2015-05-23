@@ -266,8 +266,8 @@ TEST(DiskTest, AreaTest) {
 // ------------------------------
 TEST(BBoxTest, InstanceTest) {
     BBox b;
-    EXPECT_EQ_VEC(Vector3(), b.posMin());
-    EXPECT_EQ_VEC(Vector3(), b.posMin());
+    EXPECT_EQ_VEC(Vector3(INFTY, INFTY, INFTY), b.posMin());
+    EXPECT_EQ_VEC(Vector3(-INFTY, -INFTY, -INFTY), b.posMax());
 
     BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
     EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), b0.posMin());

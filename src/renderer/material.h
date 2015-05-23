@@ -53,7 +53,7 @@ namespace spica {
             zneg = zpos * (1.0 + (4.0 / 3.0) * A);
         }
 
-        double Fdr(double eta) {
+        double Fdr(double eta) const {
             if (eta >= 1.0) {
                 return -1.4399 / (eta * eta) + 0.7099 / eta + 0.6681 + 0.0636 * eta;
             } else {
@@ -66,6 +66,8 @@ namespace spica {
             const double ddn = in.dot(n);
             const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
+            if (cos2t < 0.0) return 0.0;
+
             Vector3 refractDir = (in * nnt + n * (ddn * nnt + sqrt(cos2t))).normalized();
 
             const double a = IOR_OBJECT - IOR_VACCUM;
@@ -77,12 +79,12 @@ namespace spica {
             return 1.0 - Re;
         }
 
-        double operator()(const double d2) {
+        double operator()(const double d2) const {
             double dpos = sqrt(d2 + zpos * zpos);
             double dneg = sqrt(d2 + zneg * zneg);
             double posTerm = zpos * (dpos * sigma_tr + 1.0) * exp(-sigma_tr * dpos) / (dpos * dpos * dpos);
             double negTerm = zneg * (dneg * sigma_tr + 1.0) * exp(-sigma_tr * dneg) / (dneg * dneg * dneg);
-            double ret = (1.0 / (4.0 * PI)) * (posTerm - negTerm);
+            double ret = (alphap / (4.0 * PI * sigmap_t)) * (posTerm + negTerm);
             return ret;
         }
     };

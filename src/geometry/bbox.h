@@ -42,6 +42,9 @@ namespace spica {
         void merge(const BBox& box);
         void merge(const Triangle& t);
 
+        // Check if vertex is inside or not
+        bool inside(const Vector3& v) const;
+
         inline Vector3 posMin() const { return _posMin; }
         inline Vector3 posMax() const { return _posMax; }
     };

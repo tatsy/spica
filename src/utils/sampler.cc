@@ -97,7 +97,7 @@ namespace spica {
             for (int i = 0; i < trimesh.numFaces(); i++) {
                 Triangle tri = trimesh.getTriangle(i);
                 const double A = tri.area();
-                const int nSample = static_cast<int>(std::ceil(2.0 * A / (minDist * minDist)));
+                const int nSample = static_cast<int>(std::ceil(4.0 * A / (minDist * minDist)));
                 for (int k = 0; k < nSample; k++) {
                     double u = rng.nextReal();
                     double v = (1.0 - u) * rng.nextReal();

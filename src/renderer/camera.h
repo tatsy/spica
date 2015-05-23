@@ -14,8 +14,11 @@
 #include "../geometry/plane.h"
 #include "../utils/image.h"
 #include "../random/random.h"
+#include "../random/halton.h"
 
 namespace spica {
+
+    class CameraSample;
 
     class SPICA_CAMERA_DLL Camera {
     private:
@@ -121,6 +124,8 @@ namespace spica {
 
         void samplePoints(const int imageX, const int imageY, const Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const;
 
+        CameraSample sample(const double imageX, const double imageY, const Halton& halton, const int sampleID) const;
+
         inline unsigned int imageW() const { return width_; }
         inline unsigned int imageH() const { return height_; }
         inline void imageW(int width) { width_ = width; }
@@ -153,6 +158,30 @@ namespace spica {
         inline Vector3 objplaneU() const { return objplane_.unitU; }
         inline Vector3 objplaneV() const { return objplane_.unitV; }
     };
+
+    struct CameraSample {
+        // TODO: camera is a pointer and public member, it should be fixed !!
+        Vector3 posSensor;
+        Vector3 posObjectPlane;
+        Vector3 posLens;
+        double pdfImage;
+        double pdfLens;
+        const Camera* camera;
+
+        // Compute ray corresponding to this sample
+        Ray generateRay() const {
+            return Ray(posLens, Vector3::normalize(posObjectPlane - posLens));
+        }
+
+        // Probability density for this sample
+        double totalPdf() const {
+            const Vector3 lensToSensor = posSensor - posLens;
+            const double cosine = Vector3::dot(camera->direction(), lensToSensor.normalized());
+            const double weight = cosine * cosine / lensToSensor.squaredNorm();
+            return pdfLens * pdfImage / weight;
+        }
+    };
+
 
 }
 

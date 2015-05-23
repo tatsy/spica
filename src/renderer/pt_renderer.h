@@ -18,6 +18,7 @@
 #include "camera.h"
 #include "material.h"
 #include "../random/random.h"
+#include "../random/halton.h"
 
 namespace spica {
 
@@ -30,11 +31,14 @@ namespace spica {
 
         PTRenderer& operator=(const PTRenderer& renderer);
 
-        int render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel);
+        void render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel);
+        
+        void renderQMC(const Scene& scene, const Camera& camera, const Halton& halton, const int samplerPerPixel);
 
     private:
+        static Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng);
 
-        static Color executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng);
+        static Color executePathTracingQMC(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Halton& halton, const int sampleID);
     };
 }
 

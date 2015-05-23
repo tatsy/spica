@@ -40,7 +40,8 @@ namespace spica {
         // @param[in] depthLimit: maximum depth of recursion
         // @param[in] depthMin: depth in which recursion begin to be terminated with Russian roulette
         Color radiance(const Scene& scene, const Ray& ray, const Random& rng, const int depth, const int depthLimit = 64, const int depthMin = 5);
-    
+
+        Color radiance(const Scene& scene, const Ray& ray, const Halton& halton, const int sampleID, const int depth, const int depthLimit = 32, const int depthMin = 5);    
     }
 
 }

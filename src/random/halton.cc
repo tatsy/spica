@@ -1,6 +1,9 @@
 #define SPICA_HALTON_EXPORT
 #include "halton.h"
 
+#include <cstdlib>
+#include <algorithm>
+
 namespace spica {
 
     namespace {
@@ -17,29 +20,78 @@ namespace spica {
             937, 941, 947, 953, 967, 971, 977, 983, 991, 997
         };
 
-        int rev(const int i, const int p) {
-            return i == 0 ? i : p - i;
+        void suffle(int* p, int d, const Random& rng) {
+            for (int i = 0; i < d; i++) {
+                for (int j = i; j < d; j++) {
+                    const int r = rng.nextInt(d - i);
+                    std::swap(p[i], p[i + r]);
+                }
+            }
+        }
+
+        void permutation(int* p, int d, const Random& rng) {
+            for (int i = 0; i < d; i++) {
+                p[i] = i;
+            }
+            suffle(p, d, rng);
         }
 
     }
 
     Halton::Halton()
+        : dims(0)
+        , bases(NULL)
+        , permute(NULL)
     {
     }
 
-    double Halton::nextReal(const int baseID, const int seqID) const {
-        const int p = primes[baseID];
-        
-        double f    = 1.0 / p;
-        double fact = f;
-        int    a    = seqID;
-        double h    = 0.0;
-        while (a > 0) {
-            h    += fact * rev(a % p, p);
-            a    /= p;
-            fact *= f;
+    Halton::~Halton()
+    {
+        delete[] bases;
+        delete[] permute;
+    }
+
+    Halton::Halton(int dim, const Random& rng)
+        : dims(dim)
+        , bases(NULL)
+        , permute(NULL)
+    {
+        msg_assert(dim < 168, "You cannot specify dimension over 168");
+
+        bases = new int[dims];
+        int sumBases = 0;
+        for (int i = 0; i < dims; i++) {
+            bases[i] = primes[i];
+            sumBases += primes[i];
         }
-        return h;
+
+        permute = new int[sumBases];
+        int* p = permute;
+        for (int i = 0; i < dims; i++) {
+            permutation(p, bases[i], rng);
+            p += bases[i];
+        }
+    }
+
+    double Halton::nextReal(const int baseID, const int seqID) const {
+        int* p = permute;
+        for (int i = 0; i < baseID; i++) {
+            p += bases[i];
+        }
+        return radicalInverse(seqID, bases[baseID], p);
+    }
+
+    double Halton::radicalInverse(int n, int base, const int* p) const {
+        double val = 0.0;
+        double invBase = 1.0 / base;
+        double invBi = invBase;
+        while (n > 0) {
+            int d_i = p[n % base];
+            val += d_i * invBi;
+            invBi *= invBase;
+            n /= base;
+        }
+        return val;
     }
 
 }  // namespace spica

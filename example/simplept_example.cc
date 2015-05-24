@@ -20,11 +20,13 @@ int main(int argc, char **argv) {
     // cornellBoxBunny(scene, camera, width, height);
     cornellBox(scene, camera, width, height);
 
+    Random rng = Random();
+
     Timer timer;
     timer.start();
     PTRenderer renderer;
-    renderer.render(scene, camera, Random(), samplePerPixel);
-    //renderer.renderQMC(scene, camera, Halton(), samplePerPixel);
+    // renderer.render(scene, camera, rng, samplePerPixel);
+    renderer.renderQMC(scene, camera, Halton(150, rng), samplePerPixel);
     printf("Timer: %f sec\n", timer.stop());
 
     return 0;

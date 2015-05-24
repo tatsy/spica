@@ -130,9 +130,7 @@ namespace spica {
 
         const Ray ray(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
         return radiance(scene, ray, rng, numTargetPhotons, targetRadius, 0) * (weight * camera.sensitivity() / (pImage * pLens));
-    }
-
-    
+    }    
     
     Color PMRenderer::radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {
         Intersection isect;

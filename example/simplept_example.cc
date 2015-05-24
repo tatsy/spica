@@ -24,9 +24,9 @@ int main(int argc, char **argv) {
 
     Timer timer;
     timer.start();
-    PTRenderer renderer;
-    // renderer.render(scene, camera, rng, samplePerPixel);
-    renderer.renderQMC(scene, camera, Halton(150, rng), samplePerPixel);
+    PathTracingRenderer renderer;
+    // renderer.render(scene, camera, samplePerPixel, QUASI_MONTE_CARLO);
+    renderer.render(scene, camera, samplePerPixel, PSEUDO_RANDOM_TWISTER);
     printf("Timer: %f sec\n", timer.stop());
 
     return 0;

@@ -166,9 +166,9 @@ namespace spica {
         PLens  = 1.0 / lens_.area();
     }
 
-    CameraSample Camera::sample(const double imageX, const double imageY, const Halton& halton, const int sampleID) const {
-        const double uOnPixel = halton.nextReal(0, sampleID);
-        const double vOnPixel = halton.nextReal(1, sampleID);
+    CameraSample Camera::sample(const double imageX, const double imageY, RandomSeq& rseq) const {
+        const double uOnPixel = rseq.next();
+        const double vOnPixel = rseq.next();
 
         CameraSample sample;
         sample.camera = this;
@@ -182,8 +182,8 @@ namespace spica {
         const double vOnObjplane = -ratio * vOnSensor;
         sample.posObjectPlane = objplane_.center + (uOnObjplane * objplane_.width) * objplane_.unitU + (vOnObjplane * objplane_.height) * objplane_.unitV;
 
-        const double r0 = sqrt(halton.nextReal(2, sampleID));
-        const double r1 = halton.nextReal(3, sampleID) * (2.0 * PI);
+        const double r0 = sqrt(rseq.next());
+        const double r1 = rseq.next() * (2.0 * PI);
         const double uOnLens = r0 * cos(r1);
         const double vOnLens = r0 * sin(r1);
         sample.posLens = lens_.center + (uOnLens * lens_.radius) * lens_.unitU + (vOnLens * lens_.radius) * lens_.unitV;

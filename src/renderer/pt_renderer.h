@@ -13,32 +13,30 @@
 
 #include <string>
 
-#include "ray.h"
-#include "scene.h"
-#include "camera.h"
-#include "material.h"
+#include "renderer_constants.h"
+#include "../utils/uncopyable.h"
 #include "../random/random.h"
 #include "../random/halton.h"
 
 namespace spica {
 
-    class SPICA_PT_RENDERER_DLL PTRenderer {
+    // --------------------------------------------------
+    // Monte Carlo path tracing renderer
+    // --------------------------------------------------
+    class SPICA_PT_RENDERER_DLL PathTracingRenderer : public Uncopyable {
 
     public:
-        PTRenderer();
-        PTRenderer(const PTRenderer& renderer);
-        ~PTRenderer();
+        PathTracingRenderer();
+        ~PathTracingRenderer();
 
-        PTRenderer& operator=(const PTRenderer& renderer);
-
-        void render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel);
+        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType = PSEUDO_RANDOM_TWISTER);
         
         void renderQMC(const Scene& scene, const Camera& camera, const Halton& halton, const int samplerPerPixel);
 
     private:
-        static Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng);
+        static Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq);
 
-        static Color executePathTracingQMC(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Halton& halton, const int sampleID);
+        // static Color executePathTracingQMC(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Halton& halton, const int sampleID);
     };
 }
 

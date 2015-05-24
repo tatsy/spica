@@ -60,7 +60,7 @@ namespace spica {
             double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
 
             if (depth > depthLimit) {
-                roulette *= pow(0.5, depth - depthLimit);
+                return mtrl.emission;
             }
 
             if (depth > maxDepth) {
@@ -108,20 +108,14 @@ namespace spica {
                     Ray transmitRay(hitpoint.position(), transmitDir);
 
                     const double prob = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-                    if (depth > 2) {
-                        if (rng.nextReal() < prob) {
-                            // Reflect
-                            incomingRad = radiance(scene, reflectRay, rng, depth + 1) * fresnelRe;
-                            weight = mtrl.color / (prob * roulette);
-                        } else {
-                            // Transmit
-                            incomingRad = radiance(scene, transmitRay, rng, depth + 1) * fresnelTr;
-                            weight = mtrl.color / ((1.0 - prob) * roulette);
-                        }
+                    if (rng.nextReal() < prob) {
+                        // Reflect
+                        incomingRad = radiance(scene, reflectRay, rng, depth + 1) * fresnelRe;
+                        weight = mtrl.color / (prob * roulette);
                     } else {
-                        // Both reflect and transmit
-                        incomingRad = radiance(scene, reflectRay, rng, depth + 1) * fresnelRe + radiance(scene, transmitRay, rng, depth + 1) * fresnelTr;
-                        weight = mtrl.color / roulette;
+                        // Transmit
+                        incomingRad = radiance(scene, transmitRay, rng, depth + 1) * fresnelTr;
+                        weight = mtrl.color / ((1.0 - prob) * roulette);
                     }
                 }
             } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
@@ -134,7 +128,7 @@ namespace spica {
             return mtrl.emission + weight.cwiseMultiply(incomingRad);
         }
 
-        Color radiance(const Scene& scene, const Ray& ray, const Halton& halton, const int sampleID, const int depth, const int depthLimit, const int depthMin) {
+        Color radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int depth, const int depthLimit, const int depthMin) {
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
                 return scene.bgColor();
@@ -151,10 +145,9 @@ namespace spica {
             }
 
             // Russian roulette
-            const int baseID = depth * 3 + 4;
             double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
             if (depth > depthMin) {
-                if (roulette < halton.nextReal(baseID, sampleID)) {
+                if (roulette < rseq.next()) {
                     return mtrl.emission;
                 }
             } else {
@@ -177,21 +170,21 @@ namespace spica {
                 }
                 v = w.cross(u);
 
-                const double r1 = 2.0 * PI * halton.nextReal(baseID + 1, sampleID);
-                const double r2 = halton.nextReal(baseID + 2, sampleID);
+                const double r1 = 2.0 * PI * rseq.next();
+                const double r2 = rseq.next();
                 const double r2s = sqrt(r2);
 
                 Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
                 Ray nextRay(hitpoint.position(), nextDir);
                 weight = weight.cwiseMultiply(mtrl.color) / roulette;
-                nextRad = radiance(scene, nextRay, halton, sampleID, depth + 1, depthLimit, depthMin);
+                nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin);
 
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                 // Specular reflection
                 Vector3 nextDir = Vector3::reflect(ray.direction(), orientNormal);
                 Ray nextRay(hitpoint.position(), nextDir);
                 weight = weight.cwiseMultiply(mtrl.color) / roulette;
-                nextRad = radiance(scene, nextRay, halton, sampleID, depth + 1, depthLimit, depthMin);
+                nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin);
             } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                 // Refraction
                 bool isInto = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;              
@@ -211,28 +204,18 @@ namespace spica {
                     // Total reflection
                     Ray nextRay(hitpoint.position(), reflectDir);
                     weight = weight.cwiseMultiply(mtrl.color) / roulette;
-                    nextRad = radiance(scene, nextRay, halton, sampleID, depth + 1, depthLimit, depthMin);
+                    nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin);
                 } else {
-                    if (depth > 2) {
-                        // Trace either reflect or transmit ray
-                        const double refProb = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-                        if (halton.nextReal(baseID + 1, sampleID) < refProb) {
-                            Ray nextRay(hitpoint.position(), reflectDir);
-                            weight = weight.cwiseMultiply(mtrl.color) / (refProb * roulette);
-                            nextRad = radiance(scene, nextRay, halton, sampleID, depth + 1, depthLimit, depthMin) * fresnelRe;
-                        } else {
-                            Ray nextRay(hitpoint.position(), transmitDir);
-                            weight = weight.cwiseMultiply(mtrl.color) / ((1.0 - refProb) * roulette);
-                            nextRad = radiance(scene, nextRay, halton, sampleID, depth + 1, depthLimit, depthMin) * fresnelTr;
-                        }
+                    // Trace either reflect or transmit ray
+                    const double refProb = 0.25 + REFLECT_PROBABLITY * fresnelRe;
+                    if (rseq.next() < refProb) {
+                        Ray nextRay(hitpoint.position(), reflectDir);
+                        weight = weight.cwiseMultiply(mtrl.color) / (refProb * roulette);
+                        nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin) * fresnelRe;
                     } else {
-                        // Trace both reflect and transmit rays
-                        Ray reflectRay(hitpoint.position(), reflectDir);
-                        Ray transmitRay(hitpoint.position(), transmitDir);
-                        Color reflectRad = radiance(scene, reflectRay, halton, sampleID, depth + 1, depthLimit, depthMin);
-                        Color transmitRad = radiance(scene, transmitRay, halton, sampleID, depth + 1, depthLimit, depthMin);
-                        weight = weight.cwiseMultiply(mtrl.color) / roulette;
-                        nextRad = reflectRad * fresnelRe + transmitRad * fresnelTr;
+                        Ray nextRay(hitpoint.position(), transmitDir);
+                        weight = weight.cwiseMultiply(mtrl.color) / ((1.0 - refProb) * roulette);
+                        nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin) * fresnelTr;
                     }
                 }
             }

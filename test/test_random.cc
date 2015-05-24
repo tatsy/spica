@@ -49,13 +49,3 @@ TEST_F(RandomTest, RandReal) {
         ASSERT_NEAR(accum / nLoop, PI / 4.0, 1.0e-2);
     }
 }
-
-TEST_F(RandomTest, HaltonTest) {
-    Halton halton;
-    EXPECT_EQ(0.50, halton.nextReal(0, 1));
-    EXPECT_EQ(0.25, halton.nextReal(0, 2));
-    EXPECT_EQ(0.75, halton.nextReal(0, 3));
-    EXPECT_EQ(0.125, halton.nextReal(0, 4));
-    EXPECT_EQ(0.625, halton.nextReal(0, 5));
-    EXPECT_EQ(0.375, halton.nextReal(0, 6));
-}

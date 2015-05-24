@@ -1,89 +1,36 @@
 #ifndef _SPICA_RANDOM_H_
 #define _SPICA_RANDOM_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef SPICA_RANDOM_EXPORT
+        #define SPICA_RANDOM_DLL __declspec(dllexport)
+    #else
+        #define SPICA_RANDOM_DLL __declspec(dllimport)
+    #endif
+#else
+    #define SPICA_RANDOM_DLL
+#endif
+
 #include "../utils/common.h"
 #include "random_base.h"
-#include "twister.h"
-#include "primary_sampler.h"
 
 namespace spica {
 
-    enum RandType {
-        RAND_TWISTER = 0x01,
-        RAND_PRIMARY_SPACE = 0x02
-    };
-
-    class Random {
-    private:
-        RandomBase* _rng;
-        int* _numCopies;
-        RandType _type;
-
+    // --------------------------------------------------
+    // Random number generator with Mersenne twister
+    // --------------------------------------------------
+    class SPICA_RANDOM_DLL Random : public RandomBase {
     public:
-        explicit Random(int seed = -1, RandType type = RAND_TWISTER)
-            : _rng(NULL)
-            , _numCopies(NULL)
-            , _type(type)
-        {
-            _numCopies = new int(0);
-            switch (type) {
-            case RAND_TWISTER:
-                _rng = new Twister(seed);
-                break;
+        explicit Random(int seed = -1);
 
-            case RAND_PRIMARY_SPACE:
-                _rng = NULL;
-                break;
+        // Generate a random integer from [0, n-1]
+        int nextInt(const int n) const;
 
-            default:
-                msg_assert(false, "Unknown random type");
-                break;
-            }
-        }
+        // Generate a floating point random number from [0, 1)
+        double nextReal() const;
 
-        ~Random() 
-        {
-            release();
-        }
-
-        Random(const Random& rand)
-            : _rng(NULL)
-            , _numCopies(NULL)
-            , _type()
-        {
-            operator=(rand);
-        }
-
-        Random& operator=(const Random& rand) {
-            release();
-            this->_rng = rand._rng;
-            this->_numCopies = rand._numCopies;
-            this->_type = rand._type;
-            (*_numCopies) += 1;
-        }
-
-        int nextInt(const int n) const {
-            return _rng->nextInt(n);
-        }
-
-        double nextReal() const {
-            return _rng->nextReal();
-        }
-
-    private:
-
-        void release() {
-            if (_numCopies != NULL) {
-                if (*_numCopies == 0) {
-                    delete _rng;
-                    delete _numCopies;
-                    _rng = NULL;
-                    _numCopies = NULL;
-                } else {
-                    (*_numCopies) -= 1;
-                }
-            }   
-        }
+        // Request specified amount of random numbers
+        void requestSamples(RandomSeq& rseq, const int numRequested);
     };
 
 }

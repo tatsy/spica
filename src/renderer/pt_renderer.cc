@@ -15,25 +15,31 @@
 
 namespace spica {
 
-    PTRenderer::PTRenderer()
+    PathTracingRenderer::PathTracingRenderer()
     {
     }
 
-    PTRenderer::PTRenderer(const PTRenderer& renderer)
+    PathTracingRenderer::~PathTracingRenderer() 
     {
     }
 
-    PTRenderer::~PTRenderer() 
-    {
-    }
-
-    PTRenderer& PTRenderer::operator=(const PTRenderer& renderer) {
-        return *this;
-    }
-
-    void PTRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel) {
+    void PathTracingRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
+
+        RandomBase* rand = NULL;
+        switch (randType) {
+        case PSEUDO_RANDOM_TWISTER:
+            rand = new Random();
+            break;
+
+        case QUASI_MONTE_CARLO:
+            rand = new Halton();
+            break;
+
+        default:
+            msg_assert(false, "Unknown random number generator type!!");
+        }
 
         // Vectors spanning screen
         Image buffer(width, height);
@@ -41,8 +47,13 @@ namespace spica {
         
         for (int i = 0; i < samplePerPixel; i++) {
             ompfor (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rng);
+                RandomSeq rseq;
+                for (int x = 0; x < width; x++) {                    
+                    omplock {
+                        rand->requestSamples(rseq, 200);
+                    }
+
+                    buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rseq);
                 }
             
                 omplock {
@@ -61,24 +72,28 @@ namespace spica {
             sprintf(filename, "pathtrace_%03d.bmp", i + 1);
             image.saveBMP(filename);
         }
+
+        delete rand;
     }
 
-    Color PTRenderer::executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng) {
+    Color PathTracingRenderer::executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq) {
         Vector3 posOnSensor;        // Position on the image sensor
         Vector3 posOnObjplane;      // Position on the object plane
         Vector3 posOnLens;          // Position on the lens
         double  pImage, pLens;      // Sampling probability on image sensor and lens
 
-        camera.samplePoints(pixelX, pixelY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
-        const Ray ray(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
+        CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
+        // camera.samplePoints(pixelX, pixelY, rseq, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
+        const Ray ray = camSample.generateRay(); //(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
 
-        Vector3 lens2sensor = posOnSensor - posOnLens;
-        const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
-        const double weight = cosine * cosine / lens2sensor.squaredNorm();
+        //Vector3 lens2sensor = posOnSensor - posOnLens;
+        //const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
+        //const double weight = cosine * cosine / lens2sensor.squaredNorm();
 
-        return helper::radiance(scene, ray, rng, 0) * (weight * camera.sensitivity() / (pImage * pLens));
+        return helper::radiance(scene, ray, rseq, 0) * (camera.sensitivity() / camSample.totalPdf()); // * (weight * camera.sensitivity() / (pImage * pLens));
     }
 
+    /*
     void PTRenderer::renderQMC(const Scene& scene, const Camera& camera, const Halton& halton, const int samplePerPixel) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
@@ -116,6 +131,7 @@ namespace spica {
         const Ray ray = camSample.generateRay();
         return helper::radiance(scene, ray, halton, sampleID, 0) * camera.sensitivity() / camSample.totalPdf();          
     }
+    */
 
     
 

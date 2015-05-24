@@ -12,29 +12,26 @@
 #endif
 
 #include "random.h"
-#include "../utils/uncopyable.h"
 
 namespace spica {
 
     // --------------------------------------------------
     // Randomized Halton sampler for quasi Monte Carlo
     // --------------------------------------------------
-    class SPICA_HALTON_DLL Halton : public Uncopyable {
+    class SPICA_HALTON_DLL Halton : public RandomBase {
     private:
+        static const int nPrimes = 1000;
         int  dims;
         int* bases;
         int* permute;
+        int  numUsedSamples;
 
     public:
-        Halton();
+        explicit Halton(int dim = 200, const Random& rng = Random());
         ~Halton();
 
-        Halton(int dim, const Random& rng);
-
-        // Generate quasi random number
-        // @param[in] baseID: index of prime number for base (ex, 0 -> 2, 1 -> 3, 2 -> 5, ...)
-        // @param[in] seqID: index of random sequence
-        double nextReal(const int baseID, const int seqID) const;
+        // Request specified amount of random numbers
+        void requestSamples(RandomSeq& rseq, const int numRequested);
 
     private:
         double radicalInverse(int n, int base, const int* p) const;

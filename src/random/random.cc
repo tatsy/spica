@@ -50,8 +50,8 @@ Thanks!
 
 */
 
-#define SPICA_TWISTER_EXPORT
-#include "twister.h"
+#define SPICA_RANDOM_EXPORT
+#include "random.h"
 
 #include <cmath>
 #include <ctime>
@@ -183,18 +183,26 @@ namespace spica {
 
     }  // unnamed namespace
 
-    Twister::Twister(int seed) {
+    Random::Random(int seed) {
         unsigned int ulseed = seed >= 0 ? seed : (unsigned int)time(0);
         init_genrand(ulseed);
     }
 
-    int Twister::nextInt(const int n) const {
+    int Random::nextInt(const int n) const {
         msg_assert(n > 0, "Upper bound of random integers must be positive.");
         return genrand_int31() % n;
     }
 
-    double Twister::nextReal() const {
+    double Random::nextReal() const {
         return genrand_real2();
+    }
+
+    void Random::requestSamples(RandomSeq& rseq, const int numRequested) {
+        rseq.resize(numRequested);
+        for (int i = 0; i < numRequested; i++) {
+            rseq.set(i, nextReal());
+        }
+        rseq.reset();
     }
 
 }  // namespace spica

@@ -55,13 +55,16 @@ namespace spica {
     template <class Ty>
     void KdTree<Ty>::construct(const std::vector<Ty>& points) {
         const int numPoints = static_cast<int>(points.size());
-        std::vector<Ty> temp(points);
-        _root = constructRec(temp, 0, numPoints, 0);
+        std::vector<const Ty*> pointers(numPoints);
+        for (int i = 0; i < numPoints; i++) {
+            pointers[i] = &points[i];
+        }
+        _root = constructRec(pointers, 0, numPoints, 0);
         _numCopies = new int(0);
     }
 
     template <class Ty>
-    typename KdTree<Ty>::KdTreeNode* KdTree<Ty>::constructRec(std::vector<Ty>& points, int startID, int endID, int dim) {
+    typename KdTree<Ty>::KdTreeNode* KdTree<Ty>::constructRec(std::vector<const Ty*>& points, int startID, int endID, int dim) {
         if (startID >= endID) {
             return NULL;
         }
@@ -71,7 +74,7 @@ namespace spica {
         int mid = (startID + endID) / 2;
         KdTreeNode* node = new KdTreeNode();
         node->axis = dim;
-        node->point = points[mid];
+        node->point = (*points[mid]);
         node->left = constructRec(points, startID, mid, (dim + 1) % 3);
         node->right = constructRec(points, mid + 1, endID, (dim + 1) % 3);
         return node;

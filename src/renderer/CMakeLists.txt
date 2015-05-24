@@ -8,6 +8,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/pt_renderer.cc
     ${CMAKE_CURRENT_LIST_DIR}/bpt_renderer.cc
     ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.cc
+    ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
     ${CMAKE_CURRENT_LIST_DIR}/photon_mapping.cc
     ${CMAKE_CURRENT_LIST_DIR}/progressive_photonmap.cc
     ${CMAKE_CURRENT_LIST_DIR}/sss_renderer.cc
@@ -24,6 +25,7 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/pt_renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/bpt_renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.h
+    ${CMAKE_CURRENT_LIST_DIR}/photon_map.h
     ${CMAKE_CURRENT_LIST_DIR}/photon_mapping.h
     ${CMAKE_CURRENT_LIST_DIR}/progressive_photonmap.h
     ${CMAKE_CURRENT_LIST_DIR}/sss_renderer.h

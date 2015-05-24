@@ -11,10 +11,8 @@
     #define SPICA_SSS_RENDERER_DLL
 #endif
 
-#include "scene.h"
-#include "camera.h"
-
-#include "../utils/uncopyable.h"
+#include "renderer_constants.h"
+#include "photon_map.h"
 
 namespace spica {
 
@@ -105,15 +103,22 @@ namespace spica {
             Color iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const DiffusionReflectance& Rd);
         };
 
+        PhotonMap photonMap;
         Octree octree;
 
     public:
         SSSRenderer();
         ~SSSRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int samplerPerPoint);
+        void render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numPhotons, const int gatherPhotons, const double gatherRadius);
 
     private:
+        // Generate photon map for objects with subsurface scattering property
+        void buildPhotonMap(const Scene& scene, const Camera& camera, const Random& rng, const int numPhotons);
+
+        // Compute irradiance with photon map
+        Color irradianceWithPM(const Vector3& p, const Vector3& n, const int gatherPhotons, const double gatherRadius) const;
+
         Color executePathTracing(const Scene& scene, const Camera& camera, const Random& rng, const int imageX, const int imageY);
 
         Color radiance(const Scene& scene, const Ray& ray, const Random& rng, const int depth, const int depthLimit = 6, const int maxDepth = 64);

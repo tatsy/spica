@@ -89,7 +89,7 @@ namespace spica {
             }
         }
 
-        void poissonDisk(const Trimesh& trimesh, const double minDist, const double maxDist, std::vector<Vector3>* points, std::vector<Vector3>* normals) {
+        void poissonDisk(const Trimesh& trimesh, const double minDist, std::vector<Vector3>* points, std::vector<Vector3>* normals) {
             // Sample random points on trimesh
             BBox bbox;
             std::vector<Vector3> candPoints;
@@ -100,7 +100,11 @@ namespace spica {
                 const int nSample = static_cast<int>(std::ceil(4.0 * A / (minDist * minDist)));
                 for (int k = 0; k < nSample; k++) {
                     double u = rng.nextReal();
-                    double v = (1.0 - u) * rng.nextReal();
+                    double v = rng.nextReal();
+                    if (u + v >= 1.0) {
+                        u = 1.0 - u;
+                        v = 1.0 - v;
+                    }
                     Vector3 p = tri.p0() + u * (tri.p1() - tri.p0()) + v * (tri.p2() - tri.p0());
                     candPoints.push_back(p);
                     candNormals.push_back(tri.normal());
@@ -109,14 +113,13 @@ namespace spica {
             }
 
             // Create hash grid
+            const int numCands = static_cast<int>(candPoints.size());
             Vector3 bsize = bbox.posMax() - bbox.posMin();
-            const double cellSize = ((bsize.x() + bsize.y() + bsize.z()) / 3.0) / 50.0;
-            const double scale = 1.0 / cellSize;
+            const double scale = 1.0 / (2.0 * minDist);
             const int numPoints = candPoints.size();
             HashGrid<int> hashgrid;
             hashgrid.init(numPoints, scale, bbox);
 
-            const int numCands = static_cast<int>(candPoints.size());
             RandomQueue<int> que;
             for (int i = 0; i < numCands; i++) {
                 que.push(i);

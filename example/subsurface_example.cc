@@ -20,13 +20,14 @@ int main(int argc, char** argv) {
     cornellBoxDragon(scene, camera, width, height);
 
     Random rng = Random();
-
-    const int samplePerPoint = samplePerPixel;
+    const int numPhotons = 5000000;
+    const int gatherPhotons = 200;
+    const double gatherRadius = 20.0;
 
     SSSRenderer renderer;
 
     Timer timer;
     timer.start();
-    renderer.render(scene, camera, rng, samplePerPixel, samplePerPoint);
+    renderer.render(scene, camera, rng, samplePerPixel, numPhotons, gatherPhotons, gatherRadius);
     printf("Time: %f sec\n", timer.stop());
 }

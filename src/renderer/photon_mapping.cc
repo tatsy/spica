@@ -10,80 +10,7 @@
 
 namespace spica {
 
-    // --------------------------------------------------
-    // Photon map
-    // --------------------------------------------------
-    Photon::Photon()
-        : Vector3()
-        , _flux()
-        , _direction()
-        , _normal()
-    {
-    }
-
-    Photon::Photon(const Vector3& position, const Color& flux, const Vector3& direction, const Vector3& normal)
-        : Vector3(position)
-        , _flux(flux)
-        , _direction(direction)
-        , _normal(normal)
-    {
-    }
-
-    Photon::Photon(const Photon& photon)
-        : Vector3()
-        , _flux()
-        , _direction()
-        , _normal()
-    {
-        operator=(photon);
-    }
-
-    Photon::~Photon()
-    {
-    }
-
-    Photon& Photon::operator=(const Photon& photon) {
-        Vector3::operator=(photon);
-        this->_flux      = photon._flux;
-        this->_direction = photon._direction;
-        this->_normal = photon._normal;
-        return *this;
-    }
-
-    // --------------------------------------------------
-    // Photon map
-    // --------------------------------------------------
-
-    PhotonMap::PhotonMap()
-        : _kdtree()
-    {
-    }
-
-    PhotonMap::~PhotonMap()
-    {
-    }
-
-    void PhotonMap::clear() {
-        _kdtree.release();
-    }
-
-    void PhotonMap::construct(const std::vector<Photon>& photons) {
-        _kdtree.construct(photons);
-    }
-
-    void PhotonMap::findKNN(const Photon& query, std::vector<Photon>* photons, const int numTargetPhotons, const double targetRadius) const {
-        _kdtree.knnSearch(query, KnnQuery(K_NEAREST | EPSILON_BALL, numTargetPhotons, targetRadius), photons);
-    }
-
-    // --------------------------------------------------
-    // Photon mapping renderer
-    // --------------------------------------------------
-
     PMRenderer::PMRenderer()
-    {
-    }
-
-    PMRenderer::PMRenderer(const PMRenderer& renderer)
     {
     }
 
@@ -91,20 +18,16 @@ namespace spica {
     {
     }
 
-    PMRenderer& PMRenderer::operator=(const PMRenderer& renderer) {
-        return *this;
-    }
-
     int PMRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numTargetPhotons, const double targetRadius) {
         const int width = camera.imageW();
         const int height = camera.imageH();
-        Image image(width, height);
+        Image buffer(width, height);
 
         int proc = 0;
-        ompfor (int i = 0; i < samplePerPixel; i++) {
-            for (int y = 0; y < height; y++) {
+        for (int i = 0; i < samplePerPixel; i++) {
+            ompfor (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    image.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng, numTargetPhotons, targetRadius) / samplePerPixel;
+                    buffer.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng, numTargetPhotons, targetRadius);
                 }
 
                 omplock {
@@ -112,8 +35,17 @@ namespace spica {
                     printf("%6.2f %% processed...\n", 100.0 * proc / (samplePerPixel * height));
                 }
             }
+
+            char filename[256];
+            Image image(width, height);
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    image.pixel(x, y) = buffer(x, y) / (i + 1);
+                }
+            }
+            sprintf(filename, "photonmap_%03d.bmp", i + 1);
+            image.saveBMP(filename);
         }
-        image.saveBMP("photonmap.bmp");
         return 0;
     }
 
@@ -159,25 +91,32 @@ namespace spica {
             photonMap.findKNN(query, &photons, numTargetPhotons, targetRadius);
 
             const int numPhotons = static_cast<int>(photons.size());
-            std::vector<double> dists(numPhotons);
+
+            std::vector<Photon> validPhotons;
+            std::vector<double> distances;
             double maxdist = 0.0;
             for (int i = 0; i < numPhotons; i++) {
-                double dist = (photons[i] - query).norm();
-                dists[i] = dist;
-                maxdist = std::max(maxdist, dist);
+                Vector3 diff = query - photons[i];
+                double dist = diff.norm();
+                if (std::abs(Vector3::dot(hitpoint.normal(), diff)) < diff.norm() * 0.1) {
+                    validPhotons.push_back(photons[i]);
+                    distances.push_back(dist);
+                    maxdist = std::max(maxdist, dist);
+                }
             }
 
             // Cone filter
+            const int numValidPhotons = static_cast<int>(validPhotons.size());
             const double k = 1.1;
             Color totalFlux = Color(0.0, 0.0, 0.0);
-            for (int i = 0; i < numPhotons; i++) {
-                const double w = 1.0 - (dists[i] / (k * maxdist));
+            for (int i = 0; i < numValidPhotons; i++) {
+                const double w = 1.0 - (distances[i] / (k * maxdist));
                 const Color v = mtrl.color.cwiseMultiply(photons[i].flux()) / PI;
                 totalFlux += w * v;
             }
             totalFlux /= (1.0 - 2.0 / (3.0 * k));
             
-            if (numPhotons != 0) {
+            if (maxdist > EPS) {
                 return mtrl.emission + totalFlux / ((PI * maxdist * maxdist) * roulette); 
             }
         } else if (mtrl.reftype == REFLECTION_SPECULAR) {
@@ -209,63 +148,6 @@ namespace spica {
                     return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelTr / ((1.0 - probRef) * roulette));
                 }
             }
-        } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
-            bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
-            Vector3 reflectDir, refractDir;
-            double fresnelRe, fresnelTr;
-
-            bool isTotRef = helper::isTotalRef(isIncoming,
-                                               hitpoint.position(),
-                                               ray.direction(),
-                                               hitpoint.normal(),
-                                               orientNormal,
-                                               &reflectDir,
-                                               &refractDir,
-                                               &fresnelRe,
-                                               &fresnelTr);
-            
-            if (isTotRef) {
-                // Total reflection
-                Ray nextRay(hitpoint.position(), reflectDir);
-                Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) / roulette;
-            }
-            
-            const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-            if (rng.nextReal() < probability) {
-                // Reflect
-                Ray nextRay = Ray(hitpoint.position(), reflectDir);
-                Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelRe / (probability * roulette));
-            } else {
-                // Transmit, then estimate irradiance with photon map
-                Photon query = Photon(hitpoint.position(), Color(), ray.direction(), hitpoint.normal());
-                std::vector<Photon> photons;
-                photonMap.findKNN(query, &photons, numTargetPhotons, targetRadius);
-
-                const int numPhotons = static_cast<int>(photons.size());
-                std::vector<double> dists(numPhotons);
-                double maxdist = 0.0;
-                for (int i = 0; i < numPhotons; i++) {
-                    double dist = (photons[i] - query).norm();
-                    dists[i] = dist;
-                    maxdist = std::max(maxdist, dist);
-                }
-        
-                // Dipole model
-                Color totalFlux = Color(0.0, 0.0, 0.0);
-                DiffusionReflectance Rd(0.1, 100.0, 1.3);
-                for (int i = 0; i < numPhotons; i++) {
-                    Vector3 diff = photons[i] - hitpoint.position();
-                    const double w = Rd(diff.squaredNorm());
-                    const Color v = mtrl.color.cwiseMultiply(photons[i].flux());
-                    totalFlux += w * v / PI;
-                }
-            
-                if (numPhotons != 0) {
-                    return mtrl.emission + totalFlux * (fresnelTr / ((1.0 - probability) * roulette)); 
-                }
-            }
         }
 
         return Color();
@@ -290,19 +172,17 @@ namespace spica {
             sampler::onHemisphere(normalOnLight, &nextDir);
 
             Ray currentRay(positionOnLignt, nextDir);
-            Vector3 prevNormal = normalOnLight;
 
             for (;;) {
                 // Remove photon with zero flux
-                if (std::max(currentFlux.red(), std::max(currentFlux.green(), currentFlux.blue())) < 0.0) {
+                if (std::max(currentFlux.red(), std::max(currentFlux.green(), currentFlux.blue())) <= 0.0) {
                     break;
                 }
 
-                Intersection isect;
-                bool isHit = scene.intersect(currentRay, isect);
 
                 // If not hit the scene, then break
-                if (!isHit) {
+                Intersection isect;
+                if (!scene.intersect(currentRay, isect)) {
                     break;
                 }
 
@@ -333,6 +213,7 @@ namespace spica {
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
+                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     bool isIncoming = Vector3::dot(hitpoint.normal(), orientingNormal) > 0.0;
 
@@ -369,43 +250,8 @@ namespace spica {
                         currentRay = Ray(hitpoint.position(), transmitDir);
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                     }
-                } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
-                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientingNormal) > 0.0;
-
-                    Vector3 reflectDir, transmitDir;
-                    double fresnelRe, fresnelTr;
-                    bool isTotRef = helper::isTotalRef(isIncoming,
-                                                       hitpoint.position(),
-                                                       currentRay.direction(),
-                                                       hitpoint.normal(),
-                                                       orientingNormal,
-                                                       &reflectDir,
-                                                       &transmitDir,
-                                                       &fresnelRe,
-                                                       &fresnelTr);
-
-                    Ray reflectRay(hitpoint.position(), reflectDir);
-                    if (isTotRef) {
-                        // Total reflection
-                        currentRay = reflectRay;
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
-                        continue;
-                    }
-
-                    const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-
-                    if (rng.nextReal() < probability) {
-                        // Reflection
-                        currentRay = reflectRay;
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
-                    } else {
-                        // Transmit (Absorption)
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
-                        omplock {
-                            photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction(), hitpoint.normal()));
-                        }
-                        break;
-                    }
+                } else {
+                    msg_assert(false, "Unknown reflection type !!");
                 }
             }
 
@@ -419,8 +265,10 @@ namespace spica {
         printf("\n\n");
 
         // Construct photon map
+        printf("Constructing photon map -> ");
         photonMap.clear();
         photonMap.construct(photons);
+        printf("OK\n");
     }
 
 }

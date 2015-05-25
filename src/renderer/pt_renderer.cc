@@ -37,7 +37,7 @@ namespace spica {
 
             case QUASI_MONTE_CARLO:
                 printf("Use quasi random numbers (Halton)\n");
-                rand[i] = new Halton();
+                rand[i] = new Halton(200, true, Random(i));
                 break;
 
             default:
@@ -46,36 +46,39 @@ namespace spica {
         }
 
         // Vectors spanning screen
-        Image buffer(width, height);
-        int processed = 0;
-        
-        for (int i = 0; i < samplePerPixel; i++) {
-            ompfor (int y = 0; y < height; y++) {
-                const int threadID = y % OMP_NUM_CORE;
+        Image* buffer = new Image[OMP_NUM_CORE];
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            buffer[i] = Image(width, height);
+        }
+
+        const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
+        int processed = 0;        
+
+        for (int t = 0; t < taskPerThread; t++) {
+            ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
                 RandomSeq rseq;
-                for (int x = 0; x < width; x++) {                    
-                    rand[threadID]->requestSamples(rseq, 200);
-                    buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rseq);
-                }
-            
-                omplock {
-                    processed++;
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {                    
+                        rand[threadID]->requestSamples(rseq, 200);
+                        buffer[threadID].pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rseq);
+                    }
                 }
             }
+
 
             char filename[256];
             Image image(width, height);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    image.pixel(x, y) = buffer(x, y) / (i + 1);
+            for (int k = 0; k < OMP_NUM_CORE; k++) {
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        image.pixel(x, y) += buffer[k](x, y) / ((t + 1) * OMP_NUM_CORE);
+                    }
                 }
             }
-            sprintf(filename, "pathtrace_%03d.bmp", i + 1);
+            sprintf(filename, "pathtrace_%03d.bmp", t + 1);
             image.saveBMP(filename);
 
-            omplock {
-                printf("  %6.2f %% processed -> %s\n", 100.0 * processed / (height * samplePerPixel), filename);
-            }
+            printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);
         }
         printf("\nFinish!!\n");
 
@@ -83,6 +86,7 @@ namespace spica {
             delete rand[i];
         }
         delete[] rand;
+        delete[] buffer;
     }
 
     Color PathTracingRenderer::executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq) {

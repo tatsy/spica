@@ -62,10 +62,8 @@ namespace spica {
 
         void suffle(int* p, int d, const Random& rng) {
             for (int i = 0; i < d; i++) {
-                for (int j = i; j < d; j++) {
-                    const int r = rng.nextInt(d - i);
-                    std::swap(p[i], p[i + r]);
-                }
+                const int r = rng.nextInt(d - i);
+                std::swap(p[i], p[i + r]);
             }
         }
 

@@ -35,8 +35,6 @@ namespace spica {
 
     private:
         static Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq);
-
-        // static Color executePathTracingQMC(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Halton& halton, const int sampleID);
     };
 }
 

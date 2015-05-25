@@ -60,28 +60,21 @@ namespace spica {
             7793, 7817, 7823, 7829, 7841, 7853, 7867, 7873, 7877, 7879, 7883, 7901, 7907, 7919 
         };
 
-        void suffle(int* p, int d, const Random& rng) {
+        void shuffle(int* p, int d, const Random& rng) {
             for (int i = 0; i < d; i++) {
                 const int r = rng.nextInt(d - i);
                 std::swap(p[i], p[i + r]);
             }
         }
-
-        void permutation(int* p, int d, const Random& rng) {
-            for (int i = 0; i < d; i++) {
-                p[i] = i;
-            }
-            suffle(p, d, rng);
-        }
-
     }
 
-    Halton::Halton(int dim, const Random& rng)
+    Halton::Halton(int dim, bool isPermute, const Random& rng)
         : dims(dim)
         , bases(NULL)
         , permute(NULL)
+        , numUsedSamples(0)
     {
-        msg_assert(dim <= nPrimes, "You cannot specify dimension over 168");
+        msg_assert(dim <= nPrimes, "You cannot specify dimension over 1000");
 
         bases = new int[dims];
         int sumBases = 0;
@@ -93,7 +86,12 @@ namespace spica {
         permute = new int[sumBases];
         int* p = permute;
         for (int i = 0; i < dims; i++) {
-            permutation(p, bases[i], rng);
+            for (int k = 0; k < bases[i]; k++) {
+                p[k] = k;
+            }
+            if (isPermute) {
+                shuffle(p, bases[i], rng);
+            }
             p += bases[i];
         }
     }
@@ -103,7 +101,6 @@ namespace spica {
         delete[] bases;
         delete[] permute;
     }
-
 
     void Halton::requestSamples(RandomSeq& rseq, const int numRequested) {
         msg_assert(numRequested <= dims, "Requested samples are too many !!");

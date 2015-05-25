@@ -134,20 +134,25 @@ namespace spica {
                 return scene.bgColor();
             }
 
+            // Require random numbers
+            std::vector<double> randnums;
+            rseq.next(3, &randnums);
+
+            // Get intersecting material
             const int objectID = isect.objectId();
             const Material& mtrl = scene.getMaterial(objectID);
             const Hitpoint& hitpoint = isect.hitpoint();
             const Vector3 orientNormal = Vector3::dot(ray.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
             // If depth is over depthLimit, terminate recursion
-            if (depth > depthLimit) {
+            if (depth >= depthLimit) {
                 return mtrl.emission;
             }
 
             // Russian roulette
             double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
             if (depth > depthMin) {
-                if (roulette < rseq.next()) {
+                if (roulette < randnums[0]) {
                     return mtrl.emission;
                 }
             } else {
@@ -170,8 +175,8 @@ namespace spica {
                 }
                 v = w.cross(u);
 
-                const double r1 = 2.0 * PI * rseq.next();
-                const double r2 = rseq.next();
+                const double r1 = 2.0 * PI * randnums[1];
+                const double r2 = randnums[2];
                 const double r2s = sqrt(r2);
 
                 Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
@@ -208,7 +213,7 @@ namespace spica {
                 } else {
                     // Trace either reflect or transmit ray
                     const double refProb = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-                    if (rseq.next() < refProb) {
+                    if (randnums[1] < refProb) {
                         Ray nextRay(hitpoint.position(), reflectDir);
                         weight = weight.cwiseMultiply(mtrl.color) / (refProb * roulette);
                         nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin) * fresnelRe;

@@ -31,14 +31,11 @@ namespace spica {
         PMRenderer();
         ~PMRenderer();
 
-        int render(const Scene& scne, const Camera& camera, const Random& rng, const int samplePerPixel, const int numTargetPhotons, const double targetRadius);
-
-        void buildPM(const Scene& scene, const Camera& camera, const Random& rng, const int numPhotons);
-
-        void savePM(const std::string& filename) const;
-        void loadPM(const std::string& filename);
+        void render(const Scene& scne, const Camera& camera, const Random& rng, const int samplePerPixel, const int numPhotons, const int gatherPhotons, const double gatherRadius);
 
     private:
+        void buildPM(const Scene& scene, const Camera& camera, const Random& rng, const int numPhotons);
+
         Color executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng, const int numTargetPhotons, const double targetRadius) const;
         Color radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit = 64, const int maxDepth = 5) const;
     };

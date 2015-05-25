@@ -21,15 +21,14 @@ int main(int argc, char** argv) {
 
     Random rng = Random();
 
-    const int numPhotons = 5000000;
-    const int numTargetPhotons = 200;
-    const double targetRadius = 20.0;
+    const int numPhotons = 1000000;
+    const int gatherPhotons = 200;
+    const double gatherRadius = 20.0;
 
     PMRenderer renderer;
-    renderer.buildPM(scene, camera, rng, numPhotons);
 
     Timer timer;
     timer.start();
-    renderer.render(scene, camera, rng, samplePerPixel, numTargetPhotons, targetRadius);
+    renderer.render(scene, camera, rng, samplePerPixel, numPhotons, gatherPhotons, gatherRadius);
     printf("Time: %f sec\n", timer.stop());
 }

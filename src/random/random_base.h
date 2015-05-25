@@ -7,6 +7,8 @@
 #define SPICA_RANDOM_BASE_DLL
 #endif
 
+#include <vector>
+
 #include "../utils/uncopyable.h"
 
 namespace spica {
@@ -54,6 +56,13 @@ namespace spica {
             msg_assert(_pos < _size, "No more samples are stored...");
             return _values[_pos++];
         }
+
+        void next(const int n, std::vector<double>* v) {
+            v->resize(n);
+            for (int i = 0; i < n; i++) {
+               (*v)[i] = next(); 
+            }
+        }
     };
 
     // --------------------------------------------------
@@ -61,6 +70,7 @@ namespace spica {
     // --------------------------------------------------
     class RandomBase {
     public:
+        // Request specified amount of random numbers
         virtual void requestSamples(RandomSeq& randSeq, const int numRequested) = 0;
     };
 };

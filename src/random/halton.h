@@ -27,7 +27,7 @@ namespace spica {
         int  numUsedSamples;
 
     public:
-        explicit Halton(int dim = 200, const Random& rng = Random());
+        explicit Halton(int dim = 200, bool isPermute = true, const Random& rng = Random());
         ~Halton();
 
         // Request specified amount of random numbers

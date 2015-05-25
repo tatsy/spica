@@ -18,16 +18,20 @@ namespace spica {
     {
     }
 
-    int PMRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numTargetPhotons, const double targetRadius) {
+    void PMRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numPhotons, const int gatherPhotons, const double gatherRadius) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         Image buffer(width, height);
 
         int proc = 0;
         for (int i = 0; i < samplePerPixel; i++) {
+            // Construct photon map
+            buildPM(scene, camera, rng, numPhotons);
+
+
             ompfor (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    buffer.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng, numTargetPhotons, targetRadius);
+                    buffer.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng, gatherPhotons, gatherRadius);
                 }
 
                 omplock {
@@ -46,7 +50,6 @@ namespace spica {
             sprintf(filename, "photonmap_%03d.bmp", i + 1);
             image.saveBMP(filename);
         }
-        return 0;
     }
 
     Color PMRenderer::executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng, const int numTargetPhotons, const double targetRadius) const {

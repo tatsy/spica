@@ -17,6 +17,12 @@ namespace spica {
     namespace sampler {
 
         void onHemisphere(const Vector3& normal, Vector3* direction) {
+            double r1 = rng.nextReal();
+            double r2 = rng.nextReal();
+            onHemisphere(normal, direction, r1, r2);
+        }
+
+        void onHemisphere(const Vector3& normal, Vector3* direction, double r1, double r2) {
             Vector3 u, v, w;
             w = normal;
             if (abs(w.x()) > EPS) {
@@ -27,10 +33,10 @@ namespace spica {
 
             v = w.cross(u);
 
-            const double r1 = 2.0 * PI * rng.nextReal();
-            const double r2 = rng.nextReal();
-            const double r2s = sqrt(r2);
-            *direction = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
+            const double t = 2.0 * PI * r1;
+            const double z2 = r2;
+            const double z2s = sqrt(z2);
+            *direction = (u * cos(t) * z2s + v * sin(t) * z2s + w * sqrt(1.0 - z2)).normalized();        
         }
 
         void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal) {

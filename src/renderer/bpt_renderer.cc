@@ -227,6 +227,10 @@ namespace spica {
             Vector3 prevNormal = normalOnLight;
 
             for (int bounce = 1; bounce <= bounceLimit; bounce++) {
+                // Get next random
+                std::vector<double> randnums;
+                rseq.next(3, &randnums);
+
                 Intersection intersection;
                 const bool isHitScene = scene.intersect(nowRay, intersection);
 
@@ -264,7 +268,7 @@ namespace spica {
                 const Vector3 orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -1.0 * hitpoint.normal();
                 const double rouletteProb = mtrl.emission.norm() > 1.0 ? 1.0 : std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
                 
-                if (rseq.next() >= rouletteProb) {
+                if (randnums[0] >= rouletteProb) {
                     break;
                 }
 
@@ -282,11 +286,10 @@ namespace spica {
                                           totalPdfA, throughputMC));
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
-                    sampler::onHemisphere(orientNormal, &nextDir);
+                    sampler::onHemisphere(orientNormal, &nextDir, randnums[1], randnums[2]);
                     nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughputMC = mtrl.color.cwiseMultiply(throughputMC) / PI;
-
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nowSampledPdfOmega = 1.0;
                     const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
@@ -302,7 +305,7 @@ namespace spica {
                     if (!helper::isTotalRef(isIncoming, hitpoint.position(), nowRay.direction(), hitpoint.normal(), orientNormal,
                         &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
 
-                        if (rseq.next() < REFLECT_PROBABLITY) {
+                        if (randnums[1] < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
                             throughputMC = fresnelRef * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
@@ -342,6 +345,10 @@ namespace spica {
             Vector3 prevNormal = camera.lensNormal();
 
             for (int bounce = 1; bounce <= bounceLimit; bounce++) {
+                // Get next random
+                std::vector<double> randnums;
+                rseq.next(3, &randnums);
+
                 Intersection intersection;
                 if (!scene.intersect(nowRay, intersection)) {
                     break;
@@ -353,7 +360,7 @@ namespace spica {
                 const Vector3 orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
                 const double rouletteProb = mtrl.emission.norm() > 1.0 ? 1.0 : std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
 
-                if (rseq.next() > rouletteProb) {
+                if (randnums[0] > rouletteProb) {
                     break;
                 }
 
@@ -389,7 +396,7 @@ namespace spica {
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     Vector3 nextDir;
-                    sampler::onHemisphere(orientNormal, &nextDir);
+                    sampler::onHemisphere(orientNormal, &nextDir, randnums[1], randnums[2]);
                     nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughputMC = mtrl.color.cwiseMultiply(throughputMC) / PI;
@@ -410,7 +417,7 @@ namespace spica {
                     if (!helper::isTotalRef(isIncoming, hitpoint.position(), nowRay.direction(), hitpoint.normal(), orientNormal,
                                            &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
                     
-                        if (rseq.next() < REFLECT_PROBABLITY) {
+                        if (randnums[1] < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
                             throughputMC = fresnelRef * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
@@ -583,51 +590,48 @@ namespace spica {
         const int height = camera.imageH();
         const int bounceLimit = 32;
 
-        RandomBase* rand = NULL;
-        switch (randType) {
-        case PSEUDO_RANDOM_TWISTER:
-            rand = new Random();
-            break;
+        RandomBase** rand = new RandomBase*[OMP_NUM_CORE];
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            switch (randType) {
+            case PSEUDO_RANDOM_TWISTER:
+                printf("Use pseudo random numbers (Twister)\n");
+                rand[i] = new Random();
+                break;
 
-        case QUASI_MONTE_CARLO:
-            rand = new Halton();
-            break;
+            case QUASI_MONTE_CARLO:
+                printf("Use quasi random numbers (Halton)\n");
+                rand[i] = new Halton(200, true, Random(i));
+                break;
 
-        default:
-            msg_assert(false, "Unknown random number generator type!!");
+            default:
+                msg_assert(false, "Unknown random number generator type!!");
+            }
+        }
+        
+        Image* buffer = new Image[OMP_NUM_CORE];
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            buffer[i] = Image(width, height);
         }
 
-        
-        Image buffer(width, height);
-        int proc = 0;
-        for (int it = 0; it < samplePerPixel; it++) {
-            ompfor (int y = 0; y < height; y++) {
-
-                omplock {
-                    proc++;
-                    if (y % 10 == 0) {
-                        double ratio = 100.0 * proc / (samplePerPixel * height);
-                        printf("%6.2f %% processed ...\n", ratio);
-                    }
-                }
-
+        const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
+        for (int t = 0; t < taskPerThread; t++) {
+            ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
                 RandomSeq rseq;
-                for (int x = 0; x < width; x++) {
-                    omplock {
-                        rand->requestSamples(rseq, 200);
-                    }
-
-                    BPTResult bptResult = executeBPT(scene, camera, rseq, x, y, bounceLimit);
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        rand[threadID]->requestSamples(rseq, 200);
+                        BPTResult bptResult = executeBPT(scene, camera, rseq, x, y, bounceLimit);
                     
-                    for (int i = 0; i < bptResult.samples.size(); i++) {
-                        const int ix = bptResult.samples[i].imageX;
-                        const int iy = bptResult.samples[i].imageY;
-                        if (isValidValue(bptResult.samples[i].value)) {
-                            omplock {
-                                if (bptResult.samples[i].startFromPixel) {
-                                    buffer.pixel(ix, iy) += bptResult.samples[i].value;     
-                                } else {
-                                    buffer.pixel(ix, iy) += bptResult.samples[i].value / ((double)width * height);
+                        for (int i = 0; i < bptResult.samples.size(); i++) {
+                            const int ix = bptResult.samples[i].imageX;
+                            const int iy = bptResult.samples[i].imageY;
+                            if (isValidValue(bptResult.samples[i].value)) {
+                                omplock {
+                                    if (bptResult.samples[i].startFromPixel) {
+                                        buffer[threadID].pixel(ix, iy) += bptResult.samples[i].value;     
+                                    } else {
+                                        buffer[threadID].pixel(ix, iy) += bptResult.samples[i].value / ((double)width * height);
+                                    }
                                 }
                             }
                         }
@@ -637,16 +641,26 @@ namespace spica {
 
             char filename[256];
             Image image(width, height);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    image.pixel(width - x - 1, y) += buffer(x, y) / (it + 1);
+            const int usedSamples = (t + 1) * OMP_NUM_CORE;
+            for (int k = 0; k < OMP_NUM_CORE; k++) {
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        image.pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
+                    }
                 }
             }
-            sprintf(filename, "bdpt_%03d.bmp", it + 1);
+            sprintf(filename, "bdpt_%03d.bmp", t + 1);
             image.saveBMP(filename);
-        }
 
+            printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);
+        }
+        printf("\nFinish!!\n");
+
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            delete rand[i];
+        }
         delete rand;
+        delete[] buffer;
     }
 
 }

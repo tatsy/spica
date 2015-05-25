@@ -27,20 +27,22 @@ namespace spica {
         const int width  = camera.imageW();
         const int height = camera.imageH();
 
-        RandomBase* rand = NULL;
-        switch (randType) {
-        case PSEUDO_RANDOM_TWISTER:
-            printf("Use pseudo random numbers (Twister)\n");
-            rand = new Random();
-            break;
+        RandomBase** rand = new RandomBase*[OMP_NUM_CORE];
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            switch (randType) {
+            case PSEUDO_RANDOM_TWISTER:
+                printf("Use pseudo random numbers (Twister)\n");
+                rand[i] = new Random();
+                break;
 
-        case QUASI_MONTE_CARLO:
-            printf("Use quasi random numbers (Halton)\n");
-            rand = new Halton();
-            break;
+            case QUASI_MONTE_CARLO:
+                printf("Use quasi random numbers (Halton)\n");
+                rand[i] = new Halton();
+                break;
 
-        default:
-            msg_assert(false, "Unknown random number generator type!!");
+            default:
+                msg_assert(false, "Unknown random number generator type!!");
+            }
         }
 
         // Vectors spanning screen
@@ -49,12 +51,10 @@ namespace spica {
         
         for (int i = 0; i < samplePerPixel; i++) {
             ompfor (int y = 0; y < height; y++) {
+                const int threadID = y % OMP_NUM_CORE;
                 RandomSeq rseq;
                 for (int x = 0; x < width; x++) {                    
-                    omplock {
-                        rand->requestSamples(rseq, 200);
-                    }
-
+                    rand[threadID]->requestSamples(rseq, 200);
                     buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rseq);
                 }
             
@@ -79,7 +79,10 @@ namespace spica {
         }
         printf("\nFinish!!\n");
 
-        delete rand;
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            delete rand[i];
+        }
+        delete[] rand;
     }
 
     Color PathTracingRenderer::executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq) {

@@ -56,8 +56,8 @@ namespace spica {
         struct AxisComparator {
             int dim;
             explicit AxisComparator(int d) : dim(d) {}
-            bool operator()(const Ty& t1, const Ty& t2) {
-                return t1.get(dim) < t2.get(dim);
+            bool operator()(const Ty* t1, const Ty* t2) {
+                return t1->get(dim) < t2->get(dim);
             }
         };
 
@@ -79,7 +79,7 @@ namespace spica {
     private:
         void deleteNode(KdTreeNode* node);
 
-        KdTreeNode* constructRec(std::vector<Ty>& points, int startID, int endID, int dim);
+        KdTreeNode* constructRec(std::vector<const Ty*>& points, int startID, int endID, int dim);
         void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const;
     };
 }

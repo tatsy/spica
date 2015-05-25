@@ -84,7 +84,7 @@ namespace spica {
             double dneg = sqrt(d2 + zneg * zneg);
             double posTerm = zpos * (dpos * sigma_tr + 1.0) * exp(-sigma_tr * dpos) / (dpos * dpos * dpos);
             double negTerm = zneg * (dneg * sigma_tr + 1.0) * exp(-sigma_tr * dneg) / (dneg * dneg * dneg);
-            double ret = (alphap / (4.0 * PI * sigmap_t)) * (posTerm + negTerm);
+            double ret = (alphap / (4.0 * PI * sigma_tr)) * (posTerm + negTerm);
             return ret;
         }
     };

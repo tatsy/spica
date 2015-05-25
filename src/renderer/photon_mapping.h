@@ -19,51 +19,17 @@
 #include "../renderer/scene.h"
 #include "../renderer/camera.h"
 
+#include "photon_map.h"
+
 namespace spica {
 
-    class Photon : public Vector3 {
-    private:
-        Color _flux;
-        Vector3 _direction;
-        Vector3 _normal;
-
-    public:
-        Photon();
-        Photon(const Vector3& position, const Color& flux, const Vector3& direction, const Vector3& normal);
-        Photon(const Photon& photon);
-        ~Photon();
-
-        Photon& operator=(const Photon& photon);
-
-        inline Color   flux()      const { return _flux; }
-        inline Vector3 direction() const { return _direction; }
-        inline Vector3 normal()    const { return _normal; }
-    };
-
-    class PhotonMap : public Uncopyable {
-    private:
-        KdTree<Photon> _kdtree;
-
-    public:
-        PhotonMap();
-        ~PhotonMap();
-
-        void clear();
-        void construct(const std::vector<Photon>& photons);
-
-        void findKNN(const Photon& photon, std::vector<Photon>* photons, const int numTargetPhotons, const double targetRadius) const;
-    };
-
-    class SPICA_PHOTON_MAPPING_DLL PMRenderer {
+    class SPICA_PHOTON_MAPPING_DLL PMRenderer : public Uncopyable {
     private:
         PhotonMap photonMap;
 
     public:
         PMRenderer();
-        PMRenderer(const PMRenderer& renderer);
         ~PMRenderer();
-
-        PMRenderer& operator=(const PMRenderer& renderer);
 
         int render(const Scene& scne, const Camera& camera, const Random& rng, const int samplePerPixel, const int numTargetPhotons, const double targetRadius);
 

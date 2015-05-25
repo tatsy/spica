@@ -17,13 +17,13 @@ int main(int argc, char** argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxDragon(scene, camera, width, height);
+    cornellBox(scene, camera, width, height);
 
     Random rng = Random();
 
     const int numPhotons = 5000000;
-    const int numTargetPhotons = 500;
-    const double targetRadius = 5.0;
+    const int numTargetPhotons = 200;
+    const double targetRadius = 20.0;
 
     PMRenderer renderer;
     renderer.buildPM(scene, camera, rng, numPhotons);

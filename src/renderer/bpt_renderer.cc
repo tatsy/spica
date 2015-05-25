@@ -82,16 +82,6 @@ namespace spica {
             return 1.0 / (4.0 * PI * R * R);
         }
 
-        Vector3 sample_sphere(const double R, const Random& rng, double& pdfA) {
-            const double z = rng.nextReal() * 2.0 - 1.0;
-            const double sz = sqrt(1.0 - z * z);
-            const double phi = 2.0 * PI * rng.nextReal();
-
-            pdfA = sample_sphere_pdf_A(R);
-
-            return R * Vector3(sz * cos(phi), sz * sin(phi), z);
-        }
-
         // --------------------------------------------------
         // Multiple importance sampling
         // --------------------------------------------------
@@ -379,12 +369,12 @@ namespace spica {
 
                     throughputMC = camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC;
                 } else {
-                    const double nowSampledPdfA = nowSampledPdfOmega * (toNextVertex.normalized().dot(orientNormal)) / toNextVertex.dot(toNextVertex);
+                    const double nowSampledPdfA = nowSampledPdfOmega * (toNextVertex.normalized().dot(orientNormal)) / toNextVertex.squaredNorm();
                     totalPdfA *= nowSampledPdfA;
                 }
 
                 // Geometry term
-                const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.dot(toNextVertex);
+                const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.squaredNorm();
                 throughputMC = G * throughputMC;
 
                 if (mtrl.emission.norm() > 0.0) {

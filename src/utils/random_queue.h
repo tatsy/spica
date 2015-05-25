@@ -38,7 +38,7 @@ namespace spica {
             , _pos(0)
             , _data(NULL)
         {
-            opearator=(que);
+            operator=(que);
         }
 
         RandomQueue& operator=(const RandomQueue& que) {

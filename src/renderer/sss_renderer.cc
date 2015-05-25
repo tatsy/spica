@@ -177,6 +177,7 @@ namespace spica {
         const double minDist = 0.1;
 
         // Poisson disk sampling on SSS objects
+        int objectID = -1;
         std::vector<Vector3> points;
         std::vector<Vector3> normals;
         for (int i = 0; i < scene.numObjects(); i++) {
@@ -189,8 +190,10 @@ namespace spica {
 
                 const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(obj);
                 sampler::poissonDisk(*trimesh, minDist, &points, &normals);
+                objectID = i;
             }
         }
+        msg_assert(objectID >= 0, "The scene does not have subsurface scattering object!!");
 
         // Use photon mapping to compute irradiance for sample points
         buildPhotonMap(scene, camera, rng, numPhotons);
@@ -199,9 +202,11 @@ namespace spica {
         const int numPoints = static_cast<int>(points.size());
         std::vector<Color> irads(numPoints);
 
+        const Material& mtrl = scene.getMaterial(objectID);
         for(int i = 0; i < numPoints; i++) {
             // Estimate irradiance with photon map
-            irads[i] = irradianceWithPM(points[i], normals[i], gatherPhotons, gatherRadius);
+            Color irad = irradianceWithPM(points[i], normals[i], gatherPhotons, gatherRadius);
+            irads[i] = irad.cwiseMultiply(mtrl.color);
         }
 
         // Save radiance data for visual checking

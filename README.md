@@ -53,6 +53,11 @@ spica
 
 <img src="./results/sppm.jpg" width="480" />
 
+#### Subsurface scattering (Photon mapping + Monte Carlo path tracing)
+
+<img src="./results/subsurface.jpg" width="480" />
+
+
 ## License
 
 * MIT license 2015, Tatsuya Yatagawa (tatsy).

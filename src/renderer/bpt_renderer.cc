@@ -210,7 +210,7 @@ namespace spica {
             const Primitive* light = scene.get(lightId);
 
             Vector3 positionOnLight, normalOnLight;
-            sampler::on(light, &positionOnLight, &normalOnLight);
+            sampler::on(light, rseq, &positionOnLight, &normalOnLight);
             double pdfAreaOnLight = 1.0 / light->area();
 
             double totalPdfA = pdfAreaOnLight;
@@ -220,7 +220,9 @@ namespace spica {
             Color throughputMC = scene.getMaterial(lightId).emission;
 
             Vector3 nextDir;
-            sampler::onHemisphere(normalOnLight, &nextDir);
+            const double r1 = rseq.next();
+            const double r2 = rseq.next();
+            sampler::onHemisphere(normalOnLight, &nextDir, r1, r2);
             double nowSampledPdfOmega = sample_hemisphere_pdf_omega(normalOnLight, nextDir);
 
             Ray nowRay(positionOnLight, nextDir);

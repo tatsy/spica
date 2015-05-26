@@ -122,7 +122,7 @@ namespace spica {
 
         double contribSensitivity(const Vector3& x0xV, const Vector3& x0xI, const Vector3& x0x1) const;
 
-        void samplePoints(const int imageX, const int imageY, const Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const;
+        void samplePoints(const int imageX, const int imageY, Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const;
 
         CameraSample sample(const double imageX, const double imageY, RandomSeq& rseq) const;
 

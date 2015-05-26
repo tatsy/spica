@@ -12,17 +12,18 @@ namespace spica {
     class RandomQueue {
     private:
         static const size_t initSize;
-        static const Random rng;
         
         size_t _size;
         size_t _pos;
         Ty* _data;
+        Random _rng;
     
     public:
-        RandomQueue()
+        explicit RandomQueue(int seed = -1)
             : _size(0)
             , _pos(0)
             , _data(NULL)
+            , _rng(seed)
         {
             _size = initSize;
             _data = new Ty[initSize];
@@ -66,7 +67,7 @@ namespace spica {
 
         Ty pop() {
             msg_assert(_pos >= 0, "Queue is empty !!");
-            int r = rng.nextInt(_pos);
+            int r = _rng.nextInt(_pos);
             _pos--;
 
             std::swap(_data[r], _data[_pos]);
@@ -85,9 +86,6 @@ namespace spica {
 
     template <class Ty>
     const size_t RandomQueue<Ty>::initSize = 1024;
-
-    template <class Ty>
-    const Random RandomQueue<Ty>::rng = Random();
 
 }
 

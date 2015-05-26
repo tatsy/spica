@@ -143,7 +143,7 @@ namespace spica {
         return sensor_.sensitivity * r0 * r1 * r1;
     }
 
-    void Camera::samplePoints(const int imageX, const int imageY, const Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const {
+    void Camera::samplePoints(const int imageX, const int imageY, Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const {
         const double uOnPixel = rng.nextReal();
         const double vOnPixel = rng.nextReal();
 

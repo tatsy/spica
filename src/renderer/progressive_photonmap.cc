@@ -24,7 +24,7 @@ namespace spica {
     {
     }
 
-    int PPMRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numPhotons) {
+    int PPMRenderer::render(const Scene& scene, const Camera& camera, Random& rng, const int samplePerPixel, const int numPhotons) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         const int numPoints = width * height;
@@ -105,7 +105,7 @@ namespace spica {
         }
     }
 
-    void PPMRenderer::traceRays(const Scene& scene, const Camera& camera, const Random& rng, std::vector<HPoint>& hpoints) {
+    void PPMRenderer::traceRays(const Scene& scene, const Camera& camera, Random& rng, std::vector<HPoint>& hpoints) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         const int numPoints = static_cast<int>(hpoints.size());
@@ -131,7 +131,7 @@ namespace spica {
         std::cout << "Hash grid constructed !!" << std::endl << std::endl;
     }
 
-    void PPMRenderer::tracePhotons(const Scene& scene, const Random& rng, const int numPhotons) {
+    void PPMRenderer::tracePhotons(const Scene& scene, Random& rng, const int numPhotons) {
         std::cout << "Shooting photons ..." << std::endl;
         int proc = 0;
         ompfor(int pid = 0; pid < numPhotons; pid++) {
@@ -249,7 +249,7 @@ namespace spica {
         printf("\nFinish !!\n\n");
     }
 
-    void PPMRenderer::executePathTracing(const Scene& scene, const Camera& camera, const Random& rng, HPoint* hp, const int bounceLimit) {
+    void PPMRenderer::executePathTracing(const Scene& scene, const Camera& camera, Random& rng, HPoint* hp, const int bounceLimit) {
         msg_assert(hp->imageX >= 0 && hp->imageY >= 0 && hp->imageX < camera.imageW() && hp->imageY < camera.imageH(), "Pixel index out of range");
 
         Vector3 posOnSensor, posOnObjplane, posOnLens;

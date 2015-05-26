@@ -173,7 +173,7 @@ namespace spica {
     {
     }
 
-    void SSSRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numPhotons, const int gatherPhotons, const double gatherRadius) {
+    void SSSRenderer::render(const Scene& scene, const Camera& camera, Random& rng, const int samplePerPixel, const int numPhotons, const int gatherPhotons, const double gatherRadius) {
         const double minDist = 0.1;
 
         // Poisson disk sampling on SSS objects
@@ -261,7 +261,7 @@ namespace spica {
         }
     }
 
-    void SSSRenderer::buildPhotonMap(const Scene& scene, const Camera& camera, const Random& rng, const int numPhotons) {
+    void SSSRenderer::buildPhotonMap(const Scene& scene, const Camera& camera, Random& rng, const int numPhotons) {
         std::cout << "Shooting photons ..." << std::endl;
 
         // Shooting photons
@@ -402,7 +402,7 @@ namespace spica {
         return Color(0.0, 0.0, 0.0);
     }
 
-    Color SSSRenderer::executePathTracing(const Scene& scene, const Camera& camera, const Random& rng, const int imageX, const int imageY) {
+    Color SSSRenderer::executePathTracing(const Scene& scene, const Camera& camera, Random& rng, const int imageX, const int imageY) {
         Vector3 posOnSensor, posOnObjplane, posOnLens;
         double pImage, pLens;
         camera.samplePoints(imageX, imageY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
@@ -416,7 +416,7 @@ namespace spica {
         return radiance(scene, ray, rng, 0) * (weight * camera.sensitivity() / (pImage * pLens));
     }
 
-    Color SSSRenderer::radiance(const Scene& scene, const Ray& ray, const Random& rng, const int depth, const int depthLimit, const int depthMin) {
+    Color SSSRenderer::radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth, const int depthLimit, const int depthMin) {
         Intersection isect;
 
         // NOT intersect the scene

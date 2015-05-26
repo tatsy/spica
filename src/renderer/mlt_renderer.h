@@ -30,7 +30,7 @@ namespace spica {
         // @param[in] numMLT: # of independent MLT process to be executed
         // @param[in] numMutate: # of mutation in a single MLT process
         // @param[in] maxDepth: maximum depth for path tracing recursion
-        int render(const Scene& scene, const Camera& camera, const Random& rng, int numMLT, int numMutate, int maxDepth);
+        int render(const Scene& scene, const Camera& camera, Random& rng, int numMLT, int numMutate, int maxDepth);
     };
 
 }  // namespace spica

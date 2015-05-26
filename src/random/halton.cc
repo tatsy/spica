@@ -60,7 +60,7 @@ namespace spica {
             7793, 7817, 7823, 7829, 7841, 7853, 7867, 7873, 7877, 7879, 7883, 7901, 7907, 7919 
         };
 
-        void shuffle(int* p, int d, const Random& rng) {
+        void shuffle(int* p, int d, Random& rng) {
             for (int i = 0; i < d; i++) {
                 const int r = rng.nextInt(d - i);
                 std::swap(p[i], p[i + r]);
@@ -68,7 +68,7 @@ namespace spica {
         }
     }
 
-    Halton::Halton(int dim, bool isPermute, const Random& rng)
+    Halton::Halton(int dim, bool isPermute, Random& rng)
         : dims(dim)
         , bases(NULL)
         , permute(NULL)

@@ -19,16 +19,15 @@ int main(int argc, char** argv) {
     Camera camera;
     cornellBox(scene, camera, width, height);
 
-    Random rng = Random();
-
     const int numPhotons = 1000000;
     const int gatherPhotons = 200;
     const double gatherRadius = 20.0;
 
     PMRenderer renderer;
+    PMParams params(numPhotons, gatherPhotons, gatherRadius);
 
     Timer timer;
     timer.start();
-    renderer.render(scene, camera, rng, samplePerPixel, numPhotons, gatherPhotons, gatherRadius);
+    renderer.render(scene, camera, samplePerPixel, params, QUASI_MONTE_CARLO);
     printf("Time: %f sec\n", timer.stop());
 }

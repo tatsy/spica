@@ -69,14 +69,37 @@ namespace spica {
             *normal = disk.normal();
         }
 
-        void onQuad(const Quad& quad, Vector3* position, Vector3* normal) {
+        void onTriangle(const Triangle& tri, Vector3* position, Vector3* normal, double r1, double r2) {
+            if (r1 + r2 >= 1.0) {
+                r1 = 1.0 - r1;
+                r2 = 1.0 - r2;
+            }
+            (*position) = r1 * (tri.p1() - tri.p0()) + r2 * (tri.p2() - tri.p0());
+            (*position) = tri.normal();
+        }
+
+        void onQuad(const Quad& quad, Vector3* position, Vector3* normal, double r1, double r2) {
+            // TODO: this sampler can properly work only for rectangles and squares
             Vector3 e1 = quad.p1() - quad.p0();
             Vector3 e2 = quad.p3() - quad.p0();
-            double r1 = rng.nextReal();
-            double r2 = rng.nextReal();
-            
             *position = quad.p0() + r1 * e1 + r2 * e2;
             *normal = quad.normal();
+        }
+
+        void onQuad(const Quad& quad, Vector3* position, Vector3* normal) {
+            double r1 = rng.nextReal();
+            double r2 = rng.nextReal();
+            onQuad(quad, position, normal, r1, r2);            
+        }
+
+        void on(const Primitive* primitive, RandomSeq& rseq, Vector3* position, Vector3* normal) {
+            std::string typname = typeid(*primitive).name();
+            if (typname == "class spica::Quad") {
+                const Quad* quad = reinterpret_cast<const Quad*>(primitive);
+                onQuad(*quad, position, normal);
+            } else {
+                msg_assert(false, ("Invalid geometry type: " + typname).c_str());
+            }            
         }
 
         void on(const Primitive* primitive, Vector3* position, Vector3* normal) {

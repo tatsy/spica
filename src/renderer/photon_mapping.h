@@ -15,13 +15,26 @@
 #include "../utils/vector3.h"
 #include "../utils/axis_comparable.h"
 #include "../utils/kdtree.h"
-#include "../renderer/material.h"
-#include "../renderer/scene.h"
-#include "../renderer/camera.h"
 
+#include "renderer_constants.h"
 #include "photon_map.h"
 
 namespace spica {
+
+    // --------------------------------------------------
+    // Parameter set for photon mapping
+    // --------------------------------------------------
+    struct PMParams {
+        int numPhotons;
+        int gatherPhotons;
+        int gatherRadius;
+        explicit PMParams(const int numPhotons_ = 1000000, const int gatherPhotons_ = 100, const int gatherRadius_ = 20.0)
+            : numPhotons(numPhotons_)
+            , gatherPhotons(gatherPhotons_)
+            , gatherRadius(gatherRadius_)
+        {
+        }
+    };
 
     class SPICA_PHOTON_MAPPING_DLL PMRenderer : public Uncopyable {
     private:
@@ -31,13 +44,13 @@ namespace spica {
         PMRenderer();
         ~PMRenderer();
 
-        void render(const Scene& scne, const Camera& camera, const Random& rng, const int samplePerPixel, const int numPhotons, const int gatherPhotons, const double gatherRadius);
+        void render(const Scene& scne, const Camera& camera, const int samplePerPixel, const PMParams& params, const RandomType randType = PSEUDO_RANDOM_TWISTER);
 
     private:
-        void buildPM(const Scene& scene, const Camera& camera, const Random& rng, const int numPhotons);
+        void buildPM(const Scene& scene, const Camera& camera, const int numPhotons, const RandomType randType);
 
-        Color executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng, const int numTargetPhotons, const double targetRadius) const;
-        Color radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit = 64, const int maxDepth = 5) const;
+        Color executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, const double pixelX, const double pixelY, const int numTargetPhotons, const double targetRadius) const;
+        Color radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit = 32, const int maxDepth = 6) const;
     };
 
 }

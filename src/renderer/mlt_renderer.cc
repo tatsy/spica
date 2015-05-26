@@ -16,7 +16,7 @@ namespace spica {
         struct PrimarySample {
             int modify_time;
             double value;
-            static const Random rnd;
+            static Random rnd;
 
             PrimarySample() {
                 modify_time = 0;
@@ -24,7 +24,7 @@ namespace spica {
             }
         };
 
-        const Random PrimarySample::rnd = Random();
+        Random PrimarySample::rnd = Random();
 
         struct KelemenMLT {
         private:
@@ -50,12 +50,12 @@ namespace spica {
             int large_step;
             int large_step_time;
             int used_rand_coords;
-            const Random* rng;
+            Random* rng;
 
             std::vector<PrimarySample> primary_samples;
             std::stack<PrimarySample> primary_samples_stack;
 
-            KelemenMLT(const Random& rng = Random()) 
+            KelemenMLT(Random& rng = Random()) 
                 : global_time(0)
                 , large_step(0)
                 , large_step_time(0)
@@ -307,7 +307,7 @@ namespace spica {
     {
     }
 
-    int MLTRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, int numMLT, int numMutate, int maxDepth) {
+    int MLTRenderer::render(const Scene& scene, const Camera& camera, Random& rng, int numMLT, int numMutate, int maxDepth) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
         Image image(width, height);

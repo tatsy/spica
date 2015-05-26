@@ -47,7 +47,7 @@ namespace spica {
             return false;
         }
 
-        Color radiance(const Scene& scene, const Ray& ray, const Random& rng, const int depth, const int depthLimit, const int maxDepth) {
+        Color radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth, const int depthLimit, const int maxDepth) {
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
                 return scene.bgColor();

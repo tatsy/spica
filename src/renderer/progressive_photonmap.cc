@@ -16,15 +16,11 @@ namespace spica {
     {
     }
 
-    PPMRenderer::PPMRenderer(const PPMRenderer& renderer)
-    {
-    }
-
     PPMRenderer::~PPMRenderer()
     {
     }
 
-    int PPMRenderer::render(const Scene& scene, const Camera& camera, Random& rng, const int samplePerPixel, const int numPhotons) {
+    void PPMRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, const int numPhotons, const RandomType randType) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         const int numPoints = width * height;
@@ -38,13 +34,26 @@ namespace spica {
             }
         }
 
+        RandomBase* rand = NULL;
+        switch (randType) {
+        case PSEUDO_RANDOM_TWISTER:
+            rand = new Random();
+            break;
+        case QUASI_MONTE_CARLO:
+            rand = new Halton();
+            break;
+        default:
+            msg_assert(false, "Unknown random number generator type!!");
+            break;
+        }
+
         for (int t = 0; t < samplePerPixel; t++) {
             std::cout << "--- Iteration No." << (t + 1) << " ---" << std::endl;
             // 1st pass: Trace rays from camera
-            traceRays(scene, camera, rng, hpoints);
+            traceRays(scene, camera, rand, hpoints);
 
             // 2nd pass: Trace photons from light source
-            tracePhotons(scene, rng, numPhotons);
+            tracePhotons(scene, rand, numPhotons);
 
             // Save temporal image
             Image image(width, height);
@@ -58,7 +67,8 @@ namespace spica {
             image.saveBMP(filename);
         }
 
-        return 0;
+        // Release memories
+        delete rand;
     }
 
     void PPMRenderer::constructHashGrid(std::vector<HPoint>& hpoints, const int imageW, const int imageH) {
@@ -105,7 +115,7 @@ namespace spica {
         }
     }
 
-    void PPMRenderer::traceRays(const Scene& scene, const Camera& camera, Random& rng, std::vector<HPoint>& hpoints) {
+    void PPMRenderer::traceRays(const Scene& scene, const Camera& camera, RandomBase* rand, std::vector<HPoint>& hpoints) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         const int numPoints = static_cast<int>(hpoints.size());
@@ -114,10 +124,15 @@ namespace spica {
         std::cout << "Tracing rays from camera ..." << std::endl;
 
         int proc = 0;
-        ompfor(int i = 0; i < numPoints; i++) {
-            executePathTracing(scene, camera, rng, &hpoints[i]);
+        ompfor (int i = 0; i < numPoints; i++) {
+            RandomSeq rseq;
+            omplock {
+                rand->requestSamples(rseq, 200);
+            }
 
-            omplock{
+            executePathTracing(scene, camera, rseq, &hpoints[i]);
+
+            omplock {
                 proc += 1;
                 if (proc % width == 0) {
                     printf("%6.2f %% processed...\r", 100.0 * proc / numPoints);
@@ -131,16 +146,21 @@ namespace spica {
         std::cout << "Hash grid constructed !!" << std::endl << std::endl;
     }
 
-    void PPMRenderer::tracePhotons(const Scene& scene, Random& rng, const int numPhotons) {
+    void PPMRenderer::tracePhotons(const Scene& scene, RandomBase* rand, const int numPhotons) {
         std::cout << "Shooting photons ..." << std::endl;
         int proc = 0;
         ompfor(int pid = 0; pid < numPhotons; pid++) {
+            RandomSeq rseq;
+            omplock {
+                rand->requestSamples(rseq, 200);
+            }
+
             // Sample point on light
             const int lightID = scene.lightID();
             const Primitive* light = scene.get(lightID);
 
             Vector3 posOnLight, normalOnLight;
-            sampler::on(light, &posOnLight, &normalOnLight);
+            sampler::on(light, rseq, &posOnLight, &normalOnLight);
 
             // Compute flux
             Color currentFlux = scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons);
@@ -153,6 +173,8 @@ namespace spica {
 
             // Shooting photons
             for (;;) {
+                const double randnum = rseq.next();
+
                 // Remove photons with zero flux
                 if (std::max(currentFlux.red(), std::max(currentFlux.green(), currentFlux.blue())) <= 0.0) {
                     break;
@@ -195,7 +217,7 @@ namespace spica {
 
                     // Determine continue or terminate trace with Russian roulette
                     const double probability = (mtrl.color.red() + mtrl.color.green() + mtrl.color.blue()) / 3.0;
-                    if (rng.nextReal() < probability) {
+                    if (randnum < probability) {
                         sampler::onHemisphere(orientNormal, &nextDir);
                         currentRay = Ray(hitpoint.position(), nextDir);
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probability;
@@ -226,7 +248,7 @@ namespace spica {
                     } else {
                         // Trace either of reflect and transmit rays
                         const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-                        if (rng.nextReal() < probability) {
+                        if (randnum < probability) {
                             // Reflect
                             currentRay = Ray(hitpoint.position(), reflectDir);
                             currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
@@ -249,23 +271,18 @@ namespace spica {
         printf("\nFinish !!\n\n");
     }
 
-    void PPMRenderer::executePathTracing(const Scene& scene, const Camera& camera, Random& rng, HPoint* hp, const int bounceLimit) {
+    void PPMRenderer::executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, HPoint* hp, const int bounceLimit) {
         msg_assert(hp->imageX >= 0 && hp->imageY >= 0 && hp->imageX < camera.imageW() && hp->imageY < camera.imageH(), "Pixel index out of range");
 
-        Vector3 posOnSensor, posOnObjplane, posOnLens;
-        double pImage, pLens;
+        CameraSample camSample = camera.sample(hp->imageX, hp->imageY, rseq);
+        Ray ray = camSample.generateRay();
+        const double coeff = camera.sensitivity() / camSample.totalPdf();
+
         Intersection isect;
-
-        // Generate a path to trace
-        camera.samplePoints(hp->imageX, hp->imageY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
-        Ray ray(posOnLens, (posOnObjplane - posOnLens).normalized());
-
-        const Vector3 lens2sensor = posOnSensor - posOnLens;
-        const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
-        const double coeff = (cosine * cosine * camera.sensitivity()) / (pImage * pLens * lens2sensor.squaredNorm());
-
         Color weight(1.0, 1.0, 1.0);
         for (int bounce = 0;; bounce++) {
+            double randnum = rseq.next();
+
             if (!scene.intersect(ray, isect)) {
                 weight = weight.cwiseMultiply(scene.bgColor());
                 hp->weight = weight;
@@ -312,7 +329,7 @@ namespace spica {
                 } else {
                     // Trace either reflection or refraction ray with probability
                     const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-                    if (rng.nextReal() < probability) {
+                    if (randnum < probability) {
                         // Reflection
                         ray = Ray(hitpoint.position(), reflectDir);
                         weight = weight.cwiseMultiply(mtrl.color) * (fresnelRe / probability);

@@ -11,8 +11,7 @@
     #define SPICA_PROGRESSIVE_PHOTONMAP_DLL
 #endif
 
-#include "scene.h"
-#include "camera.h"
+#include "renderer_constants.h"
 #include "../utils/uncopyable.h"
 #include "../utils/kdtree.h"
 #include "../utils/hash_grid.h"
@@ -87,19 +86,18 @@ namespace spica {
 
     public:
         PPMRenderer();
-        PPMRenderer(const PPMRenderer& renderer);
         ~PPMRenderer();
 
-        int render(const Scene& scene, const Camera& camera, Random& rng, const int samplePerPixel, const int numPhotons);
+        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, const int numPhotons, const RandomType randType = PSEUDO_RANDOM_TWISTER);
 
     private:
         // 1st pass: Trace rays from camera
-        void traceRays(const Scene& scene, const Camera& camera, Random& rng, std::vector<HPoint>& hpoints);
+        void traceRays(const Scene& scene, const Camera& camera, RandomBase* rand, std::vector<HPoint>& hpoints);
 
         // 2nd pass: Trace photons from lights
-        void tracePhotons(const Scene& scene, Random& rng, const int numPhotons);
+        void tracePhotons(const Scene& scene, RandomBase* rand, const int numPhotons);
 
-        void executePathTracing(const Scene& scene, const Camera& camera, Random& rng, HPoint* hp, const int bounceLimit = 6);
+        void executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, HPoint* hp, const int bounceLimit = 6);
 
         void constructHashGrid(std::vector<HPoint>& hpoints, const int imageW, const int imageH);
     };

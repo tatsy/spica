@@ -145,13 +145,13 @@ namespace spica {
         scene.add(rightWall, Material(Color(), Color(0.25, 0.25, 0.75), REFLECTION_DIFFUSE));
 
         // Sphere
-        Sphere sphere(2.0, Vector3(0.0, 5.0, 0.0));
+        Sphere sphere(2.0, Vector3(-5.0, -8.0, 5.0));
         scene.add(sphere, Material(Color(), Color(0.99, 0.99, 0.99), REFLECTION_REFRACTION));
 
         // Objects
         Trimesh dragon(DATA_DIR + "dragon.ply");
-        dragon.scale(70.0, 70.0, 70.0);
-        dragon.translate(Vector3(0.0, 0.0, 0.0));
+        dragon.scale(50.0, 50.0, 50.0);
+        dragon.translate(Vector3(2.0, 0.0, 0.0));
         dragon.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
         scene.add(dragon, Material(Color(), Color(0.70, 0.60, 0.40), REFLECTION_SUBSURFACE));                         
 

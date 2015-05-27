@@ -178,8 +178,10 @@ namespace spica {
             Color currentFlux = scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons);
 
             // Prepare ray
+            const double r1 = rseq.next();
+            const double r2 = rseq.next();
             Vector3 nextDir;
-            sampler::onHemisphere(normalOnLight, &nextDir);
+            sampler::onHemisphere(normalOnLight, &nextDir, r1, r2);
             Ray currentRay(posOnLight, nextDir);
             Vector3 prevNormal = normalOnLight;
 

@@ -123,19 +123,29 @@ namespace spica {
         // Generate a ray to cast
         std::cout << "Tracing rays from camera ..." << std::endl;
 
+        // Distribute Hitpoints to each thread
+        std::vector<std::vector<int> > hpIDs(OMP_NUM_CORE);
+        for (int i = 0; i < numPoints; i++) {
+            hpIDs[i % OMP_NUM_CORE].push_back(i);
+        }
+
         int proc = 0;
-        ompfor (int i = 0; i < numPoints; i++) {
-            RandomSeq rseq;
-            omplock {
-                rand->requestSamples(rseq, 200);
-            }
+        ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
+            const int taskPerThread = static_cast<int>(hpIDs[threadID].size());
+            for (int i = 0; i < taskPerThread; i++) {
+                RandomSeq rseq;
+                omplock {
+                    rand->requestSamples(rseq, 200);
+                }
 
-            executePathTracing(scene, camera, rseq, &hpoints[i]);
+                const int hpID = hpIDs[threadID][i];
+                executePathTracing(scene, camera, rseq, &hpoints[hpID]);
 
-            omplock {
-                proc += 1;
-                if (proc % width == 0) {
-                    printf("%6.2f %% processed...\r", 100.0 * proc / numPoints);
+                omplock {
+                    proc += 1;
+                    if (proc % width == 0) {
+                        printf("%6.2f %% processed...\r", 100.0 * proc / numPoints);
+                    }
                 }
             }
         }

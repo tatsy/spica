@@ -53,10 +53,13 @@ spica
 
 <img src="./results/sppm.jpg" width="480" />
 
-#### Subsurface scattering (Photon mapping + Monte Carlo path tracing)
+#### Subsurface scattering (Monte carlo path tracing)
 
 <img src="./results/subsurface.jpg" width="480" />
 
+#### Subsurface scattering (Stochastic progressive photon mapping)
+
+<img src="./results/subsurface_sppm.jpg" width="480" />
 
 ## License
 

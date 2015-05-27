@@ -18,7 +18,7 @@
 
 namespace spica {
 
-    class SPICA_PROGRESSIVE_PHOTONMAP_DLL PPMRenderer : public Uncopyable {
+    class SPICA_PROGRESSIVE_PHOTONMAP_DLL PPMRenderer : private Uncopyable {
     private:
 
         struct HPoint : public Vector3 {
@@ -97,7 +97,7 @@ namespace spica {
         // 2nd pass: Trace photons from lights
         void tracePhotons(const Scene& scene, RandomBase* rand, const int numPhotons);
 
-        void executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, HPoint* hp, const int bounceLimit = 6);
+        void executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, HPoint* hp, const int bounceLimit = 64);
 
         void constructHashGrid(std::vector<HPoint>& hpoints, const int imageW, const int imageH);
     };

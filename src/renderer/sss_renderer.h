@@ -19,7 +19,7 @@ namespace spica {
     // --------------------------------------------------
     // Subsurface scattering renderer
     // --------------------------------------------------
-    class SPICA_SSS_RENDERER_DLL SSSRenderer : public Uncopyable {
+    class SPICA_SSS_RENDERER_DLL SSSRenderer : private Uncopyable {
     private:
         struct IrradiancePoint {
             Vector3 pos;

@@ -293,7 +293,7 @@ namespace spica {
         for (int bounce = 0;; bounce++) {
             double randnum = rseq.next();
 
-            if (!scene.intersect(ray, isect)) {
+            if (!scene.intersect(ray, isect) || bounce > bounceLimit) {
                 weight = weight.cwiseMultiply(scene.bgColor());
                 hp->weight = weight;
                 hp->coeff = coeff;

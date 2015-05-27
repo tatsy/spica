@@ -16,7 +16,7 @@ namespace spica {
     // --------------------------------------------------
     // Random number sequence genrated by generator classes
     // --------------------------------------------------
-    class RandomSeq : public Uncopyable {
+    class RandomSeq : private Uncopyable {
     private:
         int _pos;
         int _size;
@@ -70,6 +70,8 @@ namespace spica {
     // --------------------------------------------------
     class RandomBase {
     public:
+        virtual ~RandomBase() {}
+
         // Request specified amount of random numbers
         virtual void requestSamples(RandomSeq& randSeq, const int numRequested) = 0;
     };

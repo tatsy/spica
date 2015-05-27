@@ -17,6 +17,70 @@
 
 namespace spica {
 
+    struct HitpointInfo : public Vector3 {
+        Vector3 normal;
+        Color flux;
+        Color weight;
+        Color emission;
+        int imageX, imageY;
+        double coeff;
+        double r2;
+        int n;
+        double area;
+        bool isPixel;
+
+        HitpointInfo(const Vector3& pos = Vector3())
+            : Vector3(pos)
+            , normal()
+            , flux()
+            , weight()
+            , emission()
+            , imageX(-1)
+            , imageY(-1)
+            , coeff(0.0)
+            , r2(0.0)
+            , n(0)
+            , area(0.0)
+            , isPixel(true)
+        {
+        }
+
+        HitpointInfo(const HitpointInfo& hp)
+            : Vector3()
+            , normal()
+            , flux()
+            , weight()
+            , emission()
+            , coeff(0.0)
+            , imageX(-1)
+            , imageY(-1)
+            , r2(0.0)
+            , n(0)
+        {
+            operator=(hp);
+        }
+
+        HitpointInfo& operator=(const HitpointInfo& hp) {
+            Vector3::operator=(hp);
+            this->normal = hp.normal;
+            this->flux = hp.flux;
+            this->weight = hp.weight;
+            this->emission = hp.emission;
+            this->coeff = hp.coeff;
+            this->imageX = hp.imageX;
+            this->imageY = hp.imageY;
+            this->r2 = hp.r2;
+            this->n = hp.n;
+            return *this;
+        }
+
+        void setPosition(const Vector3& p) {
+            this->_x = p.x();
+            this->_y = p.y();
+            this->_z = p.z();
+        }
+    };
+
     class SPICA_SUBSURFACE_SPPM_RENDERER_DLL SubsurfaceSPPMRenderer : public Uncopyable {
     private:
         SubsurfaceIntegrator integrator;

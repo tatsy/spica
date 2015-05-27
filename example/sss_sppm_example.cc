@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     cornellBoxDragon(scene, camera, width, height);
 
     Random rng = Random();
-    const int numPhotons = 5000000;
+    const int numPhotons = 2000000;
     const int gatherPhotons = 200;
     const double gatherRadius = 20.0;
 

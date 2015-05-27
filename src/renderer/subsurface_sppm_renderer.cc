@@ -19,22 +19,21 @@ namespace spica {
     void SubsurfaceSPPMRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, const int numPhotons, const RandomType randType) {
         const int width = camera.imageW();
         const int height = camera.imageH();
+        const int numPixels = width * height;
         const double areaRadius = 0.1;
 
         // Instance SSS integrator
-        BSSRDF bssrdf(1.0e-4, 10.0);
-        std::vector<HitpointInfo> hpoints;
-        integrator.init(scene, camera, bssrdf, areaRadius, &hpoints);
-        const int numSampleOnSSS = static_cast<int>(hpoints.size());
+        BSSRDF bssrdf(1.0e-4, 10.0, 1.3, 0.05);
 
         // Prepare hit points for image pixels
+        std::vector<HitpointInfo> hpoints(numPixels);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                HitpointInfo hp;
+                const int idx = y * width + x;
+                HitpointInfo& hp = hpoints[idx];
                 hp.imageX = x;
                 hp.imageY = y;
                 hp.n = 0;
-                hpoints.push_back(hp);
             }
         }
 
@@ -56,12 +55,10 @@ namespace spica {
         const int numPoints = static_cast<int>(hpoints.size());
         for (int t = 0; t < samplePerPixel; t++) {
             std::cout << "--- Iteration No." << (t + 1) << " ---" << std::endl;
-            // Update irradiance of SSS object and octree structure
-            std::vector<HitpointInfo> temp(hpoints.begin(), hpoints.begin() + numSampleOnSSS);
-            if (t != 0) {
-                integrator.buildOctree(temp, t, areaRadius);
-            }
 
+            // 0th pass: Compute irradiacne for SSS object
+            integrator.initialize(scene, bssrdf, PMParams(numPhotons), areaRadius, randType);
+            
             // 1st pass: Trace rays from camera
             traceRays(scene, camera, rand, hpoints);
 
@@ -188,7 +185,8 @@ namespace spica {
 
             // Shooting photons
             for (int bounce = 0; ; bounce++) {
-                const double randnum = rseq.next();
+                std::vector<double> randnums;
+                rseq.next(3, &randnums);
 
                 // Remove photons with zero flux
                 if (std::max(currentFlux.red(), std::max(currentFlux.green(), currentFlux.blue())) <= 0.0 || bounce >= bounceLimit) {
@@ -207,7 +205,7 @@ namespace spica {
                 const Hitpoint& hitpoint = isect.hitpoint();
                 const Vector3 orientNormal = Vector3::dot(hitpoint.normal(), currentRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
-                if (mtrl.reftype == REFLECTION_DIFFUSE || mtrl.reftype == REFLECTION_SUBSURFACE) {
+                if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     // Photon reaches diffuse surface. Update hitpoints.
 
                     // Gather hit points
@@ -232,8 +230,8 @@ namespace spica {
 
                     // Determine continue or terminate trace with Russian roulette
                     const double probability = (mtrl.color.red() + mtrl.color.green() + mtrl.color.blue()) / 3.0;
-                    if (mtrl.reftype == REFLECTION_DIFFUSE && randnum < probability) {
-                        sampler::onHemisphere(orientNormal, &nextDir);
+                    if (randnums[0] < probability) {
+                        sampler::onHemisphere(orientNormal, &nextDir, randnums[1], randnums[2]);
                         currentRay = Ray(hitpoint.position(), nextDir);
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probability;
                     } else {
@@ -264,7 +262,7 @@ namespace spica {
                     } else {
                         // Trace either of reflect and transmit rays
                         const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-                        if (randnum < probability) {
+                        if (randnums[0] < probability) {
                             // Reflect
                             currentRay = Ray(hitpoint.position(), reflectDir);
                             currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
@@ -273,6 +271,28 @@ namespace spica {
                             currentRay = Ray(hitpoint.position(), refractDir);
                             currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                         }
+                    }
+                } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
+                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
+                    Vector3 reflectDir, refractDir;
+                    double fresnelRe, fresnelTr;
+                    bool isTotRef = helper::isTotalRef(isIncoming,
+                                                       hitpoint.position(),
+                                                       currentRay.direction(),
+                                                       hitpoint.normal(),
+                                                       orientNormal,
+                                                       &reflectDir,
+                                                       &refractDir,
+                                                       &fresnelRe,
+                                                       &fresnelTr);
+                    if (isTotRef) {
+                        // Total reflection
+                        currentRay = Ray(hitpoint.position(), reflectDir);
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    } else {
+                        // Reflect
+                        currentRay = Ray(hitpoint.position(), reflectDir);
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * fresnelRe;
                     }
                 }
             }
@@ -306,6 +326,7 @@ namespace spica {
                 weight = weight.cwiseMultiply(scene.bgColor());
                 hp->weight = weight;
                 hp->coeff = coeff;
+                hp->emission += accumEmit;
                 break;
             }
 

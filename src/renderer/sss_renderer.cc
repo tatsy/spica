@@ -115,7 +115,6 @@ namespace spica {
         node->pt.pos = Vector3(0.0, 0.0, 0.0);
         node->pt.normal = Vector3(0.0, 0.0, 0.0);
         node->pt.area = 0.0;
-        node->pt.irad = Color(0.0, 0.0, 0.0);       
 
         double weight = 0.0;
         int childCount = 0;

@@ -2,45 +2,10 @@
 #define _SPICA_SUBSURFACE_INTEGRATOR_H_
 
 #include "renderer_constants.h"
-#include "photon_map.h"
+#include "photon_mapping.h"
 #include "bssrdf.h"
 
 namespace spica {
-
-    struct HitpointInfo : public Vector3 {
-        Vector3 normal;
-        Color flux;
-        Color weight;
-        Color emission;
-        int imageX, imageY;
-        double coeff;
-        double r2;
-        int n;
-        double area;
-        bool isPixel;
-
-        HitpointInfo(const Vector3& pos = Vector3(), const Vector3& normal_ = Vector3())
-            : Vector3(pos)
-            , normal(normal_)
-            , flux()
-            , weight()
-            , emission()
-            , imageX(-1)
-            , imageY(-1)
-            , coeff(0.0)
-            , r2(0.0)
-            , n(0)
-            , area(0.0)
-            , isPixel(true)
-        {
-        }
-
-        void setPosition(const Vector3& p) {
-            this->_x = p.x();
-            this->_y = p.y();
-            this->_z = p.z();
-        }
-    };
 
     struct IrradiancePoint {
         Vector3 pos;
@@ -82,7 +47,7 @@ namespace spica {
         }
     };
 
-    class SubsurfaceIntegrator : public Uncopyable {
+    class SubsurfaceIntegrator : private Uncopyable {
     private:
         struct OctreeNode {
             IrradiancePoint pt;
@@ -115,7 +80,7 @@ namespace spica {
             Octree(const Octree& octree);
             Octree& operator=(const Octree& octree);
 
-            void construct(SubsurfaceIntegrator* parent, std::vector<IrradiancePoint>& hpoints);
+            void construct(SubsurfaceIntegrator* parent, std::vector<IrradiancePoint>& ipoints);
 
             Color iradSubsurface(const Vector3& pos, const DiffusionReflectance& Rd) const;
 
@@ -131,17 +96,24 @@ namespace spica {
     private:
         Material mtrl;
         BSSRDF bssrdf;
+        PhotonMap photonMap;
         Octree octree;
+        double dA;
 
     public:
         SubsurfaceIntegrator();
         ~SubsurfaceIntegrator();
 
-        void init(const Scene& scene, const Camera& camera, const BSSRDF& bssrdf, const double areaRadius, std::vector<HitpointInfo>* hpoints);
+        void initialize(const Scene& scene, const BSSRDF& bssrdf, const PMParams& params, const double areaRadius, const RandomType randType);
 
-        void buildOctree(const std::vector<HitpointInfo>& hpoints, const int numShotPhoton, const double areaRadius);
+        void buildOctree(const std::vector<Vector3>& points, const std::vector<Vector3>& normals, const PMParams& params);
 
         Color irradiance(const Vector3& p) const;
+
+    private:
+        void buildPhotonMap(const Scene& scene, const int numPhotons, const int bounceLimit, const RandomType randType);
+
+        Color irradianceWithPM(const Vector3& p, const Vector3& n, const PMParams& params) const;
     };
 
 }

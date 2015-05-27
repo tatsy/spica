@@ -63,7 +63,6 @@ namespace spica {
 
     void SubsurfaceIntegrator::Octree::construct(SubsurfaceIntegrator* parent, std::vector<IrradiancePoint>& ipoints) {
         this->_parent = parent;
-
         const int numHitpoints = static_cast<int>(ipoints.size());
         
         BBox bbox;
@@ -117,7 +116,7 @@ namespace spica {
         for (int i = 0; i < 8; i++) {
             if (node->children[i] != NULL) {
                 double w = node->children[i]->pt.irad.luminance();
-                node->pt.pos = w * node->children[i]->pt.pos;
+                node->pt.pos += w * node->children[i]->pt.pos;
                 node->pt.normal += w * node->children[i]->pt.normal;
                 node->pt.area += node->children[i]->pt.area;
                 node->pt.irad += node->children[i]->pt.irad;
@@ -160,11 +159,12 @@ namespace spica {
         }
     }
 
-
-
     SubsurfaceIntegrator::SubsurfaceIntegrator()
         : mtrl()
         , bssrdf()
+        , octree()
+        , photonMap()
+        , dA(0.0)
     {
     }
 
@@ -172,7 +172,7 @@ namespace spica {
     {
     }
 
-    void SubsurfaceIntegrator::init(const Scene& scene, const Camera& camera, const BSSRDF& bssrdf_, const double areaRadius, std::vector<HitpointInfo>* hpoints) {
+    void SubsurfaceIntegrator::initialize(const Scene& scene, const BSSRDF& bssrdf_, const PMParams& params, const double areaRadius, const RandomType randType) {
         // Poisson disk sampling on SSS objects
         int objectID = -1;
         std::vector<Vector3> points;
@@ -195,34 +195,31 @@ namespace spica {
         // Copy material data
         this->mtrl = scene.getMaterial(objectID);
         this->bssrdf = bssrdf_;
+        this->dA = (0.5 * areaRadius) * (0.5 * areaRadius) * PI;
 
-        // Store points on SSS object
-        const int numPoints = static_cast<int>(points.size());
-        for (int i = 0; i < numPoints; i++) {
-            HitpointInfo hp(points[i], normals[i]);
-            hp.weight = Color(1.0, 1.0, 1.0);
-            hp.coeff  = 1.0;
-            hpoints->push_back(hp);
-        }
+        // Cast photons to compute irradiance at sample points
+        buildPhotonMap(scene, params.numPhotons, 64, randType);
+
+        // Compute irradiance at sample points
+        buildOctree(points, normals, params);
     }
 
 
-    void SubsurfaceIntegrator::buildOctree(const std::vector<HitpointInfo>& hpoints, const int numShotPhotons, const double areaRadius) {
+    void SubsurfaceIntegrator::buildOctree(const std::vector<Vector3>& points, const std::vector<Vector3>& normals, const PMParams& params) {
         // Compute irradiance on each sampled point
-        const int numPoints = static_cast<int>(hpoints.size());
+        const int numPoints = static_cast<int>(points.size());
         std::vector<Color> irads(numPoints);
 
         for(int i = 0; i < numPoints; i++) {
             // Estimate irradiance with photon map
-            const HitpointInfo& hp = hpoints[i];
-            Color irad = (hp.emission + hp.flux / (PI * hp.r2)) * (hp.coeff / numShotPhotons);
+            Color irad = irradianceWithPM(points[i], normals[i], params);
             irads[i] = irad.cwiseMultiply(mtrl.color);
         }
 
         // Save radiance data for visual checking
         std::ofstream ofs("sss_sppm_irads.obj", std::ios::out);
         for (int i = 0; i < numPoints; i++) {
-            Vector3 p = hpoints[i];
+            Vector3 p = points[i];
             Vector3 clr = Vector3::minimum(irads[i], Vector3(1.0, 1.0, 1.0));
             ofs << "v " <<  p.x() << " " << p.y() << " " << p.z();
             ofs << " " << clr.x() << " " << clr.y() << " " << clr.z() << std::endl;
@@ -232,9 +229,9 @@ namespace spica {
         // Octree construction
         std::vector<IrradiancePoint> iradPoints(numPoints);
         for (int i = 0; i < numPoints; i++) {
-            iradPoints[i].pos = static_cast<Vector3>(hpoints[i]);
-            iradPoints[i].normal = hpoints[i].normal;
-            iradPoints[i].area = PI * (0.5 * areaRadius) * (0.5 * areaRadius);
+            iradPoints[i].pos = points[i];
+            iradPoints[i].normal = normals[i];
+            iradPoints[i].area = dA;
             iradPoints[i].irad = irads[i];
         }
         octree.construct(this, iradPoints);
@@ -245,6 +242,173 @@ namespace spica {
         DiffusionReflectance Rd(bssrdf.sigma_a(), bssrdf.sigmap_s(), bssrdf.eta());
         Color Mo = octree.iradSubsurface(p, Rd);
         return (1.0 / PI) * (1.0 - Rd.Fdr(bssrdf.eta())) * Mo;
+    }
+
+    void SubsurfaceIntegrator::buildPhotonMap(const Scene& scene, const int numPhotons, const int bounceLimit, const RandomType randType) {
+        std::cout << "Shooting photons ..." << std::endl;
+
+        RandomBase* rand = NULL;
+        switch (randType) {
+        case PSEUDO_RANDOM_TWISTER:
+            rand = new Random();
+            break;
+        case QUASI_MONTE_CARLO:
+            rand = new Halton();
+            break;
+        default:
+            msg_assert(false, "Unknown random number generator type!!");
+            break;
+        }
+
+        // Shooting photons
+        std::vector<Photon> photons;
+        int proc = 0;
+        ompfor (int pid = 0; pid < numPhotons; pid++) {
+            RandomSeq rseq;
+            omplock {
+                rand->requestSamples(rseq, 200);
+            }
+
+            // Generate sample on the light
+            const int lightID = scene.lightID();
+            const Primitive* light = scene.get(lightID);
+
+            Vector3 posLight, normalLight;
+            sampler::on(light, rseq, &posLight, &normalLight);
+
+            Color currentFlux = light->area() * scene.getMaterial(lightID).emission * PI / numPhotons;
+
+            const double r1 = rseq.next();
+            const double r2 = rseq.next();
+            Vector3 nextDir;
+            sampler::onHemisphere(normalLight, &nextDir, r1, r2);
+            Ray currentRay(posLight, nextDir);
+
+            for (int bounce = 0; ; bounce++) {
+                std::vector<double> randnums;
+                rseq.next(2, &randnums);
+
+                // Remove photon with zero flux
+                if (std::max(currentFlux.red(), std::max(currentFlux.green(), currentFlux.blue())) <= 0.0 || bounce > bounceLimit) {
+                    break;
+                }
+
+                Intersection isect;
+                bool isHit = scene.intersect(currentRay, isect);
+                if (!isHit) {
+                    break;
+                }
+
+                const int objectID = isect.objectId();
+                const Material& mtrl = scene.getMaterial(objectID);
+                const Hitpoint& hitpoint = isect.hitpoint();
+
+                const Vector3 orientNormal = Vector3::dot(currentRay.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+
+                if (mtrl.reftype == REFLECTION_DIFFUSE) {
+                    sampler::onHemisphere(orientNormal, &nextDir, randnums[0], randnums[1]);
+                    currentRay = Ray(hitpoint.position(), nextDir);
+                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                } else if (mtrl.reftype == REFLECTION_SPECULAR) {
+                    nextDir = Vector3::reflect(currentRay.direction(), orientNormal);
+                    currentRay = Ray(hitpoint.position(), nextDir);
+                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                } else if (mtrl.reftype == REFLECTION_REFRACTION) {
+                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
+
+                    Vector3 reflectDir, transmitDir;
+                    double fresnelRe, fresnelTr;
+                    bool isTotRef = helper::isTotalRef(isIncoming,
+                                                        hitpoint.position(),
+                                                        currentRay.direction(),
+                                                        hitpoint.normal(),
+                                                        orientNormal,
+                                                        &reflectDir,
+                                                        &transmitDir,
+                                                        &fresnelRe,
+                                                        &fresnelTr);
+
+
+                    Ray reflectRay = Ray(hitpoint.position(), reflectDir);
+
+                    if (isTotRef) {
+                        // Total reflection
+                        currentRay = reflectRay;
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    } else {
+                        const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
+                        if (randnums[0] < probability) {
+                            // Reflection
+                            currentRay = reflectRay;
+                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                        } else {
+                            // Reflaction
+                            currentRay = Ray(hitpoint.position(), transmitDir);
+                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                        }
+                    }
+                } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
+                    // Store photon
+                    omplock {
+                        photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction(), hitpoint.normal()));
+                    }
+                    break;
+                }
+            }
+
+            omplock {
+                proc++;
+                if (proc % 1000 == 0) {
+                    printf("%6.2f %% processed ...\r", 100.0 * proc / numPhotons);
+                }
+            }
+        }
+        printf("\n\n");
+
+        // Construct photon map
+        photonMap.clear();
+        photonMap.construct(photons);
+
+        // Release memory
+        delete rand;
+    }
+
+    Color SubsurfaceIntegrator::irradianceWithPM(const Vector3& p, const Vector3& n, const PMParams& params) const {
+        // Estimate irradiance with photon map
+        Photon query = Photon(p, Color(), Vector3(), n);
+        std::vector<Photon> photons;
+        photonMap.findKNN(query, &photons, params.gatherPhotons, params.gatherRadius);
+
+        const int numPhotons = static_cast<int>(photons.size());
+
+        std::vector<Photon> validPhotons;
+        std::vector<double> distances;
+        double maxdist = 0.0;
+        for (int i = 0; i < numPhotons; i++) {
+            Vector3 diff = query - photons[i];
+            double dist = diff.norm();
+            if (std::abs(Vector3::dot(n, diff)) < diff.norm() * 0.1) {
+                validPhotons.push_back(photons[i]);
+                distances.push_back(dist);
+                maxdist = std::max(maxdist, dist);
+            }
+        }
+
+        // Cone filter
+        const int numValidPhotons = static_cast<int>(validPhotons.size());
+        const double k = 1.1;
+        Color totalFlux = Color(0.0, 0.0, 0.0);
+        for (int i = 0; i < numValidPhotons; i++) {
+            const double w = 1.0 - (distances[i] / (k * maxdist));
+            const Color v = photons[i].flux() / PI;
+            totalFlux += w * v;
+        }
+        totalFlux /= (1.0 - 2.0 / (3.0 * k));
+
+        if (maxdist > EPS) {
+            return totalFlux / (PI * maxdist * maxdist);
+        }
+        return Color(0.0, 0.0, 0.0);
     }
 
 }  // namespace spica

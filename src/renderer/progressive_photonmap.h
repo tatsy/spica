@@ -18,7 +18,7 @@
 
 namespace spica {
 
-    class SPICA_PROGRESSIVE_PHOTONMAP_DLL PPMRenderer : public Uncopyable {
+    class SPICA_PROGRESSIVE_PHOTONMAP_DLL PPMRenderer : private Uncopyable {
     private:
 
         struct HPoint : public Vector3 {

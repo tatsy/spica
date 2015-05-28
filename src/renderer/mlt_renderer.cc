@@ -269,36 +269,15 @@ namespace spica {
             }
 
             // Position on object plane
-            const double uOnSensor = static_cast<double>(x) / width - 0.5;
-            const double vOnSensor = static_cast<double>(y) / height - 0.5;
-            Vector3 posOnSensor = camera.center() + (uOnSensor * camera.sensorW()) * camera.sensorU() + (vOnSensor * camera.sensorH()) * camera.sensorV();
+            double randnums[4];
+            for (int i = 0; i < 4; i++) {
+                randnums[i] = mlt.nextSample();
+            }
+            CameraSample camSample = camera.sample(x, y, randnums);
 
-            const double ratio = camera.focalLength() / camera.distSL();
-            const double uOnObjplane = -ratio * uOnSensor;
-            const double vOnObjplane = -ratio * vOnSensor;
-            Vector3 posOnOP = camera.objplaneCenter()
-                            + (uOnObjplane * camera.objplaneW()) * camera.objplaneU()
-                            + (vOnObjplane * camera.objplaneH()) * camera.objplaneV();
-
-            // Sample point on lens
-            double r0 = sqrt(mlt.nextSample());
-            double r1 = 2.0 * PI * mlt.nextSample();
-            double rx = r0 * cos(r1);
-            double ry = r0 * sin(r1);
-            Vector3 posOnLens = camera.lensCenter() 
-                              + camera.lensRadius() * camera.lensU() * rx 
-                              + camera.lensRadius() * camera.lensV() * ry;
-
-            const double pImage = 1.0 / (camera.cellW() * camera.cellH());
-            const double pLens  = 1.0 / (camera.lensArea());
-
-            Vector3 lens2sensor = posOnSensor - posOnLens;
-            const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
-            const double coeff  = cosine * cosine / lens2sensor.squaredNorm();
-            weight *= (coeff * camera.sensitivity() / (pImage * pLens));
-
-            const Ray ray = Ray(posOnLens, (posOnOP - posOnLens).normalized());
+            const Ray ray = camSample.generateRay();
             Color c = radiance(scene, ray, 0, maxDepth, mlt);
+            weight *= camera.sensitivity() / camSample.totalPdf();
 
             return PathSample(x, y, c, weight);
         }

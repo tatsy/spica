@@ -124,6 +124,7 @@ namespace spica {
 
         void samplePoints(const int imageX, const int imageY, Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const;
 
+        CameraSample sample(const double imageX, const double imageY, double randnum[4]) const;
         CameraSample sample(const double imageX, const double imageY, RandomSeq& rseq) const;
 
         inline unsigned int imageW() const { return width_; }

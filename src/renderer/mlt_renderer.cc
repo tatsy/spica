@@ -15,11 +15,11 @@ namespace spica {
 
         struct PrimarySample {
             int modifiedTime;
-            double randVal;
+            double value;
 
-            explicit PrimarySample(double randVal_) 
+            explicit PrimarySample(double randVal) 
                 : modifiedTime(0)
-                , randVal(randVal_)
+                , value(randVal)
             {
             }
         };
@@ -59,25 +59,25 @@ namespace spica {
                     primary_samples.resize(primary_samples.size() * 1.5);
                 }
 
-                if (primary_samples[used_rand_coords].modify_time < global_time) {
+                if (primary_samples[used_rand_coords].modifiedTime < global_time) {
                     if (large_step > 0) {
                         primary_samples_stack.push(primary_samples[used_rand_coords]);
-                        primary_samples[used_rand_coords].modify_time = global_time;
+                        primary_samples[used_rand_coords].modifiedTime = global_time;
                         primary_samples[used_rand_coords].value = rng.nextReal();
                     } else {
-                        if (primary_samples[used_rand_coords].modify_time < large_step_time) {
-                            primary_samples[used_rand_coords].modify_time = large_step_time;
+                        if (primary_samples[used_rand_coords].modifiedTime < large_step_time) {
+                            primary_samples[used_rand_coords].modifiedTime = large_step_time;
                             primary_samples[used_rand_coords].value = rng.nextReal();
                         }
 
-                        while (primary_samples[used_rand_coords].modify_time < global_time - 1) {
+                        while (primary_samples[used_rand_coords].modifiedTime < global_time - 1) {
                             primary_samples[used_rand_coords].value = mutate(primary_samples[used_rand_coords].value);
-                            primary_samples[used_rand_coords].modify_time++;
+                            primary_samples[used_rand_coords].modifiedTime++;
                         }
 
                         primary_samples_stack.push(primary_samples[used_rand_coords]);
                         primary_samples[used_rand_coords].value = mutate(primary_samples[used_rand_coords].value);
-                        primary_samples[used_rand_coords].modify_time = global_time;
+                        primary_samples[used_rand_coords].modifiedTime = global_time;
                     }
                 }
                 used_rand_coords++;

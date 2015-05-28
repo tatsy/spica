@@ -8,6 +8,7 @@
 #endif
 
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <algorithm>
@@ -109,6 +110,8 @@ namespace spica {
 
         ifs.read((char*)&header, sizeof(BitmapFileHeader));
         ifs.read((char*)&core, sizeof(BitmapCoreHeader));
+        printf("header: %ld\n", sizeof(BitmapFileHeader));
+        printf("  core: %ld\n", sizeof(BitmapCoreHeader));
 
         this->_width = std::abs(core.biWidth);
         this->_height = std::abs(core.biHeight);

@@ -48,6 +48,11 @@ TEST(ImageTest, InstanceTest) {
     }
 }
 
+TEST(ImageTest, InvalidPathToLoad) {
+    Image image;
+    ASSERT_DEATH(image.loadBMP("dammy_path.bmp"), "");
+}
+
 TEST(ImageTest, SaveLoadTest) {
     Image image(width, height);
     for (int y = 0; y < height; y++) {
@@ -55,13 +60,12 @@ TEST(ImageTest, SaveLoadTest) {
             image.pixel(x, y) = Color(rng.nextReal(), rng.nextReal(), rng.nextReal());
         }
     }
-
     image.saveBMP(filepath);
 
-    Image loaded;
-    ASSERT_DEATH(loaded.loadBMP("dammy_path.bmp"), "");
+    std::cout << filepath << std::endl;
+    std::cerr << filepath << std::endl;
 
-    /*
+    Image loaded;
     loaded.loadBMP(filepath);
     EXPECT_EQ(image.width(), loaded.width());
     EXPECT_EQ(image.height(), loaded.height());
@@ -72,5 +76,4 @@ TEST(ImageTest, SaveLoadTest) {
             EXPECT_NEAR(image(x, y).blue(),  loaded(x, y).blue(),  0.01) << "Blue is different";        
         }
     }
-    */
 }

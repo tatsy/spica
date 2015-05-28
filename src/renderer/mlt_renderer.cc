@@ -118,7 +118,7 @@ namespace spica {
             const double r1Light = mlt.nextSample();
             const double r2Light = mlt.nextSample();
             Vector3 light_pos, light_normal;
-            sampler::on(light, &light_pos, &light_normal, r1, r2);
+            sampler::on(light, &light_pos, &light_normal, r1Light, r2Light);
 
             const Vector3 v_to_l = light_pos - v0;
             const Vector3 light_dir = v_to_l.normalized();

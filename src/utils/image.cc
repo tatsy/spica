@@ -100,18 +100,37 @@ namespace spica {
         return _pixels[y * _width + x];
     }
 
-    void Image::savePPM(const std::string& filename) const {
-        std::ofstream ofs(filename.c_str(), std::ios::out);
-        ofs << "P3" << std::endl;
-        ofs << _width << " " << _height << " 255" << std::endl;
+    void Image::loadBMP(const std::string& filename) {
+        BitmapFileHeader header;
+        BitmapCoreHeader core;
 
-        for (int i = 0; i < _width * _height; i++) {
-            int r = toByte(_pixels[i].red());
-            int g = toByte(_pixels[i].green());
-            int b = toByte(_pixels[i].blue());
-            ofs << r << " " << g << " " << b << std::endl;
+        std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
+        ifs.read((char*)&header, sizeof(BitmapFileHeader));
+        ifs.read((char*)&core, sizeof(BitmapCoreHeader));
+
+        this->_width = std::abs(core.biWidth);
+        this->_height = std::abs(core.biHeight);
+        this->_pixels = new Color[_width * _height];
+
+        const int lineSize = (sizeof(RGBTriple) * _width + 3) / 4 * 4;
+        char* lineBits = new char[lineSize];
+        for (int y = 0; y < _height; y++) {
+            ifs.read((char*)lineBits, lineSize);
+            char* ptr = lineBits;
+            for (int x = 0; x < _width; x++) {
+                RGBTriple triple;
+                memcpy(&triple, ptr, sizeof(RGBTriple));
+
+                double red   = toReal(triple.rgbRed);
+                double green = toReal(triple.rgbGreen);
+                double blue  = toReal(triple.rgbBlue);
+                this->_pixels[y * _width + x] = Color(red, green, blue);
+                ptr += sizeof(RGBTriple);
+            }
         }
-        ofs.close();
+        delete[] lineBits;
+
+        ifs.close();
     }
 
     void Image::saveBMP(const std::string& filename) const {
@@ -163,6 +182,12 @@ namespace spica {
         delete[] lineBits;
 
         ofs.close();
+    }
+
+    double Image::toReal(unsigned char b) {
+        static const double gamma = 2.2;
+        double d = b / 255.0;
+        return pow(d, gamma);
     }
 
     unsigned char Image::toByte(double d) {

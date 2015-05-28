@@ -35,13 +35,15 @@ namespace spica {
         const Color& operator()(int x, int y) const;
         Color& pixel(int x, int y);
 
-        void savePPM(const std::string& filename) const;
+        void loadBMP(const std::string& filename);
         void saveBMP(const std::string& filename) const;
 
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }
 
     private:
+        static double toReal(unsigned char b);
+
         static unsigned char toByte(double d);
     };
 

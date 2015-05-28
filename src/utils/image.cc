@@ -21,10 +21,10 @@ namespace spica {
         PACKED(
         struct BitmapFileHeader {
             unsigned short bfType;
-            unsigned long bfSize;
+            unsigned long  bfSize;
             unsigned short bfReserved1;
             unsigned short bfReserved2;
-            unsigned long bfOffBits;
+            unsigned long  bfOffBits;
         });
 
         PACKED(
@@ -113,7 +113,7 @@ namespace spica {
         printf("header: %ld\n", sizeof(BitmapFileHeader));
         printf("  core: %ld\n", sizeof(BitmapCoreHeader));
 
-        this->_width = std::abs(core.biWidth);
+        this->_width  = std::abs(core.biWidth);
         this->_height = std::abs(core.biHeight);
         this->_pixels = new Color[_width * _height];
 

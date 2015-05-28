@@ -29,9 +29,9 @@ namespace spica {
 
         Ray& operator=(const Ray& ray);
 
-        inline Vector3 origin() const { return _origin; }
+        inline Vector3 origin()    const { return _origin; }
         inline Vector3 direction() const { return _direction; }
-        inline Vector3 invdir() const { return _invdir; }
+        inline Vector3 invdir()    const { return _invdir; }
 
     private:
         void calcInvdir();

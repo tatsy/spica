@@ -66,9 +66,6 @@ TEST(ImageTest, SaveLoadTest) {
     }
     image.saveBMP(filepath);
 
-    std::cout << filepath << std::endl;
-    std::cerr << filepath << std::endl;
-
     Image loaded;
     loaded.loadBMP(filepath);
     EXPECT_EQ(image.width(), loaded.width());

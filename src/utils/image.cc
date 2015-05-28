@@ -30,14 +30,14 @@ namespace spica {
         PACKED(
         struct BitmapCoreHeader {
             unsigned int   biSize;
-            long biWidth;
-            long biHeight;
+            int biWidth;
+            int biHeight;
             unsigned short biPlanes;
             unsigned short biBitCount;
             unsigned int   biCompression;
             unsigned int   biSizeImage;
-            long biXPixPerMeter;
-            long biYPixPerMeter;
+            int biXPixPerMeter;
+            int biYPixPerMeter;
             unsigned int  biClrUsed;
             unsigned int  biClrImportant;
         });
@@ -105,15 +105,11 @@ namespace spica {
         BitmapFileHeader header;
         BitmapCoreHeader core;
 
-        printf("ho");
         std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
-        printf("ge\n");
         msg_assert(ifs.is_open(), "Failed to open file!!");
 
         ifs.read((char*)&header, sizeof(BitmapFileHeader));
         ifs.read((char*)&core, sizeof(BitmapCoreHeader));
-        printf("header: %ld\n", sizeof(BitmapFileHeader));
-        printf("  core: %ld\n", sizeof(BitmapCoreHeader));
 
         this->_width  = std::abs(core.biWidth);
         this->_height = std::abs(core.biHeight);

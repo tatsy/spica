@@ -21,25 +21,25 @@ namespace spica {
         PACKED(
         struct BitmapFileHeader {
             unsigned short bfType;
-            unsigned long  bfSize;
+            unsigned int   bfSize;
             unsigned short bfReserved1;
             unsigned short bfReserved2;
-            unsigned long  bfOffBits;
+            unsigned int   bfOffBits;
         });
 
         PACKED(
         struct BitmapCoreHeader {
-            unsigned long biSize;
+            unsigned int   biSize;
             long biWidth;
             long biHeight;
             unsigned short biPlanes;
             unsigned short biBitCount;
-            unsigned long biCompression;
-            unsigned long biSizeImage;
+            unsigned int   biCompression;
+            unsigned int   biSizeImage;
             long biXPixPerMeter;
             long biYPixPerMeter;
-            unsigned long biClrUsed;
-            unsigned long biClrImportant;
+            unsigned int  biClrUsed;
+            unsigned int  biClrImportant;
         });
 
         PACKED(

@@ -10,8 +10,8 @@ int main(int argc, char **argv) {
 
     const int width  = argc >= 2 ? atoi(argv[1]) : 320;
     const int height = argc >= 3 ? atoi(argv[2]) : 240;
-    const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 8;
-    const int numMLT = argc >= 5 ? atoi(argv[4]) : 8;
+    const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 4;
+    const int numMLT = argc >= 5 ? atoi(argv[4]) : 16;
 
     std::cout << "      width: " << width << std::endl;
     std::cout << "     height: " << height << std::endl;
@@ -20,10 +20,10 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBox(scene, camera, width, height);
+    cornellBoxOcclusion(scene, camera, width, height);
 
     const int numMutate = width * height * samplePerPixel;
-    const int maxDepth  = 6;
+    const int maxDepth  = 8;
     Random rng = Random();
 
     Timer timer;

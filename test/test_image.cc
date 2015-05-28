@@ -2,10 +2,13 @@
 #include "../include/spica.h"
 using namespace spica;
 
+#include <string>
+
 namespace {
     const int width = 320;
     const int height = 240;
     Random rng = Random();
+    const std::string filepath = DATA_DIR + "test_image.bmp";
 }
 
 TEST(ImageTest, InstanceTest) {
@@ -53,10 +56,10 @@ TEST(ImageTest, SaveLoadTest) {
         }
     }
 
-    image.saveBMP("test_image.bmp");
+    image.saveBMP(filepath);
 
     Image loaded;
-    loaded.loadBMP("test_image.bmp");
+    loaded.loadBMP(filepath);
 
     EXPECT_EQ(image.width(), loaded.width());
     EXPECT_EQ(image.height(), loaded.height());

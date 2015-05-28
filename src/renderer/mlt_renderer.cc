@@ -14,17 +14,15 @@ namespace spica {
     namespace {
 
         struct PrimarySample {
-            int modify_time;
-            double value;
-            static Random rnd;
+            int modifiedTime;
+            double randVal;
 
-            PrimarySample() {
-                modify_time = 0;
-                value = rnd.nextReal();
+            explicit PrimarySample(double randVal_) 
+                : modifiedTime(0)
+                , randVal(randVal_)
+            {
             }
         };
-
-        Random PrimarySample::rnd = Random();
 
         struct KelemenMLT {
         private:
@@ -371,7 +369,8 @@ namespace spica {
                 tmpImage.pixel(new_path.x, new_path.y) += new_path.weight * new_path_weight * new_path.F;
                 tmpImage.pixel(old_path.x, old_path.y) += old_path.weight * old_path_weight * old_path.F;
                 
-                if (rng.nextReal() < a) {  // Accept
+                if (rng.nextReal() < a) {
+                    // Accept
                     accept++;
                     old_path = new_path;
                     if (kelemenMlt.large_step) {
@@ -381,7 +380,8 @@ namespace spica {
                     while (!kelemenMlt.primary_samples_stack.empty()) {
                         kelemenMlt.primary_samples_stack.pop();
                     }
-                } else {  // Reject
+                } else {
+                    // Reject
                     reject++;
                     int idx = kelemenMlt.used_rand_coords - 1;
                     while (!kelemenMlt.primary_samples_stack.empty()) {

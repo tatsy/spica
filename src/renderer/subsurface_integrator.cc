@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <typeinfo>
 
 #include "renderer_helper.h"
 #include "../utils/sampler.h"

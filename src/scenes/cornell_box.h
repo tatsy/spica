@@ -117,9 +117,9 @@ namespace spica {
 
         // Back light
         Vector3 l00(3.0, -3.0, -9.99);
-        Vector3 l01(8.0, -8.0, -9.99);
-        Vector3 l10(8.0, -3.0, -9.99);
-        Vector3 l11(3.0, -8.0, -9.99);
+        Vector3 l01(8.0, -3.0, -9.99);
+        Vector3 l10(3.0, -8.0, -9.99);
+        Vector3 l11(8.0, -8.0, -9.99);
         scene.add(Quad(l00, l10, l11, l01), Material(Color(128.0, 128.0, 128.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
 
         // Walls

@@ -2,14 +2,20 @@
 #include "../include/spica.h"
 using namespace spica;
 
-namespace {
-    Random rng = Random();
-}
+#include <string>
 
-TEST(ImageTest, InstanceTest) {
+namespace {
     const int width = 320;
     const int height = 240;
+    Random rng = Random();
+    const std::string filepath = DATA_DIR + "test_image.bmp";
+}
 
+// --------------------------------------------------
+// Image 
+// --------------------------------------------------
+
+TEST(ImageTest, InstanceTest) {
     Image image;
     EXPECT_EQ(0, image.width());
     EXPECT_EQ(0, image.height());
@@ -42,6 +48,33 @@ TEST(ImageTest, InstanceTest) {
             EXPECT_EQ(rand(x, y).red(), image(x, y).red());
             EXPECT_EQ(rand(x, y).green(), image(x, y).green());
             EXPECT_EQ(rand(x, y).blue(), image(x, y).blue());
+        }
+    }
+}
+
+TEST(ImageTest, InvalidPathToLoad) {
+    Image image;
+    ASSERT_DEATH(image.loadBMP("dammy_path.bmp"), "");
+}
+
+TEST(ImageTest, SaveLoadTest) {
+    Image image(width, height);
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            image.pixel(x, y) = Color(rng.nextReal(), rng.nextReal(), rng.nextReal());
+        }
+    }
+    image.saveBMP(filepath);
+
+    Image loaded;
+    loaded.loadBMP(filepath);
+    EXPECT_EQ(image.width(), loaded.width());
+    EXPECT_EQ(image.height(), loaded.height());
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            EXPECT_NEAR(image(x, y).red(),   loaded(x, y).red(),   0.01) << "Red is different";        
+            EXPECT_NEAR(image(x, y).green(), loaded(x, y).green(), 0.01) << "Green is different";        
+            EXPECT_NEAR(image(x, y).blue(),  loaded(x, y).blue(),  0.01) << "Blue is different";        
         }
     }
 }

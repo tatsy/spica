@@ -7,9 +7,9 @@ using namespace spica;
 int main(int argc, char** argv) {
     std::cout << "*** spica: Photon mapping ***" << std::endl;
 
-    const int width = argc >= 2 ? atoi(argv[1]) : 640;
-    const int height = argc >= 3 ? atoi(argv[2]) : 480;
-    const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 128;
+    const int width = argc >= 2 ? atoi(argv[1]) : 320;
+    const int height = argc >= 3 ? atoi(argv[2]) : 240;
+    const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 16;
 
     std::cout << "      width: " << width << std::endl;
     std::cout << "     height: " << height << std::endl;
@@ -19,17 +19,15 @@ int main(int argc, char** argv) {
     Camera camera;
     cornellBox(scene, camera, width, height);
 
-    Random rng = Random();
-
-    const int numPhotons = 20000000;
-    const int numTargetPhotons = 64;
-    const double targetRadius = 20.0;
+    const int numPhotons = 1000000;
+    const int gatherPhotons = 200;
+    const double gatherRadius = 20.0;
 
     PMRenderer renderer;
-    renderer.buildPM(scene, camera, rng, numPhotons);
+    PMParams params(numPhotons, gatherPhotons, gatherRadius);
 
     Timer timer;
     timer.start();
-    renderer.render(scene, camera, rng, samplePerPixel, numTargetPhotons, targetRadius);
+    renderer.render(scene, camera, samplePerPixel, params, QUASI_MONTE_CARLO);
     printf("Time: %f sec\n", timer.stop());
 }

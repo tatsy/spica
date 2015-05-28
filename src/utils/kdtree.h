@@ -51,17 +51,25 @@ namespace spica {
             KdTreeNode* left;
             KdTreeNode* right;
             int axis;
+
+            KdTreeNode()
+                : point()
+                , left(NULL)
+                , right(NULL)
+                , axis(0)
+            {
+            }
         };
 
         struct AxisComparator {
             int dim;
             explicit AxisComparator(int d) : dim(d) {}
-            bool operator()(const Ty& t1, const Ty& t2) {
-                return t1.get(dim) < t2.get(dim);
+            bool operator()(const Ty* t1, const Ty* t2) {
+                return t1->get(dim) < t2->get(dim);
             }
         };
 
-        KdTreeNode* _root;
+        KdTreeNode* _nodes;
         int* _numCopies;
 
     public:
@@ -77,9 +85,7 @@ namespace spica {
         void release();
 
     private:
-        void deleteNode(KdTreeNode* node);
-
-        KdTreeNode* constructRec(std::vector<Ty>& points, int startID, int endID, int dim);
+        KdTreeNode* constructRec(std::vector<const Ty*>& points, const int nodeID, const int startID, const int endID, const int dim);
         void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const;
     };
 }

@@ -38,4 +38,8 @@ namespace spica {
         return *this;
     }
 
+    double Color::luminance() const {
+        return 0.2126 * _x + 0.7152 * _y + 0.0722 * _z;
+    }
+
 }

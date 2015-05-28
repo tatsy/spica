@@ -48,6 +48,7 @@ namespace spica {
         void load(const std::string& filename);
 
         void translate(const Vector3& move);
+        void scale(const double scaleX, const double scaleY, const double scaleZ);
         void putOnPlane(const Plane& plane);
 
         Triangle getTriangle(int id) const;

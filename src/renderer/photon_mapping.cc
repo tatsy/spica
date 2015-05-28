@@ -2,6 +2,7 @@
 #include "photon_mapping.h"
 
 #include <cmath>
+#include <ctime>
 #include <cstdio>
 #include <algorithm>
 
@@ -10,76 +11,7 @@
 
 namespace spica {
 
-    // --------------------------------------------------
-    // Photon map
-    // --------------------------------------------------
-    Photon::Photon()
-        : Vector3()
-        , _flux()
-        , _direction()
-    {
-    }
-
-    Photon::Photon(const Vector3& position, const Color& flux, const Vector3& direction)
-        : Vector3(position)
-        , _flux(flux)
-        , _direction(direction)
-    {
-    }
-
-    Photon::Photon(const Photon& photon)
-        : Vector3()
-        , _flux()
-        , _direction()
-    {
-        operator=(photon);
-    }
-
-    Photon::~Photon()
-    {
-    }
-
-    Photon& Photon::operator=(const Photon& photon) {
-        Vector3::operator=(photon);
-        this->_flux      = photon._flux;
-        this->_direction = photon._direction;
-        return *this;
-    }
-
-    // --------------------------------------------------
-    // Photon map
-    // --------------------------------------------------
-
-    PhotonMap::PhotonMap()
-        : _kdtree()
-    {
-    }
-
-    PhotonMap::~PhotonMap()
-    {
-    }
-
-    void PhotonMap::clear() {
-        _kdtree.release();
-    }
-
-    void PhotonMap::construct(const std::vector<Photon>& photons) {
-        _kdtree.construct(photons);
-    }
-
-    void PhotonMap::findKNN(const Photon& query, std::vector<Photon>* photons, const int numTargetPhotons, const double targetRadius) const {
-        _kdtree.knnSearch(query, KnnQuery(K_NEAREST | EPSILON_BALL, numTargetPhotons, targetRadius), photons);
-    }
-
-    // --------------------------------------------------
-    // Photon mapping renderer
-    // --------------------------------------------------
-
     PMRenderer::PMRenderer()
-    {
-    }
-
-    PMRenderer::PMRenderer(const PMRenderer& renderer)
     {
     }
 
@@ -87,51 +19,82 @@ namespace spica {
     {
     }
 
-    PMRenderer& PMRenderer::operator=(const PMRenderer& renderer) {
-        return *this;
-    }
-
-    int PMRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, const int samplePerPixel, const int numTargetPhotons, const double targetRadius) {
+    void PMRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, const PMParams& params, const RandomType randType) {
         const int width = camera.imageW();
         const int height = camera.imageH();
-        Image image(width, height);
+        Image* buffer = new Image[OMP_NUM_CORE];
+        for (int i = 0; i < OMP_NUM_CORE; i++) {    
+            buffer[i] = Image(width, height);
+        }
 
-        int proc = 0;
-        for (int i = 0; i < samplePerPixel; i++) {
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    image.pixel(width - x - 1, y) += executePT(scene, camera, x, y, rng, numTargetPhotons, targetRadius) / samplePerPixel;
-                }
-
-                proc += 1;
-                printf("%6.2f %% processed...\n", 100.0 * proc / (samplePerPixel * height));
+        RandomBase** rand = new RandomBase*[OMP_NUM_CORE];
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            switch (randType) {
+            case PSEUDO_RANDOM_TWISTER:
+                rand[i] = new Random();
+                break;
+            case QUASI_MONTE_CARLO:
+                rand[i] = new Halton(200, true, i);
+                break;
             }
         }
-        image.savePPM("photonmap.ppm");
-        return 0;
+
+        const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
+        for (int t = 0; t < taskPerThread; t++) {
+            // Construct photon map
+            buildPM(scene, camera, params.numPhotons, randType);
+
+            // Path tracing
+            ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
+                RandomSeq rseq;            
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        rand[threadID]->requestSamples(rseq, 200);
+                        buffer[threadID].pixel(width - x - 1, y) += executePathTracing(scene, camera, rseq, x, y, params.gatherPhotons, params.gatherRadius);
+                    }
+                }
+            }
+
+            const int usedSamples = (t + 1) * OMP_NUM_CORE;
+            char filename[256];
+            Image image(width, height);            
+            for (int k = 0; k < OMP_NUM_CORE; k++) {
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        image.pixel(x, y) += buffer[k](x, y) / usedSamples;
+                    }
+                }
+            }
+            sprintf(filename, "photonmap_%03d.bmp", usedSamples);
+            image.saveBMP(filename);
+
+            printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);
+        }
+        printf("\nFinish!!\n");
+
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            delete rand[i];
+        }
+        delete[] rand;
+        delete[] buffer;
     }
 
-    Color PMRenderer::executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng, const int numTargetPhotons, const double targetRadius) const {
-        Vector3 posOnSensor;
-        Vector3 posOnObjplane;
-        Vector3 posOnLens;
-        double pImage, pLens;
-        camera.samplePoints(pixelX, pixelY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
-        
-        Vector3 lens2sensor = posOnSensor - posOnLens;
-        const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
-        const double weight = cosine * cosine / lens2sensor.squaredNorm();
-
-        const Ray ray(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
-        return radiance(scene, ray, rng, numTargetPhotons, targetRadius, 0) * (weight * camera.sensitivity() / (pImage * pLens));
-    }
-
-    Color PMRenderer::radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {
+    Color PMRenderer::executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, const double pixelX, const double pixelY, const int numTargetPhotons, const double targetRadius) const {
+        CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
+        const Ray ray = camSample.generateRay();
+        return radiance(scene, ray, rseq, numTargetPhotons, targetRadius, 0) * (camera.sensitivity() / camSample.totalPdf());
+    }    
+    
+    Color PMRenderer::radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {
         Intersection isect;
         if (!scene.intersect(ray, isect)) {
             return scene.bgColor();
         }
 
+        // Request random numbers
+        const double randnum = rseq.next();
+
+        // Intersected object
         const int objID = isect.objectId();
         const Material& mtrl = scene.getMaterial(objID);
         const Hitpoint hitpoint = isect.hitpoint();
@@ -140,7 +103,7 @@ namespace spica {
         // Russian roulette
         double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
         if (depth > maxDepth) {
-            if (rng.nextReal() > roulette) {
+            if (randnum > roulette) {
                 return mtrl.emission;
             }
         }
@@ -148,36 +111,43 @@ namespace spica {
 
         if (mtrl.reftype == REFLECTION_DIFFUSE) {
             // Estimate irradiance with photon map
-            Photon query = Photon(hitpoint.position(), Color(), Vector3());
+            Photon query = Photon(hitpoint.position(), Color(), ray.direction(), hitpoint.normal());
             std::vector<Photon> photons;
             photonMap.findKNN(query, &photons, numTargetPhotons, targetRadius);
 
             const int numPhotons = static_cast<int>(photons.size());
-            std::vector<double> dists(numPhotons);
+
+            std::vector<Photon> validPhotons;
+            std::vector<double> distances;
             double maxdist = 0.0;
             for (int i = 0; i < numPhotons; i++) {
-                double dist = (photons[i] - query).norm();
-                dists[i] = dist;
-                maxdist = std::max(maxdist, dist);
+                Vector3 diff = query - photons[i];
+                double dist = diff.norm();
+                if (std::abs(Vector3::dot(hitpoint.normal(), diff)) < diff.norm() * 0.1) {
+                    validPhotons.push_back(photons[i]);
+                    distances.push_back(dist);
+                    maxdist = std::max(maxdist, dist);
+                }
             }
 
             // Cone filter
+            const int numValidPhotons = static_cast<int>(validPhotons.size());
             const double k = 1.1;
             Color totalFlux = Color(0.0, 0.0, 0.0);
-            for (int i = 0; i < numPhotons; i++) {
-                const double w = 1.0 - (dists[i] / (k * maxdist));
+            for (int i = 0; i < numValidPhotons; i++) {
+                const double w = 1.0 - (distances[i] / (k * maxdist));
                 const Color v = mtrl.color.cwiseMultiply(photons[i].flux()) / PI;
                 totalFlux += w * v;
             }
             totalFlux /= (1.0 - 2.0 / (3.0 * k));
             
-            if (numPhotons != 0) {
+            if (maxdist > EPS) {
                 return mtrl.emission + totalFlux / ((PI * maxdist * maxdist) * roulette); 
             }
         } else if (mtrl.reftype == REFLECTION_SPECULAR) {
             Vector3 nextDir = Vector3::reflect(ray.direction(), hitpoint.normal());
             Ray nextRay = Ray(hitpoint.position(), nextDir);
-            Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
+            Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
             return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) / roulette;
         } else if (mtrl.reftype == REFLECTION_REFRACTION) {
             bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
@@ -186,21 +156,30 @@ namespace spica {
             if (helper::isTotalRef(isIncoming, hitpoint.position(), ray.direction(), hitpoint.normal(), orientNormal, &reflectDir, &refractDir, &fresnelRe, &fresnelTr)) {
                 // Total reflection
                 Ray nextRay = Ray(hitpoint.position(), reflectDir);
-                Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
+                Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
                 return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) / roulette;
             } else {
-                // Reflect or reflact
-                const double probRef = 0.25 + REFLECT_PROBABLITY * fresnelRe;
-                if (rng.nextReal() < probRef) {
-                    // Reflect
-                    Ray nextRay = Ray(hitpoint.position(), reflectDir);
-                    Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                    return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelRe / (probRef * roulette));
+                if (depth > 2) {
+                    // Reflect or reflact
+                    const double probRef = 0.25 + REFLECT_PROBABLITY * fresnelRe;
+                    if (randnum < probRef) {
+                        // Reflect
+                        Ray nextRay = Ray(hitpoint.position(), reflectDir);
+                        Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
+                        return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelRe / (probRef * roulette));
+                    } else {
+                        // Refract
+                        Ray nextRay = Ray(hitpoint.position(), refractDir);
+                        Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
+                        return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelTr / ((1.0 - probRef) * roulette));
+                    }
                 } else {
-                    // Refract
-                    Ray nextRay = Ray(hitpoint.position(), refractDir);
-                    Color nextRad = radiance(scene, nextRay, rng, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                    return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) * (fresnelTr / ((1.0 - probRef) * roulette));
+                    Ray reflectRay = Ray(hitpoint.position(), reflectDir);
+                    Color reflectRad = radiance(scene, reflectRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
+                    Ray transmitRay = Ray(hitpoint.position(), refractDir);
+                    Color transmitRad = radiance(scene, transmitRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
+                    Color nextRad = reflectRad * fresnelRe + transmitRad * fresnelTr;
+                    return mtrl.emission + mtrl.color.cwiseMultiply(nextRad) / roulette;
                 }
             }
         }
@@ -208,40 +187,60 @@ namespace spica {
         return Color();
     }
 
-    void PMRenderer::buildPM(const Scene& scene, const Camera& camera, const Random& rng, const int numPhotons) {
+    void PMRenderer::buildPM(const Scene& scene, const Camera& camera, const int numPhotons, const RandomType randType) {
         std::cout << "Shooting photons..." << std::endl;
+
+        // Prepare random number generator
+        RandomBase* rand = NULL;
+        switch (randType) {
+        case PSEUDO_RANDOM_TWISTER:
+            rand = new Random();
+            break;
+        case QUASI_MONTE_CARLO:
+            rand = new Halton();
+            break;
+        }
 
         // Shooting photons
         std::vector<Photon> photons;
-        for (int pid = 0; pid < numPhotons; pid++) {
+        int proc = 0;
+        ompfor (int pid = 0; pid < numPhotons; pid++) {
+            
+            // Request random numbers in each thread
+            RandomSeq rseq;
+            omplock {
+                rand->requestSamples(rseq, 200);
+            }
+
             // Generate sample on the light
             const int lightID = scene.lightID();
             const Primitive* light = scene.get(lightID);
 
-            Vector3 positionOnLignt, normalOnLight;
-            sampler::on(light, &positionOnLignt, &normalOnLight);
-            double pdfAreaOnLight = 1.0 / light->area();
+            Vector3 posLignt, normalLight;
+            const double r1Light = rseq.next();
+            const double r2Light = rseq.next();
+            sampler::on(light, &posLignt, &normalLight, r1Light, r2Light);
+            Color currentFlux = light->area() * scene.getMaterial(lightID).emission * PI / numPhotons;
 
-            double totalPdfA = pdfAreaOnLight;
-
-            Color currentFlux = light->area() * scene.getMaterial(lightID).emission / numPhotons;
+            const double r1 = rseq.next();
+            const double r2 = rseq.next();
             Vector3 nextDir;
-            sampler::onHemisphere(normalOnLight, &nextDir);
+            sampler::onHemisphere(normalLight, &nextDir, r1, r2);
 
-            Ray currentRay(positionOnLignt, nextDir);
-            Vector3 prevNormal = normalOnLight;
+            Ray currentRay(posLignt, nextDir);
 
             for (;;) {
+                const double randnum = rseq.next();
+
                 // Remove photon with zero flux
-                if (std::max(currentFlux.red(), std::max(currentFlux.green(), currentFlux.blue())) < 0.0) {
+                if (std::max(currentFlux.red(), std::max(currentFlux.green(), currentFlux.blue())) <= 0.0) {
                     break;
                 }
 
-                Intersection isect;
-                bool isHit = scene.intersect(currentRay, isect);
 
                 // If not hit the scene, then break
-                if (!isHit) {
+                Intersection isect;
+                if (!scene.intersect(currentRay, isect)) {
                     break;
                 }
 
@@ -255,72 +254,82 @@ namespace spica {
                 }
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
-                    photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction()));
+                    omplock {
+                        photons.push_back(Photon(hitpoint.position(), currentFlux, currentRay.direction(), hitpoint.normal()));
+                    }
 
                     const double probContinueTrace = (mtrl.color.red() + mtrl.color.green() + mtrl.color.blue()) / 3.0;
-                    if (probContinueTrace > rng.nextReal()) {
+                    if (probContinueTrace > randnum) {
                         // Continue trace
                         sampler::onHemisphere(orientingNormal, &nextDir);
                         currentRay = Ray(hitpoint.position(), nextDir);
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probContinueTrace;
-                    }
-                    else {
+                    } else {
                         // Absorb (finish trace)
                         break;
                     }
-                }
-                else if (mtrl.reftype == REFLECTION_SPECULAR) {
+                } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
-                }
-                else if (mtrl.reftype == REFLECTION_REFRACTION) {
-                    // Ray of reflection
-                    Vector3 reflectDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
+                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                } else if (mtrl.reftype == REFLECTION_REFRACTION) {
+                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientingNormal) > 0.0;
+
+                    Vector3 reflectDir, transmitDir;
+                    double fresnelRe, fresnelTr;
+                    bool isTotRef = helper::isTotalRef(isIncoming,
+                                                       hitpoint.position(),
+                                                       currentRay.direction(),
+                                                       hitpoint.normal(),
+                                                       orientingNormal,
+                                                       &reflectDir,
+                                                       &transmitDir,
+                                                       &fresnelRe,
+                                                       &fresnelTr);
+
+
                     Ray reflectRay = Ray(hitpoint.position(), reflectDir);
 
-                    // Determine reflact or not
-                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientingNormal) > 0.0;
-                    const double nnt = isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM;
-                    const double ddn = Vector3::dot(currentRay.direction(), orientingNormal);
-                    const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
-
-                    if (cos2t < 0.0) {
+                    if (isTotRef) {
                         // Total reflection
                         currentRay = reflectRay;
                         currentFlux = currentFlux.cwiseMultiply(mtrl.color);
                         continue;
                     }
 
-                    // Ray of reflaction
-                    Vector3 reflactDir = Vector3::normalize(currentRay.direction() * nnt - ((isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))) * hitpoint.normal());
+                    const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
 
-                    // Compute reflaction ratio
-                    const double a = IOR_VACCUM - IOR_OBJECT;
-                    const double b = IOR_VACCUM + IOR_OBJECT;
-                    const double R0 = (a * a) / (b * b);
-                    const double c = 1.0 - (isIncoming ? -ddn : Vector3::dot(reflactDir, hitpoint.normal()));
-                    const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
-                    const double Tr = 1.0 - Re;
-
-                    if (rng.nextReal() < Re) {
+                    if (randnum < probability) {
                         // Reflection
                         currentRay = reflectRay;
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
                     } else {
                         // Reflaction
-                        currentRay = Ray(hitpoint.position(), reflactDir);
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentRay = Ray(hitpoint.position(), transmitDir);
+                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                     }
+                } else {
+                    msg_assert(false, "Unknown reflection type !!");
                 }
             }
 
-            printf("%6.2f %% processed...\r", 100.0 * pid / numPhotons);
+            omplock {
+                proc++;
+                if (proc % 1000 == 0) {
+                    printf("%6.2f %% processed...\r", 100.0 * proc / numPhotons);
+                }
+            }
         }
         printf("\n\n");
 
+        // Release random number generator
+        delete rand;
+
         // Construct photon map
+        printf("Constructing photon map -> ");
         photonMap.clear();
         photonMap.construct(photons);
+        printf("OK\n");
     }
 
 }

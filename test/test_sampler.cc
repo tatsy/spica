@@ -3,6 +3,9 @@
 #include "../include/spica.h"
 using namespace spica;
 
+#include <iostream>
+#include <fstream>
+
 #include "test_macros.h"
 
 const int nTrial = 100;
@@ -22,4 +25,22 @@ TEST(SamplerTest, DiskSampleTest) {
         EXPECT_LE((C - position).norm(), R);
         EXPECT_EQ(0.0, Vector3::dot(C - position, N));
     }
+}
+
+TEST(SamplerTest, PoissonDiskTest) {
+    /*
+    const double mindist = 0.1;
+    const double maxdist = 0.5;
+    Trimesh trimesh(DATA_DIR + "bunny.ply");
+
+    std::vector<Vector3> points;
+    std::vector<Vector3> normals;
+    sampler::poissonDisk(trimesh, mindist, maxdist, &points, &normals);
+
+    for (int i = 0; i < points.size(); i++) {
+        for (int j =  i + 1; j < points.size(); j++) {
+            EXPECT_LE(mindist, (points[i] - points[j]).norm());
+        }
+    }
+    */
 }

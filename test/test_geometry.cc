@@ -266,8 +266,8 @@ TEST(DiskTest, AreaTest) {
 // ------------------------------
 TEST(BBoxTest, InstanceTest) {
     BBox b;
-    EXPECT_EQ_VEC(Vector3(), b.posMin());
-    EXPECT_EQ_VEC(Vector3(), b.posMin());
+    EXPECT_EQ_VEC(Vector3(INFTY, INFTY, INFTY), b.posMin());
+    EXPECT_EQ_VEC(Vector3(-INFTY, -INFTY, -INFTY), b.posMax());
 
     BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
     EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), b0.posMin());
@@ -279,6 +279,25 @@ TEST(BBoxTest, CopyConstructor) {
     BBox b1(b0);
     EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), b1.posMin());
     EXPECT_EQ_VEC(Vector3(1.0, 1.0, 1.0), b1.posMax());
+}
+
+TEST(BBoxTest, InsideTest) {
+    BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
+    EXPECT_TRUE(b0.inside(Vector3(0.5, 0.5, 0.5)));
+    EXPECT_TRUE(b0.inside(Vector3(0.0, 0.0, 0.0)));
+    EXPECT_TRUE(b0.inside(Vector3(1.0, 1.0, 1.0)));
+    EXPECT_FALSE(b0.inside(Vector3(1.0, 1.0, 1.5)));
+}
+
+TEST(BBoxTest, MergeTest) {
+    BBox bbox;
+    bbox.merge(Vector3(0.0, 0.0, 0.0));
+    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), bbox.posMin());
+    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), bbox.posMax());
+
+    bbox.merge(Vector3(1.0, 1.0, 1.0));
+    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), bbox.posMin());
+    EXPECT_EQ_VEC(Vector3(1.0, 1.0, 1.0), bbox.posMax());
 }
 
 TEST(BBoxTest, IntersectionTest) {

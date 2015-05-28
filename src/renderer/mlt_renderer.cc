@@ -1,6 +1,7 @@
 #define SPICA_MLT_RENDERER_EXPORT
 #include "mlt_renderer.h"
 
+#include <cstdio>
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -14,24 +15,85 @@ namespace spica {
     namespace {
 
         struct PrimarySample {
-            int modify_time;
+            int modifiedTime;
             double value;
-            static const Random rnd;
 
-            PrimarySample() {
-                modify_time = 0;
-                value = rnd.nextReal();
+            explicit PrimarySample(double randVal = 0.0) 
+                : modifiedTime(0)
+                , value(randVal)
+            {
             }
         };
-
-        const Random PrimarySample::rnd = Random();
 
         struct KelemenMLT {
         private:
             static const int num_init_primary_samples = 128;
 
+        public:            
+            int global_time;
+            int large_step;
+            int large_step_time;
+            int used_rand_coords;
+            Random rng;
+
+            std::vector<PrimarySample> primary_samples;
+            std::stack<PrimarySample> primary_samples_stack;  // Stack for roll back to the previous primary samples
+
+            explicit KelemenMLT(int seed = -1) 
+                : global_time(0)
+                , large_step(0)
+                , large_step_time(0)
+                , used_rand_coords(0)
+                , rng(seed)
+                , primary_samples()
+                , primary_samples_stack() 
+            {
+                primary_samples.resize(num_init_primary_samples);
+                for (int i = 0; i < num_init_primary_samples; i++) {
+                    primary_samples[i].value = rng.nextReal();
+                }
+            }
+
+            void initUsedRandCoords() {
+                used_rand_coords = 0;
+            }
+
+            inline double nextSample() {
+                if (primary_samples.size() <= used_rand_coords) {
+                    const int nextSize = static_cast<int>(primary_samples.size() * 1.5);
+                    while (primary_samples.size() < nextSize) {
+                        primary_samples.push_back(PrimarySample(rng.nextReal()));
+                    }
+                }
+
+                if (primary_samples[used_rand_coords].modifiedTime < global_time) {
+                    if (large_step > 0) {
+                        primary_samples_stack.push(primary_samples[used_rand_coords]);
+                        primary_samples[used_rand_coords].modifiedTime = global_time;
+                        primary_samples[used_rand_coords].value = rng.nextReal();
+                    } else {
+                        if (primary_samples[used_rand_coords].modifiedTime < large_step_time) {
+                            primary_samples[used_rand_coords].modifiedTime = large_step_time;
+                            primary_samples[used_rand_coords].value = rng.nextReal();
+                        }
+
+                        while (primary_samples[used_rand_coords].modifiedTime < global_time - 1) {
+                            primary_samples[used_rand_coords].value = mutate(primary_samples[used_rand_coords].value);
+                            primary_samples[used_rand_coords].modifiedTime++;
+                        }
+
+                        primary_samples_stack.push(primary_samples[used_rand_coords]);
+                        primary_samples[used_rand_coords].value = mutate(primary_samples[used_rand_coords].value);
+                        primary_samples[used_rand_coords].modifiedTime = global_time;
+                    }
+                }
+                used_rand_coords++;
+                return primary_samples[used_rand_coords - 1].value;
+            }
+
+        private:
             inline double mutate(const double x) {
-                const double r = rng->nextReal();
+                const double r = rng.nextReal();
                 const double s1 = 1.0 / 512.0;
                 const double s2 = 1.0 / 16.0;
                 const double dx = s1 / (s1 / s2 + abs(2.0 * r - 1.0)) - s1 / (s1 / s2 + 1.0);
@@ -44,80 +106,20 @@ namespace spica {
                 }
             }
 
-        public:
-            
-            int global_time;
-            int large_step;
-            int large_step_time;
-            int used_rand_coords;
-            const Random* rng;
-
-            std::vector<PrimarySample> primary_samples;
-            std::stack<PrimarySample> primary_samples_stack;
-
-            KelemenMLT(const Random& rng = Random()) 
-                : global_time(0)
-                , large_step(0)
-                , large_step_time(0)
-                , used_rand_coords(0)
-                , rng(&rng)
-                , primary_samples()
-                , primary_samples_stack() 
-            {
-                primary_samples.resize(num_init_primary_samples);
-            }
-
-            void initUsedRandCoords() {
-                used_rand_coords = 0;
-            }
-
-            inline double nextSample() {
-                if (primary_samples.size() <= used_rand_coords) {
-                    primary_samples.resize(primary_samples.size() * 1.5);
-                }
-
-                if (primary_samples[used_rand_coords].modify_time < global_time) {
-                    if (large_step > 0) {
-                        primary_samples_stack.push(primary_samples[used_rand_coords]);
-                        primary_samples[used_rand_coords].modify_time = global_time;
-                        primary_samples[used_rand_coords].value = rng->nextReal();
-                    } else {
-                        if (primary_samples[used_rand_coords].modify_time < large_step_time) {
-                            primary_samples[used_rand_coords].modify_time = large_step_time;
-                            primary_samples[used_rand_coords].value = rng->nextReal();
-                        }
-
-                        while (primary_samples[used_rand_coords].modify_time < global_time - 1) {
-                            primary_samples[used_rand_coords].value = mutate(primary_samples[used_rand_coords].value);
-                            primary_samples[used_rand_coords].modify_time++;
-                        }
-
-                        primary_samples_stack.push(primary_samples[used_rand_coords]);
-                        primary_samples[used_rand_coords].value = mutate(primary_samples[used_rand_coords].value);
-                        primary_samples[used_rand_coords].modify_time = global_time;
-                    }
-                }
-                used_rand_coords++;
-                return primary_samples[used_rand_coords - 1].value;
-            }
         };
 
-        double luminance(const Color& color) {
-            return Vector3(0.2126, 0.7152, 0.0722).dot(color);
-        }
-
         Color direct_radiance_sample(const Scene& scene, const Vector3& v0, const Vector3& normal, const int id, KelemenMLT& mlt) {
-            const double r1 = 2.0 * PI * mlt.nextSample();
-            const double r2 = 1.0 - 2.0 * mlt.nextSample();
-
             const Primitive* light = scene.get(scene.lightID());
             const Material& lightMtrl = scene.getMaterial(scene.lightID());
+
+            const double r1Light = mlt.nextSample();
+            const double r2Light = mlt.nextSample();
             Vector3 light_pos, light_normal;
-            sampler::on(light, &light_pos, &light_normal);
+            sampler::on(light, &light_pos, &light_normal, r1Light, r2Light);
 
             const Vector3 v_to_l = light_pos - v0;
             const Vector3 light_dir = v_to_l.normalized();
-            const double dist2 = v_to_l.dot(v_to_l);
+            const double dist2 = v_to_l.squaredNorm();
             const double dot0 = normal.dot(light_dir);
             const double dot1 = light_normal.dot(-1.0 * light_dir);
 
@@ -161,7 +163,9 @@ namespace spica {
                     }
 
                     Vector3 nextDir;
-                    sampler::onHemisphere(orientNormal, &nextDir);
+                    const double r1 = mlt.nextSample();
+                    const double r2 = mlt.nextSample();
+                    sampler::onHemisphere(orientNormal, &nextDir, r1, r2);
                     const Color nextBounceColor = radiance(scene, Ray(hitpoint.position(), nextDir), depth + 1, maxDepth, mlt);
                     return (direct_light + mtrl.color.cwiseMultiply(nextBounceColor)) / roulette;
                 } else if (depth == 0) {
@@ -263,36 +267,15 @@ namespace spica {
             }
 
             // Position on object plane
-            const double uOnSensor = static_cast<double>(x) / width - 0.5;
-            const double vOnSensor = static_cast<double>(y) / height - 0.5;
-            Vector3 posOnSensor = camera.center() + (uOnSensor * camera.sensorW()) * camera.sensorU() + (vOnSensor * camera.sensorH()) * camera.sensorV();
+            double randnums[4];
+            for (int i = 0; i < 4; i++) {
+                randnums[i] = mlt.nextSample();
+            }
+            CameraSample camSample = camera.sample(x, y, randnums);
 
-            const double ratio = camera.focalLength() / camera.distSL();
-            const double uOnObjplane = -ratio * uOnSensor;
-            const double vOnObjplane = -ratio * vOnSensor;
-            Vector3 posOnOP = camera.objplaneCenter()
-                            + (uOnObjplane * camera.objplaneW()) * camera.objplaneU()
-                            + (vOnObjplane * camera.objplaneH()) * camera.objplaneV();
-
-            // Sample point on lens
-            double r0 = sqrt(mlt.nextSample());
-            double r1 = 2.0 * PI * mlt.nextSample();
-            double rx = r0 * cos(r1);
-            double ry = r0 * sin(r1);
-            Vector3 posOnLens = camera.lensCenter() 
-                              + camera.lensRadius() * camera.lensU() * rx 
-                              + camera.lensRadius() * camera.lensV() * ry;
-
-            const double pImage = 1.0 / (camera.cellW() * camera.cellH());
-            const double pLens  = 1.0 / (camera.lensArea());
-
-            Vector3 lens2sensor = posOnSensor - posOnLens;
-            const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
-            const double coeff  = cosine * cosine / lens2sensor.squaredNorm();
-            weight *= (coeff * camera.sensitivity() / (pImage * pLens));
-
-            const Ray ray = Ray(posOnLens, (posOnOP - posOnLens).normalized());
+            const Ray ray = camSample.generateRay();
             Color c = radiance(scene, ray, 0, maxDepth, mlt);
+            weight *= camera.sensitivity() / camSample.totalPdf();
 
             return PathSample(x, y, c, weight);
         }
@@ -307,102 +290,121 @@ namespace spica {
     {
     }
 
-    int MLTRenderer::render(const Scene& scene, const Camera& camera, const Random& rng, int numMLT, int numMutate, int maxDepth) {
+    void MLTRenderer::render(const Scene& scene, const Camera& camera, Random& rng, int numMLT, int numMutate, int maxDepth) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
-        Image image(width, height);
+        Image* buffer = new Image[OMP_NUM_CORE];
+        Random* rand = new Random[OMP_NUM_CORE];
+        for (int i = 0; i < OMP_NUM_CORE; i++) {
+            buffer[i] = Image(width, height);
+            rand[i] = Random(rng.nextInt());
+        }
 
-        for (int mi = 0; mi < numMLT; mi++) {
-            Image tmpImage(width, height);
-            KelemenMLT kelemenMlt(rng);
+        const int taskPerThread = (numMLT + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
 
-            int seed_path_max = width * height;
-            if (seed_path_max <= 0) {
-                seed_path_max = 1;
-            }
+        for (int t = 0; t < taskPerThread; t++) {
+            ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
+                RandomSeq rseq;
+                rand[threadID].requestSamples(rseq, 2);
 
-            std::vector<PathSample> seed_paths(seed_path_max);
-            double sumI = 0.0;
-            kelemenMlt.large_step = 1;
-            for (int i = 0; i < seed_path_max; i++) {
-                kelemenMlt.initUsedRandCoords();
-                PathSample sample = generateNewPath(scene, camera, kelemenMlt, -1, -1, maxDepth);
-                kelemenMlt.global_time++;
-                while (!kelemenMlt.primary_samples_stack.empty()) {
-                    kelemenMlt.primary_samples_stack.pop();
-                }
+                KelemenMLT kelemenMlt(threadID);
 
-                sumI += luminance(sample.F);
-                seed_paths[i] = sample;
-            }
+                const int seed_path_max = std::max(width, height);
 
-            // Compute first path
-            const double rnd = rng.nextReal() * sumI;
-            int selected_path = 0;
-            double accumulated_importance = 0.0;
-            for (int i = 0; i < seed_path_max; i++) {
-                accumulated_importance += luminance(seed_paths[i].F);
-                if (accumulated_importance >= rnd) {
-                    selected_path = i;
-                    break;
-                }
-            }
-
-            // --
-            const double b = sumI / seed_path_max;
-            const double p_large = 0.5;
-            int accept = 0;
-            int reject = 0;
-            PathSample old_path = seed_paths[selected_path];
-            int progress = 0;
-            for (int i = 0; i < numMutate; i++) {
-                if ((i + 1) % (numMutate / 10) == 0) {
-                    progress += 10;
-                    std::cout << progress << " % ";
-                    std::cout << "Accept: " << accept << ", Reject: " << reject;
-                    std::cout << ", Rate: " << (100.0 * accept / (accept + reject)) << " %" << std::endl;
-                }
-
-                kelemenMlt.large_step = rng.nextReal() < p_large ? 1 : 0;
-                kelemenMlt.initUsedRandCoords();
-                PathSample new_path = generateNewPath(scene, camera, kelemenMlt, -1, -1, maxDepth);
-
-                double a = std::min(1.0, luminance(new_path.F) / luminance(old_path.F));
-                const double new_path_weight = (a + kelemenMlt.large_step) / (luminance(new_path.F) / b + p_large) / numMutate;
-                const double old_path_weight = (1.0 - a) / (luminance(old_path.F) / b + p_large) / numMutate;
-
-                tmpImage.pixel(new_path.x, new_path.y) += new_path.weight * new_path_weight * new_path.F;
-                tmpImage.pixel(old_path.x, old_path.y) += old_path.weight * old_path_weight * old_path.F;
-                
-                if (rng.nextReal() < a) {  // Accept
-                    accept++;
-                    old_path = new_path;
-                    if (kelemenMlt.large_step) {
-                        kelemenMlt.large_step_time = kelemenMlt.global_time;
-                    }
+                std::vector<PathSample> seed_paths(seed_path_max);
+                double sumI = 0.0;
+                kelemenMlt.large_step = 1;
+                for (int i = 0; i < seed_path_max; i++) {
+                    kelemenMlt.initUsedRandCoords();
+                    PathSample sample = generateNewPath(scene, camera, kelemenMlt, -1, -1, maxDepth);
                     kelemenMlt.global_time++;
                     while (!kelemenMlt.primary_samples_stack.empty()) {
                         kelemenMlt.primary_samples_stack.pop();
                     }
-                } else {  // Reject
-                    reject++;
-                    int idx = kelemenMlt.used_rand_coords - 1;
-                    while (!kelemenMlt.primary_samples_stack.empty()) {
-                        kelemenMlt.primary_samples[idx--] = kelemenMlt.primary_samples_stack.top();
-                        kelemenMlt.primary_samples_stack.pop();
+
+                    sumI += sample.F.luminance();
+                    seed_paths[i] = sample;
+                }
+
+                // Compute first path
+                const double rnd = rseq.next() * sumI;
+                int selected_path = 0;
+                double accumulated_importance = 0.0;
+                for (int i = 0; i < seed_path_max; i++) {
+                    accumulated_importance += seed_paths[i].F.luminance();
+                    if (accumulated_importance >= rnd) {
+                        selected_path = i;
+                        break;
+                    }
+                }
+
+                // Mutation
+                const double b = sumI / seed_path_max;
+                const double p_large = 0.5;
+                int accept = 0;
+                int reject = 0;
+                PathSample old_path = seed_paths[selected_path];
+                int progress = 0;
+                for (int i = 0; i < numMutate; i++) {
+                    if ((i + 1) % (numMutate / 10) == 0) {
+                        progress += 10;
+                        printf("Thread No.%d: %3d %%, Accept: %8d, Reject %8d, Rate: %7.4f %%\n", omp_thread_id() + 1, progress, accept, reject, 100.0 * accept / (accept + reject));
+                    }
+
+                    rand[threadID].requestSamples(rseq, 2);
+
+                    kelemenMlt.large_step = rseq.next() < p_large ? 1 : 0;
+                    kelemenMlt.initUsedRandCoords();
+                    PathSample new_path = generateNewPath(scene, camera, kelemenMlt, -1, -1, maxDepth);
+
+                    double a = std::min(1.0, new_path.F.luminance() / old_path.F.luminance());
+                    const double new_path_weight = (a + kelemenMlt.large_step) / (new_path.F.luminance() / b + p_large) / numMutate;
+                    const double old_path_weight = (1.0 - a) / (old_path.F.luminance() / b + p_large) / numMutate;
+
+                    buffer[threadID].pixel(new_path.x, new_path.y) += new_path.weight * new_path_weight * new_path.F;
+                    buffer[threadID].pixel(old_path.x, old_path.y) += old_path.weight * old_path_weight * old_path.F;
+                
+                    if (rseq.next() < a) {
+                        // Accept
+                        accept++;
+                        old_path = new_path;
+                        if (kelemenMlt.large_step) {
+                            kelemenMlt.large_step_time = kelemenMlt.global_time;
+                        }
+                        kelemenMlt.global_time++;
+                        while (!kelemenMlt.primary_samples_stack.empty()) {
+                            kelemenMlt.primary_samples_stack.pop();
+                        }
+                    } else {
+                        // Reject
+                        reject++;
+                        int idx = kelemenMlt.used_rand_coords - 1;
+                        while (!kelemenMlt.primary_samples_stack.empty()) {
+                            kelemenMlt.primary_samples[idx--] = kelemenMlt.primary_samples_stack.top();
+                            kelemenMlt.primary_samples_stack.pop();
+                        }
                     }
                 }
             }
 
+            const int usedSamples = OMP_NUM_CORE * (t + 1);
+            Image image(width, height);
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    image.pixel(width - x - 1, y) += tmpImage.pixel(x, y) / numMLT;
+                    for (int k = 0; k < OMP_NUM_CORE; k++) {
+                        image.pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
+                    }
                 }
             }
+
+            char filename[256];
+            sprintf(filename, "mlt_%03d.bmp", usedSamples);
+            image.saveBMP(filename);
         }
 
-        image.savePPM("simplemlt.ppm");
-        return 0;
+        // Release memory
+        delete[] buffer;
+        delete[] rand;
     }
 
 }  // namespace spica

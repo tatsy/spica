@@ -3,6 +3,9 @@
 
 #include <typeinfo>
 
+#include "random_queue.h"
+#include "hash_grid.h"
+
 namespace spica {
 
     namespace {
@@ -14,6 +17,12 @@ namespace spica {
     namespace sampler {
 
         void onHemisphere(const Vector3& normal, Vector3* direction) {
+            double r1 = rng.nextReal();
+            double r2 = rng.nextReal();
+            onHemisphere(normal, direction, r1, r2);
+        }
+
+        void onHemisphere(const Vector3& normal, Vector3* direction, double r1, double r2) {
             Vector3 u, v, w;
             w = normal;
             if (abs(w.x()) > EPS) {
@@ -24,10 +33,10 @@ namespace spica {
 
             v = w.cross(u);
 
-            const double r1 = 2.0 * PI * rng.nextReal();
-            const double r2 = rng.nextReal();
-            const double r2s = sqrt(r2);
-            *direction = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
+            const double t = 2.0 * PI * r1;
+            const double z2 = r2;
+            const double z2s = sqrt(z2);
+            *direction = (u * cos(t) * z2s + v * sin(t) * z2s + w * sqrt(1.0 - z2)).normalized();        
         }
 
         void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal) {
@@ -60,14 +69,37 @@ namespace spica {
             *normal = disk.normal();
         }
 
-        void onQuad(const Quad& quad, Vector3* position, Vector3* normal) {
+        void onTriangle(const Triangle& tri, Vector3* position, Vector3* normal, double r1, double r2) {
+            if (r1 + r2 >= 1.0) {
+                r1 = 1.0 - r1;
+                r2 = 1.0 - r2;
+            }
+            (*position) = r1 * (tri.p1() - tri.p0()) + r2 * (tri.p2() - tri.p0());
+            (*position) = tri.normal();
+        }
+
+        void onQuad(const Quad& quad, Vector3* position, Vector3* normal, double r1, double r2) {
+            // TODO: this sampler can properly work only for rectangles and squares
             Vector3 e1 = quad.p1() - quad.p0();
             Vector3 e2 = quad.p3() - quad.p0();
-            double r1 = rng.nextReal();
-            double r2 = rng.nextReal();
-            
             *position = quad.p0() + r1 * e1 + r2 * e2;
             *normal = quad.normal();
+        }
+
+        void onQuad(const Quad& quad, Vector3* position, Vector3* normal) {
+            double r1 = rng.nextReal();
+            double r2 = rng.nextReal();
+            onQuad(quad, position, normal, r1, r2);            
+        }
+
+        void on(const Primitive* primitive, Vector3* position, Vector3* normal, double r1, double r2) {
+            std::string typname = typeid(*primitive).name();
+            if (typname == "class spica::Quad") {
+                const Quad* quad = reinterpret_cast<const Quad*>(primitive);
+                onQuad(*quad, position, normal, r1, r2);
+            } else {
+                msg_assert(false, ("Invalid geometry type: " + typname).c_str());
+            }            
         }
 
         void on(const Primitive* primitive, Vector3* position, Vector3* normal) {
@@ -83,6 +115,73 @@ namespace spica {
                 onDisk(*disk, position, normal);
             } else {
                 msg_assert(false, ("Invalid geometry type: " + typname).c_str());
+            }
+        }
+
+        void poissonDisk(const Trimesh& trimesh, const double minDist, std::vector<Vector3>* points, std::vector<Vector3>* normals) {
+            // Sample random points on trimesh
+            BBox bbox;
+            std::vector<Vector3> candPoints;
+            std::vector<Vector3> candNormals;
+            for (int i = 0; i < trimesh.numFaces(); i++) {
+                Triangle tri = trimesh.getTriangle(i);
+                const double A = tri.area();
+                const int nSample = static_cast<int>(std::ceil(4.0 * A / (minDist * minDist)));
+                for (int k = 0; k < nSample; k++) {
+                    double u = rng.nextReal();
+                    double v = rng.nextReal();
+                    if (u + v >= 1.0) {
+                        u = 1.0 - u;
+                        v = 1.0 - v;
+                    }
+                    Vector3 p = tri.p0() + u * (tri.p1() - tri.p0()) + v * (tri.p2() - tri.p0());
+                    candPoints.push_back(p);
+                    candNormals.push_back(tri.normal());
+                    bbox.merge(p);
+                }
+            }
+
+            // Create hash grid
+            const int numCands = static_cast<int>(candPoints.size());
+            Vector3 bsize = bbox.posMax() - bbox.posMin();
+            const double scale = 1.0 / (2.0 * minDist);
+            const int numPoints = candPoints.size();
+            HashGrid<int> hashgrid;
+            hashgrid.init(numPoints, scale, bbox);
+
+            RandomQueue<int> que;
+            for (int i = 0; i < numCands; i++) {
+                que.push(i);
+            }
+
+            std::vector<int> sampledIDs;
+            Vector3 marginv(2.0 * minDist, 2.0 * minDist, 2.0 * minDist);
+            while (!que.empty()) {
+                int id = que.pop();
+                Vector3 v = candPoints[id];
+                std::vector<int>& cellvs = hashgrid[v];
+
+                bool accept = true;
+                for (int k = 0; k < cellvs.size(); k++) {
+                    if ((candPoints[cellvs[k]] - v).squaredNorm() <= minDist * minDist) {
+                        accept = false;
+                        break;
+                    }
+                }
+
+                if (accept) {
+                    Vector3 boxMin = v - marginv;
+                    Vector3 boxMax = v + marginv;
+                    hashgrid.add(id, boxMin, boxMax);
+                    sampledIDs.push_back(id);
+                }
+            }
+
+            // Store sampled points
+            std::vector<int>::iterator it;
+            for (it = sampledIDs.begin(); it != sampledIDs.end(); ++it) {
+                points->push_back(candPoints[*it]);
+                normals->push_back(candNormals[*it]);
             }
         }
 

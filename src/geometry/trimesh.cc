@@ -212,6 +212,14 @@ namespace spica {
         }
     }
 
+    void Trimesh::scale(const double scaleX, const double scaleY, const double scaleZ) {
+        for (int i = 0; i < _numVerts; i++) {
+            _vertices[i].setX(_vertices[i].x() * scaleX);
+            _vertices[i].setY(_vertices[i].y() * scaleY);
+            _vertices[i].setZ(_vertices[i].z() * scaleZ);
+        }
+    }
+
     void Trimesh::putOnPlane(const Plane& plane) {
         // Find nearest point
         double minval = INFTY;

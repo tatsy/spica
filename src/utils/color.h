@@ -27,6 +27,8 @@ namespace spica {
         Color& operator=(const Color& color);
         Color& operator=(const Vector3& v);
 
+        double luminance() const;
+
         inline double red() const { return _x; }
         inline double green() const { return _y; }
         inline double blue() const { return _z; }

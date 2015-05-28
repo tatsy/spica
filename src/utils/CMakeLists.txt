@@ -21,4 +21,7 @@ set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/axis_comparable.h
     ${CMAKE_CURRENT_LIST_DIR}/kdtree.h
     ${CMAKE_CURRENT_LIST_DIR}/kdtree_detail.h
+    ${CMAKE_CURRENT_LIST_DIR}/random_queue.h
+    ${CMAKE_CURRENT_LIST_DIR}/hash_grid.h
+    ${CMAKE_CURRENT_LIST_DIR}/hash_grid_detail.h
     PARENT_SCOPE)

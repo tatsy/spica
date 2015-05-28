@@ -17,14 +17,16 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxBunny(scene, camera, width, height);
+    // cornellBoxBunny(scene, camera, width, height);
+    cornellBoxOcclusion(scene, camera, width, height);
 
     Random rng = Random();
 
     Timer timer;
     timer.start();
-    PTRenderer renderer;
-    renderer.render(scene, camera, rng, samplePerPixel);
+    PathTracingRenderer renderer;
+    renderer.render(scene, camera, samplePerPixel, QUASI_MONTE_CARLO);
+    // renderer.render(scene, camera, samplePerPixel, PSEUDO_RANDOM_TWISTER);
     printf("Timer: %f sec\n", timer.stop());
 
     return 0;

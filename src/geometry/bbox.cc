@@ -8,8 +8,8 @@
 namespace spica {
 
     BBox::BBox()
-        : _posMin()
-        , _posMax()
+        : _posMin(INFTY, INFTY, INFTY)
+        , _posMax(-INFTY, -INFTY, -INFTY)
     {
     }
 
@@ -39,6 +39,28 @@ namespace spica {
         this->_posMin = box._posMin;
         this->_posMax = box._posMax;
         return *this;
+    }
+
+    void BBox::merge(const Vector3& v) {
+        _posMin = Vector3::minimum(_posMin, v);
+        _posMax = Vector3::maximum(_posMax, v);
+    }
+
+    void BBox::merge(const BBox& box) {
+        _posMin = Vector3::minimum(_posMin, box._posMin);
+        _posMax = Vector3::maximum(_posMax, box._posMax);
+    }
+
+    void BBox::merge(const Triangle& t) {
+        for (int k = 0; k < 3; k++) {
+            this->merge(t.p(k));
+        }
+    }
+
+    bool BBox::inside(const Vector3& v) const {
+        return (_posMin.x() <= v.x() && v.x() <= _posMax.x()) &&
+               (_posMin.y() <= v.y() && v.y() <= _posMax.y()) &&
+               (_posMin.z() <= v.z() && v.z() <= _posMax.z());
     }
 
     bool BBox::intersect(const Ray& ray, double* tMin, double* tMax) const {

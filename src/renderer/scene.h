@@ -57,7 +57,6 @@ namespace spica {
 
         inline void setBgColor(const Color& bgColor) { _bgColor = bgColor; }
 
-
     private:
         Scene(const Scene& scene);
         Scene& operator=(const Scene& scene);

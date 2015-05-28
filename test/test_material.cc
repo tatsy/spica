@@ -26,6 +26,21 @@ TEST(ColorTest, CopyConstructor) {
     EXPECT_EQ(0.25, c1.blue());
 }
 
+TEST(ColorTest, OtherTest) {
+    Color c(0.0, 0.1, 0.2);
+    EXPECT_EQ(0.0, c.red());
+    EXPECT_EQ(0.1, c.green());
+    EXPECT_EQ(0.2, c.blue());
+
+    c = Vector3(0.5, 0.6, 0.7);
+    EXPECT_EQ(0.5, c.red());
+    EXPECT_EQ(0.6, c.green());
+    EXPECT_EQ(0.7, c.blue());
+
+    double lum = c.red() * 0.2126 + c.green() * 0.7152 + c.blue() * 0.0722;
+    EXPECT_DOUBLE_EQ(lum, c.luminance());
+}
+
 // ------------------------------
 // Material class test
 // ------------------------------

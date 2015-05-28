@@ -10,16 +10,17 @@ namespace spica {
 
     template <class Ty>
     KdTree<Ty>::KdTree()
-        : _root(NULL)
+        : _nodes(NULL)
         , _numCopies(NULL)
     {
     }
 
     template <class Ty>
     KdTree<Ty>::KdTree(const KdTree& kdtree)
-        : _root(NULL)
+        : _nodes(NULL)
         , _numCopies(NULL)
     {
+        this->operator=(kdtree);
     }
 
     template <class Ty>
@@ -29,10 +30,18 @@ namespace spica {
     }
 
     template <class Ty>
+    KdTree<Ty>& KdTree<Ty>::operator=(const KdTree& kdtree) {
+        release();
+        _numCopies = kdtree._numCopies;
+        (*_numCopies) += 1;
+        _nodes = kdtree._nodes;
+    }
+
+    template <class Ty>
     void KdTree<Ty>::release() {
         if (_numCopies != NULL) {
             if (*_numCopies == 0) {
-                deleteNode(_root);
+                delete[] _nodes;
                 delete _numCopies;
                 _numCopies = NULL;
             } else {
@@ -42,26 +51,24 @@ namespace spica {
     }
 
     template <class Ty>
-    void KdTree<Ty>::deleteNode(KdTreeNode* node) {
-        if (node->left != NULL) {
-            deleteNode(node->left);
-        }
-        if (node->right != NULL) {
-            deleteNode(node->right);
-        }
-        delete node;
-    }
-
-    template <class Ty>
     void KdTree<Ty>::construct(const std::vector<Ty>& points) {
+        // Compute tree size
         const int numPoints = static_cast<int>(points.size());
-        std::vector<Ty> temp(points);
-        _root = constructRec(temp, 0, numPoints, 0);
+        int numNodes;
+        for (numNodes = 1; numNodes < numPoints; numNodes <<= 1) ;
+
+        _nodes = new KdTreeNode[numNodes];
+
+        std::vector<const Ty*> pointers(numPoints);
+        for (int i = 0; i < numPoints; i++) {
+            pointers[i] = &points[i];
+        }
+        constructRec(pointers, 0, 0, numPoints, 0);
         _numCopies = new int(0);
     }
 
     template <class Ty>
-    typename KdTree<Ty>::KdTreeNode* KdTree<Ty>::constructRec(std::vector<Ty>& points, int startID, int endID, int dim) {
+    typename KdTree<Ty>::KdTreeNode* KdTree<Ty>::constructRec(std::vector<const Ty*>& points, const int nodeID, const int startID, const int endID, const int dim) {
         if (startID >= endID) {
             return NULL;
         }
@@ -69,11 +76,11 @@ namespace spica {
         std::sort(points.begin() + startID, points.begin() + endID, AxisComparator(dim));
 
         int mid = (startID + endID) / 2;
-        KdTreeNode* node = new KdTreeNode();
+        KdTreeNode* node = &_nodes[nodeID];
         node->axis = dim;
-        node->point = points[mid];
-        node->left = constructRec(points, startID, mid, (dim + 1) % 3);
-        node->right = constructRec(points, mid + 1, endID, (dim + 1) % 3);
+        node->point = (*points[mid]);
+        node->left = constructRec(points, nodeID * 2 + 1, startID, mid, (dim + 1) % 3);
+        node->right = constructRec(points, nodeID * 2 + 2, mid + 1, endID, (dim + 1) % 3);
         return node;
     }
 
@@ -83,7 +90,7 @@ namespace spica {
         KnnQuery qq = query;
         if ((qq.type & EPSILON_BALL) == 0) qq.epsilon = INFTY;
 
-        knnSearchRec(_root, point, qq, &que);
+        knnSearchRec(&_nodes[0], point, qq, &que);
 
         while (!que.empty()) {
             results->push_back(que.top().t);

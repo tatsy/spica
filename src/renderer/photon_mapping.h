@@ -15,64 +15,42 @@
 #include "../utils/vector3.h"
 #include "../utils/axis_comparable.h"
 #include "../utils/kdtree.h"
-#include "../renderer/material.h"
-#include "../renderer/scene.h"
-#include "../renderer/camera.h"
+
+#include "renderer_constants.h"
+#include "photon_map.h"
 
 namespace spica {
 
-    class Photon : public Vector3 {
-    private:
-        Color _flux;
-        Vector3 _direction;
-
-    public:
-        Photon();
-        explicit Photon(const Vector3& position, const Color& flux, const Vector3& direction);
-        Photon(const Photon& photon);
-        ~Photon();
-
-        Photon& operator=(const Photon& photon);
-
-        inline Color   flux()      const { return _flux; }
-        inline Vector3 direction() const { return _direction; }
+    // --------------------------------------------------
+    // Parameter set for photon mapping
+    // --------------------------------------------------
+    struct PMParams {
+        int numPhotons;
+        int gatherPhotons;
+        int gatherRadius;
+        explicit PMParams(const int numPhotons_ = 1000000, const int gatherPhotons_ = 100, const int gatherRadius_ = 20.0)
+            : numPhotons(numPhotons_)
+            , gatherPhotons(gatherPhotons_)
+            , gatherRadius(gatherRadius_)
+        {
+        }
     };
 
-    class PhotonMap : public Uncopyable {
-    private:
-        KdTree<Photon> _kdtree;
-
-    public:
-        PhotonMap();
-        ~PhotonMap();
-
-        void clear();
-        void construct(const std::vector<Photon>& photons);
-
-        void findKNN(const Photon& photon, std::vector<Photon>* photons, const int numTargetPhotons, const double targetRadius) const;
-    };
-
-    class SPICA_PHOTON_MAPPING_DLL PMRenderer {
+    class SPICA_PHOTON_MAPPING_DLL PMRenderer : public Uncopyable {
     private:
         PhotonMap photonMap;
 
     public:
         PMRenderer();
-        PMRenderer(const PMRenderer& renderer);
         ~PMRenderer();
 
-        PMRenderer& operator=(const PMRenderer& renderer);
-
-        int render(const Scene& scne, const Camera& camera, const Random& rng, const int samplePerPixel, const int numTargetPhotons, const double targetRadius);
-
-        void buildPM(const Scene& scene, const Camera& camera, const Random& rng, const int numPhotons);
-
-        void savePM(const std::string& filename) const;
-        void loadPM(const std::string& filename);
+        void render(const Scene& scne, const Camera& camera, const int samplePerPixel, const PMParams& params, const RandomType randType = PSEUDO_RANDOM_TWISTER);
 
     private:
-        Color executePT(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, const Random& rng, const int numTargetPhotons, const double targetRadius) const;
-        Color radiance(const Scene& scene, const Ray& ray, const Random& rng, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit = 64, const int maxDepth = 5) const;
+        void buildPM(const Scene& scene, const Camera& camera, const int numPhotons, const RandomType randType);
+
+        Color executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, const double pixelX, const double pixelY, const int numTargetPhotons, const double targetRadius) const;
+        Color radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit = 32, const int maxDepth = 6) const;
     };
 
 }

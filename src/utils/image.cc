@@ -105,6 +105,8 @@ namespace spica {
         BitmapCoreHeader core;
 
         std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
+        msg_assert(ifs.is_open(), "Failed to open file!!");
+
         ifs.read((char*)&header, sizeof(BitmapFileHeader));
         ifs.read((char*)&core, sizeof(BitmapCoreHeader));
 

@@ -107,20 +107,20 @@ namespace spica {
         scene.clear(); 
 
         // Light
+        /*
         Vector3 l00(-5.0, 9.99, -5.0);
         Vector3 l01(-5.0, 9.99,  5.0);
         Vector3 l10( 5.0, 9.99, -5.0);
         Vector3 l11( 5.0, 9.99,  5.0);
         scene.add(Quad(l00, l10, l11, l01), Material(Color(32.0, 32.0, 32.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
+        */
 
         // Back light
-        /*
         Vector3 l00(3.0, -3.0, -9.99);
-        Vector3 l01(3.0, -8.0, -9.99);
+        Vector3 l01(8.0, -8.0, -9.99);
         Vector3 l10(8.0, -3.0, -9.99);
-        Vector3 l11(8.0, -8.0, -9.99);
+        Vector3 l11(3.0, -8.0, -9.99);
         scene.add(Quad(l00, l10, l11, l01), Material(Color(128.0, 128.0, 128.0), Color(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
-        */
 
         // Walls
         Vector3 v000(-10.0, -10.0, -10.0);
@@ -146,14 +146,14 @@ namespace spica {
 
         // Sphere
         Sphere sphere(2.0, Vector3(-5.0, -8.0, 5.0));
-        scene.add(sphere, Material(Color(), Color(0.75, 0.75, 0.50), REFLECTION_DIFFUSE));
+        scene.add(sphere, Material(Color(), Color(0.25, 0.75, 0.25), REFLECTION_DIFFUSE));
 
         // Objects
         Trimesh dragon(DATA_DIR + "dragon.ply");
         dragon.scale(50.0, 50.0, 50.0);
         dragon.translate(Vector3(2.0, 0.0, 0.0));
         dragon.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
-        scene.add(dragon, Material(Color(), Color(0.70, 0.60, 0.40), REFLECTION_REFRACTION));                         
+        scene.add(dragon, Material(Color(), Color(0.70, 0.60, 0.40), REFLECTION_REFRACTION));    
 
         camera = Camera(width, height, 
                         Vector3(0.0, 0.0, 100.0),

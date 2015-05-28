@@ -109,9 +109,6 @@ namespace spica {
         };
 
         Color direct_radiance_sample(const Scene& scene, const Vector3& v0, const Vector3& normal, const int id, KelemenMLT& mlt) {
-            const double r1 = 2.0 * PI * mlt.nextSample();
-            const double r2 = 1.0 - 2.0 * mlt.nextSample();
-
             const Primitive* light = scene.get(scene.lightID());
             const Material& lightMtrl = scene.getMaterial(scene.lightID());
 
@@ -122,7 +119,7 @@ namespace spica {
 
             const Vector3 v_to_l = light_pos - v0;
             const Vector3 light_dir = v_to_l.normalized();
-            const double dist2 = v_to_l.dot(v_to_l);
+            const double dist2 = v_to_l.squaredNorm();
             const double dot0 = normal.dot(light_dir);
             const double dot1 = light_normal.dot(-1.0 * light_dir);
 

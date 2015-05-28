@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
     Scene scene;
     Camera camera;
     // cornellBoxBunny(scene, camera, width, height);
-    cornellBox(scene, camera, width, height);
+    cornellBoxOcclusion(scene, camera, width, height);
 
     Random rng = Random();
 

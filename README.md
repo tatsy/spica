@@ -12,19 +12,23 @@ spica
 * Bidirectional path tracing
 * Metropolis light transport (Kelemen style)
 * Photon mapping
+* Stochastic progressive photon mapping
+
+## Materials
+
+* Lambertian
+* Specular
+* Complete refract
+* Subsurface scattering (dipole diffusion)
+
+## Sampler
+
+* Mersenne twister
+* Quasi Monte Carlo (permuted Halton sequence)
 
 #### Future support
 
 * Precomputed radiance transfer
-
-## Geometry
-
-* Plane
-* Disk
-* Sphere
-* Triangle
-* Quad
-* Trimesh
 
 ## Data structure for rendering acceleration
 
@@ -53,10 +57,6 @@ spica
 
 <img src="./results/sppm.jpg" width="480" />
 
-#### Subsurface scattering (Monte carlo path tracing)
-
-<img src="./results/subsurface.jpg" width="480" />
-
 #### Subsurface scattering (Stochastic progressive photon mapping)
 
 <img src="./results/subsurface_sppm.jpg" width="480" />
@@ -64,4 +64,3 @@ spica
 ## License
 
 * MIT license 2015, Tatsuya Yatagawa (tatsy).
-* The part of this code is largely inspired by [edupt](https://github.com/githole/edupt.git).

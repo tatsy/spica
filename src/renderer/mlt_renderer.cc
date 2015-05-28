@@ -1,6 +1,7 @@
 #define SPICA_MLT_RENDERER_EXPORT
 #include "mlt_renderer.h"
 
+#include <cstdio>
 #include <iostream>
 #include <algorithm>
 #include <vector>

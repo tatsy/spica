@@ -11,12 +11,11 @@
     #define SPICA_MLT_RENDERER_DLL
 #endif
 
-#include "camera.h"
-#include "scene.h"
+#include "renderer_constants.h"
 
 namespace spica {
 
-    class SPICA_MLT_RENDERER_DLL MLTRenderer {
+    class SPICA_MLT_RENDERER_DLL MLTRenderer : private Uncopyable {
     public:
         MLTRenderer();
         ~MLTRenderer();

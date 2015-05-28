@@ -30,37 +30,22 @@ namespace spica {
         private:
             static const int num_init_primary_samples = 128;
 
-            inline double mutate(const double x) {
-                const double r = rng->nextReal();
-                const double s1 = 1.0 / 512.0;
-                const double s2 = 1.0 / 16.0;
-                const double dx = s1 / (s1 / s2 + abs(2.0 * r - 1.0)) - s1 / (s1 / s2 + 1.0);
-                if (r < 0.5) {
-                    const double x1 = x + dx;
-                    return (x1 < 1.0) ? x1 : x1 - 1.0;
-                } else {
-                    const double x1 = x - dx;
-                    return (x1 < 0.0) ? x1 + 1.0 : x1;
-                }
-            }
-
-        public:
-            
+        public:            
             int global_time;
             int large_step;
             int large_step_time;
             int used_rand_coords;
-            Random* rng;
+            Random rng;
 
             std::vector<PrimarySample> primary_samples;
-            std::stack<PrimarySample> primary_samples_stack;
+            std::stack<PrimarySample> primary_samples_stack;  // Stack for roll back to the previous primary samples
 
-            KelemenMLT(Random& rng = Random()) 
+            explicit KelemenMLT(int seed = -1) 
                 : global_time(0)
                 , large_step(0)
                 , large_step_time(0)
                 , used_rand_coords(0)
-                , rng(&rng)
+                , rng(seed)
                 , primary_samples()
                 , primary_samples_stack() 
             {
@@ -80,11 +65,11 @@ namespace spica {
                     if (large_step > 0) {
                         primary_samples_stack.push(primary_samples[used_rand_coords]);
                         primary_samples[used_rand_coords].modify_time = global_time;
-                        primary_samples[used_rand_coords].value = rng->nextReal();
+                        primary_samples[used_rand_coords].value = rng.nextReal();
                     } else {
                         if (primary_samples[used_rand_coords].modify_time < large_step_time) {
                             primary_samples[used_rand_coords].modify_time = large_step_time;
-                            primary_samples[used_rand_coords].value = rng->nextReal();
+                            primary_samples[used_rand_coords].value = rng.nextReal();
                         }
 
                         while (primary_samples[used_rand_coords].modify_time < global_time - 1) {
@@ -100,11 +85,23 @@ namespace spica {
                 used_rand_coords++;
                 return primary_samples[used_rand_coords - 1].value;
             }
-        };
 
-        double luminance(const Color& color) {
-            return Vector3(0.2126, 0.7152, 0.0722).dot(color);
-        }
+        private:
+            inline double mutate(const double x) {
+                const double r = rng.nextReal();
+                const double s1 = 1.0 / 512.0;
+                const double s2 = 1.0 / 16.0;
+                const double dx = s1 / (s1 / s2 + abs(2.0 * r - 1.0)) - s1 / (s1 / s2 + 1.0);
+                if (r < 0.5) {
+                    const double x1 = x + dx;
+                    return (x1 < 1.0) ? x1 : x1 - 1.0;
+                } else {
+                    const double x1 = x - dx;
+                    return (x1 < 0.0) ? x1 + 1.0 : x1;
+                }
+            }
+
+        };
 
         Color direct_radiance_sample(const Scene& scene, const Vector3& v0, const Vector3& normal, const int id, KelemenMLT& mlt) {
             const double r1 = 2.0 * PI * mlt.nextSample();
@@ -314,7 +311,7 @@ namespace spica {
 
         for (int mi = 0; mi < numMLT; mi++) {
             Image tmpImage(width, height);
-            KelemenMLT kelemenMlt(rng);
+            KelemenMLT kelemenMlt(rng.nextInt());
 
             int seed_path_max = width * height;
             if (seed_path_max <= 0) {
@@ -332,7 +329,7 @@ namespace spica {
                     kelemenMlt.primary_samples_stack.pop();
                 }
 
-                sumI += luminance(sample.F);
+                sumI += sample.F.luminance();
                 seed_paths[i] = sample;
             }
 
@@ -341,7 +338,7 @@ namespace spica {
             int selected_path = 0;
             double accumulated_importance = 0.0;
             for (int i = 0; i < seed_path_max; i++) {
-                accumulated_importance += luminance(seed_paths[i].F);
+                accumulated_importance += seed_paths[i].F.luminance();
                 if (accumulated_importance >= rnd) {
                     selected_path = i;
                     break;
@@ -367,9 +364,9 @@ namespace spica {
                 kelemenMlt.initUsedRandCoords();
                 PathSample new_path = generateNewPath(scene, camera, kelemenMlt, -1, -1, maxDepth);
 
-                double a = std::min(1.0, luminance(new_path.F) / luminance(old_path.F));
-                const double new_path_weight = (a + kelemenMlt.large_step) / (luminance(new_path.F) / b + p_large) / numMutate;
-                const double old_path_weight = (1.0 - a) / (luminance(old_path.F) / b + p_large) / numMutate;
+                double a = std::min(1.0, new_path.F.luminance() / old_path.F.luminance());
+                const double new_path_weight = (a + kelemenMlt.large_step) / (new_path.F.luminance() / b + p_large) / numMutate;
+                const double old_path_weight = (1.0 - a) / (old_path.F.luminance() / b + p_large) / numMutate;
 
                 tmpImage.pixel(new_path.x, new_path.y) += new_path.weight * new_path_weight * new_path.F;
                 tmpImage.pixel(old_path.x, old_path.y) += old_path.weight * old_path_weight * old_path.F;

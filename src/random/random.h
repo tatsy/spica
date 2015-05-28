@@ -34,6 +34,7 @@ namespace spica {
         explicit Random(int seed = -1);
 
         // Generate a random integer from [0, n-1]
+        int nextInt();
         int nextInt(const int n);
 
         // Generate a floating point random number from [0, 1)

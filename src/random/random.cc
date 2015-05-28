@@ -72,6 +72,10 @@ namespace spica {
         init_genrand(ulseed);
     }
 
+    int Random::nextInt() {
+        return genrand_int31();
+    }
+
     int Random::nextInt(const int n) {
         msg_assert(n > 0, "Upper bound of random integers must be positive.");
         return genrand_int31() % n;

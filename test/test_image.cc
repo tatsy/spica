@@ -11,6 +11,10 @@ namespace {
     const std::string filepath = DATA_DIR + "test_image.bmp";
 }
 
+// --------------------------------------------------
+// Image 
+// --------------------------------------------------
+
 TEST(ImageTest, InstanceTest) {
     Image image;
     EXPECT_EQ(0, image.width());

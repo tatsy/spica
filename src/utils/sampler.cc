@@ -92,11 +92,11 @@ namespace spica {
             onQuad(quad, position, normal, r1, r2);            
         }
 
-        void on(const Primitive* primitive, RandomSeq& rseq, Vector3* position, Vector3* normal) {
+        void on(const Primitive* primitive, Vector3* position, Vector3* normal, double r1, double r2) {
             std::string typname = typeid(*primitive).name();
             if (typname == "class spica::Quad") {
                 const Quad* quad = reinterpret_cast<const Quad*>(primitive);
-                onQuad(*quad, position, normal);
+                onQuad(*quad, position, normal, r1, r2);
             } else {
                 msg_assert(false, ("Invalid geometry type: " + typname).c_str());
             }            

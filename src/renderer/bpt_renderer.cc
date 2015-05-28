@@ -210,7 +210,9 @@ namespace spica {
             const Primitive* light = scene.get(lightId);
 
             Vector3 positionOnLight, normalOnLight;
-            sampler::on(light, rseq, &positionOnLight, &normalOnLight);
+            const double r1Light = rseq.next();
+            const double r2Light = rseq.next();
+            sampler::on(light, &positionOnLight, &normalOnLight, r1Light, r2Light);
             double pdfAreaOnLight = 1.0 / light->area();
 
             double totalPdfA = pdfAreaOnLight;

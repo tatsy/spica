@@ -181,8 +181,10 @@ namespace spica {
             const int lightID = scene.lightID();
             const Primitive* light = scene.get(lightID);
 
+            const double r1Light = rseq.next();
+            const double r2Light = rseq.next();
             Vector3 posOnLight, normalOnLight;
-            sampler::on(light, rseq, &posOnLight, &normalOnLight);
+            sampler::on(light, &posOnLight, &normalOnLight, r1Light, r2Light);
 
             // Compute flux
             Color currentFlux = scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons);

@@ -17,7 +17,7 @@ namespace spica {
             int modifiedTime;
             double value;
 
-            explicit PrimarySample(double randVal) 
+            explicit PrimarySample(double randVal = 0.0) 
                 : modifiedTime(0)
                 , value(randVal)
             {
@@ -48,6 +48,9 @@ namespace spica {
                 , primary_samples_stack() 
             {
                 primary_samples.resize(num_init_primary_samples);
+                for (int i = 0; i < num_init_primary_samples; i++) {
+                    primary_samples[i].value = rng.nextReal();
+                }
             }
 
             void initUsedRandCoords() {
@@ -56,7 +59,10 @@ namespace spica {
 
             inline double nextSample() {
                 if (primary_samples.size() <= used_rand_coords) {
-                    primary_samples.resize(primary_samples.size() * 1.5);
+                    const int nextSize = static_cast<int>(primary_samples.size() * 1.5);
+                    while (primary_samples.size() < nextSize) {
+                        primary_samples.push_back(PrimarySample(rng.nextReal()));
+                    }
                 }
 
                 if (primary_samples[used_rand_coords].modifiedTime < global_time) {
@@ -107,8 +113,11 @@ namespace spica {
 
             const Primitive* light = scene.get(scene.lightID());
             const Material& lightMtrl = scene.getMaterial(scene.lightID());
+
+            const double r1Light = mlt.nextSample();
+            const double r2Light = mlt.nextSample();
             Vector3 light_pos, light_normal;
-            sampler::on(light, &light_pos, &light_normal);
+            sampler::on(light, &light_pos, &light_normal, r1, r2);
 
             const Vector3 v_to_l = light_pos - v0;
             const Vector3 light_dir = v_to_l.normalized();
@@ -156,7 +165,9 @@ namespace spica {
                     }
 
                     Vector3 nextDir;
-                    sampler::onHemisphere(orientNormal, &nextDir);
+                    const double r1 = mlt.nextSample();
+                    const double r2 = mlt.nextSample();
+                    sampler::onHemisphere(orientNormal, &nextDir, r1, r2);
                     const Color nextBounceColor = radiance(scene, Ray(hitpoint.position(), nextDir), depth + 1, maxDepth, mlt);
                     return (direct_light + mtrl.color.cwiseMultiply(nextBounceColor)) / roulette;
                 } else if (depth == 0) {
@@ -343,7 +354,7 @@ namespace spica {
                 }
             }
 
-            // --
+            // Mutation
             const double b = sumI / seed_path_max;
             const double p_large = 0.5;
             int accept = 0;
@@ -353,9 +364,7 @@ namespace spica {
             for (int i = 0; i < numMutate; i++) {
                 if ((i + 1) % (numMutate / 10) == 0) {
                     progress += 10;
-                    std::cout << progress << " % ";
-                    std::cout << "Accept: " << accept << ", Reject: " << reject;
-                    std::cout << ", Rate: " << (100.0 * accept / (accept + reject)) << " %" << std::endl;
+                    printf("%3d %%, Accept: %08d, Reject %08d, Rate: %8.3f %%\n", progress, accept, reject, 100.0 * accept / (accept + reject));
                 }
 
                 kelemenMlt.large_step = rng.nextReal() < p_large ? 1 : 0;

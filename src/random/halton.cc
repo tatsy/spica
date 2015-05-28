@@ -68,7 +68,7 @@ namespace spica {
         }
     }
 
-    Halton::Halton(int dim, bool isPermute, Random& rng)
+    Halton::Halton(int dim, bool isPermute, int seed)
         : dims(dim)
         , bases(NULL)
         , permute(NULL)
@@ -76,6 +76,7 @@ namespace spica {
     {
         msg_assert(dim <= nPrimes, "You cannot specify dimension over 1000");
 
+        Random rng = Random(seed);
         bases = new int[dims];
         int sumBases = 0;
         for (int i = 0; i < dims; i++) {

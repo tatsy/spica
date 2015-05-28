@@ -602,7 +602,7 @@ namespace spica {
 
             case QUASI_MONTE_CARLO:
                 printf("Use quasi random numbers (Halton)\n");
-                rand[i] = new Halton(200, true, Random(i));
+                rand[i] = new Halton(200, true, i);
                 break;
 
             default:

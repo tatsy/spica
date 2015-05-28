@@ -34,7 +34,7 @@ namespace spica {
                 rand[i] = new Random();
                 break;
             case QUASI_MONTE_CARLO:
-                rand[i] = new Halton(200, true, Random(i));
+                rand[i] = new Halton(200, true, i);
                 break;
             }
         }

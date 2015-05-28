@@ -8,7 +8,7 @@
         #define SPICA_SUBSURFACE_SPPM_RENDERER_DLL __declspec(dllimport)
     #endif
 #else
-    #define SPICA_SUBSURFACE_SPPM_DLL
+    #define SPICA_SUBSURFACE_SPPM_RENDERER_DLL
 #endif
 
 #include "subsurface_integrator.h"

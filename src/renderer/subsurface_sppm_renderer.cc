@@ -1,6 +1,8 @@
 #define SPICA_SUBSURFACE_SPPM_RENDERER_EXPORT
 #include "subsurface_sppm_renderer.h"
 
+#include <cstdio>
+
 #include "renderer_helper.h"
 #include "../utils/sampler.h"
 

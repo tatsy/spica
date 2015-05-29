@@ -228,6 +228,34 @@ namespace spica {
                         1.0,
                         90.0);
     }
+
+    inline void litByEnvmap(Scene& scene, Camera& camera, const int width, const int height) {
+        scene.clear(); 
+
+        // Envmap
+        const int numPhi = 512;
+        const int numTheta = 256;
+        Envmap envmap(numPhi, numTheta);
+        envmap.clearColor(Color(2.0, 1.0, 2.0));
+        scene.setEnvmap(envmap);
+
+        // Objects
+        Trimesh dragon(DATA_DIR + "dragon.ply");
+        dragon.scale(70.0, 70.0, 70.0);
+        dragon.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
+        scene.add(dragon, Material(Color(), Color(0.70, 0.60, 0.40), REFLECTION_DIFFUSE));
+
+        camera = Camera(width, height, 
+                        Vector3(0.0, 0.0, 100.0),
+                        Vector3(0.0, 0.0, -1.0),
+                        Vector3(0.0, 1.0, 0.0),
+                        20.0,
+                        42.0,
+                        58.0,
+                        1.0,
+                        90.0);
+    }
+
 }
 
 #endif  // _SPICA_CORNELL_BOX_H_

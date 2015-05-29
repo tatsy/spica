@@ -88,7 +88,7 @@ namespace spica {
     Color PMRenderer::radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {
         Intersection isect;
         if (!scene.intersect(ray, isect)) {
-            return scene.bgColor();
+            return scene.envmap(ray.direction());
         }
 
         // Request random numbers

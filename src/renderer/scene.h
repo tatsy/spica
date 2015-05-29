@@ -18,6 +18,7 @@
 
 #include "ray.h"
 #include "material.h"
+#include "envmap.h"
 
 namespace spica {
     
@@ -28,7 +29,7 @@ namespace spica {
         int _lightID;
         const Primitive** _primitives;
         Material* _materials;
-        Color _bgColor;
+        Envmap _envmap;
 
     public:
         Scene();
@@ -53,9 +54,9 @@ namespace spica {
 
         inline int lightID() const { return _lightID; }
         inline int numObjects() const { return _nPrimitives; }
-        inline const Color& bgColor() const { return _bgColor; }
 
-        inline void setBgColor(const Color& bgColor) { _bgColor = bgColor; }
+        const Color& envmap(const Vector3& dir) const;
+        void setEnvmap(const Envmap& envmap) { _envmap = envmap; }
 
     private:
         Scene(const Scene& scene);

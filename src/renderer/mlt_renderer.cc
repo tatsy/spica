@@ -137,7 +137,7 @@ namespace spica {
         Color radiance(const Scene& scene, const Ray& ray, const int depth, const int maxDepth, KelemenMLT& mlt) {
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
-                return scene.bgColor();
+                return scene.envmap(ray.direction());
             }
 
             const Material& mtrl = scene.getMaterial(isect.objectId());
@@ -171,7 +171,7 @@ namespace spica {
                 } else if (depth == 0) {
                     return mtrl.emission;
                 } else {
-                    return scene.bgColor();
+                    return Color(0.0, 0.0, 0.0);
                 }
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                 Intersection light_intersect;

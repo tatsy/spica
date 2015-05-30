@@ -49,17 +49,24 @@ namespace spica {
 
     Trimesh::~Trimesh()
     {
+        release();
+    }
+
+    void Trimesh::release() {
         delete[] _vertices;
         delete[] _faces;
         delete[] _normals;
         delete   _accel;
+        _numVerts = 0;
+        _numFaces = 0;
+        _vertices = NULL;
+        _faces    = NULL;
+        _normals  = NULL;
+        _accel    = NULL;
     }
 
     Trimesh& Trimesh::operator=(const Trimesh& trimesh) {
-        delete[] _vertices;
-        delete[] _faces;
-        delete[] _normals;
-        delete   _accel;
+        release();
 
         _numVerts = trimesh._numVerts;
         _numFaces = trimesh._numFaces;
@@ -126,11 +133,21 @@ namespace spica {
     }
 
     void Trimesh::load(const std::string& filename) {
+        release();
+
         int dotPos = filename.find_last_of(".");
         std::string ext = filename.substr(dotPos);
-        // std::cout << "Extention: " << ext << std::endl;
-        msg_assert(ext == ".ply", "Mesh loader only accepts .ply file format");
+        
+        if (ext == ".ply") {
+            this->loadPly(filename);
+        } else if (ext == ".obj") {
+            this->loadObj(filename);
+        } else {
+            msg_assert(ext == ".ply" || ext == ".obj", "Mesh loader only accepts .ply and .obj file format");
+        }
+    }
 
+    void Trimesh::loadPly(const std::string& filename) {
         std::ifstream in(filename.c_str(), std::ios::in);
         msg_assert(in.is_open(), "Failed to open mesh file");
 
@@ -203,6 +220,49 @@ namespace spica {
                 }
                 break;
             }
+        }
+    }
+
+    void Trimesh::loadObj(const std::string& filename) {
+        std::ifstream in(filename.c_str(), std::ios::in);
+        msg_assert(in.is_open(), "Failed to open mesh file");
+
+        std::string typ;
+        this->_numVerts = 0;
+        this->_numFaces = 0;
+        std::vector<Vector3> verts;
+        std::vector<int> faces;
+        while (!in.eof()) {
+            in >> typ;
+            if (typ == "v") {
+                _numVerts++;
+                
+                double x, y, z;
+                in >> x >> y >> z;
+                verts.emplace_back(x, y, z);
+            } else if (typ == "f") {
+                _numFaces++;
+
+                int v0, v1, v2;
+                in >> v0 >> v1 >> v2;
+                faces.push_back(v0);
+                faces.push_back(v1);
+                faces.push_back(v2);
+            } else {
+                msg_assert(false, "Unknown type is found while reading .obj file!!");
+            }
+        }
+
+        _vertices = new Vector3[_numVerts];
+        _faces    = new int[_numFaces * 3];
+        _normals  = new Vector3[_numFaces];
+        memcpy(_vertices, &verts[0], sizeof(Vector3) * _numVerts);
+        memcpy(_faces, &faces[0], sizeof(int) * _numFaces * 3);
+        for (int i = 0; i < _numFaces; i++) {
+            int p0 = _faces[i * 3 + 0];
+            int p1 = _faces[i * 3 + 1];
+            int p2 = _faces[i * 3 + 2];
+            _normals[i] = Vector3::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]);
         }
     }
 

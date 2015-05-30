@@ -58,7 +58,11 @@ namespace spica {
         inline unsigned long numFaces() const { return _numFaces; }
 
     private:
+        void release();
         void buildAccel();
+
+        void loadPly(const std::string& filename);
+        void loadObj(const std::string& filename);
     };
 
 }  // namespace spica

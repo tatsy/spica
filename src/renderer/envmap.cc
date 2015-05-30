@@ -53,6 +53,14 @@ namespace spica {
         return _table[p * _numTheta + t];
     }
 
+    void Envmap::resize(const int numPhi, const int numTheta) {
+        release();
+
+        this->_numPhi = numPhi;
+        this->_numTheta = numTheta;
+        this->_table = new Color[numPhi * numTheta];
+    }
+
     void Envmap::set(const double phi, const double theta, const Color& color) {
         msg_assert(0.0 <= phi && phi <= 2.0 * PI && 0.0 <= theta && theta <= PI, "Conditions, phi in [0, 2 * pi] and theta in [0, pi], should be met!!");
         const int p = static_cast<int>(phi / (2.0 * PI / _numPhi)) % _numPhi;

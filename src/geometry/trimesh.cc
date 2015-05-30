@@ -212,9 +212,9 @@ namespace spica {
                     ss.clear(std::stringstream::goodbit);
                     ss << line;
                     ss >> nv >> p0 >> p1 >> p2;
-                    _faces[i * 3 + 0] = p0 - 1;
-                    _faces[i * 3 + 1] = p1 - 1;
-                    _faces[i * 3 + 2] = p2 - 1;
+                    _faces[i * 3 + 0] = p0;
+                    _faces[i * 3 + 1] = p1;
+                    _faces[i * 3 + 2] = p2;
 
                     _normals[i] = Vector3::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]).normalized();
                 }
@@ -245,9 +245,9 @@ namespace spica {
 
                 int v0, v1, v2;
                 in >> v0 >> v1 >> v2;
-                faces.push_back(v0);
-                faces.push_back(v1);
-                faces.push_back(v2);
+                faces.push_back(v0 - 1);
+                faces.push_back(v1 - 1);
+                faces.push_back(v2 - 1);
             } else {
                 msg_assert(false, "Unknown type is found while reading .obj file!!");
             }

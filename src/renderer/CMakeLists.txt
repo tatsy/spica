@@ -4,6 +4,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/ray.cc
     ${CMAKE_CURRENT_LIST_DIR}/camera.cc
     ${CMAKE_CURRENT_LIST_DIR}/scene.cc
+    ${CMAKE_CURRENT_LIST_DIR}/material.cc
     ${CMAKE_CURRENT_LIST_DIR}/brdf.cc
     ${CMAKE_CURRENT_LIST_DIR}/envmap.cc
     ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.cc

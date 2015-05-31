@@ -7,7 +7,7 @@
     #else
         #define SPICA_SAMPLER_DLL __declspec(dllimport)
     #endif
-#elif defined(linux) || defined(__linux)
+#else
     #define SPICA_SAMPLER_DLL
 #endif
 
@@ -39,7 +39,6 @@ namespace spica {
 
         SPICA_SAMPLER_DLL void poissonDisk(const Trimesh& trimesh, const double minDist, std::vector<Vector3>* points, std::vector<Vector3>* normals);
 
-    
     }  // namespace sampler
 
 }  // namespace spica

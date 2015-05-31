@@ -1,8 +1,20 @@
 #ifndef SPICA_MATERIAL_H_
 #define SPICA_MATERIAL_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef SPICA_MATERIAL_EXPORT
+        #define SPICA_MATERIAL_DLL __declspec(dllexport)
+    #else
+        #define SPICA_MATERIAL_DLL __declspec(dllimport)
+    #endif
+#else
+    #define SPICA_MATERIAL_DLL
+#endif
+
+#include "brdf.h"
 #include "../utils/color.h"
 #include "../utils/common.h"
+#include "../utils/uncopyable.h"
 
 namespace spica {
 
@@ -17,23 +29,19 @@ namespace spica {
     const double IOR_OBJECT = 1.5;
     const double REFLECT_PROBABLITY = 0.5;
 
-    struct Material {
+    class SPICA_MATERIAL_DLL Material {
+    public:
         Color emission;
         Color color;
         ReflectionType reftype;
-        Material()
-            : emission()
-            , color()
-            , reftype(REFLECTION_DIFFUSE)
-        {
-        }
+        const BRDF* brdf;
 
-        Material(const Color& emission_, const Color& color_, const ReflectionType reftype_)
-            : emission(emission_)
-            , color(color_)
-            , reftype(reftype_)
-        {
-        }
+        Material();
+        Material(const Color& emission_, const Color& color_, const ReflectionType reftype_, const BRDF* brdf_ = NULL);
+        ~Material();
+        Material(const Material& mtrl);
+
+        Material& operator=(const Material& mtrl);
     };
 
     struct DiffusionReflectance {

@@ -33,7 +33,7 @@ namespace spica {
 
         void resize(const int nPhi, const int nTheta);
 
-        void set(const double phi, const double theta, const Color& color);
+        void set(const int phi, const int theta, const Color& color);
 
         void clearColor(const Color& color);
 

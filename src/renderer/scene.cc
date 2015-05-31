@@ -85,7 +85,7 @@ namespace spica {
 
     const Color& Scene::envmap(const Vector3& dir) const {
         double t = acos(dir.y());
-        double p = acos(dir.x() / sin(t));
+        double p = atan2(dir.z(), dir.x()) + PI;
         return _envmap(p, t);
     }
 }

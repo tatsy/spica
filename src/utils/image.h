@@ -38,12 +38,14 @@ namespace spica {
         void loadBMP(const std::string& filename);
         void saveBMP(const std::string& filename) const;
 
+        void loadHDR(const std::string& filename);
+
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }
 
     private:
+        void release();
         static double toReal(unsigned char b);
-
         static unsigned char toByte(double d);
     };
 

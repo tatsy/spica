@@ -1,18 +1,22 @@
-# Link directory
-link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+option(BUILD_EXAMPLE "BUILD_EXAMPLE" ON)
 
-function (generate_example example_name)
-  add_executable(${example_name} "${example_name}_example.cc")
-  target_link_libraries(${example_name} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
-  configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${example_name}.vcxproj.user" @ONLY)
-endfunction()
+if (${BUILD_EXAMPLE} STREQUAL "ON")
+  # Link directory
+  link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-generate_example(simplept)
-generate_example(simplebpt)
-generate_example(simplemlt)
-generate_example(photonmap)
-generate_example(ppm)
-generate_example(subsurface)
-generate_example(sss_sppm)
+  function (generate_example example_name)
+    add_executable(${example_name} "${example_name}_example.cc")
+    target_link_libraries(${example_name} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
+    configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${example_name}.vcxproj.user" @ONLY)
+  endfunction()
 
-include_directories(${CMAKE_CURRENT_LIST_DIR})
+  generate_example(simplept)
+  generate_example(simplebpt)
+  generate_example(simplemlt)
+  generate_example(photonmap)
+  generate_example(ppm)
+  generate_example(subsurface)
+  generate_example(sss_sppm)
+
+  include_directories(${CMAKE_CURRENT_LIST_DIR})
+endif()

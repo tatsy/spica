@@ -23,6 +23,7 @@ namespace spica {
         REFLECTION_SPECULAR   = 0x02,
         REFLECTION_REFRACTION = 0x04,
         REFLECTION_SUBSURFACE = 0x08,
+        REFLECTION_BRDF       = 0x10
     };
 
     const double IOR_VACCUM = 1.0;
@@ -34,10 +35,10 @@ namespace spica {
         Color emission;
         Color color;
         ReflectionType reftype;
-        const BRDF* brdf;
+        BRDF brdf;
 
         Material();
-        Material(const Color& emission_, const Color& color_, const ReflectionType reftype_, const BRDF* brdf_ = NULL);
+        Material(const Color& emission_, const Color& color_, const ReflectionType reftype_, const BRDF& brdf_ = BRDF());
         ~Material();
         Material(const Material& mtrl);
 

@@ -7,17 +7,16 @@ namespace spica {
         : emission()
         , color()
         , reftype(REFLECTION_DIFFUSE)
-        , brdf(NULL)
+        , brdf()
     {
     }
 
-    Material::Material(const Color& emission_, const Color& color_, const ReflectionType reftype_, const BRDF* brdf_)
+    Material::Material(const Color& emission_, const Color& color_, const ReflectionType reftype_, const BRDF& brdf_)
         : emission(emission_)
         , color(color_)
         , reftype(reftype_)
         , brdf(brdf_)
     {
-        brdf = new PhongBRDF(color, 2.0);
     }
 
     Material::Material(const Material& mtrl)

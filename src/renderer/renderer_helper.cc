@@ -166,11 +166,11 @@ namespace spica {
             // TODO: BRDF support here is temporal
             // in the future, reftype is removed and 
             // all the material types are converted to BRDF
-            if (mtrl.brdf != NULL) {
+            if (mtrl.reftype == REFLECTION_BRDF) {
                 Vector3 nextDir;
-                mtrl.brdf->sample(ray.direction(), orientNormal, randnums[1], randnums[2], &nextDir);
+                mtrl.brdf.sample(ray.direction(), orientNormal, randnums[1], randnums[2], &nextDir);
                 Ray nextRay(hitpoint.position(), nextDir);
-                weight = weight.cwiseMultiply(mtrl.brdf->reflectance()) / roulette;
+                weight = weight.cwiseMultiply(mtrl.brdf.reflectance()) / roulette;
                 nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin);
             } else if (mtrl.reftype == REFLECTION_DIFFUSE) {
                 // Diffuse reflection

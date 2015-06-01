@@ -49,6 +49,8 @@ namespace spica {
         this->_arraySize = 1024;
         _primitives = new const Primitive*[_arraySize];
         _materials = new Material[_arraySize];
+        _envmap.resize(512, 512);
+        _envmap.clearColor(Color(0.0, 0.0, 0.0));
     }
 
     void Scene::clear() {

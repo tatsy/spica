@@ -8,6 +8,7 @@
 
 #include "../src/geometry/geometry.h"
 
+#include "../src/renderer/brdf.h"
 #include "../src/renderer/scene.h"
 #include "../src/renderer/camera.h"
 

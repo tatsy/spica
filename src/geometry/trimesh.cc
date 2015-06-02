@@ -35,6 +35,30 @@ namespace spica {
         load(filename);
     }
 
+    Trimesh::Trimesh(const std::vector<Vector3>& vertices, const std::vector<int>& faceIDs) 
+        : _numVerts(static_cast<unsigned long>(vertices.size()))
+        , _numFaces(static_cast<unsigned long>(faceIDs.size() / 3))
+        , _vertices(NULL)
+        , _faces(NULL)
+        , _normals(NULL)
+        , _accel(NULL)
+        , _accelType(QBVH_ACCEL)
+    {
+        msg_assert(faceIDs.size() % 3 == 0, "Number of faceIDs must be the multiple of 3 (Triangle)");
+
+        _vertices = new Vector3[_numVerts];
+        _faces = new int[_numFaces * 3];
+        _normals = new Vector3[_numFaces * 3];
+        memcpy(_vertices, &vertices[0], sizeof(Vector3) * _numVerts);
+        memcpy(_faces, &faceIDs[0], sizeof(int) * _numFaces * 3);
+        for (int i = 0; i < _numFaces; i++) {
+            const Vector3& v0 = _vertices[_faces[i * 3 + 0]];
+            const Vector3& v1 = _vertices[_faces[i * 3 + 1]];
+            const Vector3& v2 = _vertices[_faces[i * 3 + 2]];
+            _normals[i] = Vector3::cross(v1 - v0, v2 - v0).normalized();
+        }
+    }
+
     Trimesh::Trimesh(const Trimesh& trimesh)
         : _numVerts(0)
         , _numFaces(0)

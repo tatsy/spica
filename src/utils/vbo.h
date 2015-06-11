@@ -1,6 +1,16 @@
 #ifndef _SPICA_VBO_H_
 #define _SPICA_VBO_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef SPICA_VBO_EXPORT
+        #define SPICA_VBO_DLL __declspec(dllexport)
+    #else
+        #define SPICA_VBO_DLL __declspec(dllimport)
+    #endif
+#else
+    #define SPICA_VBO_DLL
+#endif
+
 #include <vector>
 
 #include "../renderer/material.h"
@@ -8,7 +18,7 @@
 
 namespace spica {
 
-    class VBO {
+    class SPICA_VBO_DLL VBO {
     private:
         std::vector<float> _vertices;
         std::vector<float> _normals;

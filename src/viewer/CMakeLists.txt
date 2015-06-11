@@ -35,8 +35,6 @@ if (${BUILD_VIEWER} STREQUAL "ON")
                  scene_viewer.h
                  qgl_render_widget.cc
                  qgl_render_widget.h
-                 vbo.h
-                 vbo.cc
                  blinn_phong.vs
                  blinn_phong.fs)
 

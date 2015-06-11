@@ -1,3 +1,4 @@
+#define SPICA_VBO_EXPORT
 #include "vbo.h"
 
 #include <typeinfo>

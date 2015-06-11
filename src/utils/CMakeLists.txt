@@ -8,6 +8,7 @@ set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/color.cc
     ${CMAKE_CURRENT_LIST_DIR}/image.cc
     ${CMAKE_CURRENT_LIST_DIR}/sampler.cc
+    ${CMAKE_CURRENT_LIST_DIR}/vbo.cc
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
@@ -17,6 +18,7 @@ set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/color.h
     ${CMAKE_CURRENT_LIST_DIR}/image.h
     ${CMAKE_CURRENT_LIST_DIR}/sampler.h
+    ${CMAKE_CURRENT_LIST_DIR}/vbo.h
     ${CMAKE_CURRENT_LIST_DIR}/timer.h
     ${CMAKE_CURRENT_LIST_DIR}/axis_comparable.h
     ${CMAKE_CURRENT_LIST_DIR}/kdtree.h

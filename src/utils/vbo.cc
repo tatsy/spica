@@ -113,12 +113,32 @@ namespace spica {
                 Vector3 v10 = sphere.center() + sphere.radius() * Vector3(cp1 * st0, sp1 * st0, ct0);
                 Vector3 v11 = sphere.center() + sphere.radius() * Vector3(cp1 * st1, sp1 * st1, ct1);
 
+                unsigned int idx = static_cast<unsigned int>(_vertices.size()) / 3;
                 if (i == 0) {
-                    add(Triangle(v00, v01, v11), color);
+                    add(v00, (v00 - sphere.center()).normalized(), color);
+                    add(v01, (v01 - sphere.center()).normalized(), color);
+                    add(v11, (v11 - sphere.center()).normalized(), color);
+                    _indices.push_back(idx);
+                    _indices.push_back(idx + 1);
+                    _indices.push_back(idx + 2);
                 } else if (i == nTheta - 1) {
-                    add(Triangle(v00, v10, v01), color);
+                    add(v00, (v00 - sphere.center()).normalized(), color);
+                    add(v10, (v10 - sphere.center()).normalized(), color);
+                    add(v01, (v01 - sphere.center()).normalized(), color);
+                    _indices.push_back(idx);
+                    _indices.push_back(idx + 1);
+                    _indices.push_back(idx + 2);
                 } else {
-                    add(Quad(v00, v01, v11, v10), color);
+                    add(v00, (v00 - sphere.center()).normalized(), color);            
+                    add(v01, (v01 - sphere.center()).normalized(), color);
+                    add(v11, (v11 - sphere.center()).normalized(), color);
+                    add(v10, (v10 - sphere.center()).normalized(), color);
+                    _indices.push_back(idx);
+                    _indices.push_back(idx + 1);
+                    _indices.push_back(idx + 2);
+                    _indices.push_back(idx + 2);
+                    _indices.push_back(idx + 3);
+                    _indices.push_back(idx + 0);
                 }
             }
         }

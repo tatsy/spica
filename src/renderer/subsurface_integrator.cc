@@ -138,22 +138,22 @@ namespace spica {
         return node;
     }
 
-    Color SubsurfaceIntegrator::Octree::iradSubsurface(const Vector3& pos, const DiffusionReflectance& Rd) const {
-        return iradSubsurfaceRec(_root, pos, Rd);
+    Color SubsurfaceIntegrator::Octree::iradSubsurface(const Vector3& pos, const BSSRDF& bssrdf) const {
+        return iradSubsurfaceRec(_root, pos, bssrdf);
     }
 
-    Color SubsurfaceIntegrator::Octree::iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const DiffusionReflectance& Rd) const {
+    Color SubsurfaceIntegrator::Octree::iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const BSSRDF& bssrdf) const {
         if (node == NULL) return Color(0.0, 0.0, 0.0);
 
         const double distSquared = (node->pt.pos - pos).squaredNorm();
         double dw = node->pt.area / distSquared;
-        if (node->isLeaf || (dw < _parent->bssrdf.maxError() && !node->bbox.inside(pos))) {
-            return Rd(distSquared) * node->pt.irad * node->pt.area;
+        if (node->isLeaf || (dw < _parent->_maxError && !node->bbox.inside(pos))) {
+            return bssrdf(distSquared).cwiseMultiply(node->pt.irad) * node->pt.area;
         } else {
             Color ret(0.0, 0.0, 0.0);
             for (int i = 0; i < 8; i++) {
                 if (node->children[i] != NULL) {
-                    ret += iradSubsurfaceRec(node->children[i], pos, Rd);
+                    ret += iradSubsurfaceRec(node->children[i], pos, bssrdf);
                 }
             }
             return ret;
@@ -173,7 +173,7 @@ namespace spica {
     {
     }
 
-    void SubsurfaceIntegrator::initialize(const Scene& scene, const BSSRDF& bssrdf_, const PMParams& params, const double areaRadius, const RandomType randType) {
+    void SubsurfaceIntegrator::initialize(const Scene& scene, const BSSRDF& bssrdf_, const PMParams& params, const double areaRadius, const RandomType randType, const double maxError) {
         // Poisson disk sampling on SSS objects
         int objectID = -1;
         std::vector<Vector3> points;
@@ -197,6 +197,7 @@ namespace spica {
         this->mtrl = scene.getMaterial(objectID);
         this->bssrdf = bssrdf_;
         this->dA = (0.5 * areaRadius) * (0.5 * areaRadius) * PI;
+        this->_maxError = maxError;
 
         // Cast photons to compute irradiance at sample points
         buildPhotonMap(scene, params.numPhotons, 64, randType);
@@ -240,9 +241,8 @@ namespace spica {
     }
 
     Color SubsurfaceIntegrator::irradiance(const Vector3& p) const {
-        DiffusionReflectance Rd(bssrdf.sigma_a(), bssrdf.sigmap_s(), bssrdf.eta());
-        Color Mo = octree.iradSubsurface(p, Rd);
-        return (1.0 / PI) * (1.0 - Rd.Fdr(bssrdf.eta())) * Mo;
+        Color Mo = octree.iradSubsurface(p, bssrdf);
+        return (1.0 / PI) * (1.0 - bssrdf.Fdr()) * Mo;
     }
 
     void SubsurfaceIntegrator::buildPhotonMap(const Scene& scene, const int numPhotons, const int bounceLimit, const RandomType randType) {

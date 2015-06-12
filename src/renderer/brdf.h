@@ -71,7 +71,7 @@ namespace spica {
         PhongBRDF(const Color& reflectance, const double n);
     };
 
-        class SPICA_BRDF_DLL BRDF {
+    class SPICA_BRDF_DLL BRDF {
     private:
         int* _numCopies;
         const BRDFBase* _ptr;

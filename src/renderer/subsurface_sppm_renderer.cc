@@ -18,14 +18,11 @@ namespace spica {
     {
     }
 
-    void SubsurfaceSPPMRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, const int numPhotons, const RandomType randType) {
+    void SubsurfaceSPPMRenderer::render(const Scene& scene, const Camera& camera, const BSSRDF& bssrdf, const int samplePerPixel, const int numPhotons, const RandomType randType) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         const int numPixels = width * height;
         const double areaRadius = 0.1;
-
-        // Instance SSS integrator
-        BSSRDF bssrdf(1.0e-4, 10.0, 1.3, 0.05);
 
         // Prepare hit points for image pixels
         std::vector<HitpointInfo> hpoints(numPixels);

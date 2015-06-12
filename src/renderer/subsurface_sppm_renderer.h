@@ -91,7 +91,7 @@ namespace spica {
         SubsurfaceSPPMRenderer();
         ~SubsurfaceSPPMRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, const int numPhotons, const RandomType randType = PSEUDO_RANDOM_TWISTER);
+        void render(const Scene& scene, const Camera& camera, const BSSRDF& bssrdf, const int samplePerPixel, const int numPhotons, const RandomType randType = PSEUDO_RANDOM_TWISTER);
 
     private:
         // 1st pass: Trace rays from camera

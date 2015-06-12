@@ -1,53 +1,114 @@
 #ifndef _SPICA_BSSRDF_H_
 #define _SPICA_BSSRDF_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef SPICA_BSSRDF_EXPORT
+        #define SPICA_BSSRDF_DLL __declspec(dllexport)
+    #else
+        #define SPICA_BSSRDF_DLL __declspec(dllimport)
+    #endif
+#else
+    #define SPICA_BSSRDF_DLL
+#endif
+
+#include <vector>
+
+#include "../utils/vector3.h"
+#include "../utils/color.h"
+
 namespace spica {
 
-    class BSSRDF {
-    private:
-        double _sigmaA;
-        double _sigmapS;
+    class BSSRDF;
+
+    // ------------------------------------------------------------
+    // Interface class for BSSRDF
+    // ------------------------------------------------------------
+
+    class SPICA_BSSRDF_DLL BSSRDFBase {
+    protected:
         double _eta;
-        double _maxError;
+
+    protected:
+        BSSRDFBase(double eta = 1.3) : _eta(eta) {}
+        BSSRDFBase(const BSSRDFBase&) {}
 
     public:
-        BSSRDF()
-            : _sigmaA(0.0)
-            , _sigmapS(0.0)
-            , _eta(0.0)
-            , _maxError(0.0)
-        {
-        }
+        virtual ~BSSRDFBase() {}
+        virtual double Ft(const Vector3& nornal, const Vector3& in) const;
+        virtual double Fdr() const;
+        virtual Color operator()(const double d2) const = 0;
+    };
 
-        BSSRDF(double sigmaA, double sigmapS, double eta = 1.3, double maxError = 0.01)
-            : _sigmaA(sigmaA)
-            , _sigmapS(sigmapS)
-            , _eta(eta)
-            , _maxError(maxError)
-        {
-        }
 
-        BSSRDF(const BSSRDF& bssrdf)
-            : _sigmaA(0.0)
-            , _sigmapS(0.0)
-            , _eta(0.0)
-            , _maxError(0.0)
-        {
-            this->operator=(bssrdf);
-        }
+    // ------------------------------------------------------------
+    // BSSRDF with diffusion approximation
+    // ------------------------------------------------------------
 
-        BSSRDF& operator=(const BSSRDF& bssrdf) {
-            this->_sigmaA = bssrdf._sigmaA;
-            this->_sigmapS = bssrdf._sigmapS;
-            this->_eta = bssrdf._eta;
-            this->_maxError = bssrdf._maxError;
-            return *this;
-        }
+    class SPICA_BSSRDF_DLL DiffusionBSSRDF : public BSSRDFBase {
+    private:
+        double _A;
+        double _sigmap_t;
+        double _sigma_tr;
+        double _alphap;
+        double _zpos;
+        double _zneg;
 
-        inline double sigma_a() const { return _sigmaA; }
-        inline double sigmap_s() const { return _sigmapS; }
-        inline double eta() const { return _eta; }
-        inline double maxError() const { return _maxError; }
+    private:
+        DiffusionBSSRDF();
+        DiffusionBSSRDF(double sigma_a, double sigmap_s, double eta = 1.3);
+
+    public:
+        static BSSRDF factory(double sigma_a, double sigmap_s, double eta = 1.3);
+        Color operator()(const double d2) const;
+    };
+
+    // ------------------------------------------------------------
+    // BSSRDF with discrete Rd
+    // ------------------------------------------------------------
+
+    class SPICA_BSSRDF_DLL DiscreteBSSRDF : public BSSRDFBase {
+    private:
+        std::vector<double> _distances;
+        std::vector<Color> _colors;
+
+    private:
+        DiscreteBSSRDF();
+        DiscreteBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
+
+    public:
+        static BSSRDF factory(const std::vector<double>& distances, const std::vector<Color>& colors);
+        Color operator()(const double d2) const;
+    };
+
+
+    // ------------------------------------------------------------
+    // Abstract BSSRDF class
+    // ------------------------------------------------------------
+
+    class SPICA_BSSRDF_DLL BSSRDF {
+    private:
+        int* _numCopies;
+        const BSSRDFBase* _ptr;
+
+    public:
+        BSSRDF();
+        BSSRDF(const BSSRDF& bssrdf);
+        ~BSSRDF();
+
+        BSSRDF& operator=(const BSSRDF& bssrdf);
+
+        double Ft(const Vector3& normal, const Vector3& in) const;
+        double Fdr() const;
+        Color operator()(const double d2) const;
+
+    private:
+        BSSRDF(const BSSRDFBase* ptr);
+        void release();
+        void nullCheck() const;
+
+    // Friend classes
+        friend class DiffusionBSSRDF;
+        friend class DiscreteBSSRDF;
     };
 
 }

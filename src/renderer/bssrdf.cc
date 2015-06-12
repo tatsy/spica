@@ -85,8 +85,8 @@ namespace spica {
         msg_assert(distances.size() == colors.size(), "Arrays for distances and colors must have the same length!!");
     }
 
-    BSSRDF DiscreteBSSRDF::factory(const std::vector<double>& distances, const std::vector<Color>& colors) {
-        return BSSRDF(new DiscreteBSSRDF(distances, colors));
+    BSSRDF DiscreteBSSRDF::factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors) {
+        return BSSRDF(new DiscreteBSSRDF(eta, distances, colors));
     }
 
     Color DiscreteBSSRDF::operator()(const double d2) const {

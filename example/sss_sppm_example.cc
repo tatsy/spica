@@ -30,6 +30,6 @@ int main(int argc, char** argv) {
 
     Timer timer;
     timer.start();
-    renderer.render(scene, camera, bssrdf, numPhotons, QUASI_MONTE_CARLO);
+    renderer.render(scene, camera, bssrdf, samplePerPixel, numPhotons, QUASI_MONTE_CARLO);
     printf("Time: %f sec\n", timer.stop());
 }

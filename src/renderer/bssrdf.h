@@ -76,7 +76,7 @@ namespace spica {
         DiscreteBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
 
     public:
-        static BSSRDF factory(const std::vector<double>& distances, const std::vector<Color>& colors);
+        static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
         Color operator()(const double d2) const;
     };
 

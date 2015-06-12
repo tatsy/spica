@@ -45,7 +45,7 @@ namespace spica {
         Material& operator=(const Material& mtrl);
     };
 
-    struct DiffusionReflectance {
+    struct SPICA_MATERIAL_DLL DiffusionReflectance {
         double A;
         double sigmap_t;
         double sigma_tr;
@@ -62,7 +62,7 @@ namespace spica {
             zneg = zpos * (1.0 + (4.0 / 3.0) * A);
         }
 
-        double Fdr(double eta) const {
+        static double Fdr(double eta) {
             if (eta >= 1.0) {
                 return -1.4399 / (eta * eta) + 0.7099 / eta + 0.6681 + 0.0636 * eta;
             } else {

@@ -22,7 +22,7 @@ TEST(PlaneTest, InstanceTest) {
 
     Hitpoint hitpoint;
     EXPECT_TRUE(pl.intersect(Ray(Vector3(0.0, 1.0, 1.0), Vector3(3.0, 4.0, 0.0).normalized()), &hitpoint));
-    EXPECT_EQ(5.0, hitpoint.distance());
+    EXPECT_DOUBLE_EQ(5.0, hitpoint.distance());
     EXPECT_FALSE(pl.intersect(Ray(Vector3(0.0, 1.0, 1.0), Vector3(-1.0, 0.0, 0.0)), &hitpoint));    
 }
 

@@ -205,7 +205,7 @@ namespace spica {
         for(int i = 0; i < numPoints; i++) {
             // Estimate irradiance with photon map
             Color irad = irradianceWithPM(points[i], normals[i], gatherPhotons, gatherRadius);
-            irads[i] = irad.cwiseMultiply(mtrl.color);
+            irads[i] = irad.multiply(mtrl.color);
         }
 
         // Save radiance data for visual checking
@@ -301,11 +301,11 @@ namespace spica {
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     sampler::onHemisphere(orientNormal, &nextDir);
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), orientNormal);
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
 
@@ -327,17 +327,17 @@ namespace spica {
                     if (isTotRef) {
                         // Total reflection
                         currentRay = reflectRay;
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentFlux = currentFlux.multiply(mtrl.color);
                     } else {
                         const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
                         if (rng.nextReal() < probability) {
                             // Reflection
                             currentRay = reflectRay;
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelRe / probability);
                         } else {
                             // Reflaction
                             currentRay = Ray(hitpoint.position(), transmitDir);
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                         }
                     }
                 } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
@@ -544,7 +544,7 @@ namespace spica {
             }
 
         }
-        return mtrl.emission + weight.cwiseMultiply(incomingRad);
+        return mtrl.emission + weight.multiply(incomingRad);
     }
 
 }  // namespace spica

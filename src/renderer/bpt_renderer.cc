@@ -293,12 +293,12 @@ namespace spica {
                     sampler::onHemisphere(orientNormal, &nextDir, randnums[1], randnums[2]);
                     nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = mtrl.color.cwiseMultiply(throughputMC) / PI;
+                    throughputMC = mtrl.color.multiply(throughputMC) / PI;
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nowSampledPdfOmega = 1.0;
                     const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = mtrl.color.cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
+                    throughputMC = mtrl.color.multiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
@@ -312,19 +312,19 @@ namespace spica {
                         if (randnums[1] < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
-                            throughputMC = fresnelRef * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughputMC = fresnelRef * (mtrl.color.multiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= REFLECT_PROBABLITY;
                         } else {
                             const double nnt2 = pow(isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM, 2.0);
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), refractDir);
-                            throughputMC = nnt2 * fresnelTransmit * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughputMC = nnt2 * fresnelTransmit * (mtrl.color.multiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= (1.0 - REFLECT_PROBABLITY);
                         }
                     } else { // Total reflection
                         nowSampledPdfOmega = 1.0;
                         nowRay = Ray(hitpoint.position(), reflectDir);
-                        throughputMC = mtrl.color.cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
+                        throughputMC = mtrl.color.multiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
                     }
 
                 }
@@ -390,7 +390,7 @@ namespace spica {
 
                 if (mtrl.emission.norm() > 0.0) {
                     vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughputMC));
-                    const Color result = throughputMC.cwiseMultiply(mtrl.emission) / totalPdfA;
+                    const Color result = throughputMC.multiply(mtrl.emission) / totalPdfA;
                     return TraceResult(result, x, y, HIT_ON_LIGHT);
                 }
 
@@ -403,13 +403,13 @@ namespace spica {
                     sampler::onHemisphere(orientNormal, &nextDir, randnums[1], randnums[2]);
                     nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = mtrl.color.cwiseMultiply(throughputMC) / PI;
+                    throughputMC = mtrl.color.multiply(throughputMC) / PI;
 
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nowSampledPdfOmega = 1.0;
                     const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = mtrl.color.cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
+                    throughputMC = mtrl.color.multiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
 
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
@@ -424,20 +424,20 @@ namespace spica {
                         if (randnums[1] < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
-                            throughputMC = fresnelRef * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughputMC = fresnelRef * (mtrl.color.multiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= REFLECT_PROBABLITY;
                         } else {
                             const double nnt2 = pow(isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM, 2.0);
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), refractDir);
-                            throughputMC = nnt2 * fresnelTransmit * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughputMC = nnt2 * fresnelTransmit * (mtrl.color.multiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= (1.0 - REFLECT_PROBABLITY);
                         }
                     } else {
                         // Total reflection
                         nowSampledPdfOmega = 1.0;
                         nowRay = Ray(hitpoint.position(), reflectDir);
-                        throughputMC = mtrl.color.cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));                    
+                        throughputMC = mtrl.color.multiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));                    
                     }
                 }
                 prevNormal = orientNormal;
@@ -514,7 +514,7 @@ namespace spica {
 
                     if (eyeEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
                         const Material& eyeEndMtrl = scene.getMaterial(eyeEnd.objectId);
-                        connectedThrought = connectedThrought.cwiseMultiply(eyeEndMtrl.color) / PI;
+                        connectedThrought = connectedThrought.multiply(eyeEndMtrl.color) / PI;
                         double dist = (intersection.hitpoint().position() - eyeEnd.position).norm();
                         if ((intersection.hitpoint().position() - eyeEnd.position).norm() >= EPS) {
                             continue;
@@ -542,7 +542,7 @@ namespace spica {
 
                     if (lightEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
                         const Material& tempMtrl = scene.getMaterial(lightEnd.objectId);
-                        connectedThrought = connectedThrought.cwiseMultiply(tempMtrl.color) / PI;
+                        connectedThrought = connectedThrought.multiply(tempMtrl.color) / PI;
                     } else if (lightEnd.objtype == Vertex::OBJECT_TYPE_LIGHT) {
 
                     } else if (lightEnd.objtype == Vertex::OBJECT_TYPE_LENS || lightEnd.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
@@ -559,7 +559,7 @@ namespace spica {
                         continue;
                     }
 
-                    const Color result = weightMIS * connectedThrought.cwiseMultiply(eyeThoughput).cwiseMultiply(lightThrouput) / totalPdfA;
+                    const Color result = weightMIS * connectedThrought.multiply(eyeThoughput).multiply(lightThrouput) / totalPdfA;
                     bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId > 1.0));
                 }
             }

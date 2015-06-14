@@ -298,9 +298,9 @@ namespace spica {
 
     void Trimesh::scale(const double scaleX, const double scaleY, const double scaleZ) {
         for (int i = 0; i < _numVerts; i++) {
-            _vertices[i].setX(_vertices[i].x() * scaleX);
-            _vertices[i].setY(_vertices[i].y() * scaleY);
-            _vertices[i].setZ(_vertices[i].z() * scaleZ);
+            _vertices[i].x() = _vertices[i].x() * scaleX;
+            _vertices[i].y() = _vertices[i].y() * scaleY;
+            _vertices[i].z() = _vertices[i].z() * scaleZ;
         }
     }
 

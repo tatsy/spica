@@ -128,7 +128,7 @@ namespace spica {
                 Intersection intersection;
                 if (scene.intersect(Ray(v0, light_dir), intersection) && intersection.objectId() == scene.lightID()) {
                     const Material& mtrl = scene.getMaterial(id);
-                    return mtrl.color.cwiseMultiply(lightMtrl.emission) * (1.0 / PI) * G * light->area();
+                    return mtrl.color.multiply(lightMtrl.emission) * (1.0 / PI) * G * light->area();
                 }
             }
             return Color(0.0, 0.0, 0.0);
@@ -167,7 +167,7 @@ namespace spica {
                     const double r2 = mlt.nextSample();
                     sampler::onHemisphere(orientNormal, &nextDir, r1, r2);
                     const Color nextBounceColor = radiance(scene, Ray(hitpoint.position(), nextDir), depth + 1, maxDepth, mlt);
-                    return (direct_light + mtrl.color.cwiseMultiply(nextBounceColor)) / roulette;
+                    return (direct_light + mtrl.color.multiply(nextBounceColor)) / roulette;
                 } else if (depth == 0) {
                     return mtrl.emission;
                 } else {
@@ -181,7 +181,7 @@ namespace spica {
                     direct_light = scene.getMaterial(scene.lightID()).emission;
                 }
                 const Color next_bounce_color = radiance(scene, reflection_ray, depth + 1, maxDepth, mlt);
-                return (direct_light + mtrl.color.cwiseMultiply(next_bounce_color)) / roulette;
+                return (direct_light + mtrl.color.multiply(next_bounce_color)) / roulette;
             } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                 Intersection light_intersect;
                 Ray reflectRay = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
@@ -198,7 +198,7 @@ namespace spica {
                 if (helper::isTotalRef(isIncoming, hitpoint.position(), ray.direction(), hitpoint.normal(), orientNormal, &reflectDir, &refractDir, &fresnelRe, &fresnelTr)) {
                     // Total reflection
                     const Color next_bounce_color = radiance(scene, reflectRay, depth + 1, maxDepth, mlt);
-                    return (direct_light + mtrl.color.cwiseMultiply(next_bounce_color)) / roulette;
+                    return (direct_light + mtrl.color.multiply(next_bounce_color)) / roulette;
                 }
 
                 Ray refractRay = Ray(hitpoint.position(), refractDir);
@@ -214,17 +214,17 @@ namespace spica {
                 if (depth > 2) {
                     if (mlt.nextSample() < probability) {
                         const Color nextBounceColor = radiance(scene, reflectRay, depth + 1, maxDepth, mlt);
-                        return mtrl.color.cwiseMultiply(fresnelRe * (direct_light + nextBounceColor)) / (probability * roulette);
+                        return mtrl.color.multiply(fresnelRe * (direct_light + nextBounceColor)) / (probability * roulette);
                     } else {
                         const Color next_bounce_color = radiance(scene, refractRay, depth + 1, maxDepth, mlt);
-                        return mtrl.color.cwiseMultiply(fresnelTr * (direct_light_refraction + next_bounce_color)) / ((1.0 - probability) * roulette);
+                        return mtrl.color.multiply(fresnelTr * (direct_light_refraction + next_bounce_color)) / ((1.0 - probability) * roulette);
                     }
                 } else {
                     const Color nextBounceColorRe = radiance(scene, reflectRay, depth + 1, maxDepth, mlt);
                     const Color nextBounceColorTr = radiance(scene, refractRay, depth + 1, maxDepth, mlt);
                     const Color nextBounceColor = fresnelRe * (direct_light + nextBounceColorRe) 
                                                   + fresnelTr * (direct_light_refraction + nextBounceColorTr);
-                    return mtrl.color.cwiseMultiply(nextBounceColor) / roulette;
+                    return mtrl.color.multiply(nextBounceColor) / roulette;
                 }
             }
             return Color(0.0, 0.0, 0.0);

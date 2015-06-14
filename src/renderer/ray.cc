@@ -42,9 +42,9 @@ namespace spica {
     }
 
     void Ray::calcInvdir() {
-        _invdir.setX(_direction.x() == 0.0 ? INFTY : 1.0 / _direction.x());
-        _invdir.setY(_direction.y() == 0.0 ? INFTY : 1.0 / _direction.y());
-        _invdir.setZ(_direction.z() == 0.0 ? INFTY : 1.0 / _direction.z());
+        _invdir.x() = (_direction.x() == 0.0) ? INFTY : 1.0 / _direction.x();
+        _invdir.y() = (_direction.y() == 0.0) ? INFTY : 1.0 / _direction.y();
+        _invdir.z() = (_direction.z() == 0.0) ? INFTY : 1.0 / _direction.z();
     }
 
     Hitpoint::Hitpoint()

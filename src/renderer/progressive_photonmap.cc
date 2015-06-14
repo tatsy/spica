@@ -222,7 +222,7 @@ namespace spica {
                             omplock{
                                 hpp->r2 *= g;
                                 hpp->n += 1;
-                                hpp->flux = (hpp->flux + hpp->weight.cwiseMultiply(currentFlux) * (1.0 / PI)) * g;
+                                hpp->flux = (hpp->flux + hpp->weight.multiply(currentFlux) * (1.0 / PI)) * g;
                             }
                         }
                     }
@@ -232,14 +232,14 @@ namespace spica {
                     if (randnum < probability) {
                         sampler::onHemisphere(orientNormal, &nextDir);
                         currentRay = Ray(hitpoint.position(), nextDir);
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probability;
+                        currentFlux = currentFlux.multiply(mtrl.color) / probability;
                     } else {
                         break;
                     }
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
                     Vector3 reflectDir, refractDir;
@@ -256,18 +256,18 @@ namespace spica {
                     if (isTotRef) {
                         // Total reflection
                         currentRay = Ray(hitpoint.position(), reflectDir);
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentFlux = currentFlux.multiply(mtrl.color);
                     } else {
                         // Trace either of reflect and transmit rays
                         const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
                         if (randnum < probability) {
                             // Reflect
                             currentRay = Ray(hitpoint.position(), reflectDir);
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelRe / probability);
                         } else {
                             // Transmit
                             currentRay = Ray(hitpoint.position(), refractDir);
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                         }
                     }
                 }
@@ -296,7 +296,7 @@ namespace spica {
             double randnum = rseq.next();
 
             if (!scene.intersect(ray, isect) || bounce > bounceLimit) {
-                weight = weight.cwiseMultiply(scene.envmap(ray.direction()));
+                weight = weight.multiply(scene.envmap(ray.direction()));
                 hp->weight = weight;
                 hp->coeff = coeff;
                 break;
@@ -309,17 +309,17 @@ namespace spica {
 
             if (mtrl.reftype == REFLECTION_DIFFUSE) {
                 // Ray hits diffuse object, return current weight
-                weight = weight.cwiseMultiply(mtrl.color);
+                weight = weight.multiply(mtrl.color);
                 hp->setPosition(hitpoint.position());
                 hp->normal = hitpoint.normal();
                 hp->weight = weight;
                 hp->coeff = coeff;
-                hp->emission += weight.cwiseMultiply(mtrl.emission);
+                hp->emission += weight.multiply(mtrl.emission);
                 break;
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                 Vector3 nextDir = Vector3::reflect(ray.direction(), orientNormal);
                 ray = Ray(hitpoint.position(), nextDir);
-                weight = weight.cwiseMultiply(mtrl.color);
+                weight = weight.multiply(mtrl.color);
             } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                 bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
                 Vector3 reflectDir, transmitDir;
@@ -337,18 +337,18 @@ namespace spica {
                 if (isTotRef) {
                     // Total reflection
                     ray = Ray(hitpoint.position(), reflectDir);
-                    weight = weight.cwiseMultiply(mtrl.color);
+                    weight = weight.multiply(mtrl.color);
                 } else {
                     // Trace either reflection or refraction ray with probability
                     const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
                     if (randnum < probability) {
                         // Reflection
                         ray = Ray(hitpoint.position(), reflectDir);
-                        weight = weight.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                        weight = weight.multiply(mtrl.color) * (fresnelRe / probability);
                     } else {
                         // Transmit
                         ray = Ray(hitpoint.position(), transmitDir); 
-                        weight = weight.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                        weight = weight.multiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                     }
                 }
             }

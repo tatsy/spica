@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxOcclusion(scene, camera, width, height);
+    cornellBoxOcclusion(&scene, &camera, width, height);
 
     const int numMutate = width * height * samplePerPixel;
     const int maxDepth  = 8;

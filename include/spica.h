@@ -33,6 +33,6 @@
 // Scenes
 // --------------------------------------------
 
-#include "../src/scenes/cornell_box.h"
+#include "../src/scenes/predefined_scenes.h"
 
 #endif  // SPICA_H_

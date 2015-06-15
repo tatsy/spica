@@ -16,7 +16,7 @@ namespace {
 TEST(PTRendererTest, RenderTest) {
     Scene scene;
     Camera camera;
-    cornellBox(scene, camera, width, height);
+    cornellBox(&scene, &camera, width, height);
     
     PathTracingRenderer renderer;
     renderer.render(scene, camera, spp, QUASI_MONTE_CARLO);

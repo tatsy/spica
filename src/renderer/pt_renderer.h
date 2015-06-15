@@ -29,10 +29,7 @@ namespace spica {
         PathTracingRenderer();
         ~PathTracingRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType = PSEUDO_RANDOM_TWISTER);
-        
-    private:
-        static Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq);
+        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType = PSEUDO_RANDOM_TWISTER);        
     };
 }
 

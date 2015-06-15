@@ -6,8 +6,8 @@ using namespace spica;
 #include "test_macros.h"
 
 namespace {
-    const int width  = 400;
-    const int height = 300;
+    const int width  = 120;
+    const int height =  90;
     const int spp    =  16;
 
     const std::string comp_path = DATA_DIR + "compare.bmp";

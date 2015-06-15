@@ -15,6 +15,22 @@
 
 namespace spica {
 
+    namespace {
+
+        Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq) {
+            Vector3 posOnSensor;        // Position on the image sensor
+            Vector3 posOnObjplane;      // Position on the object plane
+            Vector3 posOnLens;          // Position on the lens
+            double  pImage, pLens;      // Sampling probability on image sensor and lens
+
+            CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
+            const Ray ray = camSample.generateRay();
+
+            return helper::radiance(scene, ray, rseq, 0) * (camera.sensitivity() / camSample.totalPdf());
+        }
+
+    }   // anonymous namespace
+
     PathTracingRenderer::PathTracingRenderer()
     {
     }
@@ -87,18 +103,6 @@ namespace spica {
         }
         delete[] rand;
         delete[] buffer;
-    }
-
-    Color PathTracingRenderer::executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq) {
-        Vector3 posOnSensor;        // Position on the image sensor
-        Vector3 posOnObjplane;      // Position on the object plane
-        Vector3 posOnLens;          // Position on the lens
-        double  pImage, pLens;      // Sampling probability on image sensor and lens
-
-        CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
-        const Ray ray = camSample.generateRay();
-
-        return helper::radiance(scene, ray, rseq, 0) * (camera.sensitivity() / camSample.totalPdf());
     }
 
 }  // namespace spica

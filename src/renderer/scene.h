@@ -37,7 +37,7 @@ namespace spica {
 
         template <class Ty>
         void add(const Ty& primitive, const Material& material, bool isLight = false) {
-            msg_assert(dynamic_cast<const Primitive*>(&primitive) != 0, "Input geometry must be instanceof Primitive class.");
+            static_assert(std::is_base_of<Primitive, Ty>::value, "Type inherits Primitive can only be added to the scene.");
             if (isLight) _lightID = _nPrimitives;
             _primitives[_nPrimitives] = new Ty(primitive);
             _materials[_nPrimitives] = material;

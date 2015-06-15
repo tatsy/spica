@@ -12,6 +12,7 @@
 #endif
 
 #include <string>
+#include <memory>
 
 #include "primitive.h"
 #include "triangle.h"
@@ -28,7 +29,7 @@ namespace spica {
         Vector3* _vertices;
         int* _faces;
         Vector3* _normals;
-        AccelBase* _accel;
+        std::shared_ptr<AccelBase> _accel;
         AccelType _accelType;
 
     public:

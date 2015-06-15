@@ -31,8 +31,6 @@ namespace spica {
 
         void render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType = PSEUDO_RANDOM_TWISTER);
         
-        void renderQMC(const Scene& scene, const Camera& camera, const Halton& halton, const int samplerPerPixel);
-
     private:
         static Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq);
     };

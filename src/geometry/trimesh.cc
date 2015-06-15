@@ -68,7 +68,7 @@ namespace spica {
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
-        operator=(trimesh);
+        this->operator=(trimesh);
     }
 
     Trimesh::~Trimesh()
@@ -80,7 +80,7 @@ namespace spica {
         delete[] _vertices;
         delete[] _faces;
         delete[] _normals;
-        delete   _accel;
+
         _numVerts = 0;
         _numFaces = 0;
         _vertices = NULL;
@@ -97,14 +97,12 @@ namespace spica {
         _vertices = new Vector3[trimesh._numVerts];
         _faces = new int[trimesh._numFaces * 3];
         _normals = new Vector3[trimesh._numFaces];
-        _accel = NULL;
+        _accel = trimesh._accel;
         _accelType = trimesh._accelType;
         
         memcpy(_vertices, trimesh._vertices, sizeof(Vector3) * _numVerts);
         memcpy(_faces, trimesh._faces, sizeof(int) * (_numFaces * 3));
         memcpy(_normals, trimesh._normals, sizeof(Vector3) * _numFaces);
-
-        buildAccel();
 
         return *this;
     }
@@ -143,11 +141,11 @@ namespace spica {
         switch(_accelType) {
         case KD_TREE_ACCEL:
             printf("Accelerator: K-D tree\n");
-            _accel = new KdTreeAccel();
+            _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
             break;
         case QBVH_ACCEL:
             printf("Accelerator: QBVH\n");
-            _accel = new QBVHAccel();
+            _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
         default:
             msg_assert(false, "Unknown accelerator type!!");
@@ -188,7 +186,6 @@ namespace spica {
                 in >> key;
                 if (key == "format" || key == "property") {
                     in >> name >> val;
-                    // std::cout << key << " " << name << " " << val << std::endl;
                 } else if (key == "element") {
                     in >> name;
                     if (name == "vertex") {

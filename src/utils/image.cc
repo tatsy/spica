@@ -113,6 +113,14 @@ namespace spica {
         return _pixels[y * _width + x];
     }
 
+    void Image::resize(const int width, const int height) {
+        this->_width = width;
+        this->_height = height;
+
+        delete[] _pixels;
+        _pixels = new Color[width * height];
+    }
+
     void Image::loadBMP(const std::string& filename) {
         release();
 

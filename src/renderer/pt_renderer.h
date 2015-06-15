@@ -24,12 +24,14 @@ namespace spica {
     // Monte Carlo path tracing renderer
     // --------------------------------------------------
     class SPICA_PT_RENDERER_DLL PathTracingRenderer : public Uncopyable {
+    private:
+        spica::Image* _image;
 
     public:
-        PathTracingRenderer();
+        PathTracingRenderer(spica::Image* image = NULL);
         ~PathTracingRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType = PSEUDO_RANDOM_TWISTER);        
+        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType = PSEUDO_RANDOM_TWISTER);
     };
 }
 

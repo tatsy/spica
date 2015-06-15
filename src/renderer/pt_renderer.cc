@@ -31,7 +31,8 @@ namespace spica {
 
     }   // anonymous namespace
 
-    PathTracingRenderer::PathTracingRenderer()
+    PathTracingRenderer::PathTracingRenderer(spica::Image* image)
+        : _image(image)
     {
     }
 
@@ -70,6 +71,13 @@ namespace spica {
         const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
         int processed = 0;        
 
+        bool isAllocImageInside = false;
+        if (_image == NULL) {
+            _image = new Image();
+            isAllocImageInside = true;
+        }
+        _image->resize(width, height);
+
         for (int t = 0; t < taskPerThread; t++) {
             ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
                 RandomSeq rseq;
@@ -83,16 +91,16 @@ namespace spica {
 
 
             char filename[256];
-            Image image(width, height);
-            for (int k = 0; k < OMP_NUM_CORE; k++) {
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        image.pixel(x, y) += buffer[k](x, y) / ((t + 1) * OMP_NUM_CORE);
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    _image->pixel(x, y) = Color(0.0, 0.0, 0.0);
+                    for (int k = 0; k < OMP_NUM_CORE; k++) {
+                        _image->pixel(x, y) += buffer[k](x, y) / ((t + 1) * OMP_NUM_CORE);
                     }
                 }
             }
             sprintf(filename, "pathtrace_%03d.bmp", t + 1);
-            image.saveBMP(filename);
+            _image->saveBMP(filename);
 
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);
         }
@@ -103,6 +111,10 @@ namespace spica {
         }
         delete[] rand;
         delete[] buffer;
+
+        if (isAllocImageInside) {
+            delete _image;
+        }
     }
 
 }  // namespace spica

@@ -65,6 +65,9 @@ namespace spica {
         // @param[in] doBuild: construct the accelerator immediately after this function call or not
         void setAccelType(AccelType accelType, bool doBuild = false);
 
+        // Build accelerator structure
+        void buildAccel();
+
         // Load mesh file
         // @param[in] filename: .obj or .ply file
         void load(const std::string& filename);
@@ -99,8 +102,6 @@ namespace spica {
 
     private:
         void release();
-        void buildAccel();
-
         void loadPly(const std::string& filename);
         void loadObj(const std::string& filename);
     };

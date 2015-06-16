@@ -36,6 +36,7 @@ namespace spica {
         Color& pixel(int x, int y);
 
         void resize(const int width, const int height);
+        void fill(const Color& color);
 
         void loadBMP(const std::string& filename);
         virtual void saveBMP(const std::string& filename) const;

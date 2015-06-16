@@ -83,12 +83,13 @@ namespace spica {
 
     class SPICA_SUBSURFACE_SPPM_RENDERER_DLL SubsurfaceSPPMRenderer : public Uncopyable {
     private:
+        Image* _image;
         SubsurfaceIntegrator integrator;
         HashGrid<HitpointInfo*> hashgrid;
         static const double ALPHA;
 
     public:
-        SubsurfaceSPPMRenderer();
+        SubsurfaceSPPMRenderer(Image* image = NULL);
         ~SubsurfaceSPPMRenderer();
 
         void render(const Scene& scene, const Camera& camera, const BSSRDF& bssrdf, const int samplePerPixel, const int numPhotons, const RandomType randType = PSEUDO_RANDOM_TWISTER);

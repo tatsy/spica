@@ -10,7 +10,8 @@ namespace spica {
 
     const double SubsurfaceSPPMRenderer::ALPHA = 0.7;
 
-    SubsurfaceSPPMRenderer::SubsurfaceSPPMRenderer()
+    SubsurfaceSPPMRenderer::SubsurfaceSPPMRenderer(Image* image)
+        : _image(image)
     {
     }
 
@@ -50,6 +51,14 @@ namespace spica {
             break;
         }
 
+        bool isAllocImageInside = false;
+        if (_image == NULL) {
+            _image = new Image(width, height);
+            isAllocImageInside = true;
+        } else {
+            _image->resize(width, height);
+        }
+
         // Main rendering
         const int numPoints = static_cast<int>(hpoints.size());
         for (int t = 0; t < samplePerPixel; t++) {
@@ -65,21 +74,24 @@ namespace spica {
             tracePhotons(scene, rand, numPhotons);
 
             // Save temporal image
-            Image image(width, height);
+            _image->fill(Color(0.0, 0.0, 0.0));
             for (int i = 0; i < numPoints; i++) {
                 const HitpointInfo& hp = hpoints[i];
                 if (hp.imageX >= 0 && hp.imageY >= 0 && hp.imageX < width && hp.imageY < height) {
-                    image.pixel(width - hp.imageX - 1, hp.imageY) += (hp.emission + hp.flux / (PI * hp.r2)) * (hp.coeff / (t + 1));
+                    _image->pixel(width - hp.imageX - 1, hp.imageY) += (hp.emission + hp.flux / (PI * hp.r2)) * (hp.coeff / (t + 1));
                 }
             }
 
             char filename[256];
             sprintf(filename, "sss_sppm_%02d.bmp", t + 1);
-            image.saveBMP(filename);
+            _image->saveBMP(filename);
         }
 
         // Release memories
         delete rand;
+        if (isAllocImageInside) {
+            delete _image;
+        }
     }
 
     void SubsurfaceSPPMRenderer::constructHashGrid(std::vector<HitpointInfo>& hpoints, const int imageW, const int imageH) {

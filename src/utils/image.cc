@@ -121,6 +121,13 @@ namespace spica {
         _pixels = new Color[width * height];
     }
 
+    void Image::fill(const Color& color) {
+        const int n = _width * _height;
+        for (int i = 0; i < n; i++) {
+            _pixels[i] = color;
+        }
+    }
+
     void Image::loadBMP(const std::string& filename) {
         release();
 

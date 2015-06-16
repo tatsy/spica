@@ -128,6 +128,19 @@ namespace spica {
         }
     }
 
+    void Image::gamma(const double gam, bool inv) {
+        const double gg = inv ? 1.0 / gam : gam;
+        for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _width; x++) {
+                Color& c = _pixels[y * _width + x];
+                double r = pow(c.red(),   gg);
+                double g = pow(c.green(), gg);
+                double b = pow(c.blue(),  gg);
+                c = Color(r, g, b);
+            }
+        }
+    }
+
     void Image::loadBMP(const std::string& filename) {
         release();
 
@@ -362,14 +375,11 @@ namespace spica {
     }
 
     double Image::toReal(unsigned char b) {
-        static const double gamma = 2.2;
-        double d = b / 255.0;
-        return pow(d, gamma);
+        return b / 255.0;
     }
 
     unsigned char Image::toByte(double d) {
-        static const double invgamma = 1.0 / 2.2;
         d = std::max(0.0, std::min(d, 1.0));
-        return (unsigned char)(255.0 * pow(d, invgamma));
+        return (unsigned char)(255.0 *d);
     }
 }

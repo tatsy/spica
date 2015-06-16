@@ -38,6 +38,11 @@ namespace spica {
         void resize(const int width, const int height);
         void fill(const Color& color);
 
+        // Gamma correction
+        // @param[in] gam: gamma value
+        // @param[in] inv: if true inverse gamma correction is performed
+        void gamma(const double gam, bool inv = false);
+
         void loadBMP(const std::string& filename);
         virtual void saveBMP(const std::string& filename) const;
 

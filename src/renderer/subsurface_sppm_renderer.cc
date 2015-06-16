@@ -84,6 +84,7 @@ namespace spica {
 
             char filename[256];
             sprintf(filename, "sss_sppm_%02d.bmp", t + 1);
+            _image->gamma(2.2, true);
             _image->saveBMP(filename);
         }
 

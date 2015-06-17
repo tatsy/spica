@@ -82,9 +82,17 @@ namespace spica {
         // @param[in] scaleZ: scaling along Z-axis
         void scale(const double scaleX, const double scaleY, const double scaleZ);
 
+        // Scale the mesh
+        // @param[in] scaleAll: scaling all the axes
+        void scale(const double scaleAll);
+
         // Put the mesh on the specified plane
         // @param[in] plane: a plane on which the mesh is put
         void putOnPlane(const Plane& plane);
+
+        // Scale and translate the mesh to fit the bounding box
+        // @param[in] bbox: target bounding box
+        void fitToBBox(const BBox& bbox);
 
         // Get a triangle with specified ID
         // @param[in] faceID: ID of the triangle to get

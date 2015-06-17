@@ -301,6 +301,10 @@ namespace spica {
         }
     }
 
+    void Trimesh::scale(const double scaleAll) {
+        scale(scaleAll, scaleAll, scaleAll);
+    }
+
     void Trimesh::putOnPlane(const Plane& plane) {
         // Find nearest point
         double minval = INFTY;
@@ -311,6 +315,26 @@ namespace spica {
         for (int i = 0; i < _numVerts; i++) {
             _vertices[i] -= (minval + plane.distance()) * plane.normal();
         }
+    }
+
+    void Trimesh::fitToBBox(const BBox& bbox) {
+        BBox orgBox;
+        for (int i = 0; i < _numVerts; i++) {
+            orgBox.merge(_vertices[i]);
+        }
+
+        const Vector3 targetSize = bbox.posMax() - bbox.posMin();
+        const Vector3 orgSize = orgBox.posMax() - orgBox.posMin();
+
+        const double scaleX = targetSize.x() / orgSize.x();
+        const double scaleY = targetSize.y() / orgSize.y();
+        const double scaleZ = targetSize.z() / orgSize.z();
+        const double scaleAll = std::min(scaleX, std::min(scaleY, scaleZ));
+        this->scale(scaleAll);
+
+        const Vector3 prevCenter = (orgBox.posMin() + orgBox.posMax()) * (0.5 * scaleAll);
+        const Vector3 toCenter = (bbox.posMin() + bbox.posMax()) * 0.5;
+        this->translate(toCenter - prevCenter);
     }
 
     Vector3 Trimesh::getNormal(int id) const {

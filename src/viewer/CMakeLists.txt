@@ -38,7 +38,7 @@ if (${BUILD_VIEWER} STREQUAL "ON")
                  blinn_phong.vs
                  blinn_phong.fs)
 
-  configure_file(${CMAKE_SOURCE_DIR}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
+  configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
 
   qt5_use_modules(scene_viewer Widgets OpenGL)
 

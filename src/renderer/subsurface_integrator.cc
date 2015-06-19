@@ -148,7 +148,7 @@ namespace spica {
         const double distSquared = (node->pt.pos - pos).squaredNorm();
         double dw = node->pt.area / distSquared;
         if (node->isLeaf || (dw < _parent->_maxError && !node->bbox.inside(pos))) {
-            return bssrdf(distSquared).multiply(node->pt.irad) * node->pt.area;
+            return Color(bssrdf(distSquared).multiply(node->pt.irad) * node->pt.area);
         } else {
             Color ret(0.0, 0.0, 0.0);
             for (int i = 0; i < 8; i++) {
@@ -242,7 +242,7 @@ namespace spica {
 
     Color SubsurfaceIntegrator::irradiance(const Vector3& p) const {
         Color Mo = octree.iradSubsurface(p, bssrdf);
-        return (1.0 / PI) * (1.0 - bssrdf.Fdr()) * Mo;
+        return Color((1.0 / PI) * (1.0 - bssrdf.Fdr()) * Mo);
     }
 
     void SubsurfaceIntegrator::buildPhotonMap(const Scene& scene, const int numPhotons, const int bounceLimit, const RandomType randType) {
@@ -279,7 +279,7 @@ namespace spica {
             Vector3 posLight, normalLight;
             sampler::on(light, &posLight, &normalLight, r1Light, r2Light);
 
-            Color currentFlux = light->area() * scene.getMaterial(lightID).emission * PI / numPhotons;
+            Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
 
             const double r1 = rseq.next();
             const double r2 = rseq.next();
@@ -403,13 +403,13 @@ namespace spica {
         Color totalFlux = Color(0.0, 0.0, 0.0);
         for (int i = 0; i < numValidPhotons; i++) {
             const double w = 1.0 - (distances[i] / (k * maxdist));
-            const Color v = photons[i].flux() / PI;
+            const Color v = Color(photons[i].flux() / PI);
             totalFlux += w * v;
         }
         totalFlux /= (1.0 - 2.0 / (3.0 * k));
 
         if (maxdist > EPS) {
-            return totalFlux / (PI * maxdist * maxdist);
+            return Color(totalFlux / (PI * maxdist * maxdist));
         }
         return Color(0.0, 0.0, 0.0);
     }

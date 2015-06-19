@@ -258,7 +258,7 @@ namespace spica {
                     throughputMC *= G;
                     vertices->push_back(Vertex(positionOnLens, camera.direction().normalized(), camera.direction().normalized(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
                 
-                    const Color result = (camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfA;
+                    const Color result = Color((camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfA);
                     return TraceResult(result, x, y, HIT_ON_LENS);
                 }
 
@@ -390,7 +390,7 @@ namespace spica {
 
                 if (mtrl.emission.norm() > 0.0) {
                     vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughputMC));
-                    const Color result = throughputMC.multiply(mtrl.emission) / totalPdfA;
+                    const Color result = Color(throughputMC.multiply(mtrl.emission) / totalPdfA);
                     return TraceResult(result, x, y, HIT_ON_LIGHT);
                 }
 
@@ -474,7 +474,7 @@ namespace spica {
 
             if (ptResult.hitObjType == HIT_ON_LIGHT) {
                 const double weightMIS = calcMISWeight(scene, camera, eyeVerts[eyeVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, (const int)eyeVerts.size(), 0);
-                const Color result = weightMIS * ptResult.value;
+                const Color result = Color(weightMIS * ptResult.value);
                 bptResult.samples.push_back(Sample(x, y, result, true));
             }
 
@@ -482,7 +482,7 @@ namespace spica {
                 const double weightMIS = calcMISWeight(scene, camera, lightVerts[lightVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, 0, (const int)lightVerts.size());
                 const int lx = ltResult.imageX;
                 const int ly = ltResult.imageY;
-                const Color result = weightMIS * ltResult.value;
+                const Color result = Color(weightMIS * ltResult.value);
                 bptResult.samples.push_back(Sample(lx, ly, result, false));
             }
 
@@ -559,7 +559,7 @@ namespace spica {
                         continue;
                     }
 
-                    const Color result = weightMIS * connectedThrought.multiply(eyeThoughput).multiply(lightThrouput) / totalPdfA;
+                    const Color result = Color(weightMIS * connectedThrought.multiply(eyeThoughput).multiply(lightThrouput) / totalPdfA);
                     bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId > 1.0));
                 }
             }

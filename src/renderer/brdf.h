@@ -23,7 +23,7 @@ namespace spica {
     class SPICA_BRDF_DLL BRDFBase {
     protected:
         BRDFBase() {}
-        BRDFBase(const BRDFBase&) {}
+        explicit BRDFBase(const BRDFBase&) {}
 
     public:
         virtual ~BRDFBase() {}
@@ -41,7 +41,7 @@ namespace spica {
         void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
 
     private:
-        LambertianBRDF(const Color& reflectance);
+        explicit LambertianBRDF(const Color& reflectance);
     };
 
     class SPICA_BRDF_DLL SpecularBRDF : public BRDFBase {
@@ -54,7 +54,7 @@ namespace spica {
         void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
 
     private:
-        SpecularBRDF(const Color& reflectance);
+        explicit SpecularBRDF(const Color& reflectance);
     };
 
     class SPICA_BRDF_DLL PhongBRDF : public BRDFBase {
@@ -86,7 +86,7 @@ namespace spica {
         void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
 
     private:
-        BRDF(const BRDFBase* ptr);
+        explicit BRDF(const BRDFBase* ptr);
         void release();
 
     // Friend classes

@@ -31,7 +31,7 @@ namespace spica {
             double r2;
             int n;
 
-            HPoint(Vector3 pos = Vector3())
+            explicit HPoint(Vector3 pos = Vector3())
                 : Vector3(pos)
                 , normal()
                 , flux()

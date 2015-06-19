@@ -21,8 +21,6 @@ int main(int argc, char** argv) {
 
     Random rng = Random();
     const int numPhotons = 2000000;
-    const int gatherPhotons = 200;
-    const double gatherRadius = 20.0;
 
     BSSRDF bssrdf = DiffusionBSSRDF::factory(1.0e-4, 10.0, 1.3);
 

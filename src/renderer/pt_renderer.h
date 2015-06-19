@@ -28,7 +28,7 @@ namespace spica {
         spica::Image* _image;
 
     public:
-        PathTracingRenderer(spica::Image* image = NULL);
+        explicit PathTracingRenderer(spica::Image* image = NULL);
         ~PathTracingRenderer();
 
         void render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType = PSEUDO_RANDOM_TWISTER);

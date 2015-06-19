@@ -125,7 +125,7 @@ namespace spica {
                 weight = mtrl.color / roulette;
             }
 
-            return mtrl.emission + weight.multiply(incomingRad);
+            return Color(mtrl.emission + weight.multiply(incomingRad));
         }
 
         Color radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int depth, const int depthLimit, const int depthMin) {
@@ -234,7 +234,7 @@ namespace spica {
                 }
             }
 
-            return mtrl.emission + weight.multiply(nextRad);        
+            return Color(mtrl.emission + weight.multiply(nextRad));        
         }
 
     }

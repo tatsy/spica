@@ -199,7 +199,7 @@ namespace spica {
             sampler::on(light, &posOnLight, &normalOnLight, r1Light, r2Light);
 
             // Compute flux
-            Color currentFlux = scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons);
+            Color currentFlux = Color(scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons));
 
             // Prepare ray
             const double r1 = rseq.next();
@@ -427,7 +427,7 @@ namespace spica {
                 } else {
                     // Both reflect and transmit
                     ray = Ray(hitpoint.position(), reflectDir);
-                    Color weightTr = weight.multiply(mtrl.color) * fresnelTr;
+                    Color weightTr = Color(weight.multiply(mtrl.color) * fresnelTr);
                     Color irad = integrator.irradiance(hitpoint.position());
                     accumEmit += irad.multiply(weightTr);
                     weight = weight.multiply(mtrl.color) * fresnelRe;                    

@@ -152,7 +152,7 @@ namespace spica {
         const double distSquared = (node->pt.pos - pos).squaredNorm();
         double dw = node->pt.area / distSquared;
         if (node->isLeaf || (dw < maxError && !node->bbox.inside(pos))) {
-            return Rd(distSquared) * node->pt.irad * node->pt.area;
+            return Color(Rd(distSquared) * node->pt.irad * node->pt.area);
         } else {
             Color ret(0.0, 0.0, 0.0);
             for (int i = 0; i < 8; i++) {
@@ -274,7 +274,7 @@ namespace spica {
             Vector3 posLight, normalLight;
             sampler::on(light, &posLight, &normalLight);
 
-            Color currentFlux = light->area() * scene.getMaterial(lightID).emission * PI / numPhotons;
+            Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
 
             Vector3 nextDir;
             sampler::onHemisphere(normalLight, &nextDir);
@@ -390,13 +390,13 @@ namespace spica {
         Color totalFlux = Color(0.0, 0.0, 0.0);
         for (int i = 0; i < numValidPhotons; i++) {
             const double w = 1.0 - (distances[i] / (k * maxdist));
-            const Color v = photons[i].flux() / PI;
+            const Color v = Color(photons[i].flux() / PI);
             totalFlux += w * v;
         }
         totalFlux /= (1.0 - 2.0 / (3.0 * k));
 
         if (maxdist > EPS) {
-            return totalFlux / (PI * maxdist * maxdist);
+            return Color(totalFlux / (PI * maxdist * maxdist));
         }
         return Color(0.0, 0.0, 0.0);
     }
@@ -412,7 +412,7 @@ namespace spica {
         const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
         const double weight = cosine * cosine / lens2sensor.squaredNorm();
 
-        return radiance(scene, ray, rng, 0) * (weight * camera.sensitivity() / (pImage * pLens));
+        return Color(radiance(scene, ray, rng, 0) * (weight * camera.sensitivity() / (pImage * pLens)));
     }
 
     Color SSSRenderer::radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth, const int depthLimit, const int depthMin) {
@@ -535,7 +535,7 @@ namespace spica {
                     // Subsurface scattering
                     DiffusionReflectance Rd(sigma_a, sigmap_s, eta);
                     Color Mo = octree.iradSubsurface(hitpoint.position(), Rd);
-                    Color transmitRad = (1.0 / PI) * (1.0 - Rd.Fdr(eta)) * Mo;
+                    Color transmitRad = Color((1.0 / PI) * (1.0 - Rd.Fdr(eta)) * Mo);
                     
                     // Both reflect and transmit
                     incomingRad += radiance(scene, reflectRay, rng, depth + 1) * fresnelRe + transmitRad * fresnelTr;
@@ -544,7 +544,7 @@ namespace spica {
             }
 
         }
-        return mtrl.emission + weight.multiply(incomingRad);
+        return Color(mtrl.emission + weight.multiply(incomingRad));
     }
 
 }  // namespace spica

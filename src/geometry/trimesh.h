@@ -38,7 +38,7 @@ namespace spica {
 
         // Constructor
         // @param[in] filename: .ply or .obj file
-        Trimesh(const std::string& filename);
+        explicit Trimesh(const std::string& filename);
 
         // Constructor
         // @param[in] vertices: vertices to form trimesh

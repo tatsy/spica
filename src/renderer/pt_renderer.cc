@@ -26,7 +26,7 @@ namespace spica {
             CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
             const Ray ray = camSample.generateRay();
 
-            return helper::radiance(scene, ray, rseq, 0) * (camera.sensitivity() / camSample.totalPdf());
+            return Color(helper::radiance(scene, ray, rseq, 0) * (camera.sensitivity() / camSample.totalPdf()));
         }
 
     }   // anonymous namespace

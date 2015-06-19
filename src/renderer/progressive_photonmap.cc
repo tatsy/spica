@@ -175,7 +175,7 @@ namespace spica {
             sampler::on(light, &posOnLight, &normalOnLight, r1Light, r2Light);
 
             // Compute flux
-            Color currentFlux = scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons);
+            Color currentFlux = Color(scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons));
 
             // Prepare ray
             Vector3 nextDir;

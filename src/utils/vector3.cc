@@ -61,7 +61,7 @@ namespace spica {
         return this->operator*=(1.0 / s);
     }
 
-    bool Vector3::operator==(const Vector3 v) const {
+    bool Vector3::operator==(const Vector3& v) const {
         return (this->x() == v.x() && this->y() == v.y() && this->z() == v.z());
     }
 

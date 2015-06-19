@@ -82,7 +82,7 @@ namespace spica {
     Color PMRenderer::executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, const double pixelX, const double pixelY, const int numTargetPhotons, const double targetRadius) const {
         CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
         const Ray ray = camSample.generateRay();
-        return radiance(scene, ray, rseq, numTargetPhotons, targetRadius, 0) * (camera.sensitivity() / camSample.totalPdf());
+        return Color(radiance(scene, ray, rseq, numTargetPhotons, targetRadius, 0) * (camera.sensitivity() / camSample.totalPdf()));
     }    
     
     Color PMRenderer::radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {
@@ -136,19 +136,19 @@ namespace spica {
             Color totalFlux = Color(0.0, 0.0, 0.0);
             for (int i = 0; i < numValidPhotons; i++) {
                 const double w = 1.0 - (distances[i] / (k * maxdist));
-                const Color v = mtrl.color.multiply(photons[i].flux()) / PI;
+                const Color v = Color(mtrl.color.multiply(photons[i].flux()) / PI);
                 totalFlux += w * v;
             }
             totalFlux /= (1.0 - 2.0 / (3.0 * k));
             
             if (maxdist > EPS) {
-                return mtrl.emission + totalFlux / ((PI * maxdist * maxdist) * roulette); 
+                return Color(mtrl.emission + totalFlux / ((PI * maxdist * maxdist) * roulette)); 
             }
         } else if (mtrl.reftype == REFLECTION_SPECULAR) {
             Vector3 nextDir = Vector3::reflect(ray.direction(), hitpoint.normal());
             Ray nextRay = Ray(hitpoint.position(), nextDir);
             Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-            return mtrl.emission + mtrl.color.multiply(nextRad) / roulette;
+            return Color(mtrl.emission + mtrl.color.multiply(nextRad) / roulette);
         } else if (mtrl.reftype == REFLECTION_REFRACTION) {
             bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
             Vector3 reflectDir, refractDir;
@@ -157,7 +157,7 @@ namespace spica {
                 // Total reflection
                 Ray nextRay = Ray(hitpoint.position(), reflectDir);
                 Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                return mtrl.emission + mtrl.color.multiply(nextRad) / roulette;
+                return Color(mtrl.emission + mtrl.color.multiply(nextRad) / roulette);
             } else {
                 if (depth > 2) {
                     // Reflect or reflact
@@ -166,20 +166,20 @@ namespace spica {
                         // Reflect
                         Ray nextRay = Ray(hitpoint.position(), reflectDir);
                         Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                        return mtrl.emission + mtrl.color.multiply(nextRad) * (fresnelRe / (probRef * roulette));
+                        return Color(mtrl.emission + mtrl.color.multiply(nextRad) * (fresnelRe / (probRef * roulette)));
                     } else {
                         // Refract
                         Ray nextRay = Ray(hitpoint.position(), refractDir);
                         Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                        return mtrl.emission + mtrl.color.multiply(nextRad) * (fresnelTr / ((1.0 - probRef) * roulette));
+                        return Color(mtrl.emission + mtrl.color.multiply(nextRad) * (fresnelTr / ((1.0 - probRef) * roulette)));
                     }
                 } else {
                     Ray reflectRay = Ray(hitpoint.position(), reflectDir);
                     Color reflectRad = radiance(scene, reflectRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
                     Ray transmitRay = Ray(hitpoint.position(), refractDir);
                     Color transmitRad = radiance(scene, transmitRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
-                    Color nextRad = reflectRad * fresnelRe + transmitRad * fresnelTr;
-                    return mtrl.emission + mtrl.color.multiply(nextRad) / roulette;
+                    Color nextRad = Color(reflectRad * fresnelRe + transmitRad * fresnelTr);
+                    return Color(mtrl.emission + mtrl.color.multiply(nextRad) / roulette);
                 }
             }
         }
@@ -220,7 +220,7 @@ namespace spica {
             const double r1Light = rseq.next();
             const double r2Light = rseq.next();
             sampler::on(light, &posLignt, &normalLight, r1Light, r2Light);
-            Color currentFlux = light->area() * scene.getMaterial(lightID).emission * PI / numPhotons;
+            Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
 
             const double r1 = rseq.next();
             const double r2 = rseq.next();

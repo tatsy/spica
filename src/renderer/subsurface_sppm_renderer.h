@@ -29,7 +29,7 @@ namespace spica {
         double area;
         bool isPixel;
 
-        HitpointInfo(const Vector3& pos = Vector3())
+        explicit HitpointInfo(const Vector3& pos = Vector3())
             : Vector3(pos)
             , normal()
             , flux()
@@ -89,7 +89,7 @@ namespace spica {
         static const double ALPHA;
 
     public:
-        SubsurfaceSPPMRenderer(Image* image = NULL);
+        explicit SubsurfaceSPPMRenderer(Image* image = NULL);
         ~SubsurfaceSPPMRenderer();
 
         void render(const Scene& scene, const Camera& camera, const BSSRDF& bssrdf, const int samplePerPixel, const int numPhotons, const RandomType randType = PSEUDO_RANDOM_TWISTER);

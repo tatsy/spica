@@ -29,8 +29,8 @@ namespace spica {
         double _eta;
 
     protected:
-        BSSRDFBase(double eta = 1.3) : _eta(eta) {}
-        BSSRDFBase(const BSSRDFBase&) {}
+        explicit BSSRDFBase(double eta = 1.3) : _eta(eta) {}
+        explicit BSSRDFBase(const BSSRDFBase& base) : _eta(base._eta) {}
 
     public:
         virtual ~BSSRDFBase() {}
@@ -102,7 +102,7 @@ namespace spica {
         Color operator()(const double d2) const;
 
     private:
-        BSSRDF(const BSSRDFBase* ptr);
+        explicit BSSRDF(const BSSRDFBase* ptr);
         void release();
         void nullCheck() const;
 

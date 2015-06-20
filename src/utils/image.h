@@ -7,7 +7,7 @@
     #else
         #define SPICA_IMAGE_DLL __declspec(dllimport)
     #endif
-#elif defined(linux) || defined(__linux)
+#else
     #define SPICA_IMAGE_DLL
 #endif
 
@@ -27,10 +27,12 @@ namespace spica {
         Image();
         Image(int width, int height);
         Image(const Image& image);
+        Image(Image&& image);
 
         virtual ~Image();
 
         Image& operator=(const Image& image);
+        Image& operator=(Image&& image);
 
         const Color& operator()(int x, int y) const;
         Color& pixel(int x, int y);

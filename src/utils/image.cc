@@ -73,11 +73,19 @@ namespace spica {
     }
 
     Image::Image(const Image& image) 
-        : _width(image._width)
-        , _height(image._height)
-        , _pixels(new Color[image._width * image._height])
+        : _width(0)
+        , _height(0)
+        , _pixels(NULL)
     {
-        memcpy(_pixels, image._pixels, sizeof(Color) * image._width * image._height);
+        this->operator=(image);
+    }
+
+    Image::Image(Image&& image)
+        : _width(0)
+        , _height(0)
+        , _pixels(NULL)
+    {
+        this->operator=(std::move(image));
     }
 
     Image::~Image()
@@ -99,6 +107,20 @@ namespace spica {
         this->_height = image._height;
         this->_pixels = new Color[image._width * image._height];
         memcpy(_pixels, image._pixels, sizeof(Color) * image._width * image._height);
+
+        return *this;
+    }
+
+    Image& Image::operator=(Image&& image) {
+        release();
+
+        this->_width  = image._width;
+        this->_height = image._height;
+        this->_pixels = image._pixels;
+
+        image._width = 0;
+        image._height = 0;
+        image._pixels = nullptr;
 
         return *this;
     }

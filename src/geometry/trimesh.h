@@ -48,9 +48,13 @@ namespace spica {
         // Copy constructor
         Trimesh(const Trimesh& trimesh);
 
+        // Move constructor
+        Trimesh(Trimesh&& trimesh);
+
         virtual ~Trimesh();
 
         Trimesh& operator=(const Trimesh& trimesh);
+        Trimesh& operator=(Trimesh&& trimesh);
 
         // Check intersection
         // @param[in] ray: input to check intersect with

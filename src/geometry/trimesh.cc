@@ -71,6 +71,18 @@ namespace spica {
         this->operator=(trimesh);
     }
 
+    Trimesh::Trimesh(Trimesh&& trimesh)
+        : _numVerts(0)
+        , _numFaces(0)
+        , _vertices(NULL)
+        , _faces(NULL)
+        , _normals(NULL)
+        , _accel(NULL)
+        , _accelType(QBVH_ACCEL)
+    {
+        this->operator=(std::move(trimesh));
+    }
+
     Trimesh::~Trimesh()
     {
         release();
@@ -105,6 +117,24 @@ namespace spica {
         memcpy(_normals, trimesh._normals, sizeof(Vector3) * _numFaces);
 
         return *this;
+    }
+
+    Trimesh& Trimesh::operator=(Trimesh&& trimesh) {
+        release();
+
+        _numVerts = trimesh._numVerts;
+        _numFaces = trimesh._numFaces;
+        _vertices = trimesh._vertices;
+        _faces    = trimesh._faces;
+        _normals  = trimesh._normals;
+        _accel    = trimesh._accel;
+        _accelType = trimesh._accelType;
+        
+        trimesh._vertices = nullptr;
+        trimesh._faces    = nullptr;
+        trimesh._normals  = nullptr;
+
+        return *this;    
     }
 
     bool Trimesh::intersect(const Ray& ray, Hitpoint* hitpoint) const {

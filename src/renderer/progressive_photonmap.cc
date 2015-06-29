@@ -296,7 +296,7 @@ namespace spica {
             double randnum = rseq.next();
 
             if (!scene.intersect(ray, isect) || bounce > bounceLimit) {
-                weight = weight.multiply(scene.envmap(ray.direction()));
+                weight = weight.multiply(scene.envmap().sampleFromDir(ray.direction()));
                 hp->weight = weight;
                 hp->coeff = coeff;
                 break;

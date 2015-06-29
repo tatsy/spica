@@ -420,7 +420,7 @@ namespace spica {
 
         // NOT intersect the scene
         if (!scene.intersect(ray, isect)) {
-            return scene.envmap(ray.direction());
+            return scene.envmap().sampleFromDir(ray.direction());
         }
 
         const Material& mtrl = scene.getMaterial(isect.objectId());

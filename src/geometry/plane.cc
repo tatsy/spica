@@ -33,7 +33,7 @@ namespace spica {
 
     bool Plane::intersect(const Ray& ray, Hitpoint* hitpoint) const {
         double dt = ray.direction().dot(_normal);
-        if (dt > EPS) {
+        if (dt > -EPS) {
             return false;
         }
 

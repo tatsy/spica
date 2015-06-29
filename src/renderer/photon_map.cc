@@ -1,4 +1,8 @@
+#define SPICA_PHOTON_MAP_EXPORT
 #include "photon_map.h"
+
+#include "../utils/sampler.h"
+#include "scene.h"
 
 namespace spica {
 
@@ -37,6 +41,23 @@ namespace spica {
         this->_direction = photon._direction;
         this->_normal = photon._normal;
         return *this;
+    }
+
+    Photon Photon::sample(const Scene& scene, RandomSeq& rseq, const int numPhotons) {
+        const int lightID = scene.lightID();
+        if (lightID >= 0) {
+            const Primitive* light = scene.get(lightID);
+
+            const double r1 = rseq.next();
+            const double r2 = rseq.next();
+
+            Vector3 posLight, normalLight;
+            sampler::on(light, &posLight, &normalLight, r1, r2);
+            Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
+            return Photon(posLight, currentFlux, normalLight, normalLight);
+        } else {
+            return scene.envmap().samplePhoton(rseq, numPhotons);
+        }
     }
 
     PhotonMap::PhotonMap()

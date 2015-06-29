@@ -26,7 +26,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <typeinfo>
 #include <type_traits>
+
+#if defined(_WIN32) || defined(__WIN32__)
+#else
+#include <cxxabi.h>
+#endif
 
 // ----------------------------------------------------------------------------
 // Parameter constants
@@ -80,5 +86,19 @@ do { \
 #else  // NDEBUG
 #define msg_assert(PREDICATE, MSG) do {} while (false)
 #endif  // NDEBUG
+
+// ----------------------------------------------------------------------------
+// Get typename
+// ----------------------------------------------------------------------------
+template <class Ty>
+inline std::string get_typename(const Ty* t) {
+#if defined(_WIN32) || defined(__WIN32__)
+    std::string ret = typeid(*t).name();
+#else
+    int status;
+    std::string ret = abi::__cxa_demangle(typeid(*ptr).name(), 0, 0, &status);
+#endif
+    return ret;
+}
 
 #endif  // SPICA_COMMON_H_

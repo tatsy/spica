@@ -36,7 +36,7 @@ namespace spica {
     }
 
     void VBO::add(const Primitive* p, const Color& color) {
-        std::string typname = typeid(*p).name();
+        std::string typname = get_typename(p);
         std::cout << typname << std::endl;
         if (typname == "class spica::Quad") {
             const Quad* quad = reinterpret_cast<const Quad*>(p);

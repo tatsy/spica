@@ -184,7 +184,7 @@ namespace spica {
                 msg_assert(points.empty(), "# of objects with subsurface scattering property must be only one !!");
 
                 const Primitive* obj = scene.get(i);
-                std::string typname = typeid(*obj).name();
+                std::string typname = get_typename(obj);
                 msg_assert(typname == "class spica::Trimesh", "Object with subsurface scattering property must be Trimesh !!");
 
                 const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(obj);

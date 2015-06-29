@@ -36,18 +36,17 @@ namespace spica {
     }
 
     void VBO::add(const Primitive* p, const Color& color) {
-        std::string typname = get_typename(p);
-        std::cout << typname << std::endl;
-        if (typname == "class spica::Quad") {
+        if (typeid(*p) == typeid(Quad)) {
             const Quad* quad = reinterpret_cast<const Quad*>(p);
             add(*quad, color);
-        } else if (typname == "class spica::Sphere") {
+        } else if (typeid(*p) == typeid(Sphere)) {
             const Sphere* sphere = reinterpret_cast<const Sphere*>(p);
             add(*sphere, color);
-        } else if (typname == "class spica::Trimesh") {
+        } else if (typeid(*p) == typeid(Trimesh)) {
             const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(p);
             add(*trimesh, color);
         } else {
+            const std::string typname = typeid(*p).name();
             msg_assert(false, (typname + "is not supported").c_str());        
         }
     }

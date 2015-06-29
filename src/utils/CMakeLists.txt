@@ -1,6 +1,6 @@
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/common.h.in
-               ${CMAKE_CURRENT_LIST_DIR}/common.h
+configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
+               ${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h
                @ONLY)
 
 set(SOURCES ${SOURCES}

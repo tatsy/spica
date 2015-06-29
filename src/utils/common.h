@@ -34,10 +34,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cxxabi.h>
 #endif
 
-// ----------------------------------------------------------------------------
-// Parameter constants
-// ----------------------------------------------------------------------------
-static const std::string DATA_DIR = "@CMAKE_SOURCE_DIR@/data/";
+#include "spica_dirs.h"
 
 // ----------------------------------------------------------------------------
 // Parameter constants
@@ -86,19 +83,5 @@ do { \
 #else  // NDEBUG
 #define msg_assert(PREDICATE, MSG) do {} while (false)
 #endif  // NDEBUG
-
-// ----------------------------------------------------------------------------
-// Get typename
-// ----------------------------------------------------------------------------
-template <class Ty>
-inline std::string get_typename(const Ty* t) {
-#if defined(_WIN32) || defined(__WIN32__)
-    std::string ret = typeid(*t).name();
-#else
-    int status;
-    std::string ret = abi::__cxa_demangle(typeid(*t).name(), 0, 0, &status);
-#endif
-    return ret;
-}
 
 #endif  // SPICA_COMMON_H_

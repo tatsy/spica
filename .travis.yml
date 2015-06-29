@@ -57,6 +57,7 @@ before_script:
   - lcov --directory . --zerocounters
 
 script:
+  - export OMP_NUM_THREADS=4
   - CTEST_OUTPUT_ON_FAILURE=TRUE make check
 
 after_success:

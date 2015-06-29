@@ -55,16 +55,21 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
 // Parallel for
 // ----------------------------------------------------------------------------
 #ifdef _OPENMP
-#include <omp.h>
-#define ompfor __pragma(omp parallel for) for
-#define omplock __pragma(omp critical)
-const int OMP_NUM_CORE = omp_get_max_threads();
-inline int omp_thread_id() { return omp_get_thread_num(); }
+    #include <omp.h>
+    #if defined(_WIN32) || defined(__WIN32__)
+        #define ompfor __pragma(omp parallel for) for
+        #define omplock __pragma(omp critical)
+    #else
+        #define ompfor _Pragma("omp parallel for") for
+        #define omplock _Pragma("omp critical")
+    #endif
+    const int OMP_NUM_CORE = omp_get_max_threads();
+    inline int omp_thread_id() { return omp_get_thread_num(); }
 #else  // _OPENMP
-#define ompfor for
-#define omplock
-const int OMP_NUM_CORE = 1;
-inline int omp_thread_id() { return 0; }
+    #define ompfor for
+    #define omplock
+    const int OMP_NUM_CORE = 1;
+    inline int omp_thread_id() { return 0; }
 #endif  // _OPENMP
 
 // ----------------------------------------------------------------------------

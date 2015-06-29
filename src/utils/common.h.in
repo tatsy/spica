@@ -26,6 +26,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <type_traits>
 
 // ----------------------------------------------------------------------------
 // Parameter constants
@@ -38,6 +39,14 @@ static const std::string DATA_DIR = "@CMAKE_SOURCE_DIR@/data/";
 static const double PI = 4.0 * atan(1.0);
 static const double INFTY = 1.0e128;
 static const double EPS = 1.0e-6;
+
+extern void* enabler;
+template <class Ty, typename std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
+inline Ty clamp(Ty v, Ty lo, Ty hi) {
+    if (v < lo) v = lo;
+    if (v > hi) v = hi;
+    return v;
+}
 
 // ----------------------------------------------------------------------------
 // Parallel for

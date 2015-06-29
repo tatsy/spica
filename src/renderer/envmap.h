@@ -11,34 +11,36 @@
     #define SPICA_ENVMAP_DLL
 #endif
 
+#include <vector>
+
 #include "../utils/color.h"
+#include "../utils/image.h"
+#include "../random/random.h"
 
 namespace spica {
 
+    class Photon;
+
     class SPICA_ENVMAP_DLL Envmap {
     private:
-        int _numPhi;
-        int _numTheta;
-        Color* _table;
+        Image _image;
+        Image _importance;
+        std::vector<double> _pdf;
+        std::vector<double> _cdf;
+        static const int IMPORTANCE_MAP_SIZE = 64;
 
     public:
         Envmap();
-        Envmap(const int numPhi, const int numTheta);
-        Envmap(const Envmap& envmap);
-        
-        ~Envmap();
+        Envmap(const std::string& filename);
 
-        Envmap& operator=(const Envmap& envmap);
-        const Color& operator()(const double phi, const double theta) const;
-
-        void resize(const int nPhi, const int nTheta);
-
-        void set(const int phi, const int theta, const Color& color);
-
+        void resize(int width, int height);
         void clearColor(const Color& color);
 
+        Color sampleFromDir(const Vector3& dir) const;
+        Photon samplePhoton(RandomSeq& rseq, const int numPhotons) const;
+
     private:
-        void release();
+        void createImportanceMap();
 
     };
 

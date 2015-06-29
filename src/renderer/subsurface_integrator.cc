@@ -270,22 +270,17 @@ namespace spica {
                 rand->requestSamples(rseq, 200);
             }
 
-            // Generate sample on the light
-            const int lightID = scene.lightID();
-            const Primitive* light = scene.get(lightID);
+            Photon photon = Photon::sample(scene, rseq, numPhotons);
 
-            const double r1Light = rseq.next();
-            const double r2Light = rseq.next();
-            Vector3 posLight, normalLight;
-            sampler::on(light, &posLight, &normalLight, r1Light, r2Light);
-
-            Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
+            const Vector3& lightNormal = photon.normal();
+            const Vector3& lightPos    = static_cast<Vector3>(photon);
+            Color currentFlux = photon.flux();
 
             const double r1 = rseq.next();
             const double r2 = rseq.next();
             Vector3 nextDir;
-            sampler::onHemisphere(normalLight, &nextDir, r1, r2);
-            Ray currentRay(posLight, nextDir);
+            sampler::onHemisphere(lightNormal, &nextDir, r1, r2);
+            Ray currentRay(lightPos, nextDir);
 
             for (int bounce = 0; ; bounce++) {
                 std::vector<double> randnums;

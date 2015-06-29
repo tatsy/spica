@@ -17,9 +17,8 @@ int main(int argc, char** argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxDragon(&scene, &camera, width, height);
+    kittenEnvmap(&scene, &camera, width, height);
 
-    Random rng = Random();
     const int numPhotons = 2000000;
 
     BSSRDF bssrdf = DiffusionBSSRDF::factory(1.0e-4, 10.0, 1.3);

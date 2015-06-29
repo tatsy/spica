@@ -383,11 +383,6 @@ namespace spica {
                 const double g = tmp_data[(y * width + x) * 4 + 1] * pow(2.0, e - 128.0) / 256.0;
                 const double b = tmp_data[(y * width + x) * 4 + 2] * pow(2.0, e - 128.0) / 256.0;
                 _pixels[y * width + x] = spica::Color(r, g, b);
-                
-                if (r > 1.0 || g > 1.0 || b > 1.0) {
-                    printf("(%f, %f, %f)\n", r, g, b);
-                }
-                
             }
         }
 

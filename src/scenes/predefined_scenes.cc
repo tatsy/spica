@@ -235,23 +235,52 @@ namespace spica {
         scene->clear(); 
 
         // Envmap
-        const int numPhi = 512;
-        const int numTheta = 256;
-        Envmap envmap(numPhi, numTheta);
-        envmap.clearColor(Color(2.0, 1.0, 2.0));
+        Envmap envmap(DATA_DIR + "gold_room.hdr");
         scene->setEnvmap(envmap);
 
         // Objects
         Trimesh dragon(DATA_DIR + "dragon.ply");
         dragon.scale(70.0, 70.0, 70.0);
         dragon.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
+        dragon.buildAccel();
 
-        const BRDF brdf = PhongBRDF::factory(Color(0.70, 0.60, 0.40), 128.0);
-        scene->add(dragon, Material(Color(), Color(0.70, 0.60, 0.40), REFLECTION_BRDF, brdf));
+        scene->add(dragon, Material(Color(), Color(0.70, 0.60, 0.40), REFLECTION_SUBSURFACE));                         
+        
+        Disk disk(Vector3(0.0, -10.0, 0.0), Vector3(0.0, 1.0, 0.0), 10.0);
+        scene->add(disk, Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE));
 
         (*camera) = Camera(width, height, 
                            Vector3(0.0, 0.0, 100.0),
                            Vector3(0.0, 0.0, -1.0),
+                           Vector3(0.0, 1.0, 0.0),
+                           20.0,
+                           42.0,
+                           58.0,
+                           1.0,
+                           90.0);
+    }
+
+    void kittenEnvmap(Scene* scene, Camera* camera, const int width, const int height) {
+        scene->clear(); 
+
+        // Envmap
+        Envmap envmap(DATA_DIR + "cave_room.hdr");
+        scene->setEnvmap(envmap);
+
+        // Objects
+        Trimesh kitten(DATA_DIR + "kitten.ply");
+        kitten.scale(0.15, 0.15, 0.15);
+        kitten.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
+        kitten.buildAccel();
+
+        scene->add(kitten, Material(Color(), Color(0.25, 0.60, 0.80), REFLECTION_SUBSURFACE));                         
+        
+        Disk disk(Vector3(0.0, -10.0, 0.0), Vector3(0.0, 1.0, 0.0), 20.0);
+        scene->add(disk, Material(Color(), Color(0.95, 0.95, 0.95), REFLECTION_DIFFUSE));
+
+        (*camera) = Camera(width, height, 
+                           Vector3(0.0, 5.0, 100.0),
+                           Vector3(0.0, -5.0, -100.0).normalized(),
                            Vector3(0.0, 1.0, 0.0),
                            20.0,
                            42.0,

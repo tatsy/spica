@@ -1,5 +1,5 @@
-#ifndef SPICA_SCENE_H_
-#define SPICA_SCENE_H_
+#ifndef _SPICA_SCENE_H_
+#define _SPICA_SCENE_H_
 
 #if defined(_WIN32) || defined(__WIN32__)
     #ifdef SPICA_SCENE_EXPORT
@@ -16,9 +16,9 @@
 #include "../utils/uncopyable.h"
 #include "../geometry/geometry.h"
 
+#include "envmap.h"
 #include "ray.h"
 #include "material.h"
-#include "envmap.h"
 
 namespace spica {
     
@@ -55,8 +55,8 @@ namespace spica {
         inline int lightID() const { return _lightID; }
         inline int numObjects() const { return _nPrimitives; }
 
-        const Color& envmap(const Vector3& dir) const;
-        void setEnvmap(const Envmap& envmap) { _envmap = envmap; }
+        inline const Envmap& envmap() const { return _envmap; }
+        inline void setEnvmap(const Envmap& envmap) { _envmap = envmap; }
 
     private:
         Scene(const Scene& scene);
@@ -69,4 +69,4 @@ namespace spica {
     };
 }
 
-#endif  // SPICA_SCENE_H_
+#endif  // _SPICA_SCENE_H_

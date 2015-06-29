@@ -50,7 +50,7 @@ namespace spica {
         Color radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth, const int depthLimit, const int maxDepth) {
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
-                return scene.envmap(ray.direction());
+                return scene.envmap().sampleFromDir(ray.direction());
             }
 
             const Material& mtrl = scene.getMaterial(isect.objectId());
@@ -131,7 +131,7 @@ namespace spica {
         Color radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int depth, const int depthLimit, const int depthMin) {
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
-                return scene.envmap(ray.direction());
+                return scene.envmap().sampleFromDir(ray.direction());
             }
 
             // Require random numbers

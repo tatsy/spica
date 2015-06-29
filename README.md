@@ -5,6 +5,7 @@ spica
 [![Coverage Status](https://coveralls.io/repos/tatsy/spica/badge.svg?branch=master)](https://coveralls.io/r/tatsy/spica?branch=master)
 
 > **spica** is a cross-platform physically-based renderer that is written in C++.
+> HDR images are from sIBL Archive [http://www.hdrlabs.com/sibl/archive.html](http://www.hdrlabs.com/sibl/archive.html). These images are licensed under the Creative Commons Attribution-Noncommercial-Share Alike 3.0 License.
 
 ## Renderer
 

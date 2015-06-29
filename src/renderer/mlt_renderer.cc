@@ -137,7 +137,7 @@ namespace spica {
         Color radiance(const Scene& scene, const Ray& ray, const int depth, const int maxDepth, KelemenMLT& mlt) {
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
-                return scene.envmap(ray.direction());
+                return scene.envmap().sampleFromDir(ray.direction());
             }
 
             const Material& mtrl = scene.getMaterial(isect.objectId());

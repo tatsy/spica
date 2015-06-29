@@ -84,7 +84,7 @@ namespace spica {
 
             char filename[256];
             sprintf(filename, "sss_sppm_%02d.bmp", t + 1);
-            _image->gamma(2.2, true);
+            _image->gamma(1.7, true);
             _image->saveBMP(filename);
         }
 
@@ -183,23 +183,18 @@ namespace spica {
     void SubsurfaceSPPMRenderer::tracePhotons(const Scene& scene, RandomBase* rand, const int numPhotons, const int bounceLimit) {
         std::cout << "Shooting photons ..." << std::endl;
         int proc = 0;
-        ompfor(int pid = 0; pid < numPhotons; pid++) {
+        ompfor (int pid = 0; pid < numPhotons; pid++) {
             RandomSeq rseq;
             omplock {
                 rand->requestSamples(rseq, 200);
             }
 
-            // Sample point on light
-            const int lightID = scene.lightID();
-            const Primitive* light = scene.get(lightID);
-
-            const double r1Light = rseq.next();
-            const double r2Light = rseq.next();
-            Vector3 posOnLight, normalOnLight;
-            sampler::on(light, &posOnLight, &normalOnLight, r1Light, r2Light);
+            Photon photon = Photon::sample(scene, rseq, numPhotons);
+            const Vector3& posOnLight = static_cast<Vector3>(photon);
+            const Vector3& normalOnLight = photon.normal();
 
             // Compute flux
-            Color currentFlux = Color(scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons));
+            Color currentFlux = photon.flux();
 
             // Prepare ray
             const double r1 = rseq.next();
@@ -349,10 +344,9 @@ namespace spica {
             double randnum = rseq.next();
 
             if (!scene.intersect(ray, isect) || bounce > bounceLimit) {
-                weight = weight.multiply(scene.envmap(ray.direction()));
                 hp->weight = weight;
                 hp->coeff = coeff;
-                hp->emission += accumEmit;
+                hp->emission += accumEmit + weight.multiply(scene.envmap().sampleFromDir(ray.direction()));
                 break;
             }
 

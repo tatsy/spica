@@ -581,7 +581,8 @@ namespace spica {
 
     }  // unnamed namespace
     
-    BDPTRenderer::BDPTRenderer()
+    BDPTRenderer::BDPTRenderer(spica::Image* image)
+        : _image(image)
     {
     }
 
@@ -617,6 +618,14 @@ namespace spica {
             buffer[i] = Image(width, height);
         }
 
+        bool isAllocInside = false;
+        if (_image == NULL) {
+            _image = new Image(width, height);
+            isAllocInside = true;
+        } else {
+            _image->resize(width, height);
+        }
+
         const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
         for (int t = 0; t < taskPerThread; t++) {
             ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
@@ -644,17 +653,19 @@ namespace spica {
             }
 
             char filename[256];
-            Image image(width, height);
             const int usedSamples = (t + 1) * OMP_NUM_CORE;
+
+            _image->fill(Color(0.0, 0.0, 0.0));
             for (int k = 0; k < OMP_NUM_CORE; k++) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
-                        image.pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
+                        _image->pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
                     }
                 }
             }
             sprintf(filename, "bdpt_%03d.bmp", t + 1);
-            image.saveBMP(filename);
+            _image->gamma(1.7, true);
+            _image->saveBMP(filename);
 
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);
         }
@@ -665,6 +676,11 @@ namespace spica {
         }
         delete rand;
         delete[] buffer;
+
+        if (isAllocInside) {
+            delete _image;
+            _image = NULL;
+        }
     }
 
 }

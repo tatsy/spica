@@ -17,7 +17,8 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxOcclusion(&scene, &camera, width, height);
+    cornellBox(&scene, &camera, width, height);
+    // cornellBoxOcclusion(&scene, &camera, width, height);
     // cornellBoxBunny(scene, camera, width, height);
     // litByEnvmap(scene, camera, width, height);
 

@@ -31,8 +31,7 @@ namespace spica {
         Quad leftWall(v000, v010, v011, v001);
         Quad rightWall(v100, v101, v111, v110);
 
-        const BRDF brdf = PhongBRDF::factory(Color(0.75, 0.75, 0.75), 32.0);
-        scene->add(floorWall, Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_BRDF, brdf));
+        scene->add(floorWall, Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE));
         scene->add(ceilWall, Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE));
         scene->add(backWall, Material(Color(), Color(0.75, 0.75, 0.75), REFLECTION_DIFFUSE));
         scene->add(leftWall, Material(Color(), Color(0.75, 0.25, 0.25), REFLECTION_DIFFUSE));

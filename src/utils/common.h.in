@@ -96,7 +96,7 @@ inline std::string get_typename(const Ty* t) {
     std::string ret = typeid(*t).name();
 #else
     int status;
-    std::string ret = abi::__cxa_demangle(typeid(*ptr).name(), 0, 0, &status);
+    std::string ret = abi::__cxa_demangle(typeid(*t).name(), 0, 0, &status);
 #endif
     return ret;
 }

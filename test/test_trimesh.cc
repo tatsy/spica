@@ -94,10 +94,10 @@ TEST(TrimeshTest, RandomKdTreeIntersection) {
 
         Hitpoint hitpoint;
         EXPECT_EQ(isHit, trimesh.intersect(ray, &hitpoint))
-            << "  from: " << from << std::endl
-            << "    to: " << to   << std::endl
-            << "   pos: " << ans.position() << std::endl
-            << "normal: " << ans.normal() << std::endl;
+            << "  from: " << from.toString() << std::endl
+            << "    to: " << to.toString()   << std::endl
+            << "   pos: " << ans.position().toString() << std::endl
+            << "normal: " << ans.normal().toString()   << std::endl;
         EXPECT_EQ(ans.distance(), hitpoint.distance());
     }
 }
@@ -121,10 +121,10 @@ TEST(TrimeshTest, RandomQVBHIntersection) {
 
         Hitpoint hitpoint;
         EXPECT_EQ(isHit, trimesh.intersect(ray, &hitpoint))
-            << "  from: " << from << std::endl
-            << "    to: " << to   << std::endl
-            << "   pos: " << ans.position() << std::endl
-            << "normal: " << ans.normal() << std::endl;
+            << "  from: " << from.toString() << std::endl
+            << "    to: " << to.toString()   << std::endl
+            << "   pos: " << ans.position().toString() << std::endl
+            << "normal: " << ans.normal().toString()   << std::endl;
         EXPECT_EQ(ans.distance(), hitpoint.distance());
     }
 }

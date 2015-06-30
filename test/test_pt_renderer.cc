@@ -7,12 +7,14 @@ using namespace spica;
 
 class RendererTest : public ::testing::Test {
 protected:
-    virtual void SetUp() {
+    static void SetUpTestCase() {
         ref.loadBMP(DATA_DIR + "reference.bmp");
         width = ref.width();
         height = ref.height();
         cornellBox(&scene, &camera, width, height);
+    }
 
+    virtual void SetUp() {
         result.fill(Color(0.0, 0.0, 0.0));
     }
 
@@ -42,15 +44,22 @@ protected:
     }
 
 protected:
-    Image ref;
-    Image result;
-    const int spp = 32;
-    int width;
-    int height;
-    Scene scene;
-    Camera camera;
+    static Image ref;
+    static Image result;
+    static const int spp;
+    static int width;
+    static int height;
+    static Scene scene;
+    static Camera camera;
 };
 
+Image RendererTest::ref = Image();
+Image RendererTest::result = Image();
+const int RendererTest::spp = 32;
+int RendererTest::width = 0;
+int RendererTest::height = 0;
+Scene RendererTest::scene;
+Camera RendererTest::camera;
 
 TEST_F(RendererTest, PTTest) {    
     PathTracingRenderer renderer(&result);

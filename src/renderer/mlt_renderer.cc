@@ -96,7 +96,7 @@ namespace spica {
                 const double r = rng.nextReal();
                 const double s1 = 1.0 / 512.0;
                 const double s2 = 1.0 / 16.0;
-                const double dx = s1 / (s1 / s2 + abs(2.0 * r - 1.0)) - s1 / (s1 / s2 + 1.0);
+                const double dx = s1 / (s1 / s2 + std::abs(2.0 * r - 1.0)) - s1 / (s1 / s2 + 1.0);
                 if (r < 0.5) {
                     const double x1 = x + dx;
                     return (x1 < 1.0) ? x1 : x1 - 1.0;

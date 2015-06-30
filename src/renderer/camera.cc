@@ -102,7 +102,7 @@ namespace spica {
         const double on = ray.origin().dot(normal);
         const double dn = ray.direction().dot(normal);
 
-        if (abs(dn) > EPS) {
+        if (std::abs(dn) > EPS) {
             const double t = (pn - on) / dn;
             return t;
         }

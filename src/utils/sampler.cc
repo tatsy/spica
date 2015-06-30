@@ -25,7 +25,7 @@ namespace spica {
         void onHemisphere(const Vector3& normal, Vector3* direction, double r1, double r2) {
             Vector3 u, v, w;
             w = normal;
-            if (abs(w.x()) > EPS) {
+            if (std::abs(w.x()) > EPS) {
                 u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
             } else {
                 u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
@@ -58,7 +58,7 @@ namespace spica {
             double ry = disk.radius() * r0 * sin(r1);
             Vector3 u, v, w;
             w = disk.normal();
-            if (abs(w.x()) > EPS) {
+            if (std::abs(w.x()) > EPS) {
                 u = Vector3::cross(Vector3(0.0, 1.0, 0.0), w).normalized();
             } else {
                 u = Vector3::cross(Vector3(1.0, 0.0, 0.0), w).normalized();

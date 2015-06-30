@@ -177,7 +177,7 @@ namespace spica {
                 // Sample next direction with QMC
                 Vector3 u, v, w;
                 w = orientNormal;
-                if (abs(w.x()) > EPS) {
+                if (std::abs(w.x()) > EPS) {
                     u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
                 } else {
                     u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();

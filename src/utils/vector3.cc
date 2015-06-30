@@ -1,6 +1,8 @@
 #define SPICA_VECTOR3_EXPORT
 #include "vector3.h"
 
+#include <iostream>
+#include <sstream>
 #include <algorithm>
 
 #include "common.h"
@@ -129,6 +131,12 @@ namespace spica {
         msg_assert(0 <= d && d <= 2, "Dimension must be between 0 and 2");
         return _xyz[d];
     }
+
+    std::string Vector3::toString() const {
+        std::stringstream ss;
+        ss << "(" << _xyz[0] << ", " << _xyz[1] << ", " << _xyz[2] << ")";
+        return ss.str();
+    }
 }
 
 spica::Vector3 operator+(const spica::Vector3& v1, const spica::Vector3& v2) {
@@ -162,6 +170,6 @@ spica::Vector3 operator/(const spica::Vector3& v, double s) {
 }
 
 std::ostream& operator<<(std::ostream& os, const spica::Vector3 v) {
-    os << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
+    os << v.toString();
     return os;
 }

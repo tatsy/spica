@@ -60,6 +60,8 @@ namespace spica {
 
         double get(int d) const;
 
+        std::string toString() const;
+
         inline double x() const { return _xyz[0]; }
         inline double y() const { return _xyz[1]; }
         inline double z() const { return _xyz[2]; }

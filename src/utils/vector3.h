@@ -21,7 +21,6 @@ namespace spica {
     class SPICA_VECTOR3_DLL Vector3 : public AxisComparable {
     protected:
         std::array<double, 3> _xyz;
-        // double _x, _y, _z;
 
     public:
         Vector3();
@@ -78,6 +77,6 @@ SPICA_VECTOR3_DLL spica::Vector3 operator*(const spica::Vector3& v, double s);
 SPICA_VECTOR3_DLL spica::Vector3 operator*(double s, const spica::Vector3& v);
 SPICA_VECTOR3_DLL spica::Vector3 operator/(const spica::Vector3& v, double s);
 
-SPICA_VECTOR3_DLL std::ostream& operator<<(std::ostream& os, const spica::Vector3& v);
+SPICA_VECTOR3_DLL std::ostream& operator<<(std::ostream& os, const spica::Vector3 v);
 
 #endif  // SPICA_VECTOR3_H_

@@ -161,7 +161,7 @@ spica::Vector3 operator/(const spica::Vector3& v, double s) {
     return ret;
 }
 
-std::ostream& operator<<(std::ostream& os, const spica::Vector3& v) {
+std::ostream& operator<<(std::ostream& os, const spica::Vector3 v) {
     os << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")";
     return os;
 }

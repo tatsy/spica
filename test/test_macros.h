@@ -1,6 +1,9 @@
 #ifndef _SPICA_TEST_MACROS_H_
 #define _SPICA_TEST_MACROS_H_
 
+#include "../include/spica.h"
+#include <gtest/gtest.h>
+
 inline void EXPECT_EQ_VEC(const Vector3& expected, const Vector3& actual) {
     if (expected.x() != actual.x() ||
         expected.y() != actual.y() ||

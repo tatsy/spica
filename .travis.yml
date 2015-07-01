@@ -13,12 +13,11 @@ before_install:
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
 
   # update clang
-  - if [ "$CXX" = "clang++" ]; then sudo add-apt-repository -y 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise main'; fi
-  - if [ "$CXX" = "clang++" ]; then sudo add-apt-repository -y 'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-${LLVM_VER} main'; fi
+  - if [ "$CXX" = "clang++" ]; then sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main"; fi
+  - if [ "$CXX" = "clang++" ]; then sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-${LLVM_VER} main"; fi
   - if [ "$CXX" = "clang++" ]; then wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -; fi
   - if [ "$CXX" = "clang++" ]; then sudo apt-get update -qq; fi
   - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq clang-${LLVM_VER} llvm-${LLVM_VER}; fi
-  - if [ "$CXX" = "clang++" ]; then sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-3.5/bin/clang++ 90; fi
   - if [ "$CXX" = "clang++" ]; then export CC=clang-${LLVM_VER}; fi
   - if [ "$CXX" = "clang++" ]; then export CXX=clang++-${LLVM_VER}; fi
 

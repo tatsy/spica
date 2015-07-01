@@ -17,17 +17,16 @@ int main(int argc, char** argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxDragon(scene, camera, width, height);
+    kittenEnvmap(&scene, &camera, width, height);
 
-    Random rng = Random();
     const int numPhotons = 2000000;
-    const int gatherPhotons = 200;
-    const double gatherRadius = 20.0;
+
+    BSSRDF bssrdf = DiffusionBSSRDF::factory(1.0e-4, 10.0, 1.3);
 
     SubsurfaceSPPMRenderer renderer;
 
     Timer timer;
     timer.start();
-    renderer.render(scene, camera, samplePerPixel, numPhotons, QUASI_MONTE_CARLO);
+    renderer.render(scene, camera, bssrdf, samplePerPixel, numPhotons, QUASI_MONTE_CARLO);
     printf("Time: %f sec\n", timer.stop());
 }

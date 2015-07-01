@@ -4,4 +4,8 @@
     <LocalDebuggerEnvironment>PATH=@CMAKE_RUNTIME_OUTOUT_DIRECTORY@;%PATH%</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerEnvironment>PATH=@CMAKE_RUNTIME_OUTOUT_DIRECTORY@;%PATH%</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

@@ -11,7 +11,7 @@ namespace spica {
         , _lightID(-1)
         , _primitives(0)
         , _materials(0)
-        , _bgColor(0.0, 0.0, 0.0)
+        , _envmap()
     {
         init();
     }
@@ -49,7 +49,8 @@ namespace spica {
         this->_arraySize = 1024;
         _primitives = new const Primitive*[_arraySize];
         _materials = new Material[_arraySize];
-        _bgColor = Color(0.0, 0.0, 0.0);
+        _envmap.resize(512, 512);
+        _envmap.clearColor(Color(0.0, 0.0, 0.0));
     }
 
     void Scene::clear() {
@@ -83,4 +84,5 @@ namespace spica {
         isect.setHitpoint(hitpoint);
         return objID != -1;
     }
-}
+
+}  // namespace spica

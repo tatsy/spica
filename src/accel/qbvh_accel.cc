@@ -48,15 +48,19 @@ namespace spica {
 
     QBVHAccel::QBVHAccel()
         : _root(NULL)
-        , _numCopies(NULL)
     {
     }
 
     QBVHAccel::QBVHAccel(const QBVHAccel& qbvh)
         : _root(NULL)
-        , _numCopies(NULL)
     {
-        operator=(qbvh);
+        this->operator=(qbvh);
+    }
+
+    QBVHAccel::QBVHAccel(QBVHAccel&& qbvh) 
+        : _root(NULL)
+    {
+        this->operator=(std::move(qbvh));    
     }
 
     QBVHAccel::~QBVHAccel()
@@ -67,23 +71,22 @@ namespace spica {
     QBVHAccel& QBVHAccel::operator=(const QBVHAccel& qbvh) {
         release();
 
+        _root = copyNode(qbvh._root);
+
+        return *this;
+    }
+
+    QBVHAccel& QBVHAccel::operator=(QBVHAccel&& qbvh) {
+        release();
+
         _root = qbvh._root;
-        _numCopies = qbvh._numCopies;
-        (*_numCopies) += 1;
+        qbvh._root = nullptr;
 
         return *this;
     }
 
     void QBVHAccel::release() {
-        if (_numCopies != NULL) {
-            if (*_numCopies == 0) {
-                deleteNode(_root);
-                delete _numCopies;
-                _numCopies = NULL;
-            } else {
-                (*_numCopies) -= 1;
-            }
-        }
+        deleteNode(_root);
     }
 
     void QBVHAccel::deleteNode(QBVHNode* node) {
@@ -92,7 +95,26 @@ namespace spica {
                 deleteNode(node->children[i]);
             }
             delete node;
+            node = NULL;
         }
+    }
+
+    QBVHAccel::QBVHNode* QBVHAccel::copyNode(QBVHNode* node) {
+        QBVHNode* ret = NULL;
+        if (node != NULL) {
+            ret = new QBVHNode();
+            memcpy(ret->childBoxes, node->childBoxes, sizeof(__m128) * 6);
+            ret->numTriangles = node->numTriangles;
+            ret->triangles = new Triangle[node->numTriangles];
+            memcpy(ret->triangles, node->triangles, sizeof(Triangle) * node->numTriangles);
+            memcpy(ret->sepAxes, node->sepAxes, sizeof(char) * 3);
+            ret->isLeaf = node->isLeaf;
+
+            for (int i = 0; i < 4; i++) {
+                ret->children[i] = copyNode(node->children[i]);
+            }
+        }
+        return ret;
     }
 
     void QBVHAccel::construct(const std::vector<Triangle>& triangles) {
@@ -100,7 +122,6 @@ namespace spica {
 
         std::vector<Triangle> temp(triangles);
         _root = constructRec(temp, 0);
-        _numCopies = new unsigned int(0);
     }
     
     QBVHAccel::QBVHNode* QBVHAccel::constructRec(std::vector<Triangle>& triangles, int dim) {

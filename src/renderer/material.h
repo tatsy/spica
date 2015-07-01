@@ -1,8 +1,20 @@
 #ifndef SPICA_MATERIAL_H_
 #define SPICA_MATERIAL_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef SPICA_MATERIAL_EXPORT
+        #define SPICA_MATERIAL_DLL __declspec(dllexport)
+    #else
+        #define SPICA_MATERIAL_DLL __declspec(dllimport)
+    #endif
+#else
+    #define SPICA_MATERIAL_DLL
+#endif
+
+#include "brdf.h"
 #include "../utils/color.h"
 #include "../utils/common.h"
+#include "../utils/uncopyable.h"
 
 namespace spica {
 
@@ -11,32 +23,29 @@ namespace spica {
         REFLECTION_SPECULAR   = 0x02,
         REFLECTION_REFRACTION = 0x04,
         REFLECTION_SUBSURFACE = 0x08,
+        REFLECTION_BRDF       = 0x10
     };
 
     const double IOR_VACCUM = 1.0;
     const double IOR_OBJECT = 1.5;
     const double REFLECT_PROBABLITY = 0.5;
 
-    struct Material {
+    class SPICA_MATERIAL_DLL Material {
+    public:
         Color emission;
         Color color;
         ReflectionType reftype;
-        Material()
-            : emission()
-            , color()
-            , reftype(REFLECTION_DIFFUSE)
-        {
-        }
+        BRDF brdf;
 
-        Material(const Color& emission_, const Color& color_, const ReflectionType reftype_)
-            : emission(emission_)
-            , color(color_)
-            , reftype(reftype_)
-        {
-        }
+        Material();
+        Material(const Color& emission_, const Color& color_, const ReflectionType reftype_, const BRDF& brdf_ = BRDF());
+        ~Material();
+        Material(const Material& mtrl);
+
+        Material& operator=(const Material& mtrl);
     };
 
-    struct DiffusionReflectance {
+    struct SPICA_MATERIAL_DLL DiffusionReflectance {
         double A;
         double sigmap_t;
         double sigma_tr;
@@ -53,7 +62,7 @@ namespace spica {
             zneg = zpos * (1.0 + (4.0 / 3.0) * A);
         }
 
-        double Fdr(double eta) const {
+        static double Fdr(double eta) {
             if (eta >= 1.0) {
                 return -1.4399 / (eta * eta) + 0.7099 / eta + 0.6681 + 0.0636 * eta;
             } else {

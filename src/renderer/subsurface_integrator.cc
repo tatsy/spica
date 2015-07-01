@@ -138,22 +138,22 @@ namespace spica {
         return node;
     }
 
-    Color SubsurfaceIntegrator::Octree::iradSubsurface(const Vector3& pos, const DiffusionReflectance& Rd) const {
-        return iradSubsurfaceRec(_root, pos, Rd);
+    Color SubsurfaceIntegrator::Octree::iradSubsurface(const Vector3& pos, const BSSRDF& bssrdf) const {
+        return iradSubsurfaceRec(_root, pos, bssrdf);
     }
 
-    Color SubsurfaceIntegrator::Octree::iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const DiffusionReflectance& Rd) const {
+    Color SubsurfaceIntegrator::Octree::iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const BSSRDF& bssrdf) const {
         if (node == NULL) return Color(0.0, 0.0, 0.0);
 
         const double distSquared = (node->pt.pos - pos).squaredNorm();
         double dw = node->pt.area / distSquared;
-        if (node->isLeaf || (dw < _parent->bssrdf.maxError() && !node->bbox.inside(pos))) {
-            return Rd(distSquared) * node->pt.irad * node->pt.area;
+        if (node->isLeaf || (dw < _parent->_maxError && !node->bbox.inside(pos))) {
+            return Color(bssrdf(distSquared).multiply(node->pt.irad) * node->pt.area);
         } else {
             Color ret(0.0, 0.0, 0.0);
             for (int i = 0; i < 8; i++) {
                 if (node->children[i] != NULL) {
-                    ret += iradSubsurfaceRec(node->children[i], pos, Rd);
+                    ret += iradSubsurfaceRec(node->children[i], pos, bssrdf);
                 }
             }
             return ret;
@@ -173,7 +173,7 @@ namespace spica {
     {
     }
 
-    void SubsurfaceIntegrator::initialize(const Scene& scene, const BSSRDF& bssrdf_, const PMParams& params, const double areaRadius, const RandomType randType) {
+    void SubsurfaceIntegrator::initialize(const Scene& scene, const BSSRDF& bssrdf_, const PMParams& params, const double areaRadius, const RandomType randType, const double maxError) {
         // Poisson disk sampling on SSS objects
         int objectID = -1;
         std::vector<Vector3> points;
@@ -183,8 +183,7 @@ namespace spica {
                 msg_assert(points.empty(), "# of objects with subsurface scattering property must be only one !!");
 
                 const Primitive* obj = scene.get(i);
-                std::string typname = typeid(*obj).name();
-                msg_assert(typname == "class spica::Trimesh", "Object with subsurface scattering property must be Trimesh !!");
+                msg_assert(typeid(*obj) == typeid(Trimesh), "Object with subsurface scattering property must be Trimesh !!");
 
                 const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(obj);
                 sampler::poissonDisk(*trimesh, areaRadius, &points, &normals);
@@ -197,6 +196,7 @@ namespace spica {
         this->mtrl = scene.getMaterial(objectID);
         this->bssrdf = bssrdf_;
         this->dA = (0.5 * areaRadius) * (0.5 * areaRadius) * PI;
+        this->_maxError = maxError;
 
         // Cast photons to compute irradiance at sample points
         buildPhotonMap(scene, params.numPhotons, 64, randType);
@@ -214,7 +214,7 @@ namespace spica {
         for(int i = 0; i < numPoints; i++) {
             // Estimate irradiance with photon map
             Color irad = irradianceWithPM(points[i], normals[i], params);
-            irads[i] = irad.cwiseMultiply(mtrl.color);
+            irads[i] = irad.multiply(mtrl.color);
         }
 
         // Save radiance data for visual checking
@@ -240,9 +240,8 @@ namespace spica {
     }
 
     Color SubsurfaceIntegrator::irradiance(const Vector3& p) const {
-        DiffusionReflectance Rd(bssrdf.sigma_a(), bssrdf.sigmap_s(), bssrdf.eta());
-        Color Mo = octree.iradSubsurface(p, Rd);
-        return (1.0 / PI) * (1.0 - Rd.Fdr(bssrdf.eta())) * Mo;
+        Color Mo = octree.iradSubsurface(p, bssrdf);
+        return Color((1.0 / PI) * (1.0 - bssrdf.Fdr()) * Mo);
     }
 
     void SubsurfaceIntegrator::buildPhotonMap(const Scene& scene, const int numPhotons, const int bounceLimit, const RandomType randType) {
@@ -270,22 +269,17 @@ namespace spica {
                 rand->requestSamples(rseq, 200);
             }
 
-            // Generate sample on the light
-            const int lightID = scene.lightID();
-            const Primitive* light = scene.get(lightID);
+            Photon photon = Photon::sample(scene, rseq, numPhotons);
 
-            const double r1Light = rseq.next();
-            const double r2Light = rseq.next();
-            Vector3 posLight, normalLight;
-            sampler::on(light, &posLight, &normalLight, r1Light, r2Light);
-
-            Color currentFlux = light->area() * scene.getMaterial(lightID).emission * PI / numPhotons;
+            const Vector3& lightNormal = photon.normal();
+            const Vector3& lightPos    = static_cast<Vector3>(photon);
+            Color currentFlux = photon.flux();
 
             const double r1 = rseq.next();
             const double r2 = rseq.next();
             Vector3 nextDir;
-            sampler::onHemisphere(normalLight, &nextDir, r1, r2);
-            Ray currentRay(posLight, nextDir);
+            sampler::onHemisphere(lightNormal, &nextDir, r1, r2);
+            Ray currentRay(lightPos, nextDir);
 
             for (int bounce = 0; ; bounce++) {
                 std::vector<double> randnums;
@@ -311,11 +305,11 @@ namespace spica {
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     sampler::onHemisphere(orientNormal, &nextDir, randnums[0], randnums[1]);
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), orientNormal);
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
 
@@ -337,17 +331,17 @@ namespace spica {
                     if (isTotRef) {
                         // Total reflection
                         currentRay = reflectRay;
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentFlux = currentFlux.multiply(mtrl.color);
                     } else {
                         const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
                         if (randnums[0] < probability) {
                             // Reflection
                             currentRay = reflectRay;
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelRe / probability);
                         } else {
                             // Reflaction
                             currentRay = Ray(hitpoint.position(), transmitDir);
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                         }
                     }
                 } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
@@ -403,13 +397,13 @@ namespace spica {
         Color totalFlux = Color(0.0, 0.0, 0.0);
         for (int i = 0; i < numValidPhotons; i++) {
             const double w = 1.0 - (distances[i] / (k * maxdist));
-            const Color v = photons[i].flux() / PI;
+            const Color v = Color(photons[i].flux() / PI);
             totalFlux += w * v;
         }
         totalFlux /= (1.0 - 2.0 / (3.0 * k));
 
         if (maxdist > EPS) {
-            return totalFlux / (PI * maxdist * maxdist);
+            return Color(totalFlux / (PI * maxdist * maxdist));
         }
         return Color(0.0, 0.0, 0.0);
     }

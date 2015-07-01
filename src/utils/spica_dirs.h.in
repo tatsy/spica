@@ -1,0 +1,15 @@
+#ifndef _SPICA_DIRS_H_
+#define _SPICA_DIRS_H_
+
+// ----------------------------------------------------------------------------
+// Parameter constants
+// ----------------------------------------------------------------------------
+
+namespace spica {
+
+    static const std::string ROOT_DIR = "@SPICA_ROOT_DIRECTORY@/";
+    static const std::string DATA_DIR = ROOT_DIR + "data/";
+
+}
+
+#endif  // _SPICA_DIRS_H_

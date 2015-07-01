@@ -10,7 +10,8 @@ namespace spica {
 
     const double SubsurfaceSPPMRenderer::ALPHA = 0.7;
 
-    SubsurfaceSPPMRenderer::SubsurfaceSPPMRenderer()
+    SubsurfaceSPPMRenderer::SubsurfaceSPPMRenderer(Image* image)
+        : _image(image)
     {
     }
 
@@ -18,14 +19,11 @@ namespace spica {
     {
     }
 
-    void SubsurfaceSPPMRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, const int numPhotons, const RandomType randType) {
+    void SubsurfaceSPPMRenderer::render(const Scene& scene, const Camera& camera, const BSSRDF& bssrdf, const int samplePerPixel, const int numPhotons, const RandomType randType) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         const int numPixels = width * height;
         const double areaRadius = 0.1;
-
-        // Instance SSS integrator
-        BSSRDF bssrdf(1.0e-4, 10.0, 1.3, 0.05);
 
         // Prepare hit points for image pixels
         std::vector<HitpointInfo> hpoints(numPixels);
@@ -53,6 +51,14 @@ namespace spica {
             break;
         }
 
+        bool isAllocImageInside = false;
+        if (_image == NULL) {
+            _image = new Image(width, height);
+            isAllocImageInside = true;
+        } else {
+            _image->resize(width, height);
+        }
+
         // Main rendering
         const int numPoints = static_cast<int>(hpoints.size());
         for (int t = 0; t < samplePerPixel; t++) {
@@ -68,21 +74,25 @@ namespace spica {
             tracePhotons(scene, rand, numPhotons);
 
             // Save temporal image
-            Image image(width, height);
+            _image->fill(Color(0.0, 0.0, 0.0));
             for (int i = 0; i < numPoints; i++) {
                 const HitpointInfo& hp = hpoints[i];
                 if (hp.imageX >= 0 && hp.imageY >= 0 && hp.imageX < width && hp.imageY < height) {
-                    image.pixel(width - hp.imageX - 1, hp.imageY) += (hp.emission + hp.flux / (PI * hp.r2)) * (hp.coeff / (t + 1));
+                    _image->pixel(width - hp.imageX - 1, hp.imageY) += (hp.emission + hp.flux / (PI * hp.r2)) * (hp.coeff / (t + 1));
                 }
             }
 
             char filename[256];
             sprintf(filename, "sss_sppm_%02d.bmp", t + 1);
-            image.saveBMP(filename);
+            _image->gamma(1.7, true);
+            _image->saveBMP(filename);
         }
 
         // Release memories
         delete rand;
+        if (isAllocImageInside) {
+            delete _image;
+        }
     }
 
     void SubsurfaceSPPMRenderer::constructHashGrid(std::vector<HitpointInfo>& hpoints, const int imageW, const int imageH) {
@@ -173,23 +183,18 @@ namespace spica {
     void SubsurfaceSPPMRenderer::tracePhotons(const Scene& scene, RandomBase* rand, const int numPhotons, const int bounceLimit) {
         std::cout << "Shooting photons ..." << std::endl;
         int proc = 0;
-        ompfor(int pid = 0; pid < numPhotons; pid++) {
+        ompfor (int pid = 0; pid < numPhotons; pid++) {
             RandomSeq rseq;
             omplock {
                 rand->requestSamples(rseq, 200);
             }
 
-            // Sample point on light
-            const int lightID = scene.lightID();
-            const Primitive* light = scene.get(lightID);
-
-            const double r1Light = rseq.next();
-            const double r2Light = rseq.next();
-            Vector3 posOnLight, normalOnLight;
-            sampler::on(light, &posOnLight, &normalOnLight, r1Light, r2Light);
+            Photon photon = Photon::sample(scene, rseq, numPhotons);
+            const Vector3& posOnLight = static_cast<Vector3>(photon);
+            const Vector3& normalOnLight = photon.normal();
 
             // Compute flux
-            Color currentFlux = scene.getMaterial(lightID).emission * (light->area() * PI / numPhotons);
+            Color currentFlux = photon.flux();
 
             // Prepare ray
             const double r1 = rseq.next();
@@ -239,7 +244,7 @@ namespace spica {
                             omplock{
                                 hpp->r2 *= g;
                                 hpp->n += 1;
-                                hpp->flux = (hpp->flux + hpp->weight.cwiseMultiply(currentFlux) * (1.0 / PI)) * g;
+                                hpp->flux = (hpp->flux + hpp->weight.multiply(currentFlux) * (1.0 / PI)) * g;
                             }
                         }
                     }
@@ -249,7 +254,7 @@ namespace spica {
                     if (randnums[0] < probability) {
                         sampler::onHemisphere(orientNormal, &nextDir, randnums[1], randnums[2]);
                         currentRay = Ray(hitpoint.position(), nextDir);
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) / probability;
+                        currentFlux = currentFlux.multiply(mtrl.color) / probability;
                     } else {
                         break;
                     }
@@ -257,7 +262,7 @@ namespace spica {
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
                     Vector3 reflectDir, refractDir;
@@ -274,18 +279,18 @@ namespace spica {
                     if (isTotRef) {
                         // Total reflection
                         currentRay = Ray(hitpoint.position(), reflectDir);
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentFlux = currentFlux.multiply(mtrl.color);
                     } else {
                         // Trace either of reflect and transmit rays
                         const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
                         if (randnums[0] < probability) {
                             // Reflect
                             currentRay = Ray(hitpoint.position(), reflectDir);
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelRe / probability);
                         } else {
                             // Transmit
                             currentRay = Ray(hitpoint.position(), refractDir);
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                         }
                     }
                 } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
@@ -304,11 +309,11 @@ namespace spica {
                     if (isTotRef) {
                         // Total reflection
                         currentRay = Ray(hitpoint.position(), reflectDir);
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentFlux = currentFlux.multiply(mtrl.color);
                     } else {
                         // Reflect
                         currentRay = Ray(hitpoint.position(), reflectDir);
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color) * fresnelRe;
+                        currentFlux = currentFlux.multiply(mtrl.color) * fresnelRe;
                     }
                 }
             }
@@ -339,10 +344,9 @@ namespace spica {
             double randnum = rseq.next();
 
             if (!scene.intersect(ray, isect) || bounce > bounceLimit) {
-                weight = weight.cwiseMultiply(scene.bgColor());
                 hp->weight = weight;
                 hp->coeff = coeff;
-                hp->emission += accumEmit;
+                hp->emission += accumEmit + weight.multiply(scene.envmap().sampleFromDir(ray.direction()));
                 break;
             }
 
@@ -353,17 +357,17 @@ namespace spica {
 
             if (mtrl.reftype == REFLECTION_DIFFUSE) {
                 // Ray hits diffuse object, return current weight
-                weight = weight.cwiseMultiply(mtrl.color);
+                weight = weight.multiply(mtrl.color);
                 hp->setPosition(hitpoint.position());
                 hp->normal = hitpoint.normal();
                 hp->weight = weight;
                 hp->coeff = coeff;
-                hp->emission += weight.cwiseMultiply(mtrl.emission) + accumEmit;
+                hp->emission += weight.multiply(mtrl.emission) + accumEmit;
                 break;
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                 Vector3 nextDir = Vector3::reflect(ray.direction(), orientNormal);
                 ray = Ray(hitpoint.position(), nextDir);
-                weight = weight.cwiseMultiply(mtrl.color);
+                weight = weight.multiply(mtrl.color);
             } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                 bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
                 Vector3 reflectDir, transmitDir;
@@ -381,18 +385,18 @@ namespace spica {
                 if (isTotRef) {
                     // Total reflection
                     ray = Ray(hitpoint.position(), reflectDir);
-                    weight = weight.cwiseMultiply(mtrl.color);
+                    weight = weight.multiply(mtrl.color);
                 } else {
                     // Trace either reflection or refraction ray with probability
                     const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
                     if (randnum < probability) {
                         // Reflection
                         ray = Ray(hitpoint.position(), reflectDir);
-                        weight = weight.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                        weight = weight.multiply(mtrl.color) * (fresnelRe / probability);
                     } else {
                         // Transmit
                         ray = Ray(hitpoint.position(), transmitDir); 
-                        weight = weight.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                        weight = weight.multiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                     }
                 }
             } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
@@ -413,14 +417,14 @@ namespace spica {
                 if (isTotRef) {
                     // Total reflection
                     ray = Ray(hitpoint.position(), reflectDir);
-                    weight = weight.cwiseMultiply(mtrl.color);
+                    weight = weight.multiply(mtrl.color);
                 } else {
                     // Both reflect and transmit
                     ray = Ray(hitpoint.position(), reflectDir);
-                    Color weightTr = weight.cwiseMultiply(mtrl.color) * fresnelTr;
+                    Color weightTr = Color(weight.multiply(mtrl.color) * fresnelTr);
                     Color irad = integrator.irradiance(hitpoint.position());
-                    accumEmit += irad.cwiseMultiply(weightTr);
-                    weight = weight.cwiseMultiply(mtrl.color) * fresnelRe;                    
+                    accumEmit += irad.multiply(weightTr);
+                    weight = weight.multiply(mtrl.color) * fresnelRe;                    
                 }
             }
         }

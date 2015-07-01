@@ -102,7 +102,7 @@ namespace spica {
         const double on = ray.origin().dot(normal);
         const double dn = ray.direction().dot(normal);
 
-        if (abs(dn) > EPS) {
+        if (std::abs(dn) > EPS) {
             const double t = (pn - on) / dn;
             return t;
         }
@@ -125,8 +125,8 @@ namespace spica {
                 positionOnSensor = sensor_.center + (uOnSensor * sensor_.width) * sensor_.unitU + (vOnSensor * sensor_.height) * sensor_.unitV;
 
                 if (-0.5 <= uOnSensor && uOnSensor < 0.5 && -0.5 <= vOnSensor && vOnSensor < 0.5) {
-                    uvOnSensor.setX((uOnSensor + 0.5) * width_);
-                    uvOnSensor.setY((vOnSensor + 0.5) * height_);
+                    uvOnSensor.x() = (uOnSensor + 0.5) * width_;
+                    uvOnSensor.y() = (vOnSensor + 0.5) * height_;
                     return distToLens;
                 }
             }

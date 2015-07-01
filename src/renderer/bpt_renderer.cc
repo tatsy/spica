@@ -258,7 +258,7 @@ namespace spica {
                     throughputMC *= G;
                     vertices->push_back(Vertex(positionOnLens, camera.direction().normalized(), camera.direction().normalized(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughputMC));
                 
-                    const Color result = (camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfA;
+                    const Color result = Color((camera.contribSensitivity(x0xV, x0xI, x0x1) * throughputMC) / totalPdfA);
                     return TraceResult(result, x, y, HIT_ON_LENS);
                 }
 
@@ -293,12 +293,12 @@ namespace spica {
                     sampler::onHemisphere(orientNormal, &nextDir, randnums[1], randnums[2]);
                     nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = mtrl.color.cwiseMultiply(throughputMC) / PI;
+                    throughputMC = mtrl.color.multiply(throughputMC) / PI;
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nowSampledPdfOmega = 1.0;
                     const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = mtrl.color.cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
+                    throughputMC = mtrl.color.multiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
@@ -312,19 +312,19 @@ namespace spica {
                         if (randnums[1] < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
-                            throughputMC = fresnelRef * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughputMC = fresnelRef * (mtrl.color.multiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= REFLECT_PROBABLITY;
                         } else {
                             const double nnt2 = pow(isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM, 2.0);
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), refractDir);
-                            throughputMC = nnt2 * fresnelTransmit * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughputMC = nnt2 * fresnelTransmit * (mtrl.color.multiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= (1.0 - REFLECT_PROBABLITY);
                         }
                     } else { // Total reflection
                         nowSampledPdfOmega = 1.0;
                         nowRay = Ray(hitpoint.position(), reflectDir);
-                        throughputMC = mtrl.color.cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
+                        throughputMC = mtrl.color.multiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
                     }
 
                 }
@@ -390,7 +390,7 @@ namespace spica {
 
                 if (mtrl.emission.norm() > 0.0) {
                     vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), intersection.objectId(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughputMC));
-                    const Color result = throughputMC.cwiseMultiply(mtrl.emission) / totalPdfA;
+                    const Color result = Color(throughputMC.multiply(mtrl.emission) / totalPdfA);
                     return TraceResult(result, x, y, HIT_ON_LIGHT);
                 }
 
@@ -403,13 +403,13 @@ namespace spica {
                     sampler::onHemisphere(orientNormal, &nextDir, randnums[1], randnums[2]);
                     nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = mtrl.color.cwiseMultiply(throughputMC) / PI;
+                    throughputMC = mtrl.color.multiply(throughputMC) / PI;
 
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nowSampledPdfOmega = 1.0;
                     const Vector3 nextDir = Vector3::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
-                    throughputMC = mtrl.color.cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
+                    throughputMC = mtrl.color.multiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));
 
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
@@ -424,20 +424,20 @@ namespace spica {
                         if (randnums[1] < REFLECT_PROBABLITY) {
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), reflectDir);
-                            throughputMC = fresnelRef * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughputMC = fresnelRef * (mtrl.color.multiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= REFLECT_PROBABLITY;
                         } else {
                             const double nnt2 = pow(isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM, 2.0);
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), refractDir);
-                            throughputMC = nnt2 * fresnelTransmit * (mtrl.color.cwiseMultiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughputMC = nnt2 * fresnelTransmit * (mtrl.color.multiply(throughputMC)) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= (1.0 - REFLECT_PROBABLITY);
                         }
                     } else {
                         // Total reflection
                         nowSampledPdfOmega = 1.0;
                         nowRay = Ray(hitpoint.position(), reflectDir);
-                        throughputMC = mtrl.color.cwiseMultiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));                    
+                        throughputMC = mtrl.color.multiply(throughputMC) / (toNextVertex.normalized().dot(orientNormal));                    
                     }
                 }
                 prevNormal = orientNormal;
@@ -474,7 +474,7 @@ namespace spica {
 
             if (ptResult.hitObjType == HIT_ON_LIGHT) {
                 const double weightMIS = calcMISWeight(scene, camera, eyeVerts[eyeVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, (const int)eyeVerts.size(), 0);
-                const Color result = weightMIS * ptResult.value;
+                const Color result = Color(weightMIS * ptResult.value);
                 bptResult.samples.push_back(Sample(x, y, result, true));
             }
 
@@ -482,7 +482,7 @@ namespace spica {
                 const double weightMIS = calcMISWeight(scene, camera, lightVerts[lightVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, 0, (const int)lightVerts.size());
                 const int lx = ltResult.imageX;
                 const int ly = ltResult.imageY;
-                const Color result = weightMIS * ltResult.value;
+                const Color result = Color(weightMIS * ltResult.value);
                 bptResult.samples.push_back(Sample(lx, ly, result, false));
             }
 
@@ -514,7 +514,7 @@ namespace spica {
 
                     if (eyeEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
                         const Material& eyeEndMtrl = scene.getMaterial(eyeEnd.objectId);
-                        connectedThrought = connectedThrought.cwiseMultiply(eyeEndMtrl.color) / PI;
+                        connectedThrought = connectedThrought.multiply(eyeEndMtrl.color) / PI;
                         double dist = (intersection.hitpoint().position() - eyeEnd.position).norm();
                         if ((intersection.hitpoint().position() - eyeEnd.position).norm() >= EPS) {
                             continue;
@@ -542,7 +542,7 @@ namespace spica {
 
                     if (lightEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
                         const Material& tempMtrl = scene.getMaterial(lightEnd.objectId);
-                        connectedThrought = connectedThrought.cwiseMultiply(tempMtrl.color) / PI;
+                        connectedThrought = connectedThrought.multiply(tempMtrl.color) / PI;
                     } else if (lightEnd.objtype == Vertex::OBJECT_TYPE_LIGHT) {
 
                     } else if (lightEnd.objtype == Vertex::OBJECT_TYPE_LENS || lightEnd.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
@@ -559,7 +559,7 @@ namespace spica {
                         continue;
                     }
 
-                    const Color result = weightMIS * connectedThrought.cwiseMultiply(eyeThoughput).cwiseMultiply(lightThrouput) / totalPdfA;
+                    const Color result = Color(weightMIS * connectedThrought.multiply(eyeThoughput).multiply(lightThrouput) / totalPdfA);
                     bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId > 1.0));
                 }
             }
@@ -581,7 +581,8 @@ namespace spica {
 
     }  // unnamed namespace
     
-    BDPTRenderer::BDPTRenderer()
+    BDPTRenderer::BDPTRenderer(spica::Image* image)
+        : _image(image)
     {
     }
 
@@ -617,6 +618,14 @@ namespace spica {
             buffer[i] = Image(width, height);
         }
 
+        bool isAllocInside = false;
+        if (_image == NULL) {
+            _image = new Image(width, height);
+            isAllocInside = true;
+        } else {
+            _image->resize(width, height);
+        }
+
         const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
         for (int t = 0; t < taskPerThread; t++) {
             ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
@@ -644,17 +653,19 @@ namespace spica {
             }
 
             char filename[256];
-            Image image(width, height);
             const int usedSamples = (t + 1) * OMP_NUM_CORE;
+
+            _image->fill(Color(0.0, 0.0, 0.0));
             for (int k = 0; k < OMP_NUM_CORE; k++) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
-                        image.pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
+                        _image->pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
                     }
                 }
             }
             sprintf(filename, "bdpt_%03d.bmp", t + 1);
-            image.saveBMP(filename);
+            _image->gamma(1.7, true);
+            _image->saveBMP(filename);
 
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);
         }
@@ -665,6 +676,11 @@ namespace spica {
         }
         delete rand;
         delete[] buffer;
+
+        if (isAllocInside) {
+            delete _image;
+            _image = NULL;
+        }
     }
 
 }

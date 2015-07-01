@@ -21,7 +21,14 @@ if (${BUILD_VIEWER} STREQUAL "ON")
     link_directories(${GLUT_LIBRARY_DIR})
     include_directories(${GLUT_INCLUDE_DIR})
   else()
-    set(GLUT_LIBRARY libglut.a)
+    find_package(X11 REQUIRED)
+    set(GLUT_LIBRARY libglut.a ${X11_LIBRARIES})
+    if (X11_xf86vmode_FOUND)
+      set(GLUT_LIBRARY ${GLUT_LIBRARY} ${X11_Xxf86vm_LIB})
+    endif()
+    if (X11_Xi_FOUND)
+      set(GLUT_LIBRARY ${GLUT_LIBRARY} ${X11_Xi_LIB})
+    endif()
   endif()
 
   set(CMAKE_AUTOMOC ON)
@@ -35,12 +42,10 @@ if (${BUILD_VIEWER} STREQUAL "ON")
                  scene_viewer.h
                  qgl_render_widget.cc
                  qgl_render_widget.h
-                 vbo.h
-                 vbo.cc
                  blinn_phong.vs
                  blinn_phong.fs)
 
-  configure_file(${CMAKE_SOURCE_DIR}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
+  configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
 
   qt5_use_modules(scene_viewer Widgets OpenGL)
 

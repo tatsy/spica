@@ -8,15 +8,19 @@ namespace spica {
 
     KdTreeAccel::KdTreeAccel() 
         : _root(NULL)
-        , _numCopies(NULL)
     {
     }
 
     KdTreeAccel::KdTreeAccel(const KdTreeAccel& kdtree)
         : _root(NULL)
-        , _numCopies(NULL)
     {
-        operator=(kdtree);
+        this->operator=(kdtree);
+    }
+
+    KdTreeAccel::KdTreeAccel(KdTreeAccel&& kdtree)
+        : _root(NULL)
+    {
+        this->operator=(std::move(kdtree));
     }
 
     KdTreeAccel::~KdTreeAccel() 
@@ -27,23 +31,22 @@ namespace spica {
     KdTreeAccel& KdTreeAccel::operator=(const KdTreeAccel& kdtree) {
         release();
 
+        _root = copyNode(kdtree._root);
+
+        return *this;
+    }
+
+    KdTreeAccel& KdTreeAccel::operator=(KdTreeAccel&& kdtree) {
+        release();
+
         _root = kdtree._root;
-        _numCopies = kdtree._numCopies;
-        (*_numCopies) += 1;
+        kdtree._root = nullptr;
 
         return *this;
     }
 
     void KdTreeAccel::release() {
-        if (_numCopies != NULL) {
-            if (*_numCopies == 0) {
-                deleteNode(_root);
-                delete _numCopies;
-                _numCopies = NULL;
-            } else {
-                (*_numCopies) -= 1;
-            }
-        }
+        deleteNode(_root);
     }
 
     void KdTreeAccel::deleteNode(KdTreeNode* node) {
@@ -60,12 +63,27 @@ namespace spica {
         }
     }
 
+    KdTreeAccel::KdTreeNode* KdTreeAccel::copyNode(KdTreeNode* node) {
+        KdTreeNode* ret = NULL;
+        if (node != NULL) {
+            ret = new KdTreeNode();
+            ret->bbox = node->bbox;
+            ret->numTriangles = node->numTriangles;
+            ret->triangles = new Triangle[node->numTriangles];
+            memcpy(ret->triangles, node->triangles, sizeof(Triangle) * node->numTriangles);
+            ret->isLeaf = node->isLeaf;
+
+            node->left = copyNode(node->left);
+            node->right = copyNode(node->right);
+        }
+        return ret;
+    }
+
     void KdTreeAccel::construct(const std::vector<Triangle>& triangles) {
         release();
 
         std::vector<Triangle> temp(triangles);
         _root = constructRec(temp, 0);
-        _numCopies = new unsigned int(0);
     }
 
     KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<Triangle>& triangles, int dim)  {

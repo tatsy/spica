@@ -82,14 +82,14 @@ namespace spica {
 
             void construct(SubsurfaceIntegrator* parent, std::vector<IrradiancePoint>& ipoints);
 
-            Color iradSubsurface(const Vector3& pos, const DiffusionReflectance& Rd) const;
+            Color iradSubsurface(const Vector3& pos, const BSSRDF& Rd) const;
 
         private:
             void release();
             void deleteNode(OctreeNode* node);
             OctreeNode* constructRec(std::vector<IrradiancePoint>& pointers, const BBox& bbox);
 
-            Color iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const DiffusionReflectance& Rd) const;
+            Color iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const BSSRDF& Rd) const;
         };
 
 
@@ -99,12 +99,13 @@ namespace spica {
         PhotonMap photonMap;
         Octree octree;
         double dA;
+        double _maxError;
 
     public:
         SubsurfaceIntegrator();
         ~SubsurfaceIntegrator();
 
-        void initialize(const Scene& scene, const BSSRDF& bssrdf, const PMParams& params, const double areaRadius, const RandomType randType);
+        void initialize(const Scene& scene, const BSSRDF& bssrdf, const PMParams& params, const double areaRadius, const RandomType randType, const double maxError = 0.05);
 
         void buildOctree(const std::vector<Vector3>& points, const std::vector<Vector3>& normals, const PMParams& params);
 

@@ -152,7 +152,7 @@ namespace spica {
         const double distSquared = (node->pt.pos - pos).squaredNorm();
         double dw = node->pt.area / distSquared;
         if (node->isLeaf || (dw < maxError && !node->bbox.inside(pos))) {
-            return Rd(distSquared) * node->pt.irad * node->pt.area;
+            return Color(Rd(distSquared) * node->pt.irad * node->pt.area);
         } else {
             Color ret(0.0, 0.0, 0.0);
             for (int i = 0; i < 8; i++) {
@@ -184,8 +184,7 @@ namespace spica {
                 msg_assert(points.empty(), "# of objects with subsurface scattering property must be only one !!");
 
                 const Primitive* obj = scene.get(i);
-                std::string typname = typeid(*obj).name();
-                msg_assert(typname == "class spica::Trimesh", "Object with subsurface scattering property must be Trimesh !!");
+                msg_assert(typeid(*obj) == typeid(Trimesh), "Object with subsurface scattering property must be Trimesh !!");
 
                 const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(obj);
                 sampler::poissonDisk(*trimesh, minDist, &points, &normals);
@@ -205,7 +204,7 @@ namespace spica {
         for(int i = 0; i < numPoints; i++) {
             // Estimate irradiance with photon map
             Color irad = irradianceWithPM(points[i], normals[i], gatherPhotons, gatherRadius);
-            irads[i] = irad.cwiseMultiply(mtrl.color);
+            irads[i] = irad.multiply(mtrl.color);
         }
 
         // Save radiance data for visual checking
@@ -274,7 +273,7 @@ namespace spica {
             Vector3 posLight, normalLight;
             sampler::on(light, &posLight, &normalLight);
 
-            Color currentFlux = light->area() * scene.getMaterial(lightID).emission * PI / numPhotons;
+            Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
 
             Vector3 nextDir;
             sampler::onHemisphere(normalLight, &nextDir);
@@ -301,11 +300,11 @@ namespace spica {
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     sampler::onHemisphere(orientNormal, &nextDir);
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                     nextDir = Vector3::reflect(currentRay.direction(), orientNormal);
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                    currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                     bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
 
@@ -327,17 +326,17 @@ namespace spica {
                     if (isTotRef) {
                         // Total reflection
                         currentRay = reflectRay;
-                        currentFlux = currentFlux.cwiseMultiply(mtrl.color);
+                        currentFlux = currentFlux.multiply(mtrl.color);
                     } else {
                         const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
                         if (rng.nextReal() < probability) {
                             // Reflection
                             currentRay = reflectRay;
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelRe / probability);
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelRe / probability);
                         } else {
                             // Reflaction
                             currentRay = Ray(hitpoint.position(), transmitDir);
-                            currentFlux = currentFlux.cwiseMultiply(mtrl.color) * (fresnelTr / (1.0 - probability));
+                            currentFlux = currentFlux.multiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                         }
                     }
                 } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
@@ -390,13 +389,13 @@ namespace spica {
         Color totalFlux = Color(0.0, 0.0, 0.0);
         for (int i = 0; i < numValidPhotons; i++) {
             const double w = 1.0 - (distances[i] / (k * maxdist));
-            const Color v = photons[i].flux() / PI;
+            const Color v = Color(photons[i].flux() / PI);
             totalFlux += w * v;
         }
         totalFlux /= (1.0 - 2.0 / (3.0 * k));
 
         if (maxdist > EPS) {
-            return totalFlux / (PI * maxdist * maxdist);
+            return Color(totalFlux / (PI * maxdist * maxdist));
         }
         return Color(0.0, 0.0, 0.0);
     }
@@ -412,7 +411,7 @@ namespace spica {
         const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
         const double weight = cosine * cosine / lens2sensor.squaredNorm();
 
-        return radiance(scene, ray, rng, 0) * (weight * camera.sensitivity() / (pImage * pLens));
+        return Color(radiance(scene, ray, rng, 0) * (weight * camera.sensitivity() / (pImage * pLens)));
     }
 
     Color SSSRenderer::radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth, const int depthLimit, const int depthMin) {
@@ -420,7 +419,7 @@ namespace spica {
 
         // NOT intersect the scene
         if (!scene.intersect(ray, isect)) {
-            return scene.bgColor();
+            return scene.envmap().sampleFromDir(ray.direction());
         }
 
         const Material& mtrl = scene.getMaterial(isect.objectId());
@@ -535,7 +534,7 @@ namespace spica {
                     // Subsurface scattering
                     DiffusionReflectance Rd(sigma_a, sigmap_s, eta);
                     Color Mo = octree.iradSubsurface(hitpoint.position(), Rd);
-                    Color transmitRad = (1.0 / PI) * (1.0 - Rd.Fdr(eta)) * Mo;
+                    Color transmitRad = Color((1.0 / PI) * (1.0 - Rd.Fdr(eta)) * Mo);
                     
                     // Both reflect and transmit
                     incomingRad += radiance(scene, reflectRay, rng, depth + 1) * fresnelRe + transmitRad * fresnelTr;
@@ -544,7 +543,7 @@ namespace spica {
             }
 
         }
-        return mtrl.emission + weight.cwiseMultiply(incomingRad);
+        return Color(mtrl.emission + weight.multiply(incomingRad));
     }
 
 }  // namespace spica

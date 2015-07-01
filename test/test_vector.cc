@@ -63,7 +63,7 @@ TEST(Vector3Test, AlgebraTest) {
     EXPECT_EQ(0.0, w.y());
     EXPECT_EQ(0.0, w.z());
 
-    w = u.cwiseMultiply(v);
+    w = u.multiply(v);
     EXPECT_EQ(1.0, w.x());
     EXPECT_EQ(4.0, w.y());
     EXPECT_EQ(9.0, w.z());

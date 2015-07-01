@@ -35,6 +35,30 @@ namespace spica {
         load(filename);
     }
 
+    Trimesh::Trimesh(const std::vector<Vector3>& vertices, const std::vector<int>& faceIDs) 
+        : _numVerts(static_cast<unsigned long>(vertices.size()))
+        , _numFaces(static_cast<unsigned long>(faceIDs.size() / 3))
+        , _vertices(NULL)
+        , _faces(NULL)
+        , _normals(NULL)
+        , _accel(NULL)
+        , _accelType(QBVH_ACCEL)
+    {
+        msg_assert(faceIDs.size() % 3 == 0, "Number of faceIDs must be the multiple of 3 (Triangle)");
+
+        _vertices = new Vector3[_numVerts];
+        _faces = new int[_numFaces * 3];
+        _normals = new Vector3[_numFaces * 3];
+        memcpy(_vertices, &vertices[0], sizeof(Vector3) * _numVerts);
+        memcpy(_faces, &faceIDs[0], sizeof(int) * _numFaces * 3);
+        for (int i = 0; i < _numFaces; i++) {
+            const Vector3& v0 = _vertices[_faces[i * 3 + 0]];
+            const Vector3& v1 = _vertices[_faces[i * 3 + 1]];
+            const Vector3& v2 = _vertices[_faces[i * 3 + 2]];
+            _normals[i] = Vector3::cross(v1 - v0, v2 - v0).normalized();
+        }
+    }
+
     Trimesh::Trimesh(const Trimesh& trimesh)
         : _numVerts(0)
         , _numFaces(0)
@@ -44,38 +68,73 @@ namespace spica {
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
-        operator=(trimesh);
+        this->operator=(trimesh);
+    }
+
+    Trimesh::Trimesh(Trimesh&& trimesh)
+        : _numVerts(0)
+        , _numFaces(0)
+        , _vertices(NULL)
+        , _faces(NULL)
+        , _normals(NULL)
+        , _accel(NULL)
+        , _accelType(QBVH_ACCEL)
+    {
+        this->operator=(std::move(trimesh));
     }
 
     Trimesh::~Trimesh()
     {
+        release();
+    }
+
+    void Trimesh::release() {
         delete[] _vertices;
         delete[] _faces;
         delete[] _normals;
-        delete   _accel;
+
+        _numVerts = 0;
+        _numFaces = 0;
+        _vertices = NULL;
+        _faces    = NULL;
+        _normals  = NULL;
+        _accel    = NULL;
     }
 
     Trimesh& Trimesh::operator=(const Trimesh& trimesh) {
-        delete[] _vertices;
-        delete[] _faces;
-        delete[] _normals;
-        delete   _accel;
+        release();
 
         _numVerts = trimesh._numVerts;
         _numFaces = trimesh._numFaces;
         _vertices = new Vector3[trimesh._numVerts];
         _faces = new int[trimesh._numFaces * 3];
         _normals = new Vector3[trimesh._numFaces];
-        _accel = NULL;
+        _accel = trimesh._accel;
         _accelType = trimesh._accelType;
         
         memcpy(_vertices, trimesh._vertices, sizeof(Vector3) * _numVerts);
         memcpy(_faces, trimesh._faces, sizeof(int) * (_numFaces * 3));
         memcpy(_normals, trimesh._normals, sizeof(Vector3) * _numFaces);
 
-        buildAccel();
-
         return *this;
+    }
+
+    Trimesh& Trimesh::operator=(Trimesh&& trimesh) {
+        release();
+
+        _numVerts = trimesh._numVerts;
+        _numFaces = trimesh._numFaces;
+        _vertices = trimesh._vertices;
+        _faces    = trimesh._faces;
+        _normals  = trimesh._normals;
+        _accel    = trimesh._accel;
+        _accelType = trimesh._accelType;
+        
+        trimesh._vertices = nullptr;
+        trimesh._faces    = nullptr;
+        trimesh._normals  = nullptr;
+
+        return *this;    
     }
 
     bool Trimesh::intersect(const Ray& ray, Hitpoint* hitpoint) const {
@@ -112,11 +171,11 @@ namespace spica {
         switch(_accelType) {
         case KD_TREE_ACCEL:
             printf("Accelerator: K-D tree\n");
-            _accel = new KdTreeAccel();
+            _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
             break;
         case QBVH_ACCEL:
             printf("Accelerator: QBVH\n");
-            _accel = new QBVHAccel();
+            _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
         default:
             msg_assert(false, "Unknown accelerator type!!");
@@ -126,11 +185,21 @@ namespace spica {
     }
 
     void Trimesh::load(const std::string& filename) {
+        release();
+
         int dotPos = filename.find_last_of(".");
         std::string ext = filename.substr(dotPos);
-        // std::cout << "Extention: " << ext << std::endl;
-        msg_assert(ext == ".ply", "Mesh loader only accepts .ply file format");
+        
+        if (ext == ".ply") {
+            this->loadPly(filename);
+        } else if (ext == ".obj") {
+            this->loadObj(filename);
+        } else {
+            msg_assert(ext == ".ply" || ext == ".obj", "Mesh loader only accepts .ply and .obj file format");
+        }
+    }
 
+    void Trimesh::loadPly(const std::string& filename) {
         std::ifstream in(filename.c_str(), std::ios::in);
         msg_assert(in.is_open(), "Failed to open mesh file");
 
@@ -147,7 +216,6 @@ namespace spica {
                 in >> key;
                 if (key == "format" || key == "property") {
                     in >> name >> val;
-                    // std::cout << key << " " << name << " " << val << std::endl;
                 } else if (key == "element") {
                     in >> name;
                     if (name == "vertex") {
@@ -206,6 +274,49 @@ namespace spica {
         }
     }
 
+    void Trimesh::loadObj(const std::string& filename) {
+        std::ifstream in(filename.c_str(), std::ios::in);
+        msg_assert(in.is_open(), "Failed to open mesh file");
+
+        std::string typ;
+        this->_numVerts = 0;
+        this->_numFaces = 0;
+        std::vector<Vector3> verts;
+        std::vector<int> faces;
+        while (!in.eof()) {
+            in >> typ;
+            if (typ == "v") {
+                _numVerts++;
+                
+                double x, y, z;
+                in >> x >> y >> z;
+                verts.emplace_back(x, y, z);
+            } else if (typ == "f") {
+                _numFaces++;
+
+                int v0, v1, v2;
+                in >> v0 >> v1 >> v2;
+                faces.push_back(v0 - 1);
+                faces.push_back(v1 - 1);
+                faces.push_back(v2 - 1);
+            } else {
+                msg_assert(false, "Unknown type is found while reading .obj file!!");
+            }
+        }
+
+        _vertices = new Vector3[_numVerts];
+        _faces    = new int[_numFaces * 3];
+        _normals  = new Vector3[_numFaces];
+        memcpy(_vertices, &verts[0], sizeof(Vector3) * _numVerts);
+        memcpy(_faces, &faces[0], sizeof(int) * _numFaces * 3);
+        for (int i = 0; i < _numFaces; i++) {
+            int p0 = _faces[i * 3 + 0];
+            int p1 = _faces[i * 3 + 1];
+            int p2 = _faces[i * 3 + 2];
+            _normals[i] = Vector3::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]);
+        }
+    }
+
     void Trimesh::translate(const Vector3& move) {
         for (int i = 0; i < _numVerts; i++) {
             _vertices[i] += move;
@@ -214,10 +325,14 @@ namespace spica {
 
     void Trimesh::scale(const double scaleX, const double scaleY, const double scaleZ) {
         for (int i = 0; i < _numVerts; i++) {
-            _vertices[i].setX(_vertices[i].x() * scaleX);
-            _vertices[i].setY(_vertices[i].y() * scaleY);
-            _vertices[i].setZ(_vertices[i].z() * scaleZ);
+            _vertices[i].x() = _vertices[i].x() * scaleX;
+            _vertices[i].y() = _vertices[i].y() * scaleY;
+            _vertices[i].z() = _vertices[i].z() * scaleZ;
         }
+    }
+
+    void Trimesh::scale(const double scaleAll) {
+        scale(scaleAll, scaleAll, scaleAll);
     }
 
     void Trimesh::putOnPlane(const Plane& plane) {
@@ -230,6 +345,26 @@ namespace spica {
         for (int i = 0; i < _numVerts; i++) {
             _vertices[i] -= (minval + plane.distance()) * plane.normal();
         }
+    }
+
+    void Trimesh::fitToBBox(const BBox& bbox) {
+        BBox orgBox;
+        for (int i = 0; i < _numVerts; i++) {
+            orgBox.merge(_vertices[i]);
+        }
+
+        const Vector3 targetSize = bbox.posMax() - bbox.posMin();
+        const Vector3 orgSize = orgBox.posMax() - orgBox.posMin();
+
+        const double scaleX = targetSize.x() / orgSize.x();
+        const double scaleY = targetSize.y() / orgSize.y();
+        const double scaleZ = targetSize.z() / orgSize.z();
+        const double scaleAll = std::min(scaleX, std::min(scaleY, scaleZ));
+        this->scale(scaleAll);
+
+        const Vector3 prevCenter = (orgBox.posMin() + orgBox.posMax()) * (0.5 * scaleAll);
+        const Vector3 toCenter = (bbox.posMin() + bbox.posMax()) * 0.5;
+        this->translate(toCenter - prevCenter);
     }
 
     Vector3 Trimesh::getNormal(int id) const {

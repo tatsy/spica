@@ -25,7 +25,7 @@ namespace spica {
         void onHemisphere(const Vector3& normal, Vector3* direction, double r1, double r2) {
             Vector3 u, v, w;
             w = normal;
-            if (abs(w.x()) > EPS) {
+            if (std::abs(w.x()) > EPS) {
                 u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
             } else {
                 u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
@@ -58,7 +58,7 @@ namespace spica {
             double ry = disk.radius() * r0 * sin(r1);
             Vector3 u, v, w;
             w = disk.normal();
-            if (abs(w.x()) > EPS) {
+            if (std::abs(w.x()) > EPS) {
                 u = Vector3::cross(Vector3(0.0, 1.0, 0.0), w).normalized();
             } else {
                 u = Vector3::cross(Vector3(1.0, 0.0, 0.0), w).normalized();
@@ -93,27 +93,27 @@ namespace spica {
         }
 
         void on(const Primitive* primitive, Vector3* position, Vector3* normal, double r1, double r2) {
-            std::string typname = typeid(*primitive).name();
-            if (typname == "class spica::Quad") {
+            if (typeid(*primitive) == typeid(Quad)) {
                 const Quad* quad = reinterpret_cast<const Quad*>(primitive);
                 onQuad(*quad, position, normal, r1, r2);
             } else {
+                const std::string typname = typeid(*primitive).name();
                 msg_assert(false, ("Invalid geometry type: " + typname).c_str());
-            }            
+            }
         }
 
         void on(const Primitive* primitive, Vector3* position, Vector3* normal) {
-            std::string typname = typeid(*primitive).name();
-            if (typname == "class spica::Sphere") {
+            if (typeid(*primitive) == typeid(Sphere)) {
                 const Sphere* sphere = reinterpret_cast<const Sphere*>(primitive);
                 onSphere(*sphere, position, normal);
-            } else if (typname == "class spica::Quad") {
+            } else if (typeid(*primitive) == typeid(Quad)) {
                 const Quad* quad = reinterpret_cast<const Quad*>(primitive);
                 onQuad(*quad, position, normal);
-            } else if (typname == "class spica::Disk") {
+            } else if (typeid(*primitive) == typeid(Disk)) {
                 const Disk* disk = reinterpret_cast<const Disk*>(primitive);
                 onDisk(*disk, position, normal);
             } else {
+                const std::string typname = typeid(*primitive).name();
                 msg_assert(false, ("Invalid geometry type: " + typname).c_str());
             }
         }

@@ -6,7 +6,7 @@ using namespace spica;
 
 #include "test_macros.h"
 
-TEST(RendererTest, TotalRefTest) {
+TEST(RendererHelperTest, TotalRefTest) {
     Vector3 position(0.0, 0.0, 0.0);
     Vector3 in = Vector3(-1.0, 0.0, -1.0).normalized();
     Vector3 normal(0.0, 1.0, 0.0);

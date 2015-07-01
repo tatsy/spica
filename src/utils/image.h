@@ -7,7 +7,7 @@
     #else
         #define SPICA_IMAGE_DLL __declspec(dllimport)
     #endif
-#elif defined(linux) || defined(__linux)
+#else
     #define SPICA_IMAGE_DLL
 #endif
 
@@ -27,23 +27,35 @@ namespace spica {
         Image();
         Image(int width, int height);
         Image(const Image& image);
+        Image(Image&& image);
 
         virtual ~Image();
 
         Image& operator=(const Image& image);
+        Image& operator=(Image&& image);
 
         const Color& operator()(int x, int y) const;
         Color& pixel(int x, int y);
 
+        void resize(const int width, const int height);
+        void fill(const Color& color);
+
+        // Gamma correction
+        // @param[in] gam: gamma value
+        // @param[in] inv: if true inverse gamma correction is performed
+        void gamma(const double gam, bool inv = false);
+
         void loadBMP(const std::string& filename);
-        void saveBMP(const std::string& filename) const;
+        virtual void saveBMP(const std::string& filename) const;
+
+        void loadHDR(const std::string& filename);
 
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }
 
     private:
+        void release();
         static double toReal(unsigned char b);
-
         static unsigned char toByte(double d);
     };
 

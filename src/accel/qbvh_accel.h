@@ -46,14 +46,15 @@ namespace spica {
 
         static const int _maxNodeSize = 3;
         QBVHNode* _root;
-        unsigned int* _numCopies;
 
     public:
         QBVHAccel();
         QBVHAccel(const QBVHAccel& qbvh);
+        QBVHAccel(QBVHAccel&& qbvh);
         ~QBVHAccel();
 
         QBVHAccel& operator=(const QBVHAccel& qbvh);
+        QBVHAccel& operator=(QBVHAccel&& qbvh);
 
         void construct(const std::vector<Triangle>& triangles);
 
@@ -62,6 +63,7 @@ namespace spica {
     private:
         void release();
         void deleteNode(QBVHNode* node);
+        QBVHNode* copyNode(QBVHNode* node);
         
         QBVHNode* constructRec(std::vector<Triangle>& triangles, int dim);
     };

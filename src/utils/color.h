@@ -20,7 +20,7 @@ namespace spica {
         Color();
         Color(double red, double green, double blue);
         Color(const Color& color);
-        Color(const Vector3& v);
+        explicit Color(const Vector3& v);
 
         ~Color();
 
@@ -29,9 +29,18 @@ namespace spica {
 
         double luminance() const;
 
-        inline double red() const { return _x; }
-        inline double green() const { return _y; }
-        inline double blue() const { return _z; }
+        inline double red()   const { return this->x(); }
+        inline double green() const { return this->y(); }
+        inline double blue()  const { return this->z(); }
+
+        static Color BLACK;
+        static Color WHITE;
+        static Color RED;
+        static Color GREEN;
+        static Color BLUE;
+        static Color CYAN;
+        static Color YELLOW;
+        static Color MAGENTA;
     };
 
 }

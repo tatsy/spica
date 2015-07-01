@@ -41,7 +41,8 @@ if (${BUILD_TEST} STREQUAL "ON")
       test_kdtree.cc
       test_renderer.cc
       test_scene.cc
-      test_random.cc)
+      test_random.cc
+      test_pt_renderer.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARY})
@@ -49,7 +50,7 @@ if (${BUILD_TEST} STREQUAL "ON")
   target_link_libraries(${TEST_NAME} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
 
   add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} DEPENDS ${TEST_NAME})
+  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose DEPENDS ${TEST_NAME})
 
   include_directories(${CMAKE_CURRENT_LIST_DIR})
   include_directories(${GTEST_INCLUDE_DIRS})

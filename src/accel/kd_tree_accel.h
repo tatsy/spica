@@ -46,14 +46,15 @@ namespace spica {
 
         static const int _maxNodeSize = 2;
         KdTreeNode* _root;          // tree root
-        unsigned int* _numCopies;   // # of tree copies
 
     public:
         KdTreeAccel();
-        KdTreeAccel(const KdTreeAccel& kdtree);
+        KdTreeAccel(const KdTreeAccel& kdtree);     // Copy
+        KdTreeAccel(KdTreeAccel&& kdtree);          // Move
         ~KdTreeAccel();
 
-        KdTreeAccel& operator=(const KdTreeAccel& kdtree);
+        KdTreeAccel& operator=(const KdTreeAccel& kdtree);  // Copy
+        KdTreeAccel& operator=(KdTreeAccel&& kdtree);       // Move
         
         void construct(const std::vector<Triangle>& triangles);
         bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
@@ -61,6 +62,7 @@ namespace spica {
     private:
         void release();
         void deleteNode(KdTreeNode* node);
+        KdTreeNode* copyNode(KdTreeNode* node);
         KdTreeNode* constructRec(std::vector<Triangle>& triangles, int dim);
 
         static bool intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax);

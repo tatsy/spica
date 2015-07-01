@@ -1,5 +1,5 @@
-#ifndef SPICA_SCENE_H_
-#define SPICA_SCENE_H_
+#ifndef _SPICA_SCENE_H_
+#define _SPICA_SCENE_H_
 
 #if defined(_WIN32) || defined(__WIN32__)
     #ifdef SPICA_SCENE_EXPORT
@@ -16,6 +16,7 @@
 #include "../utils/uncopyable.h"
 #include "../geometry/geometry.h"
 
+#include "envmap.h"
 #include "ray.h"
 #include "material.h"
 
@@ -28,7 +29,7 @@ namespace spica {
         int _lightID;
         const Primitive** _primitives;
         Material* _materials;
-        Color _bgColor;
+        Envmap _envmap;
 
     public:
         Scene();
@@ -36,7 +37,7 @@ namespace spica {
 
         template <class Ty>
         void add(const Ty& primitive, const Material& material, bool isLight = false) {
-            msg_assert(dynamic_cast<const Primitive*>(&primitive) != 0, "Input geometry must be instanceof Primitive class.");
+            static_assert(std::is_base_of<Primitive, Ty>::value, "Type inherits Primitive can only be added to the scene.");
             if (isLight) _lightID = _nPrimitives;
             _primitives[_nPrimitives] = new Ty(primitive);
             _materials[_nPrimitives] = material;
@@ -53,9 +54,9 @@ namespace spica {
 
         inline int lightID() const { return _lightID; }
         inline int numObjects() const { return _nPrimitives; }
-        inline const Color& bgColor() const { return _bgColor; }
 
-        inline void setBgColor(const Color& bgColor) { _bgColor = bgColor; }
+        inline const Envmap& envmap() const { return _envmap; }
+        inline void setEnvmap(const Envmap& envmap) { _envmap = envmap; }
 
     private:
         Scene(const Scene& scene);
@@ -68,4 +69,4 @@ namespace spica {
     };
 }
 
-#endif  // SPICA_SCENE_H_
+#endif  // _SPICA_SCENE_H_

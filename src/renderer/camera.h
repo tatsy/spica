@@ -18,7 +18,7 @@
 
 namespace spica {
 
-    class CameraSample;
+    struct CameraSample;
 
     class SPICA_CAMERA_DLL Camera {
     private:

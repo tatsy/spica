@@ -7,8 +7,8 @@ typedef std::chrono::time_point<std::chrono::system_clock> time_type;
 inline time_type tick() {
     return std::chrono::system_clock::now();
 }
-inline double to_sec(time_type a) {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(a).count() / 1000.0;
+inline double to_duration(time_type start, time_type end) {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.0;
 }
 #else
 #include <ctime>
@@ -16,8 +16,8 @@ typedef clock_t time_type;
 inline time_type tick() {
     return clock();
 }
-inline double to_sec(time_type t) {
-    return t / 1000.0;
+inline double to_duration(time_type start, time_type end) {
+    return (end - start) / 1000.0;
 }
 #endif
 
@@ -41,7 +41,7 @@ namespace spica {
 
         double stop() {
             _end = tick();
-            return to_sec(_end - _start);
+            return to_duration(_start, _end);
         }
     };
 }

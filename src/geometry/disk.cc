@@ -39,10 +39,13 @@ namespace spica {
     }
 
     bool Disk::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        double tHit = (_center - ray.origin()).dot(ray.direction());
+        double dt = Vector3::dot(ray.direction(), _normal);
+        if (dt > -EPS) return false;
+
+        double tHit = Vector3::dot(_normal, _center - ray.origin()) / dt;
         hitpoint->setDistance(tHit);
         hitpoint->setPosition(ray.origin() + tHit * ray.direction());
-        hitpoint->setNormal(ray.direction().dot(_normal) < 0.0 ? _normal : -_normal);
+        hitpoint->setNormal(_normal);
         return (hitpoint->position() - _center).norm() <= _radius;            
     }
 

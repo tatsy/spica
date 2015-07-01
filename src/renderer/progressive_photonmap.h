@@ -31,7 +31,7 @@ namespace spica {
             double r2;
             int n;
 
-            HPoint(Vector3 pos = Vector3())
+            explicit HPoint(Vector3 pos = Vector3())
                 : Vector3(pos)
                 , normal()
                 , flux()
@@ -75,9 +75,9 @@ namespace spica {
             }
 
             void setPosition(const Vector3& p) {
-                this->_x = p.x();
-                this->_y = p.y();
-                this->_z = p.z();
+                this->x() = p.x();
+                this->y() = p.y();
+                this->z() = p.z();
             }
         };
 

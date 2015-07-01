@@ -5,9 +5,12 @@
 #include "../src/utils/timer.h"
 #include "../src/utils/vector3.h"
 #include "../src/utils/sampler.h"
+#include "../src/utils/vbo.h"
 
 #include "../src/geometry/geometry.h"
 
+#include "../src/renderer/brdf.h"
+#include "../src/renderer/bssrdf.h"
 #include "../src/renderer/scene.h"
 #include "../src/renderer/camera.h"
 
@@ -30,6 +33,6 @@
 // Scenes
 // --------------------------------------------
 
-#include "../src/scenes/cornell_box.h"
+#include "../src/scenes/predefined_scenes.h"
 
 #endif  // SPICA_H_

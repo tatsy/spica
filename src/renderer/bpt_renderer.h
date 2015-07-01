@@ -17,9 +17,11 @@
 namespace spica {
     
     class SPICA_BPT_RENDERER_DLL BDPTRenderer : public Uncopyable {
+    private:
+        spica::Image* _image;
 
     public:
-        BDPTRenderer();
+        BDPTRenderer(spica::Image* image = NULL);
         ~BDPTRenderer();
 
         void render(const Scene& scene, const Camera& camera, const int samplePerPixel, const RandomType randType);

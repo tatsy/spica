@@ -26,8 +26,8 @@ namespace spica {
             _arraySize *= 2;
             const Primitive** primPtr = new const Primitive*[_arraySize];
             Material* matPtr = new Material[_arraySize];
-            memcpy(primPtr, _primitives, sizeof(Primitive*) * _nPrimitives);
-            memcpy(matPtr, _materials, sizeof(Material) * _nPrimitives);
+            memcpy((void*)primPtr, (void*)_primitives, sizeof(Primitive*) * _nPrimitives);
+            memcpy((void*)matPtr, (void*)_materials, sizeof(Material) * _nPrimitives);
             release();
             _primitives = primPtr;
             _materials = matPtr;

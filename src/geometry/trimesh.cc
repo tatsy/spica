@@ -49,8 +49,8 @@ namespace spica {
         _vertices = new Vector3[_numVerts];
         _faces = new int[_numFaces * 3];
         _normals = new Vector3[_numFaces * 3];
-        memcpy(_vertices, &vertices[0], sizeof(Vector3) * _numVerts);
-        memcpy(_faces, &faceIDs[0], sizeof(int) * _numFaces * 3);
+        memcpy((void*)_vertices, (void*)&vertices[0], sizeof(Vector3) * _numVerts);
+        memcpy((void*)_faces, (void*)&faceIDs[0], sizeof(int) * _numFaces * 3);
         for (int i = 0; i < _numFaces; i++) {
             const Vector3& v0 = _vertices[_faces[i * 3 + 0]];
             const Vector3& v1 = _vertices[_faces[i * 3 + 1]];
@@ -112,9 +112,9 @@ namespace spica {
         _accel = trimesh._accel;
         _accelType = trimesh._accelType;
         
-        memcpy(_vertices, trimesh._vertices, sizeof(Vector3) * _numVerts);
-        memcpy(_faces, trimesh._faces, sizeof(int) * (_numFaces * 3));
-        memcpy(_normals, trimesh._normals, sizeof(Vector3) * _numFaces);
+        memcpy((void*)_vertices, (void*)trimesh._vertices, sizeof(Vector3) * _numVerts);
+        memcpy((void*)_faces, (void*)trimesh._faces, sizeof(int) * (_numFaces * 3));
+        memcpy((void*)_normals, (void*)trimesh._normals, sizeof(Vector3) * _numFaces);
 
         return *this;
     }
@@ -307,8 +307,8 @@ namespace spica {
         _vertices = new Vector3[_numVerts];
         _faces    = new int[_numFaces * 3];
         _normals  = new Vector3[_numFaces];
-        memcpy(_vertices, &verts[0], sizeof(Vector3) * _numVerts);
-        memcpy(_faces, &faces[0], sizeof(int) * _numFaces * 3);
+        memcpy((void*)_vertices, (void*)&verts[0], sizeof(Vector3) * _numVerts);
+        memcpy((void*)_faces, (void*)&faces[0], sizeof(int) * _numFaces * 3);
         for (int i = 0; i < _numFaces; i++) {
             int p0 = _faces[i * 3 + 0];
             int p1 = _faces[i * 3 + 1];

@@ -91,3 +91,11 @@ TEST(ImageTest, SaveLoadTest) {
         }
     }
 }
+
+TEST(ImageTest, TonemapTest) {
+    Image image;
+    image.loadHDR(DATA_DIR + "gold_room.hdr");
+    image.tonemap();
+
+    image.saveBMP(DATA_DIR + "gold_room.bmp");
+}

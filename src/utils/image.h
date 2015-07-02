@@ -17,6 +17,10 @@
 
 namespace spica {
 
+    enum TMAlgorithm {
+        TM_REINHARD = 0x00
+    };
+
     class SPICA_IMAGE_DLL Image {
     private:
         unsigned int _width;
@@ -50,6 +54,8 @@ namespace spica {
 
         void loadHDR(const std::string& filename);
         virtual void saveHDR(const std::string& filename) const;
+
+        void tonemap(TMAlgorithm algo = TM_REINHARD);
 
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }

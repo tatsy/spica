@@ -484,6 +484,39 @@ namespace spica {
         ofs.close();
     }
 
+    void Image::tonemap(TMAlgorithm algo) {
+        msg_assert(algo == TM_REINHARD, "Tone mapping algorithm other than Reinhard '02 is not supported");
+
+        const double delta = 1.0e-8;
+        const double a = 0.18;
+
+        double Lw_bar = 0.0;
+        double L_white = 0.0;
+        for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _width; x++) {
+                Color c = this->operator()(x, y);
+                double l = c.luminance();
+                Lw_bar += log(l + delta);         
+                L_white = std::max(L_white, l);
+            }
+        }
+        Lw_bar = exp(Lw_bar / (_width * _height));
+
+        const double L_white2 = L_white * L_white;
+        for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _width; x++) {
+                Color c = this->operator()(x, y);
+                double r = c.red() * a / Lw_bar;
+                r = r * (1.0 + r / L_white2) / (1.0 + r);
+                double g = c.green() * a / Lw_bar;
+                g = g * (1.0 + g / L_white2) / (1.0 + g);
+                double b = c.blue() * a / Lw_bar;
+                b = b * (1.0 + b / L_white2) / (1.0 + b);
+                this->pixel(x, y) = Color(r, g, b);
+            }
+        }
+    }
+
     double Image::toReal(unsigned char b) {
         return b / 255.0;
     }

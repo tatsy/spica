@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <vector>
 #include <algorithm>
 
 #include "common.h"
@@ -52,6 +53,50 @@ namespace spica {
         enum HDRFileType {
             HDR_NONE,
             HDR_RLE_RGBE_32
+        };
+
+        struct HDRPixel {
+            unsigned char r, g, b, e;
+            
+            HDRPixel()
+                : r(0)
+                , g(0)
+                , b(0)
+                , e(0)
+            {
+            }
+
+            explicit HDRPixel(const Color& color)
+                : r(0)
+                , g(0)
+                , b(0)
+                , e(0)
+            {
+                double d = std::max(color.red(), std::max(color.green(), color.blue()));
+                if (d <= 1.0e-32) {
+                    r = g = b = e = 0;
+                    return;
+                }
+
+                int ie;
+                const double m = frexp(d, &ie);
+                d = m * 256.0 / d;
+
+                r = static_cast<unsigned char>(color.red() * d);
+                g = static_cast<unsigned char>(color.green() * d);
+                b = static_cast<unsigned char>(color.blue() * d);
+                e = static_cast<unsigned char>(ie + 128);
+            }
+
+            unsigned char get(int idx) const {
+                switch (idx) {
+                case 0: return r;
+                case 1: return g;
+                case 2: return b;
+                case 3: return e;
+                }
+                return 0;
+            }
         };
     }
 
@@ -389,6 +434,87 @@ namespace spica {
         fclose(fp);
         delete[] tmp_data;
         delete[] buffer;
+    }
+
+    void Image::saveHDR(const std::string& filename) const {
+        std::ofstream ofs(filename.c_str(), std::ios::out | std::ios::binary);
+        if (!ofs.is_open()) {
+            std::cerr << "Failed to open file \"" << filename << "\"" << std::endl;
+            return;
+        }
+
+        char buffer[256];
+        unsigned char ret = 0x0a;
+        sprintf(buffer, "#?RADIANCE%c", ret);
+        ofs.write(buffer, strlen(buffer));
+        sprintf(buffer, "# Made with 100%% pure HDR Shop%c", ret);
+        ofs.write(buffer, strlen(buffer));
+        sprintf(buffer, "FORMAT=32-bit_rle_rgbe%c", ret);
+        ofs.write(buffer, strlen(buffer));
+        sprintf(buffer, "EXPOSURE=1.0000000000000%c%c", ret, ret);
+        ofs.write(buffer, strlen(buffer));
+
+        sprintf(buffer, "-Y %d +X %d%c", _height, _width, ret);
+        ofs.write(buffer, strlen(buffer));
+
+        std::vector<unsigned char> pixbuf;
+        for (int i = 0; i < _height; i++) {
+            std::vector<HDRPixel> line;
+            for (int j = 0; j < _width; j++) {
+                Color color = this->operator()(j, i);
+                line.push_back(HDRPixel(color));
+            }
+            pixbuf.push_back(0x02);
+            pixbuf.push_back(0x02);
+            pixbuf.push_back((_width >> 8) & 0xff);
+            pixbuf.push_back(_width & 0xff);
+            for (int c = 0; c < 4; c++) {
+                for (int cursor = 0; cursor < _width;) {
+                    const int cursor_move = std::min((unsigned int)127, _width - cursor);
+                    pixbuf.push_back(cursor_move);
+                    for (int j = cursor; j < cursor + cursor_move; j++) {
+                        pixbuf.push_back(line[j].get(c));
+                    }
+                    cursor += cursor_move;
+                }
+            }
+        }
+        ofs.write((char*)&pixbuf[0], pixbuf.size());
+
+        ofs.close();
+    }
+
+    void Image::tonemap(TMAlgorithm algo) {
+        msg_assert(algo == TM_REINHARD, "Tone mapping algorithm other than Reinhard '02 is not supported");
+
+        const double delta = 1.0e-8;
+        const double a = 0.18;
+
+        double Lw_bar = 0.0;
+        double L_white = 0.0;
+        for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _width; x++) {
+                Color c = this->operator()(x, y);
+                double l = c.luminance();
+                Lw_bar += log(l + delta);         
+                L_white = std::max(L_white, l);
+            }
+        }
+        Lw_bar = exp(Lw_bar / (_width * _height));
+
+        const double L_white2 = L_white * L_white;
+        for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _width; x++) {
+                Color c = this->operator()(x, y);
+                double r = c.red() * a / Lw_bar;
+                r = r * (1.0 + r / L_white2) / (1.0 + r);
+                double g = c.green() * a / Lw_bar;
+                g = g * (1.0 + g / L_white2) / (1.0 + g);
+                double b = c.blue() * a / Lw_bar;
+                b = b * (1.0 + b / L_white2) / (1.0 + b);
+                this->pixel(x, y) = Color(r, g, b);
+            }
+        }
     }
 
     double Image::toReal(unsigned char b) {

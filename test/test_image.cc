@@ -9,6 +9,7 @@ namespace {
     const int height = 240;
     Random rng = Random();
     const std::string filepath = DATA_DIR + "test_image.bmp";
+    const std::string hdrpath = DATA_DIR + "test_hdr.hdr";
 }
 
 // --------------------------------------------------
@@ -68,6 +69,18 @@ TEST(ImageTest, SaveLoadTest) {
 
     Image loaded;
     loaded.loadBMP(filepath);
+    EXPECT_EQ(image.width(), loaded.width());
+    EXPECT_EQ(image.height(), loaded.height());
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            EXPECT_NEAR(image(x, y).red(),   loaded(x, y).red(),   0.01) << "Red is different";        
+            EXPECT_NEAR(image(x, y).green(), loaded(x, y).green(), 0.01) << "Green is different";        
+            EXPECT_NEAR(image(x, y).blue(),  loaded(x, y).blue(),  0.01) << "Blue is different";        
+        }
+    }
+
+    image.saveHDR(hdrpath);
+    loaded.loadHDR(hdrpath);
     EXPECT_EQ(image.width(), loaded.width());
     EXPECT_EQ(image.height(), loaded.height());
     for (int y = 0; y < height; y++) {

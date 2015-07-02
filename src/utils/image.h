@@ -49,6 +49,7 @@ namespace spica {
         virtual void saveBMP(const std::string& filename) const;
 
         void loadHDR(const std::string& filename);
+        virtual void saveHDR(const std::string& filename) const;
 
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }

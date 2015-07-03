@@ -272,7 +272,7 @@ namespace spica {
         kitten.putOnPlane(Plane(10.0, Vector3(0.0, 1.0, 0.0)));
         kitten.buildAccel();
 
-        scene->add(kitten, Material(Color(), Color(0.25, 0.60, 0.80), REFLECTION_SUBSURFACE));                         
+        scene->add(kitten, Material(Color(), Color(0.99, 0.99, 0.99), REFLECTION_SUBSURFACE));                         
         
         Disk disk(Vector3(0.0, -10.0, 0.0), Vector3(0.0, 1.0, 0.0), 20.0);
         scene->add(disk, Material(Color(), Color(0.95, 0.95, 0.95), REFLECTION_DIFFUSE));

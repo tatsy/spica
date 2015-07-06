@@ -281,7 +281,8 @@ namespace spica {
 
     }  // anonymous namespace
 
-    MLTRenderer::MLTRenderer()
+    MLTRenderer::MLTRenderer(spica::Image* image)
+        : _image(image)
     {
     }
 
@@ -300,6 +301,13 @@ namespace spica {
         }
 
         const int taskPerThread = (numMLT + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
+
+        bool isAllocImageInside = false;
+        if (_image == NULL) {
+            _image = new spica::Image(width, height);
+            isAllocImageInside = true;
+        }
+        _image->resize(width, height);
 
         for (int t = 0; t < taskPerThread; t++) {
             ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
@@ -347,7 +355,7 @@ namespace spica {
                 for (int i = 0; i < numMutate; i++) {
                     if ((i + 1) % (numMutate / 10) == 0) {
                         progress += 10;
-                        printf("Thread No.%d: %3d %%, Accept: %8d, Reject %8d, Rate: %7.4f %%\n", omp_thread_id() + 1, progress, accept, reject, 100.0 * accept / (accept + reject));
+                        printf("Thread No.%d: %3d %%, Accept: %8d, Reject %8d, Rate: %7.4f %%\r", omp_thread_id() + 1, progress, accept, reject, 100.0 * accept / (accept + reject));
                     }
 
                     rand[threadID].requestSamples(rseq, 2);
@@ -387,23 +395,28 @@ namespace spica {
             }
 
             const int usedSamples = OMP_NUM_CORE * (t + 1);
-            Image image(width, height);
+            _image->fill(Color(0.0, 0.0, 0.0));
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     for (int k = 0; k < OMP_NUM_CORE; k++) {
-                        image.pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
+                        _image->pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
                     }
                 }
             }
 
             char filename[256];
             sprintf(filename, "mlt_%03d.bmp", usedSamples);
-            image.saveBMP(filename);
+            _image->gamma(1.7, true);
+            _image->saveBMP(filename);
         }
+        printf("\nFinish\n");
 
         // Release memory
         delete[] buffer;
         delete[] rand;
+        if (isAllocImageInside) {
+            delete _image;
+        }
     }
 
 }  // namespace spica

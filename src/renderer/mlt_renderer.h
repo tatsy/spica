@@ -16,8 +16,11 @@
 namespace spica {
 
     class SPICA_MLT_RENDERER_DLL MLTRenderer : private Uncopyable {
+    private:
+        spica::Image* _image;
+
     public:
-        MLTRenderer();
+        explicit MLTRenderer(spica::Image* image = NULL);
         ~MLTRenderer();
 
         // ------------------------------------------------------------

@@ -74,12 +74,12 @@ namespace spica {
 
         std::string toString() const;
 
-        inline double x() const;
-        inline double y() const;
-        inline double z() const;
-        inline double& x();
-        inline double& y();
-        inline double& z();
+        double x() const;
+        double y() const;
+        double z() const;
+        double& x();
+        double& y();
+        double& z();
 
     };  // class Vector3
 

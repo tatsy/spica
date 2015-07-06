@@ -13,14 +13,26 @@
 
 #include <iostream>
 #include <array>
+#include <xmmintrin.h>
+#include <immintrin.h>
 
+#include "common.h"
 #include "axis_comparable.h"
 
 namespace spica {
 
     class SPICA_VECTOR3_DLL Vector3 : public AxisComparable {
     protected:
+
+#ifndef __AVX__
         std::array<double, 3> _xyz;
+#else
+        union m256d {
+            __m256d m;
+            align_attrib(double, 32) v[4];
+        };
+        m256d _xyz;
+#endif
 
     public:
         Vector3();
@@ -62,12 +74,12 @@ namespace spica {
 
         std::string toString() const;
 
-        inline double x() const { return _xyz[0]; }
-        inline double y() const { return _xyz[1]; }
-        inline double z() const { return _xyz[2]; }
-        inline double& x() { return _xyz[0]; }
-        inline double& y() { return _xyz[1]; }
-        inline double& z() { return _xyz[2]; }
+        inline double x() const;
+        inline double y() const;
+        inline double z() const;
+        inline double& x();
+        inline double& y();
+        inline double& z();
 
     };  // class Vector3
 

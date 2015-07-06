@@ -1,6 +1,8 @@
 #define SPICA_VECTOR3_EXPORT
 #include "vector3.h"
 
+#ifndef __AVX__
+
 #include <iostream>
 #include <sstream>
 #include <algorithm>
@@ -137,6 +139,13 @@ namespace spica {
         ss << "(" << _xyz[0] << ", " << _xyz[1] << ", " << _xyz[2] << ")";
         return ss.str();
     }
+
+    double Vector3::x() const { return _xyz[0]; }
+    double Vector3::y() const { return _xyz[1]; }
+    double Vector3::z() const { return _xyz[2]; }
+    double& Vector3::x() { return _xyz[0]; }
+    double& Vector3::y() { return _xyz[1]; }
+    double& Vector3::z() { return _xyz[2]; }
 }
 
 spica::Vector3 operator+(const spica::Vector3& v1, const spica::Vector3& v2) {
@@ -173,3 +182,5 @@ std::ostream& operator<<(std::ostream& os, const spica::Vector3 v) {
     os << v.toString();
     return os;
 }
+
+#endif  // ENABLE_EVX

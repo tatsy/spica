@@ -31,6 +31,16 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 set(SPICA_ROOT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 
+# Use Intel AVX or not
+option(ENABLE_AVX "ENABLE_AVX" ON)
+if (${ENABLE_AVX} STREQUAL "ON")
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
+  endif()
+endif()
+
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(example)

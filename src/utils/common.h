@@ -90,3 +90,13 @@ do { \
 #endif  // NDEBUG
 
 #endif  // SPICA_COMMON_H_
+
+// ----------------------------------------------------------------------------
+// Alignment
+// ----------------------------------------------------------------------------
+
+#if defined(_WIN32) || defined(__WIN32__)
+    #define align_attrib(typ, siz) __declspec(align(siz)) typ
+#else
+    #define align_attrib(typ, siz) typ __attribute__((aligned(siz)))
+#endif

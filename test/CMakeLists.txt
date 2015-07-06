@@ -1,10 +1,10 @@
 # Enable GTest
 enable_testing()
 
-option(BUILD_TEST "BUILD_TEST" ON)
+option(SPICA_BUILD_TEST "SPICA_BUILD_TEST" ON)
 set(GTEST_ROOT $ENV{GTEST_ROOT} CACHE STRING "GTEST_ROOT")
 
-if (${BUILD_TEST} STREQUAL "ON")
+if (${SPICA_BUILD_TEST} STREQUAL "ON")
   # Link directory
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 

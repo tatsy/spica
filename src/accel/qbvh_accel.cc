@@ -1,16 +1,12 @@
 #define SPICA_QBVH_ACCEL_EXPORT
 #include "qbvh_accel.h"
 
-#if defined(_WIN32) || defined(__WIN32__)
-#define align_attrib(typ, siz) __declspec(align(siz)) typ
-#else
-#define align_attrib(typ, siz) typ __attribute__((aligned(siz)))
-#endif
-
 #include <stack>
 #include <cmath>
 #include <cstring>
 #include <algorithm>
+
+#include "../utils/common.h"
 
 namespace spica {
 

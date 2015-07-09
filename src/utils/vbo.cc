@@ -45,6 +45,9 @@ namespace spica {
         } else if (typeid(*p) == typeid(Trimesh)) {
             const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(p);
             add(*trimesh, color);
+        } else if (typeid(*p) == typeid(Disk)) { 
+            const Disk* disk = reinterpret_cast<const Disk*>(p);
+            add(*disk, color);
         } else {
             const std::string typname = typeid(*p).name();
             msg_assert(false, (typname + "is not supported").c_str());        
@@ -150,5 +153,28 @@ namespace spica {
         }
     }
 
+    void VBO::add(const Disk& disk, const Color& color) {
+        static const int ndiv = 64;
+
+        Vector3 u, v, w;
+        w = disk.normal();
+        if (std::abs(w.x()) > EPS) {
+            u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
+        } else {
+            u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
+        }
+
+        v = w.cross(u);
+        
+
+        for (int i = 0; i < ndiv; i++) {
+            const double t1 = 2.0 * PI * i / ndiv;
+            const double t2 = 2.0 * PI * (i + 1) / ndiv;
+            const Vector3 v1 = disk.center() + disk.radius() * (u * cos(t1) + v * sin(t1));
+            const Vector3 v2 = disk.center() + disk.radius() * (u * cos(t2) + v * sin(t2));
+            Triangle tri = Triangle(disk.center(), v1, v2);
+            add(tri, color);
+        }
+    }
 
 }  // namespace spica

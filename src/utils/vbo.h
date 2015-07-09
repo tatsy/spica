@@ -38,6 +38,7 @@ namespace spica {
         void add(const Triangle& tri, const Color& color);
         void add(const Trimesh& trimesh, const Color& color);
         void add(const Sphere& sphere, const Color& color);
+        void add(const Disk& disk, const Color& color);
 
         inline int numIndices() const { return (int)_indices.size(); }
 

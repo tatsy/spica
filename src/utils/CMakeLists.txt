@@ -5,6 +5,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
 
 set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/vector3.cc
+    ${CMAKE_CURRENT_LIST_DIR}/vector3_avx.cc
     ${CMAKE_CURRENT_LIST_DIR}/color.cc
     ${CMAKE_CURRENT_LIST_DIR}/image.cc
     ${CMAKE_CURRENT_LIST_DIR}/sampler.cc

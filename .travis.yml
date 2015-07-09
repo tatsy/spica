@@ -1,5 +1,5 @@
 language: cpp
-
+sudo: required
 compiler:
   - gcc
   - clang
@@ -61,7 +61,7 @@ install:
   - qmake --version
 
   # build spica
-  - cmake -DCMAKE_PREFIX_PATH=/opt/qt54/lib/cmake .
+  - cmake -DENABLE_AVX=OFF -DCMAKE_PREFIX_PATH=/opt/qt54/lib/cmake .
   - cmake --build .
 
 before_script:

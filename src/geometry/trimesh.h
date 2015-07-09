@@ -18,6 +18,7 @@
 #include "triangle.h"
 #include "plane.h"
 #include "../utils/vector3.h"
+#include "../utils/color.h"
 #include "../accel/accel.h"
 
 namespace spica {
@@ -27,6 +28,7 @@ namespace spica {
         unsigned long _numVerts;
         unsigned long _numFaces;
         Vector3* _vertices;
+        Color* _colors;
         int* _faces;
         Vector3* _normals;
         std::shared_ptr<AccelBase> _accel;
@@ -101,6 +103,21 @@ namespace spica {
         // Get a triangle with specified ID
         // @param[in] faceID: ID of the triangle to get
         Triangle getTriangle(int faceID) const;
+
+        // Get vertex indices
+        std::vector<int> getIndices() const;
+
+        // Get the vertex with specified ID
+        // @param[in] vertexID: ID of the vertex
+        Vector3 getVertex(int vertexID) const;
+
+        // Set color to the specified vertex
+        // @param[in] vertexID: ID of the vertex
+        void setColor(int vertexID, const Color& color);
+
+        // Get the color of the vertex with specified ID
+        // @param[in] vertexID: ID of the vertex
+        Color getColor(int vertexID) const;
 
         // Get the normal of a face with specified ID
         // @param[in] faceID: ID of the triangle to get a normal

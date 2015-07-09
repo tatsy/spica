@@ -146,6 +146,33 @@ namespace spica {
         }
     }
 
+    void VBO::add(const Trimesh& trimesh) {
+        const int numVerts = trimesh.numVerts();
+        const int numFaces = trimesh.numFaces();
+
+        std::vector<int> belongCount(numVerts, 0);
+        std::vector<Vector3> normals(numVerts, Vector3(0.0, 0.0, 0.0));
+
+        std::vector<int> indices = trimesh.getIndices();
+        for (int i = 0; i < numFaces; i++) {
+            const Vector3& normal = trimesh.getNormal(i);
+            for (int j = 0; j < 3; j++) {
+                const int vid = indices[i * 3 + j];
+                normals[vid] += normal;
+                belongCount[vid]++;
+            }
+        }
+
+        for (int i = 0; i < numVerts; i++) {
+            const Vector3 vNormal = normals[i] / belongCount[i];
+            add(trimesh.getVertex(i), vNormal, trimesh.getColor(i));
+        }
+
+        const int prevSize = static_cast<int>(_indices.size());
+        _indices.resize(prevSize + indices.size());
+        std::copy(indices.begin(), indices.end(), _indices.begin() + prevSize);
+    }
+
     void VBO::add(const Trimesh& trimesh, const Color& color) {
         for (int i = 0; i < trimesh.numFaces(); i++) {
             Triangle tri = trimesh.getTriangle(i);
@@ -163,9 +190,7 @@ namespace spica {
         } else {
             u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
         }
-
         v = w.cross(u);
-        
 
         for (int i = 0; i < ndiv; i++) {
             const double t1 = 2.0 * PI * i / ndiv;

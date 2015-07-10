@@ -327,8 +327,8 @@ namespace spica {
                     if (strcmp(temp, "32-bit_rle_rgbe") == 0) {
                         fileType = HDR_RLE_RGBE_32;
                     }
-                } else if (strstr(buf, "EXPORSURE=") == buf) {
-                    sscanf(buf, "FORMAT=%f", &exposure);
+                } else if (strstr(buf, "EXPOSURE=") == buf) {
+                    sscanf(buf, "EXPOSURE=%f", &exposure);
                 }
             }
 

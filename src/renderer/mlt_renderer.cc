@@ -406,7 +406,7 @@ namespace spica {
 
             char filename[256];
             sprintf(filename, "mlt_%03d.bmp", usedSamples);
-            _image->gamma(1.7, true);
+            _image->gamma(2.2, true);
             _image->saveBMP(filename);
         }
         printf("\nFinish\n");

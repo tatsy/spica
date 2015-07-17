@@ -10,16 +10,17 @@ int main(int argc, char** argv) {
     const int width = argc >= 2 ? atoi(argv[1]) : 320;
     const int height = argc >= 3 ? atoi(argv[2]) : 240;
     const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 32;
+    const int numPhotons = argc >= 5 ? atoi(argv[4]) : 1000000;
 
     std::cout << "      width: " << width << std::endl;
     std::cout << "     height: " << height << std::endl;
-    std::cout << "  sample/px: " << samplePerPixel << std::endl << std::endl;
+    std::cout << "  sample/px: " << samplePerPixel << std::endl;
+    std::cout << "    photons: " << numPhotons << std::endl << std::endl;
 
     Scene scene;
     Camera camera;
-    kittenEnvmap(&scene, &camera, width, height);
-
-    const int numPhotons = 2000000;
+    // cornellBoxDragon(&scene, &camera, width, height);
+    kittenBox(&scene, &camera, width, height);
 
     BSSRDF bssrdf = DiffusionBSSRDF::factory(1.0e-4, 10.0, 1.3);
 

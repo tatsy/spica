@@ -89,7 +89,6 @@ namespace spica {
                 }
             }
 
-
             char filename[256];
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {

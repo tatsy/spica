@@ -1,5 +1,5 @@
 language: cpp
-sudo: required
+sudo: true
 compiler:
   - gcc
   - clang
@@ -69,7 +69,8 @@ before_script:
   - export OMP_NUM_THREADS=4
 
 script:
-  - CTEST_OUTPUT_ON_FAILURE=TRUE make check
+  - export CTEST_OUTOUT_ON_FAILURE=TRUE
+  - travis_wait make check
 
 after_success:
   - if [ "$CXX" = "g++"     ]; then lcov --directory . --capture --output-file coverage.info; fi

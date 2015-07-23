@@ -33,14 +33,14 @@ namespace spica {
         inline double green() const { return this->y(); }
         inline double blue()  const { return this->z(); }
 
-        static Color BLACK;
-        static Color WHITE;
-        static Color RED;
-        static Color GREEN;
-        static Color BLUE;
-        static Color CYAN;
-        static Color YELLOW;
-        static Color MAGENTA;
+        static const Color BLACK;
+        static const Color WHITE;
+        static const Color RED;
+        static const Color GREEN;
+        static const Color BLUE;
+        static const Color CYAN;
+        static const Color YELLOW;
+        static const Color MAGENTA;
     };
 
 }

@@ -52,7 +52,7 @@ int RendererTest::height = 0;
 Scene RendererTest::scene;
 Camera RendererTest::camera;
 
-TEST_F(RendererTest, PTTest) {    
+TEST_F(RendererTest, PTTest) {
     PathTracingRenderer renderer(&result);
     renderer.render(scene, camera, spp, QUASI_MONTE_CARLO);
     TestMain();

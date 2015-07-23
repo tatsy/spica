@@ -111,3 +111,13 @@ do { \
 #else
     #define align_attrib(typ, siz) typ __attribute__((aligned(siz)))
 #endif
+
+// ----------------------------------------------------------------------------
+// isnan / isinf
+// ----------------------------------------------------------------------------
+#if defined(_WIN32) || defined(__WIN32__)
+#if _MSC_VER <= 1600
+#define isnan(x) _isnan(x)
+#define isinf(x) (!_finite(x))
+#endif
+#endif

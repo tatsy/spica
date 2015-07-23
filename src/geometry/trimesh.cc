@@ -303,7 +303,7 @@ namespace spica {
                 
                 double x, y, z;
                 in >> x >> y >> z;
-                verts.emplace_back(x, y, z);
+                verts.push_back(Vector3(x, y, z));
             } else if (typ == "f") {
                 _numFaces++;
 

@@ -16,6 +16,17 @@
 namespace spica {
 
     class SPICA_COLOR_DLL Color : public Vector3 {
+
+    public:
+        static const Color BLACK;
+        static const Color WHITE;
+        static const Color RED;
+        static const Color GREEN;
+        static const Color BLUE;
+        static const Color CYAN;
+        static const Color YELLOW;
+        static const Color MAGENTA;
+
     public:
         Color();
         Color(double red, double green, double blue);
@@ -32,15 +43,6 @@ namespace spica {
         inline double red()   const { return this->x(); }
         inline double green() const { return this->y(); }
         inline double blue()  const { return this->z(); }
-
-        static const Color BLACK;
-        static const Color WHITE;
-        static const Color RED;
-        static const Color GREEN;
-        static const Color BLUE;
-        static const Color CYAN;
-        static const Color YELLOW;
-        static const Color MAGENTA;
     };
 
 }

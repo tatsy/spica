@@ -38,6 +38,7 @@ namespace spica {
 
         Color sampleFromDir(const Vector3& dir) const;
         Photon samplePhoton(RandomSeq& rseq, const int numPhotons) const;
+        const Image& getImage() const;
 
     private:
         void createImportanceMap();

@@ -48,7 +48,7 @@ namespace spica {
             _size = que._size;
             _pos = que._pos;
             _data = new Ty[_size];
-            memcpy(_data, que._data, sizeof(Ty) * _size);
+            memcpy((void*)_data, (void*)que._data, sizeof(Ty) * _size);
             
             return *this;
         }
@@ -57,7 +57,7 @@ namespace spica {
             _data[_pos++] = ty;
             if (_pos == _size) {
                 Ty* temp = new Ty[_size * 2];
-                memcpy(temp, _data, sizeof(Ty) * _size);
+                memcpy((void*)temp, (void*)_data, sizeof(Ty) * _size);
 
                 delete[] _data;
                 _size *= 2;

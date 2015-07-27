@@ -43,8 +43,19 @@ static const double PI = 4.0 * atan(1.0);
 static const double INFTY = 1.0e128;
 static const double EPS = 1.0e-6;
 
+#define WITH_ENABLER
+#if defined(_WIN32) || defined(__WIN32__)
+    #if _MSC_VER <= 1600
+        #undef WITH_ENABLER
+    #endif
+#endif
+
+#ifdef WITH_ENABLER
 extern void* enabler;
 template <class Ty, typename std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
+#else
+template <class Ty>
+#endif
 inline Ty clamp(Ty v, Ty lo, Ty hi) {
     if (v < lo) v = lo;
     if (v > hi) v = hi;
@@ -90,3 +101,23 @@ do { \
 #endif  // NDEBUG
 
 #endif  // SPICA_COMMON_H_
+
+// ----------------------------------------------------------------------------
+// Alignment
+// ----------------------------------------------------------------------------
+
+#if defined(_WIN32) || defined(__WIN32__)
+    #define align_attrib(typ, siz) __declspec(align(siz)) typ
+#else
+    #define align_attrib(typ, siz) typ __attribute__((aligned(siz)))
+#endif
+
+// ----------------------------------------------------------------------------
+// isnan / isinf
+// ----------------------------------------------------------------------------
+#if defined(_WIN32) || defined(__WIN32__)
+#if _MSC_VER <= 1600
+#define isnan(x) _isnan(x)
+#define isinf(x) (!_finite(x))
+#endif
+#endif

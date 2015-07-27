@@ -151,7 +151,7 @@ namespace spica {
         this->_width = image._width;
         this->_height = image._height;
         this->_pixels = new Color[image._width * image._height];
-        memcpy(_pixels, image._pixels, sizeof(Color) * image._width * image._height);
+        memcpy((void*)_pixels, (void*)image._pixels, sizeof(Color) * image._width * image._height);
 
         return *this;
     }
@@ -231,7 +231,7 @@ namespace spica {
             char* ptr = lineBits;
             for (int x = 0; x < _width; x++) {
                 RGBTriple triple;
-                memcpy(&triple, ptr, sizeof(RGBTriple));
+                memcpy((void*)&triple, (void*)ptr, sizeof(RGBTriple));
 
                 double red   = toReal(triple.rgbRed);
                 double green = toReal(triple.rgbGreen);
@@ -286,7 +286,7 @@ namespace spica {
                 triple.rgbRed   = toByte(_pixels[idx].red());
                 triple.rgbGreen = toByte(_pixels[idx].green());
                 triple.rgbBlue  = toByte(_pixels[idx].blue());
-                memcpy(ptr, &triple, sizeof(RGBTriple));
+                memcpy((void*)ptr, (void*)&triple, sizeof(RGBTriple));
                 ptr += sizeof(RGBTriple);
             }
             ofs.write(lineBits, sizeof(char) * lineSize);
@@ -327,8 +327,8 @@ namespace spica {
                     if (strcmp(temp, "32-bit_rle_rgbe") == 0) {
                         fileType = HDR_RLE_RGBE_32;
                     }
-                } else if (strstr(buf, "EXPORSURE=") == buf) {
-                    sscanf(buf, "FORMAT=%f", &exposure);
+                } else if (strstr(buf, "EXPOSURE=") == buf) {
+                    sscanf(buf, "EXPOSURE=%f", &exposure);
                 }
             }
 

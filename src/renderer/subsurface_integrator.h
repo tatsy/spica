@@ -1,6 +1,16 @@
 #ifndef _SPICA_SUBSURFACE_INTEGRATOR_H_
 #define _SPICA_SUBSURFACE_INTEGRATOR_H_
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef SPICA_SUBSURFACE_INTEGRATOR_EXPORT
+        #define SPICA_SUBSURFACE_INTEGRATOR_DLL __declspec(dllexport)
+    #else
+        #define SPICA_SUBSURFACE_INTEGRATOR_DLL __declspec(dllimport)
+    #endif
+#else
+    #define SPICA_SUBSURFACE_INTEGRATOR_DLL
+#endif
+
 #include "renderer_constants.h"
 #include "photon_mapping.h"
 #include "bssrdf.h"
@@ -47,7 +57,7 @@ namespace spica {
         }
     };
 
-    class SubsurfaceIntegrator : private Uncopyable {
+    class SPICA_SUBSURFACE_INTEGRATOR_DLL  SubsurfaceIntegrator : private Uncopyable {
     private:
         struct OctreeNode {
             IrradiancePoint pt;

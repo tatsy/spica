@@ -89,7 +89,6 @@ namespace spica {
                 }
             }
 
-
             char filename[256];
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
@@ -100,7 +99,7 @@ namespace spica {
                 }
             }
             sprintf(filename, "pathtrace_%03d.bmp", t + 1);
-            _image->gamma(1.7, true);
+            _image->gamma(2.2, true);
             _image->saveBMP(filename);
 
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);

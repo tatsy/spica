@@ -1,10 +1,10 @@
 # Enable GTest
 enable_testing()
 
-option(BUILD_TEST "BUILD_TEST" ON)
+option(SPICA_BUILD_TEST "SPICA_BUILD_TEST" ON)
 set(GTEST_ROOT $ENV{GTEST_ROOT} CACHE STRING "GTEST_ROOT")
 
-if (${BUILD_TEST} STREQUAL "ON")
+if (${SPICA_BUILD_TEST} STREQUAL "ON")
   # Link directory
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
@@ -39,10 +39,10 @@ if (${BUILD_TEST} STREQUAL "ON")
       test_sampler.cc
       test_trimesh.cc
       test_kdtree.cc
-      test_renderer.cc
       test_scene.cc
       test_random.cc
-      test_pt_renderer.cc)
+      test_renderer_helper.cc)
+    # test_renderer.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARY})

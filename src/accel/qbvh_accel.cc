@@ -1,16 +1,12 @@
 #define SPICA_QBVH_ACCEL_EXPORT
 #include "qbvh_accel.h"
 
-#if defined(_WIN32) || defined(__WIN32__)
-#define align_attrib(typ, siz) __declspec(align(siz)) typ
-#else
-#define align_attrib(typ, siz) typ __attribute__((aligned(siz)))
-#endif
-
 #include <stack>
 #include <cmath>
 #include <cstring>
 #include <algorithm>
+
+#include "../utils/common.h"
 
 namespace spica {
 
@@ -103,11 +99,11 @@ namespace spica {
         QBVHNode* ret = NULL;
         if (node != NULL) {
             ret = new QBVHNode();
-            memcpy(ret->childBoxes, node->childBoxes, sizeof(__m128) * 6);
+            memcpy((void*)ret->childBoxes, (void*)node->childBoxes, sizeof(__m128) * 6);
             ret->numTriangles = node->numTriangles;
             ret->triangles = new Triangle[node->numTriangles];
-            memcpy(ret->triangles, node->triangles, sizeof(Triangle) * node->numTriangles);
-            memcpy(ret->sepAxes, node->sepAxes, sizeof(char) * 3);
+            memcpy((void*)ret->triangles, (void*)node->triangles, sizeof(Triangle) * node->numTriangles);
+            memcpy((void*)ret->sepAxes, (void*)node->sepAxes, sizeof(char) * 3);
             ret->isLeaf = node->isLeaf;
 
             for (int i = 0; i < 4; i++) {
@@ -131,7 +127,7 @@ namespace spica {
             QBVHNode* node = new QBVHNode();
             node->numTriangles = nTri;
             node->triangles = new Triangle[nTri];
-            memcpy(node->triangles, &triangles[0], sizeof(Triangle) * nTri);
+            memcpy((void*)node->triangles, (void*)&triangles[0], sizeof(Triangle) * nTri);
             node->isLeaf = true;
             return node;
         }

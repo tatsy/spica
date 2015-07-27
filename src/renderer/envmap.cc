@@ -160,6 +160,10 @@ namespace spica {
         }
     }
 
+    const Image& Envmap::getImage() const {
+        return _image;
+    }
+
 }  // namespace spica
 
 

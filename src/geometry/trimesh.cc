@@ -16,6 +16,7 @@ namespace spica {
         : _numVerts(0)
         , _numFaces(0)
         , _vertices(NULL)
+        , _colors(NULL)
         , _faces(NULL)
         , _normals(NULL)
         , _accel(NULL)
@@ -27,6 +28,7 @@ namespace spica {
         : _numVerts(0)
         , _numFaces(0)
         , _vertices(NULL)
+        , _colors(NULL)
         , _faces(NULL)
         , _normals(NULL)
         , _accel(NULL)
@@ -39,6 +41,7 @@ namespace spica {
         : _numVerts(static_cast<unsigned long>(vertices.size()))
         , _numFaces(static_cast<unsigned long>(faceIDs.size() / 3))
         , _vertices(NULL)
+        , _colors(NULL)
         , _faces(NULL)
         , _normals(NULL)
         , _accel(NULL)
@@ -47,10 +50,11 @@ namespace spica {
         msg_assert(faceIDs.size() % 3 == 0, "Number of faceIDs must be the multiple of 3 (Triangle)");
 
         _vertices = new Vector3[_numVerts];
+        _colors = new Color[_numVerts];
         _faces = new int[_numFaces * 3];
         _normals = new Vector3[_numFaces * 3];
-        memcpy(_vertices, &vertices[0], sizeof(Vector3) * _numVerts);
-        memcpy(_faces, &faceIDs[0], sizeof(int) * _numFaces * 3);
+        memcpy((void*)_vertices, (void*)&vertices[0], sizeof(Vector3) * _numVerts);
+        memcpy((void*)_faces, (void*)&faceIDs[0], sizeof(int) * _numFaces * 3);
         for (int i = 0; i < _numFaces; i++) {
             const Vector3& v0 = _vertices[_faces[i * 3 + 0]];
             const Vector3& v1 = _vertices[_faces[i * 3 + 1]];
@@ -63,6 +67,7 @@ namespace spica {
         : _numVerts(0)
         , _numFaces(0)
         , _vertices(NULL)
+        , _colors(NULL)
         , _faces(NULL)
         , _normals(NULL)
         , _accel(NULL)
@@ -75,6 +80,7 @@ namespace spica {
         : _numVerts(0)
         , _numFaces(0)
         , _vertices(NULL)
+        , _colors(NULL)
         , _faces(NULL)
         , _normals(NULL)
         , _accel(NULL)
@@ -90,12 +96,14 @@ namespace spica {
 
     void Trimesh::release() {
         delete[] _vertices;
+        delete[] _colors;
         delete[] _faces;
         delete[] _normals;
 
         _numVerts = 0;
         _numFaces = 0;
         _vertices = NULL;
+        _colors   = NULL;
         _faces    = NULL;
         _normals  = NULL;
         _accel    = NULL;
@@ -107,14 +115,16 @@ namespace spica {
         _numVerts = trimesh._numVerts;
         _numFaces = trimesh._numFaces;
         _vertices = new Vector3[trimesh._numVerts];
+        _colors   = new Color[trimesh._numVerts];
         _faces = new int[trimesh._numFaces * 3];
         _normals = new Vector3[trimesh._numFaces];
         _accel = trimesh._accel;
         _accelType = trimesh._accelType;
         
-        memcpy(_vertices, trimesh._vertices, sizeof(Vector3) * _numVerts);
-        memcpy(_faces, trimesh._faces, sizeof(int) * (_numFaces * 3));
-        memcpy(_normals, trimesh._normals, sizeof(Vector3) * _numFaces);
+        memcpy((void*)_vertices, (void*)trimesh._vertices, sizeof(Vector3) * _numVerts);
+        memcpy((void*)_colors, (void*)trimesh._colors, sizeof(Color) * _numVerts);
+        memcpy((void*)_faces, (void*)trimesh._faces, sizeof(int) * (_numFaces * 3));
+        memcpy((void*)_normals, (void*)trimesh._normals, sizeof(Vector3) * _numFaces);
 
         return *this;
     }
@@ -125,12 +135,14 @@ namespace spica {
         _numVerts = trimesh._numVerts;
         _numFaces = trimesh._numFaces;
         _vertices = trimesh._vertices;
+        _colors   = trimesh._colors;
         _faces    = trimesh._faces;
         _normals  = trimesh._normals;
         _accel    = trimesh._accel;
         _accelType = trimesh._accelType;
         
         trimesh._vertices = nullptr;
+        trimesh._colors   = nullptr;
         trimesh._faces    = nullptr;
         trimesh._normals  = nullptr;
 
@@ -242,6 +254,7 @@ namespace spica {
                 _numVerts = numVerts;
                 _numFaces = numFaces;
                 _vertices = new Vector3[numVerts];
+                _colors   = new Color[numVerts];
                 _faces = new int[numFaces * 3];
                 _normals = new Vector3[numFaces];
 
@@ -290,7 +303,7 @@ namespace spica {
                 
                 double x, y, z;
                 in >> x >> y >> z;
-                verts.emplace_back(x, y, z);
+                verts.push_back(Vector3(x, y, z));
             } else if (typ == "f") {
                 _numFaces++;
 
@@ -305,10 +318,11 @@ namespace spica {
         }
 
         _vertices = new Vector3[_numVerts];
+        _colors   = new Color[_numVerts];
         _faces    = new int[_numFaces * 3];
         _normals  = new Vector3[_numFaces];
-        memcpy(_vertices, &verts[0], sizeof(Vector3) * _numVerts);
-        memcpy(_faces, &faces[0], sizeof(int) * _numFaces * 3);
+        memcpy((void*)_vertices, (void*)&verts[0], sizeof(Vector3) * _numVerts);
+        memcpy((void*)_faces, (void*)&faces[0], sizeof(int) * _numFaces * 3);
         for (int i = 0; i < _numFaces; i++) {
             int p0 = _faces[i * 3 + 0];
             int p1 = _faces[i * 3 + 1];
@@ -365,6 +379,26 @@ namespace spica {
         const Vector3 prevCenter = (orgBox.posMin() + orgBox.posMax()) * (0.5 * scaleAll);
         const Vector3 toCenter = (bbox.posMin() + bbox.posMax()) * 0.5;
         this->translate(toCenter - prevCenter);
+    }
+
+    std::vector<int> Trimesh::getIndices() const {
+        std::vector<int> ret(_numFaces * 3);
+        memcpy(&ret[0], _faces, sizeof(int) * _numFaces * 3);
+        return std::move(ret);
+    }
+
+    Vector3 Trimesh::getVertex(int id) const {
+        msg_assert(id >= 0 && id < _numVerts, "Vertex index out of bounds");
+        return _vertices[id];
+    }
+
+    void Trimesh::setColor(int id, const Color& color) {
+        _colors[id] = color;
+    }
+
+    Color Trimesh::getColor(int id) const {
+        msg_assert(id >= 0 && id < _numVerts, "Vertex index out of bounds");
+        return _colors[id];
     }
 
     Vector3 Trimesh::getNormal(int id) const {

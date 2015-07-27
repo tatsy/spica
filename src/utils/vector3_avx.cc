@@ -1,27 +1,24 @@
 #define SPICA_VECTOR3_EXPORT
 #include "vector3.h"
 
-#ifndef __AVX__
+#ifdef __AVX__
 
 #include <iostream>
 #include <sstream>
 #include <algorithm>
-
-#include "common.h"
 
 namespace spica {
 
     Vector3::Vector3()
         : _xyz()
     {
+        _xyz.m = _mm256_setr_pd(0.0, 0.0, 0.0, 0.0);
     }
 
     Vector3::Vector3(double x, double y, double z)
         : _xyz()
     {
-        _xyz[0] = x;
-        _xyz[1] = y;
-        _xyz[2] = z;
+        _xyz.m = _mm256_setr_pd(x, y, z, 0.0);
     }
 
     Vector3::Vector3(const Vector3& v)
@@ -54,9 +51,8 @@ namespace spica {
     }
 
     Vector3& Vector3::operator*=(double s) {
-        this->x() *= s;
-        this->y() *= s;
-        this->z() *= s;
+        __m256d ss   = _mm256_setr_pd(s, s, s, 0.0);
+        this->_xyz.m = _mm256_mul_pd(this->_xyz.m, ss);
         return *this;
     }
 
@@ -70,7 +66,8 @@ namespace spica {
     }
 
     double Vector3::dot(const Vector3& v) const {
-        return this->x() * v.x() + this->y() * v.y() + this->z() * v.z();
+        m256d tmp = { _mm256_mul_pd(_xyz.m, v._xyz.m) };
+        return tmp.v[0] + tmp.v[1] + tmp.v[2];
     }
 
     double Vector3::dot(const Vector3& v1, const Vector3& v2) {
@@ -78,10 +75,16 @@ namespace spica {
     }
 
     Vector3 Vector3::cross(const Vector3& v) const {
-        double x = this->y() * v.z() - this->z() * v.y();
-        double y = this->z() * v.x() - this->x() * v.z();
-        double z = this->x() * v.y() - this->y() * v.x();
-        return Vector3(x, y, z);
+        __m256d a_yzx = _mm256_setr_pd(_xyz.v[1], _xyz.v[2], _xyz.v[0], 0.0);
+        __m256d a_zxy = _mm256_setr_pd(_xyz.v[2], _xyz.v[0], _xyz.v[1], 0.0);
+        __m256d b_yzx = _mm256_setr_pd(v._xyz.v[1], v._xyz.v[2], v._xyz.v[0], 0.0);
+        __m256d b_zxy = _mm256_setr_pd(v._xyz.v[2], v._xyz.v[0], v._xyz.v[1], 0.0);
+
+        Vector3 ret;
+        __m256d pos = _mm256_mul_pd(a_yzx, b_zxy);
+        __m256d neg = _mm256_mul_pd(a_zxy, b_yzx);
+        ret._xyz.m = _mm256_sub_pd(pos, neg);
+        return ret;
     }
 
     Vector3 Vector3::cross(const Vector3& v1, const Vector3& v2) {
@@ -107,46 +110,47 @@ namespace spica {
     }
 
     Vector3 Vector3::multiply(const Vector3& v) const {
-        return Vector3(this->x() * v.x(), this->y() * v.y(), this->z() * v.z());
+        Vector3 ret;
+        ret._xyz.m = _mm256_mul_pd(_xyz.m, v._xyz.m);
+        return ret;
     }
 
     Vector3 Vector3::minimum(const Vector3& v1, const Vector3& v2) {
-        double x = std::min(v1.x(), v2.x());
-        double y = std::min(v1.y(), v2.y());
-        double z = std::min(v1.z(), v2.z());
-        return Vector3(x, y, z);
+        Vector3 ret;
+        ret._xyz.m = _mm256_min_pd(v1._xyz.m, v2._xyz.m);
+        return ret;
     }
 
     Vector3 Vector3::maximum(const Vector3& v1, const Vector3& v2) {
-        double x = std::max(v1.x(), v2.x());
-        double y = std::max(v1.y(), v2.y());
-        double z = std::max(v1.z(), v2.z());
-        return Vector3(x, y, z);
+        Vector3 ret;
+        ret._xyz.m = _mm256_max_pd(v1._xyz.m, v2._xyz.m);
+        return ret;
     }
 
 
     Vector3 Vector3::reflect(const Vector3& v, const Vector3& n) {
-        return (v - n * 2.0 * n.dot(v));
+        return (v - n * (2.0 * n.dot(v)));
     }
 
     double Vector3::get(int d) const {
         msg_assert(0 <= d && d <= 2, "Dimension must be between 0 and 2");
-        return _xyz[d];
+        return _xyz.v[d];
     }
 
     std::string Vector3::toString() const {
         std::stringstream ss;
-        ss << "(" << _xyz[0] << ", " << _xyz[1] << ", " << _xyz[2] << ")";
+        ss << "(" << _xyz.v[0] << ", " << _xyz.v[1] << ", " << _xyz.v[2] << ")";
         return ss.str();
     }
 
-    double Vector3::x() const { return _xyz[0]; }
-    double Vector3::y() const { return _xyz[1]; }
-    double Vector3::z() const { return _xyz[2]; }
-    double& Vector3::x() { return _xyz[0]; }
-    double& Vector3::y() { return _xyz[1]; }
-    double& Vector3::z() { return _xyz[2]; }
+    double Vector3::x() const { return _xyz.v[0]; }
+    double Vector3::y() const { return _xyz.v[1]; }
+    double Vector3::z() const { return _xyz.v[2]; }
+    double& Vector3::x() { return _xyz.v[0]; }
+    double& Vector3::y() { return _xyz.v[1]; }
+    double& Vector3::z() { return _xyz.v[2]; }
 }
+
 
 spica::Vector3 operator+(const spica::Vector3& v1, const spica::Vector3& v2) {
     spica::Vector3 ret = v1;
@@ -183,4 +187,4 @@ std::ostream& operator<<(std::ostream& os, const spica::Vector3 v) {
     return os;
 }
 
-#endif  // ENABLE_EVX
+#endif  // ENABLE_AVX

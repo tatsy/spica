@@ -70,7 +70,7 @@ namespace spica {
             ret->bbox = node->bbox;
             ret->numTriangles = node->numTriangles;
             ret->triangles = new Triangle[node->numTriangles];
-            memcpy(ret->triangles, node->triangles, sizeof(Triangle) * node->numTriangles);
+            memcpy((void*)ret->triangles, (void*)node->triangles, sizeof(Triangle) * node->numTriangles);
             ret->isLeaf = node->isLeaf;
 
             node->left = copyNode(node->left);
@@ -100,7 +100,7 @@ namespace spica {
             KdTreeNode* node = new KdTreeNode();
             node->numTriangles = nTri;
             node->triangles = new Triangle[nTri];
-            memcpy(node->triangles, &triangles[0], sizeof(Triangle)* nTri);
+            memcpy((void*)node->triangles, (void*)&triangles[0], sizeof(Triangle)* nTri);
             node->bbox = enclosingBox(triangles);
             node->left = NULL;
             node->right = NULL;

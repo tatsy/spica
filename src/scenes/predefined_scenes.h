@@ -24,7 +24,7 @@ namespace spica {
 
     SPICA_PREDEFINED_SCENES_DLL void cornellBoxDragon(Scene* scene, Camera* camera, const int width, const int height);
     
-    SPICA_PREDEFINED_SCENES_DLL void litByEnvmap(Scene* scene, Camera* camera, const int width, const int height);
+    SPICA_PREDEFINED_SCENES_DLL void kittenBox(Scene* scene, Camera* camera, const int width, const int height);
 
     SPICA_PREDEFINED_SCENES_DLL void kittenEnvmap(Scene* scene, Camera* camera, const int width, const int height);
 

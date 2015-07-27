@@ -40,9 +40,15 @@ namespace spica {
         }
 
         void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal) {
-            double s = 2.0 * rng.nextReal() - 1.0;
+            double r1 = rng.nextReal();
+            double r2 = rng.nextReal();
+            onSphere(sphere, position, normal, r1, r2);
+        }
+
+        void onSphere(const Sphere& sphere, Vector3* position, Vector3* normal, double r1, double r2) {
+            double s = 2.0 * r1 - 1.0;
             double c = sqrt(1.0 - s * s);
-            double p = 2.0 * PI * rng.nextReal();
+            double p = 2.0 * PI * r2;
             double x = c * cos(p);
             double y = c * sin(p);
             double z = s;
@@ -96,6 +102,9 @@ namespace spica {
             if (typeid(*primitive) == typeid(Quad)) {
                 const Quad* quad = reinterpret_cast<const Quad*>(primitive);
                 onQuad(*quad, position, normal, r1, r2);
+            } else if (typeid(*primitive) == typeid(Sphere)) {
+                const Sphere* sphere = reinterpret_cast<const Sphere*>(primitive);
+                onSphere(*sphere, position, normal, r1, r2);
             } else {
                 const std::string typname = typeid(*primitive).name();
                 msg_assert(false, ("Invalid geometry type: " + typname).c_str());

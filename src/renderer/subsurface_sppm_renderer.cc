@@ -8,7 +8,7 @@
 
 namespace spica {
 
-    const double SubsurfaceSPPMRenderer::ALPHA = 0.7;
+    const double SubsurfaceSPPMRenderer::ALPHA = 0.8;
 
     SubsurfaceSPPMRenderer::SubsurfaceSPPMRenderer(Image* image)
         : _image(image)
@@ -84,7 +84,7 @@ namespace spica {
 
             char filename[256];
             sprintf(filename, "sss_sppm_%02d.bmp", t + 1);
-            _image->gamma(1.7, true);
+            _image->gamma(2.2, true);
             _image->saveBMP(filename);
         }
 

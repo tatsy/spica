@@ -54,15 +54,6 @@ TEST(Vector3Test, AlgebraTest) {
 
     ASSERT_DEATH(u /= 0.0, "");
 
-    double dt = u.dot(v);
-    EXPECT_EQ(14.0, dt);
-    EXPECT_EQ(dt, v.dot(u));
-
-    w = u.cross(v);
-    EXPECT_EQ(0.0, w.x());
-    EXPECT_EQ(0.0, w.y());
-    EXPECT_EQ(0.0, w.z());
-
     w = u.multiply(v);
     EXPECT_EQ(1.0, w.x());
     EXPECT_EQ(4.0, w.y());
@@ -75,6 +66,19 @@ TEST(Vector3Test, AlgebraTest) {
     EXPECT_EQ(u.x() / nrm, w.x());
     EXPECT_EQ(u.y() / nrm, w.y());
     EXPECT_EQ(u.z() / nrm, w.z());
+}
+
+TEST(Vector3Test, DotCrossTest) {
+    Vector3 u(1.0, 2.0, 3.0);
+    Vector3 v(4.0, 5.0, 6.0);
+    double dt = u.dot(v);
+    EXPECT_EQ(32.0, dt);
+    EXPECT_EQ(dt, v.dot(u));
+
+    Vector3 w = u.cross(v);
+    EXPECT_EQ(-3.0, w.x());
+    EXPECT_EQ(6.0, w.y());
+    EXPECT_EQ(-3.0, w.z());
 }
 
 TEST(Vector3Test, MaxMinTest) {

@@ -45,6 +45,9 @@ namespace spica {
         } else if (typeid(*p) == typeid(Trimesh)) {
             const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(p);
             add(*trimesh, color);
+        } else if (typeid(*p) == typeid(Disk)) { 
+            const Disk* disk = reinterpret_cast<const Disk*>(p);
+            add(*disk, color);
         } else {
             const std::string typname = typeid(*p).name();
             msg_assert(false, (typname + "is not supported").c_str());        
@@ -143,6 +146,33 @@ namespace spica {
         }
     }
 
+    void VBO::add(const Trimesh& trimesh) {
+        const int numVerts = trimesh.numVerts();
+        const int numFaces = trimesh.numFaces();
+
+        std::vector<int> belongCount(numVerts, 0);
+        std::vector<Vector3> normals(numVerts, Vector3(0.0, 0.0, 0.0));
+
+        std::vector<int> indices = trimesh.getIndices();
+        for (int i = 0; i < numFaces; i++) {
+            const Vector3& normal = trimesh.getNormal(i);
+            for (int j = 0; j < 3; j++) {
+                const int vid = indices[i * 3 + j];
+                normals[vid] += normal;
+                belongCount[vid]++;
+            }
+        }
+
+        for (int i = 0; i < numVerts; i++) {
+            const Vector3 vNormal = normals[i] / belongCount[i];
+            add(trimesh.getVertex(i), vNormal, trimesh.getColor(i));
+        }
+
+        const int prevSize = static_cast<int>(_indices.size());
+        _indices.resize(prevSize + indices.size());
+        std::copy(indices.begin(), indices.end(), _indices.begin() + prevSize);
+    }
+
     void VBO::add(const Trimesh& trimesh, const Color& color) {
         for (int i = 0; i < trimesh.numFaces(); i++) {
             Triangle tri = trimesh.getTriangle(i);
@@ -150,5 +180,26 @@ namespace spica {
         }
     }
 
+    void VBO::add(const Disk& disk, const Color& color) {
+        static const int ndiv = 64;
+
+        Vector3 u, v, w;
+        w = disk.normal();
+        if (std::abs(w.x()) > EPS) {
+            u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
+        } else {
+            u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
+        }
+        v = w.cross(u);
+
+        for (int i = 0; i < ndiv; i++) {
+            const double t1 = 2.0 * PI * i / ndiv;
+            const double t2 = 2.0 * PI * (i + 1) / ndiv;
+            const Vector3 v1 = disk.center() + disk.radius() * (u * cos(t1) + v * sin(t1));
+            const Vector3 v2 = disk.center() + disk.radius() * (u * cos(t2) + v * sin(t2));
+            Triangle tri = Triangle(disk.center(), v1, v2);
+            add(tri, color);
+        }
+    }
 
 }  // namespace spica

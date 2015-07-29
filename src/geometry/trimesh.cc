@@ -214,11 +214,17 @@ namespace spica {
                 }
 
                 unsigned char vs;
-                int ii[8];
+                int ii[3];
                 for (size_t i = 0; i < numFaces; i++) {
                     in.read((char*)&vs, sizeof(unsigned char));
-                    in.read((char*)ii, sizeof(int) * vs);
+                    in.read((char*)ii, sizeof(int) * 3);
                     _faces[i] = Triplet(ii[0], ii[1], ii[2]);
+
+                    if (vs > 3) {
+                        printf("[WARNING] mesh contains non-triangle polygon (%d vertices) !!\n", (int)vs);
+                        exit(1);
+                        in.seekg(sizeof(int) * (vs - 3), std::ios_base::cur);
+                    }
 
                     const int p0 = ii[0];
                     const int p1 = ii[1];
@@ -334,7 +340,7 @@ namespace spica {
     }
 
     Vector3 Trimesh::getNormal(int id) const {
-        msg_assert(id >= 0 && id < _vertices.size(), "Triangle index out of bounds");
+        msg_assert(id >= 0 && id < _faces.size(), "Triangle index out of bounds");
         return _normals[id];
     }
 

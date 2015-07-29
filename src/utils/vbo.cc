@@ -153,11 +153,11 @@ namespace spica {
         std::vector<int> belongCount(numVerts, 0);
         std::vector<Vector3> normals(numVerts, Vector3(0.0, 0.0, 0.0));
 
-        std::vector<int> indices = trimesh.getIndices();
+        std::vector<Triplet> indices = trimesh.getIndices();
         for (int i = 0; i < numFaces; i++) {
             const Vector3& normal = trimesh.getNormal(i);
             for (int j = 0; j < 3; j++) {
-                const int vid = indices[i * 3 + j];
+                const int vid = indices[i][j];
                 normals[vid] += normal;
                 belongCount[vid]++;
             }
@@ -170,7 +170,12 @@ namespace spica {
 
         const int prevSize = static_cast<int>(_indices.size());
         _indices.resize(prevSize + indices.size());
-        std::copy(indices.begin(), indices.end(), _indices.begin() + prevSize);
+
+        for (size_t i = 0; i < indices.size(); i++) {
+            for (int j = 0; j < 3; j++) {
+                _indices[(i + prevSize) * 3 + j] = indices[i][j];
+            }
+        }
     }
 
     void VBO::add(const Trimesh& trimesh, const Color& color) {

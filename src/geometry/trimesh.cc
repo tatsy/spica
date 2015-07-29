@@ -178,7 +178,6 @@ namespace spica {
                 ss << line;
 
                 ss >> key;
-                std::cout << key << std::endl;
                 if (key == "format") {
                     ss >> name >> val;
                     msg_assert(name == "binary_little_endian", "PLY must be binary little endian format!");
@@ -215,12 +214,10 @@ namespace spica {
                 }
 
                 unsigned char vs;
-                int ii[3];
+                int ii[8];
                 for (size_t i = 0; i < numFaces; i++) {
                     in.read((char*)&vs, sizeof(unsigned char));
-                    msg_assert(vs == 3, "each face must be triangle!");
-
-                    in.read((char*)ii, sizeof(int) * 3);
+                    in.read((char*)ii, sizeof(int) * vs);
                     _faces[i] = Triplet(ii[0], ii[1], ii[2]);
 
                     const int p0 = ii[0];

@@ -13,63 +13,51 @@
 namespace spica {
 
     Trimesh::Trimesh()
-        : _numVerts(0)
-        , _numFaces(0)
-        , _vertices(NULL)
-        , _colors(NULL)
-        , _faces(NULL)
-        , _normals(NULL)
+        : _vertices()
+        , _colors()
+        , _faces()
+        , _normals()
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
     }
 
     Trimesh::Trimesh(const std::string& filename)
-        : _numVerts(0)
-        , _numFaces(0)
-        , _vertices(NULL)
-        , _colors(NULL)
-        , _faces(NULL)
-        , _normals(NULL)
+        : _vertices()
+        , _colors()
+        , _faces()
+        , _normals()
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
         load(filename);
     }
 
-    Trimesh::Trimesh(const std::vector<Vector3>& vertices, const std::vector<int>& faceIDs) 
-        : _numVerts(static_cast<unsigned long>(vertices.size()))
-        , _numFaces(static_cast<unsigned long>(faceIDs.size() / 3))
-        , _vertices(NULL)
-        , _colors(NULL)
-        , _faces(NULL)
-        , _normals(NULL)
+    Trimesh::Trimesh(const std::vector<Vector3>& vertices, const std::vector<Triplet>& faceIDs) 
+        : _vertices(vertices)
+        , _colors()
+        , _faces(faceIDs)
+        , _normals()
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
-        msg_assert(faceIDs.size() % 3 == 0, "Number of faceIDs must be the multiple of 3 (Triangle)");
+        _colors.resize(_vertices.size());
+        _normals.resize(_vertices.size());
 
-        _vertices = new Vector3[_numVerts];
-        _colors = new Color[_numVerts];
-        _faces = new int[_numFaces * 3];
-        _normals = new Vector3[_numFaces * 3];
-        memcpy((void*)_vertices, (void*)&vertices[0], sizeof(Vector3) * _numVerts);
-        memcpy((void*)_faces, (void*)&faceIDs[0], sizeof(int) * _numFaces * 3);
-        for (int i = 0; i < _numFaces; i++) {
-            const Vector3& v0 = _vertices[_faces[i * 3 + 0]];
-            const Vector3& v1 = _vertices[_faces[i * 3 + 1]];
-            const Vector3& v2 = _vertices[_faces[i * 3 + 2]];
+        for (unsigned int i = 0; i < _faces.size(); i++) {
+            const Vector3& v0 = _vertices[_faces[i][0]];
+            const Vector3& v1 = _vertices[_faces[i][1]];
+            const Vector3& v2 = _vertices[_faces[i][2]];
+            _colors[i]  = Color(0.0, 0.0, 0.0);
             _normals[i] = Vector3::cross(v1 - v0, v2 - v0).normalized();
         }
     }
 
     Trimesh::Trimesh(const Trimesh& trimesh)
-        : _numVerts(0)
-        , _numFaces(0)
-        , _vertices(NULL)
-        , _colors(NULL)
-        , _faces(NULL)
-        , _normals(NULL)
+        : _vertices()
+        , _colors()
+        , _faces()
+        , _normals()
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
@@ -77,12 +65,10 @@ namespace spica {
     }
 
     Trimesh::Trimesh(Trimesh&& trimesh)
-        : _numVerts(0)
-        , _numFaces(0)
-        , _vertices(NULL)
-        , _colors(NULL)
-        , _faces(NULL)
-        , _normals(NULL)
+        : _vertices()
+        , _colors()
+        , _faces()
+        , _normals()
         , _accel(NULL)
         , _accelType(QBVH_ACCEL)
     {
@@ -91,61 +77,25 @@ namespace spica {
 
     Trimesh::~Trimesh()
     {
-        release();
-    }
-
-    void Trimesh::release() {
-        delete[] _vertices;
-        delete[] _colors;
-        delete[] _faces;
-        delete[] _normals;
-
-        _numVerts = 0;
-        _numFaces = 0;
-        _vertices = NULL;
-        _colors   = NULL;
-        _faces    = NULL;
-        _normals  = NULL;
-        _accel    = NULL;
     }
 
     Trimesh& Trimesh::operator=(const Trimesh& trimesh) {
-        release();
-
-        _numVerts = trimesh._numVerts;
-        _numFaces = trimesh._numFaces;
-        _vertices = new Vector3[trimesh._numVerts];
-        _colors   = new Color[trimesh._numVerts];
-        _faces = new int[trimesh._numFaces * 3];
-        _normals = new Vector3[trimesh._numFaces];
-        _accel = trimesh._accel;
-        _accelType = trimesh._accelType;
-        
-        memcpy((void*)_vertices, (void*)trimesh._vertices, sizeof(Vector3) * _numVerts);
-        memcpy((void*)_colors, (void*)trimesh._colors, sizeof(Color) * _numVerts);
-        memcpy((void*)_faces, (void*)trimesh._faces, sizeof(int) * (_numFaces * 3));
-        memcpy((void*)_normals, (void*)trimesh._normals, sizeof(Vector3) * _numFaces);
-
-        return *this;
-    }
-
-    Trimesh& Trimesh::operator=(Trimesh&& trimesh) {
-        release();
-
-        _numVerts = trimesh._numVerts;
-        _numFaces = trimesh._numFaces;
         _vertices = trimesh._vertices;
         _colors   = trimesh._colors;
         _faces    = trimesh._faces;
         _normals  = trimesh._normals;
         _accel    = trimesh._accel;
         _accelType = trimesh._accelType;
-        
-        trimesh._vertices = nullptr;
-        trimesh._colors   = nullptr;
-        trimesh._faces    = nullptr;
-        trimesh._normals  = nullptr;
+        return *this;
+    }
 
+    Trimesh& Trimesh::operator=(Trimesh&& trimesh) {
+        _vertices = std::move(trimesh._vertices);
+        _colors   = std::move(trimesh._colors);
+        _faces    = std::move(trimesh._faces);
+        _normals  = std::move(trimesh._normals);
+        _accel    = trimesh._accel;
+        _accelType = trimesh._accelType;
         return *this;    
     }
 
@@ -157,7 +107,7 @@ namespace spica {
 
     double Trimesh::area() const {
         double ret = 0.0;
-        for (int i = 0; i < _numFaces; i++) {
+        for (unsigned int i = 0; i < _faces.size(); i++) {
             Triangle tri = this->getTriangle(i);
             ret += tri.area();
         }
@@ -172,11 +122,11 @@ namespace spica {
     }
 
     void Trimesh::buildAccel() {
-        std::vector<Triangle> triangles(_numFaces);
-        for (int i = 0; i < _numFaces; i++) {
-            Vector3& p0 = _vertices[_faces[i * 3 + 0]];
-            Vector3& p1 = _vertices[_faces[i * 3 + 1]];
-            Vector3& p2 = _vertices[_faces[i * 3 + 2]];
+        std::vector<Triangle> triangles(_faces.size());
+        for (unsigned int i = 0; i < _faces.size(); i++) {
+            Vector3& p0 = _vertices[_faces[i][0]];
+            Vector3& p1 = _vertices[_faces[i][1]];
+            Vector3& p2 = _vertices[_faces[i][2]];
             triangles[i] = Triangle(p0, p1, p2);
         }
 
@@ -197,8 +147,6 @@ namespace spica {
     }
 
     void Trimesh::load(const std::string& filename) {
-        release();
-
         int dotPos = filename.find_last_of(".");
         std::string ext = filename.substr(dotPos);
         
@@ -212,28 +160,36 @@ namespace spica {
     }
 
     void Trimesh::loadPly(const std::string& filename) {
-        std::ifstream in(filename.c_str(), std::ios::in);
+        std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
         msg_assert(in.is_open(), "Failed to open mesh file");
 
-        std::string format, key, name, val;
-        int numVerts = -1;
-        int numFaces = -1;
+        std::string line, format, key, name, val;
+        size_t numVerts = 0;
+        size_t numFaces = 0;
 
-        in >> format;
+        std::getline(in, format);
         msg_assert(format == "ply", "Invalid format identifier");
 
         bool isBody = false;
         while(!in.eof()) {
             if (!isBody) {
-                in >> key;
-                if (key == "format" || key == "property") {
-                    in >> name >> val;
+                std::getline(in, line);
+                std::stringstream ss;
+                ss << line;
+
+                ss >> key;
+                std::cout << key << std::endl;
+                if (key == "format") {
+                    ss >> name >> val;
+                    msg_assert(name == "binary_little_endian", "PLY must be binary little endian format!");
+                } else if (key == "property") {
+                    ss >> name >> val;
                 } else if (key == "element") {
-                    in >> name;
+                    ss >> name;
                     if (name == "vertex") {
-                        in >> numVerts;
+                        ss >> numVerts;
                     } else if (name == "face") {
-                        in >> numFaces;
+                        ss >> numFaces;
                     } else {
                         msg_assert(false, "Invalid element indentifier");
                     }
@@ -244,42 +200,32 @@ namespace spica {
                     continue;
                 }
             } else {
-                std::string line;
-                std::stringstream ss;
-                double vx, vy, vz;
-                int nv, p0, p1, p2;
-
                 msg_assert(numVerts > 0 && numFaces > 0, "numVerts and numFaces must be positive");
 
-                _numVerts = numVerts;
-                _numFaces = numFaces;
-                _vertices = new Vector3[numVerts];
-                _colors   = new Color[numVerts];
-                _faces = new int[numFaces * 3];
-                _normals = new Vector3[numFaces];
-
-                std::getline(in, line);  // skip end_header line
+                _vertices.resize(numVerts);
+                _colors.resize(numVerts);
+                _faces.resize(numFaces);
+                _normals.resize(numFaces);
 
                 int cnt = 0;
-                for (int i = 0; i < numVerts; i++) {
-                    std::getline(in, line);
-                    ss.str("");
-                    ss.clear(std::stringstream::goodbit);
-                    ss << line;
-                    ss >> vx >> vy >> vz;
-                    _vertices[i] = Vector3(vx, vy, vz);
+                float ff[3];
+                for (size_t i = 0; i < numVerts; i++) {
+                    in.read((char*)ff, sizeof(float) * 3);
+                    _vertices[i] = Vector3(ff[0], ff[1], ff[2]);
                 }
 
-                for (int i = 0; i < numFaces; i++) {
-                    std::getline(in, line);
-                    ss.str("");
-                    ss.clear(std::stringstream::goodbit);
-                    ss << line;
-                    ss >> nv >> p0 >> p1 >> p2;
-                    _faces[i * 3 + 0] = p0;
-                    _faces[i * 3 + 1] = p1;
-                    _faces[i * 3 + 2] = p2;
+                unsigned char vs;
+                int ii[3];
+                for (size_t i = 0; i < numFaces; i++) {
+                    in.read((char*)&vs, sizeof(unsigned char));
+                    msg_assert(vs == 3, "each face must be triangle!");
 
+                    in.read((char*)ii, sizeof(int) * 3);
+                    _faces[i] = Triplet(ii[0], ii[1], ii[2]);
+
+                    const int p0 = ii[0];
+                    const int p1 = ii[1];
+                    const int p2 = ii[2];
                     _normals[i] = Vector3::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]).normalized();
                 }
                 break;
@@ -292,53 +238,42 @@ namespace spica {
         msg_assert(in.is_open(), "Failed to open mesh file");
 
         std::string typ;
-        this->_numVerts = 0;
-        this->_numFaces = 0;
-        std::vector<Vector3> verts;
-        std::vector<int> faces;
+        _vertices.clear();
+        _faces.clear();
         while (!in.eof()) {
             in >> typ;
-            if (typ == "v") {
-                _numVerts++;
-                
+            if (typ == "v") {               
                 double x, y, z;
                 in >> x >> y >> z;
-                verts.push_back(Vector3(x, y, z));
+                _vertices.push_back(Vector3(x, y, z));
             } else if (typ == "f") {
-                _numFaces++;
-
                 int v0, v1, v2;
                 in >> v0 >> v1 >> v2;
-                faces.push_back(v0 - 1);
-                faces.push_back(v1 - 1);
-                faces.push_back(v2 - 1);
+                _faces.push_back(Triplet(v0, v1, v2));
             } else {
                 msg_assert(false, "Unknown type is found while reading .obj file!!");
             }
         }
 
-        _vertices = new Vector3[_numVerts];
-        _colors   = new Color[_numVerts];
-        _faces    = new int[_numFaces * 3];
-        _normals  = new Vector3[_numFaces];
-        memcpy((void*)_vertices, (void*)&verts[0], sizeof(Vector3) * _numVerts);
-        memcpy((void*)_faces, (void*)&faces[0], sizeof(int) * _numFaces * 3);
-        for (int i = 0; i < _numFaces; i++) {
-            int p0 = _faces[i * 3 + 0];
-            int p1 = _faces[i * 3 + 1];
-            int p2 = _faces[i * 3 + 2];
+        _colors.assign(_vertices.size(), Color(0.0, 0.0, 0.0));
+        _normals.resize(_faces.size());
+
+        for (int i = 0; i < _faces.size(); i++) {
+            const int p0 = _faces[i][0];
+            const int p1 = _faces[i][1];
+            const int p2 = _faces[i][2];
             _normals[i] = Vector3::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]);
         }
     }
 
     void Trimesh::translate(const Vector3& move) {
-        for (int i = 0; i < _numVerts; i++) {
+        for (unsigned int i = 0; i < _vertices.size(); i++) {
             _vertices[i] += move;
         }
     }
 
     void Trimesh::scale(const double scaleX, const double scaleY, const double scaleZ) {
-        for (int i = 0; i < _numVerts; i++) {
+        for (unsigned int i = 0; i < _vertices.size(); i++) {
             _vertices[i].x() = _vertices[i].x() * scaleX;
             _vertices[i].y() = _vertices[i].y() * scaleY;
             _vertices[i].z() = _vertices[i].z() * scaleZ;
@@ -352,18 +287,18 @@ namespace spica {
     void Trimesh::putOnPlane(const Plane& plane) {
         // Find nearest point
         double minval = INFTY;
-        for (int i = 0; i < _numVerts; i++) {
+        for (size_t i = 0; i < _vertices.size(); i++) {
             minval = std::min(minval, Vector3::dot(plane.normal(), _vertices[i]));
         }
 
-        for (int i = 0; i < _numVerts; i++) {
+        for (size_t i = 0; i < _vertices.size(); i++) {
             _vertices[i] -= (minval + plane.distance()) * plane.normal();
         }
     }
 
     void Trimesh::fitToBBox(const BBox& bbox) {
         BBox orgBox;
-        for (int i = 0; i < _numVerts; i++) {
+        for (size_t i = 0; i < _vertices.size(); i++) {
             orgBox.merge(_vertices[i]);
         }
 
@@ -381,14 +316,14 @@ namespace spica {
         this->translate(toCenter - prevCenter);
     }
 
-    std::vector<int> Trimesh::getIndices() const {
-        std::vector<int> ret(_numFaces * 3);
-        memcpy(&ret[0], _faces, sizeof(int) * _numFaces * 3);
+    std::vector<Triplet> Trimesh::getIndices() const {
+        std::vector<Triplet> ret(_faces.size());
+        std::copy(_faces.begin(), _faces.end(), ret.begin());
         return std::move(ret);
     }
 
     Vector3 Trimesh::getVertex(int id) const {
-        msg_assert(id >= 0 && id < _numVerts, "Vertex index out of bounds");
+        msg_assert(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _vertices[id];
     }
 
@@ -397,20 +332,20 @@ namespace spica {
     }
 
     Color Trimesh::getColor(int id) const {
-        msg_assert(id >= 0 && id < _numVerts, "Vertex index out of bounds");
+        msg_assert(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _colors[id];
     }
 
     Vector3 Trimesh::getNormal(int id) const {
-        msg_assert(id >= 0 && id < _numFaces, "Triangle index out of bounds");
+        msg_assert(id >= 0 && id < _vertices.size(), "Triangle index out of bounds");
         return _normals[id];
     }
 
     Triangle Trimesh::getTriangle(int id) const {
-        msg_assert(id >= 0 && id < _numFaces, "Triangle index out of bounds");
-        const Vector3& p0 = _vertices[_faces[id * 3 + 0]];
-        const Vector3& p1 = _vertices[_faces[id * 3 + 1]];
-        const Vector3& p2 = _vertices[_faces[id * 3 + 2]];
+        msg_assert(id >= 0 && id < _vertices.size(), "Triangle index out of bounds");
+        const Vector3& p0 = _vertices[_faces[id][0]];
+        const Vector3& p1 = _vertices[_faces[id][1]];
+        const Vector3& p2 = _vertices[_faces[id][2]];
         return Triangle(p0, p1, p2);
     }
 

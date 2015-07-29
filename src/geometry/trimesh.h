@@ -13,6 +13,8 @@
 
 #include <string>
 #include <memory>
+#include <vector>
+#include <tuple>
 
 #include "primitive.h"
 #include "triangle.h"
@@ -23,14 +25,51 @@
 
 namespace spica {
 
+    class SPICA_TRIMESH_DLL Triplet {
+    private:
+        std::array<int,3> _data;
+
+    public:
+        Triplet()
+            : _data()
+        {
+        }
+
+        Triplet(int i, int j, int k)
+            : _data()
+        {
+            _data[0] = i;
+            _data[1] = j;
+            _data[2] = k;
+        }
+
+        Triplet(const Triplet& triplet)
+            : _data()
+        {
+            this->operator=(triplet);
+        }
+
+        ~Triplet()
+        {
+        }
+
+        Triplet& operator=(const Triplet& triplet) {
+            this->_data = triplet._data;
+            return *this;
+        }
+
+        int operator[](int i) const {
+            msg_assert(0 <= i && i <= 2, "access index out of bounds!");
+            return _data[i];
+        }    
+    };
+    
     class SPICA_TRIMESH_DLL Trimesh : public Primitive {
     private:
-        unsigned long _numVerts;
-        unsigned long _numFaces;
-        Vector3* _vertices;
-        Color* _colors;
-        int* _faces;
-        Vector3* _normals;
+        std::vector<Vector3> _vertices;
+        std::vector<Color>   _colors;
+        std::vector<Vector3> _normals;
+        std::vector<Triplet> _faces;
         std::shared_ptr<AccelBase> _accel;
         AccelType _accelType;
 
@@ -45,7 +84,7 @@ namespace spica {
         // Constructor
         // @param[in] vertices: vertices to form trimesh
         // @param[in] faceIDs: face IDs (stating from 0)
-        Trimesh(const std::vector<Vector3>& vertices, const std::vector<int>& faceIDs);
+        Trimesh(const std::vector<Vector3>& vertices, const std::vector<Triplet>& faceIDs);
 
         // Copy constructor
         Trimesh(const Trimesh& trimesh);
@@ -105,7 +144,7 @@ namespace spica {
         Triangle getTriangle(int faceID) const;
 
         // Get vertex indices
-        std::vector<int> getIndices() const;
+        std::vector<Triplet> getIndices() const;
 
         // Get the vertex with specified ID
         // @param[in] vertexID: ID of the vertex
@@ -124,13 +163,12 @@ namespace spica {
         Vector3 getNormal(int faceID) const;
 
         // Get the number of vertices
-        inline unsigned long numVerts() const { return _numVerts; }
+        inline size_t numVerts() const { return _vertices.size(); }
 
         // Get the number of faces (triangles)
-        inline unsigned long numFaces() const { return _numFaces; }
+        inline size_t numFaces() const { return _faces.size(); }
 
     private:
-        void release();
         void loadPly(const std::string& filename);
         void loadObj(const std::string& filename);
     };

@@ -339,7 +339,7 @@ namespace spica {
     }
 
     Triangle Trimesh::getTriangle(int id) const {
-        msg_assert(id >= 0 && id < _vertices.size(), "Triangle index out of bounds");
+        msg_assert(id >= 0 && id < _faces.size(), "Triangle index out of bounds");
         const Vector3& p0 = _vertices[_faces[id][0]];
         const Vector3& p1 = _vertices[_faces[id][1]];
         const Vector3& p2 = _vertices[_faces[id][2]];

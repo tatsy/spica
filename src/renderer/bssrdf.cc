@@ -107,6 +107,13 @@ namespace spica {
     // BSSRDF with diffuse reflectance function
     // ------------------------------------------------------------
 
+    DiffuseBSSRDF::DiffuseBSSRDF()
+        : BSSRDFBase()
+        , _distances()
+        , _colors()
+    {
+    }
+
     DiffuseBSSRDF::DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors)
         : BSSRDFBase(eta)
         , _distances(distances)

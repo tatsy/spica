@@ -1,6 +1,9 @@
 #define SPICA_BSSRDF_EXPORT
 #include "bssrdf.h"
 
+#include <iostream>
+#include <fstream>
+#include <string>
 #include <algorithm>
 
 #include "material.h"
@@ -38,7 +41,7 @@ namespace spica {
     }
 
     // ------------------------------------------------------------
-    // BSSRDF with diffusion approximation
+    // BSSRDF with dipole approximation
     // ------------------------------------------------------------
 
     DipoleBSSRDF::DipoleBSSRDF(double sigma_a, double sigmap_s, double eta)
@@ -101,7 +104,7 @@ namespace spica {
     }
 
     // ------------------------------------------------------------
-    // BSSRDF with discrete Rd
+    // BSSRDF with diffuse reflectance function
     // ------------------------------------------------------------
 
     DiffuseBSSRDF::DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors)
@@ -120,6 +123,14 @@ namespace spica {
         this->operator=(bssrdf);
     }
 
+    DiffuseBSSRDF::DiffuseBSSRDF(DiffuseBSSRDF&& bssrdf)
+        : BSSRDFBase()
+        , _distances()
+        , _colors()
+    {
+        this->operator=(std::move(bssrdf));
+    }
+
     DiffuseBSSRDF& DiffuseBSSRDF::operator=(const DiffuseBSSRDF& bssrdf) {
         BSSRDFBase::operator=(bssrdf);
         this->_distances = bssrdf._distances;
@@ -127,8 +138,19 @@ namespace spica {
         return *this;
     }
 
+    DiffuseBSSRDF& DiffuseBSSRDF::operator=(DiffuseBSSRDF&& bssrdf) {
+        BSSRDFBase::operator=(std::move(bssrdf));
+        this->_distances = std::move(bssrdf._distances);
+        this->_colors = std::move(bssrdf._colors);
+        return *this;
+    }
+
     BSSRDF DiffuseBSSRDF::factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors) {
-        return BSSRDF(new DiffuseBSSRDF(eta, distances, colors));
+        return std::move(BSSRDF(new DiffuseBSSRDF(eta, distances, colors)));
+    }
+
+    BSSRDF DiffuseBSSRDF::factory() const {
+        return std::move(BSSRDF(new DiffuseBSSRDF(*this)));
     }
 
     Color DiffuseBSSRDF::operator()(const double d2) const {
@@ -137,8 +159,54 @@ namespace spica {
         return _colors[idx];
     }
 
+    DiffuseBSSRDF DiffuseBSSRDF::scaled(double sc) const {
+        DiffuseBSSRDF ret(*this);
+        for (size_t i = 0; i < ret._distances.size(); i++) {
+            ret._distances[i] /= (sc * sc);
+            ret._colors[i] /= sc;
+        }
+        return std::move(ret);
+    }
+
     BSSRDFBase* DiffuseBSSRDF::copy() const {
         return new DiffuseBSSRDF(*this);
+    }
+
+    void DiffuseBSSRDF::save(const std::string& filename) const {
+        std::ofstream ofs(filename.c_str(), std::ios::out | std::ios::binary);
+        const int intervals = static_cast<int>(this->_distances.size());
+        ofs.write((const char*)&intervals, sizeof(int));
+
+        float ff[4];
+        for (int i = 0; i < intervals; i++) {
+            ff[0] = static_cast<float>(_distances[i]);        
+            ff[1] = static_cast<float>(_colors[i].red());        
+            ff[2] = static_cast<float>(_colors[i].green());        
+            ff[3] = static_cast<float>(_colors[i].blue());        
+            ofs.write((const char*)ff, sizeof(float) * 4);
+        }
+
+        ofs.close();
+    }
+
+    void DiffuseBSSRDF::load(const std::string& filename) {
+        std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
+        msg_assert(ifs.is_open(), "Faied to open file!!");
+
+        int intervals;
+        ifs.read((char*)&intervals, sizeof(int));
+
+        _distances.resize(intervals);
+        _colors.resize(intervals);
+
+        float ff[4];
+        for (int i = 0; i < intervals; i++) {
+            ifs.read((char*)ff, sizeof(float) * 4);
+            _distances[i] = ff[0];
+            _colors[i] = spica::Color(ff[1], ff[2], ff[3]);
+        }
+
+        ifs.close();
     }
 
     // ------------------------------------------------------------

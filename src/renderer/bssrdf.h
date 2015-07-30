@@ -76,16 +76,22 @@ namespace spica {
         std::vector<double> _distances;
         std::vector<Color> _colors;
 
-    private:
+    public:
         DiffuseBSSRDF();
         DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
         DiffuseBSSRDF(const DiffuseBSSRDF& bssrdf);
+        DiffuseBSSRDF(DiffuseBSSRDF&& bssrdf);
         DiffuseBSSRDF& operator=(const DiffuseBSSRDF& bssrdf);
+        DiffuseBSSRDF& operator=(DiffuseBSSRDF&& bssrdf);
 
-    public:
         static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
+        BSSRDF factory() const;
         Color operator()(const double d2) const override;
         BSSRDFBase* copy() const override;
+
+        DiffuseBSSRDF scaled(double sc) const;
+        void load(const std::string& filename);
+        void save(const std::string& filename) const;
     };
 
 

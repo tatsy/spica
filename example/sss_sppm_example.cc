@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     // cornellBoxDragon(&scene, &camera, width, height);
     kittenBox(&scene, &camera, width, height);
 
-    BSSRDF bssrdf = DiffusionBSSRDF::factory(1.0e-4, 10.0, 1.3);
+    BSSRDF bssrdf = DipoleBSSRDF::factory(1.0e-4, 10.0, 1.3);
 
     SubsurfaceSPPMRenderer renderer;
 

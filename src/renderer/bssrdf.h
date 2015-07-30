@@ -31,20 +31,22 @@ namespace spica {
     protected:
         explicit BSSRDFBase(double eta = 1.3) : _eta(eta) {}
         explicit BSSRDFBase(const BSSRDFBase& base) : _eta(base._eta) {}
+        BSSRDFBase& operator=(const BSSRDFBase& base) { _eta = base._eta; return *this; }
 
     public:
         virtual ~BSSRDFBase() {}
         virtual double Ft(const Vector3& nornal, const Vector3& in) const;
         virtual double Fdr() const;
         virtual Color operator()(const double d2) const = 0;
+        virtual BSSRDFBase* copy() const = 0;
     };
 
 
     // ------------------------------------------------------------
-    // BSSRDF with diffusion approximation
+    // BSSRDF with dipole approximation
     // ------------------------------------------------------------
 
-    class SPICA_BSSRDF_DLL DiffusionBSSRDF : public BSSRDFBase {
+    class SPICA_BSSRDF_DLL DipoleBSSRDF : public BSSRDFBase {
     private:
         double _A;
         double _sigmap_t;
@@ -54,30 +56,42 @@ namespace spica {
         double _zneg;
 
     private:
-        DiffusionBSSRDF();
-        DiffusionBSSRDF(double sigma_a, double sigmap_s, double eta = 1.3);
+        DipoleBSSRDF();
+        DipoleBSSRDF(double sigma_a, double sigmap_s, double eta = 1.3);
+        DipoleBSSRDF(const DipoleBSSRDF& bssrdf);
+        DipoleBSSRDF& operator=(const DipoleBSSRDF& bssrdf);
 
     public:
         static BSSRDF factory(double sigma_a, double sigmap_s, double eta = 1.3);
-        Color operator()(const double d2) const;
+        Color operator()(const double d2) const override;
+        BSSRDFBase* copy() const override;
     };
 
     // ------------------------------------------------------------
-    // BSSRDF with discrete Rd
+    // BSSRDF with diffuse reflectance function Rd
     // ------------------------------------------------------------
 
-    class SPICA_BSSRDF_DLL DiscreteBSSRDF : public BSSRDFBase {
+    class SPICA_BSSRDF_DLL DiffuseBSSRDF : public BSSRDFBase {
     private:
         std::vector<double> _distances;
         std::vector<Color> _colors;
 
-    private:
-        DiscreteBSSRDF();
-        DiscreteBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
-
     public:
+        DiffuseBSSRDF();
+        DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
+        DiffuseBSSRDF(const DiffuseBSSRDF& bssrdf);
+        DiffuseBSSRDF(DiffuseBSSRDF&& bssrdf);
+        DiffuseBSSRDF& operator=(const DiffuseBSSRDF& bssrdf);
+        DiffuseBSSRDF& operator=(DiffuseBSSRDF&& bssrdf);
+
         static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
-        Color operator()(const double d2) const;
+        BSSRDF factory() const;
+        Color operator()(const double d2) const override;
+        BSSRDFBase* copy() const override;
+
+        DiffuseBSSRDF scaled(double sc) const;
+        void load(const std::string& filename);
+        void save(const std::string& filename) const;
     };
 
 
@@ -87,15 +101,16 @@ namespace spica {
 
     class SPICA_BSSRDF_DLL BSSRDF {
     private:
-        int* _numCopies;
         const BSSRDFBase* _ptr;
 
     public:
         BSSRDF();
         BSSRDF(const BSSRDF& bssrdf);
+        BSSRDF(BSSRDF&& bssrdf);
         ~BSSRDF();
 
         BSSRDF& operator=(const BSSRDF& bssrdf);
+        BSSRDF& operator=(BSSRDF&& bssrdf);
 
         double Ft(const Vector3& normal, const Vector3& in) const;
         double Fdr() const;
@@ -103,12 +118,11 @@ namespace spica {
 
     private:
         explicit BSSRDF(const BSSRDFBase* ptr);
-        void release();
         void nullCheck() const;
 
     // Friend classes
-        friend class DiffusionBSSRDF;
-        friend class DiscreteBSSRDF;
+        friend class DipoleBSSRDF;
+        friend class DiffuseBSSRDF;
     };
 
 }

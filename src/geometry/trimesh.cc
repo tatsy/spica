@@ -237,24 +237,39 @@ namespace spica {
     }
 
     void Trimesh::loadObj(const std::string& filename) {
-        std::ifstream in(filename.c_str(), std::ios::in);
-        msg_assert(in.is_open(), "Failed to open mesh file");
+        std::ifstream ifs(filename.c_str(), std::ios::in);
+        msg_assert(ifs.is_open(), "Failed to open mesh file");
 
-        std::string typ;
+        std::stringstream ss;
+        std::string line;
         _vertices.clear();
         _faces.clear();
-        while (!in.eof()) {
-            in >> typ;
+        while (!ifs.eof()) {
+            std::getline(ifs, line);
+
+            // Check first character
+            auto it = line.begin();
+            while (*it == ' ') ++it;
+            if (*it == '#' || it == line.end()) continue;
+
+            ss.clear();
+            ss << line;
+
+            std::string typ;
+            ss >> typ;
+
             if (typ == "v") {               
                 double x, y, z;
-                in >> x >> y >> z;
+                ss >> x >> y >> z;
                 _vertices.push_back(Vector3(x, y, z));
             } else if (typ == "f") {
                 int v0, v1, v2;
-                in >> v0 >> v1 >> v2;
+                ss >> v0 >> v1 >> v2;
                 _faces.push_back(Triplet(v0, v1, v2));
             } else {
-                msg_assert(false, "Unknown type is found while reading .obj file!!");
+                char msg[256];
+                sprintf(msg, "Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
+                msg_assert(false, msg);
             }
         }
 
@@ -267,6 +282,8 @@ namespace spica {
             const int p2 = _faces[i][2];
             _normals[i] = Vector3::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]);
         }
+
+        ifs.close();
     }
 
     void Trimesh::translate(const Vector3& move) {

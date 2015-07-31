@@ -89,6 +89,10 @@ namespace spica {
         Color operator()(const double d2) const override;
         BSSRDFBase* copy() const override;
 
+        int numIntervals() const;
+        const std::vector<double>& distances() const;
+        const std::vector<Color>& colors() const;
+
         DiffuseBSSRDF scaled(double sc) const;
         void load(const std::string& filename);
         void save(const std::string& filename) const;

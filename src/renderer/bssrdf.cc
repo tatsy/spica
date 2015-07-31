@@ -166,6 +166,22 @@ namespace spica {
         return _colors[idx];
     }
 
+    BSSRDFBase* DiffuseBSSRDF::copy() const {
+        return new DiffuseBSSRDF(*this);
+    }
+
+    int DiffuseBSSRDF::numIntervals() const {
+        return static_cast<int>(_distances.size());
+    }
+
+    const std::vector<double>& DiffuseBSSRDF::distances() const {
+        return _distances;
+    }
+
+    const std::vector<Color>& DiffuseBSSRDF::colors() const {
+        return _colors;
+    }
+
     DiffuseBSSRDF DiffuseBSSRDF::scaled(double sc) const {
         DiffuseBSSRDF ret(*this);
         for (size_t i = 0; i < ret._distances.size(); i++) {
@@ -173,10 +189,6 @@ namespace spica {
             ret._colors[i] /= sc;
         }
         return std::move(ret);
-    }
-
-    BSSRDFBase* DiffuseBSSRDF::copy() const {
-        return new DiffuseBSSRDF(*this);
     }
 
     void DiffuseBSSRDF::save(const std::string& filename) const {

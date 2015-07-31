@@ -33,6 +33,37 @@ TEST(TrimeshTest, InvalidLoad) {
     ASSERT_DEATH(trimesh.load(DATA_DIR + "bax.ply"), "");
 }
 
+TEST(TrimeshTest, LoadTest) {
+    Trimesh objmesh, plymesh;
+    EXPECT_NO_FATAL_FAILURE(objmesh.load(DATA_DIR + "bunny.obj"));
+    EXPECT_NO_FATAL_FAILURE(plymesh.load(DATA_DIR + "bunny.ply"));
+
+    EXPECT_EQ(objmesh.numVerts(), plymesh.numVerts());
+    EXPECT_EQ(objmesh.numFaces(), plymesh.numFaces());
+}
+
+TEST(TrimeshTest, CopyAndMove) {
+    Trimesh trimesh(DATA_DIR + "bunny.ply");
+    Trimesh trimesh2(trimesh);
+
+    EXPECT_EQ(trimesh.numFaces(), trimesh2.numFaces());
+    EXPECT_EQ(trimesh.numVerts(), trimesh2.numVerts());
+
+    for (int i = 0; i < trimesh.numVerts(); i++) {
+        EXPECT_EQ_VEC(trimesh.getVertex(i), trimesh2.getVertex(i));
+    }
+
+    Trimesh trimesh3(std::move(trimesh2));
+    EXPECT_EQ(trimesh.numFaces(), trimesh3.numFaces());
+    EXPECT_EQ(trimesh.numVerts(), trimesh3.numVerts());
+
+    for (int i = 0; i < trimesh.numVerts(); i++) {
+        EXPECT_EQ_VEC(trimesh.getVertex(i), trimesh3.getVertex(i));
+    }
+
+    ASSERT_DEATH(trimesh2.getVertex(0), "");
+}
+
 TEST(TrimeshTest, BoxIntersection) {
     Trimesh trimesh(DATA_DIR + "box.ply");
     trimesh.setAccelType(KD_TREE_ACCEL, true);

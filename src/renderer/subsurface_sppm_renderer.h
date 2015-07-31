@@ -22,11 +22,12 @@ namespace spica {
         Color flux;
         Color weight;
         Color emission;
-        int imageX, imageY;
         double coeff;
         double r2;
-        int n;
         double area;
+        int imageX;
+        int imageY;
+        int n;
         bool isPixel;
 
         explicit HitpointInfo(const Vector3& pos = Vector3())
@@ -35,12 +36,12 @@ namespace spica {
             , flux()
             , weight()
             , emission()
-            , imageX(-1)
-            , imageY(-1)
             , coeff(0.0)
             , r2(0.0)
-            , n(0)
             , area(0.0)
+            , imageX(-1)
+            , imageY(-1)
+            , n(0)
             , isPixel(true)
         {
         }
@@ -52,10 +53,12 @@ namespace spica {
             , weight()
             , emission()
             , coeff(0.0)
+            , r2(0.0)
+            , area(0.0)
             , imageX(-1)
             , imageY(-1)
-            , r2(0.0)
             , n(0)
+            , isPixel(true)
         {
             operator=(hp);
         }
@@ -67,10 +70,12 @@ namespace spica {
             this->weight = hp.weight;
             this->emission = hp.emission;
             this->coeff = hp.coeff;
+            this->r2 = hp.r2;
+            this->area = hp.area;
             this->imageX = hp.imageX;
             this->imageY = hp.imageY;
-            this->r2 = hp.r2;
             this->n = hp.n;
+            this->isPixel = hp.isPixel;
             return *this;
         }
 

@@ -490,29 +490,25 @@ namespace spica {
         const double delta = 1.0e-8;
         const double a = 0.18;
 
-        double Lw_bar = 0.0;
-        double L_white = 0.0;
+        double lw_bar = 0.0;
+        double l_white = 0.0;
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color c = this->operator()(x, y);
                 double l = c.luminance();
-                Lw_bar += log(l + delta);         
-                L_white = std::max(L_white, l);
+                lw_bar += log(l + delta);         
+                l_white = std::max(l_white, l);
             }
         }
-        Lw_bar = exp(Lw_bar / (_width * _height));
+        lw_bar = exp(lw_bar / (_width * _height));
 
-        const double L_white2 = L_white * L_white;
+        const double l_white2 = l_white * l_white;
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color c = this->operator()(x, y);
-                double r = c.red() * a / Lw_bar;
-                r = r * (1.0 + r / L_white2) / (1.0 + r);
-                double g = c.green() * a / Lw_bar;
-                g = g * (1.0 + g / L_white2) / (1.0 + g);
-                double b = c.blue() * a / Lw_bar;
-                b = b * (1.0 + b / L_white2) / (1.0 + b);
-                this->pixel(x, y) = Color(r, g, b);
+                Vector3 ret = c * a / lw_bar;
+                ret = ret * (1.0 + ret / l_white2) / (1.0 + ret);
+                this->pixel(x, y) = ret;
             }
         }
     }

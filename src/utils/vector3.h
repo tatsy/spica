@@ -42,9 +42,17 @@ namespace spica {
 
         Vector3& operator=(const Vector3& v);
         Vector3& operator+=(const Vector3& v);
+        Vector3& operator+=(double x);
         Vector3& operator-=(const Vector3& v);
+        Vector3& operator-=(double x);
         Vector3  operator-() const;
+
+        // Element-wise multiplication
+        Vector3& operator*=(const Vector3& v);
         Vector3& operator*=(double s);
+
+        // Element-wise division
+        Vector3& operator/=(const Vector3& v);
         Vector3& operator/=(double s);
         bool operator==(const Vector3& v) const;
 
@@ -87,8 +95,21 @@ namespace spica {
 
 SPICA_VECTOR3_DLL spica::Vector3 operator+(const spica::Vector3& v1, const spica::Vector3& v2);
 SPICA_VECTOR3_DLL spica::Vector3 operator-(const spica::Vector3& v1, const spica::Vector3& v2);
+
+SPICA_VECTOR3_DLL spica::Vector3 operator+(const spica::Vector3& v, double x);
+SPICA_VECTOR3_DLL spica::Vector3 operator+(double x, const spica::Vector3& v);
+SPICA_VECTOR3_DLL spica::Vector3 operator-(const spica::Vector3& v, double x);
+SPICA_VECTOR3_DLL spica::Vector3 operator-(double x, const spica::Vector3& v);
+
+// Element-wise multiplication
+SPICA_VECTOR3_DLL spica::Vector3 operator*(const spica::Vector3& u, const spica::Vector3& v);
+
 SPICA_VECTOR3_DLL spica::Vector3 operator*(const spica::Vector3& v, double s);
 SPICA_VECTOR3_DLL spica::Vector3 operator*(double s, const spica::Vector3& v);
+
+// Element-wise division
+SPICA_VECTOR3_DLL spica::Vector3 operator/(const spica::Vector3& u, const spica::Vector3& v);
+
 SPICA_VECTOR3_DLL spica::Vector3 operator/(const spica::Vector3& v, double s);
 
 SPICA_VECTOR3_DLL std::ostream& operator<<(std::ostream& os, const spica::Vector3 v);

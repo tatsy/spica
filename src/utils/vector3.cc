@@ -44,8 +44,20 @@ namespace spica {
         return *this;
     }
 
+    Vector3& Vector3::operator+=(double x) {
+        this->x() += x;
+        this->y() += x;
+        this->z() += x;
+        return *this;
+    }
+
     Vector3& Vector3::operator-=(const Vector3& v) {
         this->operator+=(-v);
+        return *this;
+    }
+
+    Vector3& Vector3::operator-=(double x) {
+        this->operator+=(-x);
         return *this;
     }
 
@@ -53,10 +65,25 @@ namespace spica {
         return Vector3(-this->x(), -this->y(), -this->z());
     }
 
+    Vector3& Vector3::operator*=(const Vector3& v) {
+        this->x() *= v.x();
+        this->y() *= v.y();
+        this->z() *= v.z();
+        return *this;
+    }
+
     Vector3& Vector3::operator*=(double s) {
         this->x() *= s;
         this->y() *= s;
         this->z() *= s;
+        return *this;
+    }
+
+    Vector3& Vector3::operator/=(const Vector3& v) {
+        msg_assert(v.x() != 0.0 && v.y() != 0.0 && v.z() != 0.0, "Zero division");
+        this->x() /= v.x();
+        this->y() /= v.y();
+        this->z() /= v.z();
         return *this;
     }
 
@@ -160,6 +187,30 @@ spica::Vector3 operator-(const spica::Vector3& v1, const spica::Vector3& v2) {
     return ret;
 }
 
+spica::Vector3 operator+(const spica::Vector3& v, double x) {
+    spica::Vector3 ret = v;
+    ret += x;
+    return ret;
+}
+
+spica::Vector3 operator+(double x, const spica::Vector3& v) {
+    return v + x;
+}
+
+spica::Vector3 operator-(const spica::Vector3& v, double x) {
+    return v + (-x);
+}
+
+spica::Vector3 operator-(double x, const spica::Vector3& v) {
+    return v + (-x);
+}
+
+spica::Vector3 operator*(const spica::Vector3& u, const spica::Vector3& v) {
+    spica::Vector3 ret = u;
+    ret *= v;
+    return ret;
+}
+
 spica::Vector3 operator*(const spica::Vector3& v, double s) {
     spica::Vector3 ret = v;
     ret *= s;
@@ -169,6 +220,12 @@ spica::Vector3 operator*(const spica::Vector3& v, double s) {
 spica::Vector3 operator*(double s, const spica::Vector3& v) {
     spica::Vector3 ret = v;
     ret *= s;
+    return ret;
+}
+
+spica::Vector3 operator/(const spica::Vector3& u, const spica::Vector3& v) {
+    spica::Vector3 ret = u;
+    ret /= v;
     return ret;
 }
 

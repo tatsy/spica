@@ -98,7 +98,7 @@ namespace spica {
         const int objID = isect.objectId();
         const Material& mtrl = scene.getMaterial(objID);
         const Hitpoint hitpoint = isect.hitpoint();
-        const Vector3 orientNormal = Vector3::dot(ray.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+        const Vector3D orientNormal = Vector3D::dot(ray.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
         // Russian roulette
         double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
@@ -121,9 +121,9 @@ namespace spica {
             std::vector<double> distances;
             double maxdist = 0.0;
             for (int i = 0; i < numPhotons; i++) {
-                Vector3 diff = query - photons[i];
+                Vector3D diff = query - photons[i];
                 double dist = diff.norm();
-                if (std::abs(Vector3::dot(hitpoint.normal(), diff)) < diff.norm() * 0.1) {
+                if (std::abs(Vector3D::dot(hitpoint.normal(), diff)) < diff.norm() * 0.1) {
                     validPhotons.push_back(photons[i]);
                     distances.push_back(dist);
                     maxdist = std::max(maxdist, dist);
@@ -145,13 +145,13 @@ namespace spica {
                 return Color(mtrl.emission + totalFlux / ((PI * maxdist * maxdist) * roulette)); 
             }
         } else if (mtrl.reftype == REFLECTION_SPECULAR) {
-            Vector3 nextDir = Vector3::reflect(ray.direction(), hitpoint.normal());
+            Vector3D nextDir = Vector3D::reflect(ray.direction(), hitpoint.normal());
             Ray nextRay = Ray(hitpoint.position(), nextDir);
             Color nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth);
             return Color(mtrl.emission + mtrl.color.multiply(nextRad) / roulette);
         } else if (mtrl.reftype == REFLECTION_REFRACTION) {
-            bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
-            Vector3 reflectDir, refractDir;
+            bool isIncoming = Vector3D::dot(hitpoint.normal(), orientNormal) > 0.0;
+            Vector3D reflectDir, refractDir;
             double fresnelRe, fresnelTr;
             if (helper::isTotalRef(isIncoming, hitpoint.position(), ray.direction(), hitpoint.normal(), orientNormal, &reflectDir, &refractDir, &fresnelRe, &fresnelTr)) {
                 // Total reflection
@@ -214,9 +214,9 @@ namespace spica {
 
             // Generate sample on the light
             const int lightID = scene.lightID();
-            const Primitive* light = scene.get(lightID);
+            const IGeometry* light = scene.get(lightID);
 
-            Vector3 posLignt, normalLight;
+            Vector3D posLignt, normalLight;
             const double r1Light = rseq.next();
             const double r2Light = rseq.next();
             sampler::on(light, &posLignt, &normalLight, r1Light, r2Light);
@@ -224,7 +224,7 @@ namespace spica {
 
             const double r1 = rseq.next();
             const double r2 = rseq.next();
-            Vector3 nextDir;
+            Vector3D nextDir;
             sampler::onHemisphere(normalLight, &nextDir, r1, r2);
 
             Ray currentRay(posLignt, nextDir);
@@ -248,8 +248,8 @@ namespace spica {
                 const Material& mtrl = scene.getMaterial(isect.objectId());
                 const Hitpoint& hitpoint = isect.hitpoint();
 
-                Vector3 orientingNormal = hitpoint.normal();
-                if (Vector3::dot(hitpoint.normal(), currentRay.direction()) > 0.0) {
+                Vector3D orientingNormal = hitpoint.normal();
+                if (Vector3D::dot(hitpoint.normal(), currentRay.direction()) > 0.0) {
                     orientingNormal *= -1.0;
                 }
 
@@ -269,13 +269,13 @@ namespace spica {
                         break;
                     }
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
-                    nextDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
+                    nextDir = Vector3D::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
                     currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
-                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientingNormal) > 0.0;
+                    bool isIncoming = Vector3D::dot(hitpoint.normal(), orientingNormal) > 0.0;
 
-                    Vector3 reflectDir, transmitDir;
+                    Vector3D reflectDir, transmitDir;
                     double fresnelRe, fresnelTr;
                     bool isTotRef = helper::isTotalRef(isIncoming,
                                                        hitpoint.position(),
@@ -309,7 +309,7 @@ namespace spica {
                         currentFlux = currentFlux.multiply(mtrl.color) * (fresnelTr / (1.0 - probability));
                     }
                 } else {
-                    msg_assert(false, "Unknown reflection type !!");
+                    Assertion(false, "Unknown reflection type !!");
                 }
             }
 

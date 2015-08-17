@@ -47,7 +47,7 @@ namespace spica {
             rand = new Halton();
             break;
         default:
-            msg_assert(false, "Unknown random number generator type!!");
+            Assertion(false, "Unknown random number generator type!!");
             break;
         }
 
@@ -105,15 +105,15 @@ namespace spica {
         // Compute bounding box
         BBox bbox;
         for (int i = 0; i < numPoints; i++) {
-            bbox.merge(static_cast<Vector3>(hpoints[i]));
+            bbox.merge(static_cast<Vector3D>(hpoints[i]));
         }
 
         // Heuristic for initial radius
-        Vector3 boxSize = bbox.posMax() - bbox.posMin();
+        Vector3D boxSize = bbox.posMax() - bbox.posMin();
         const double irad = ((boxSize.x() + boxSize.y() + boxSize.z()) / 3.0) / ((imageW + imageH) / 2.0) * 2.0;
 
         // Update initial radius
-        Vector3 iradv(irad, irad, irad);
+        Vector3D iradv(irad, irad, irad);
         for (int i = 0; i < numPoints; i++) {
             if (hpoints[i].n == 0) {
                 hpoints[i].r2 = irad * irad;
@@ -133,8 +133,8 @@ namespace spica {
 
         // Set hit points to the grid
         for (int i = 0; i < numPoints; i++) {
-            Vector3 boxMin = static_cast<Vector3>(hpoints[i]) - iradv;
-            Vector3 boxMax = static_cast<Vector3>(hpoints[i]) + iradv;
+            Vector3D boxMin = static_cast<Vector3D>(hpoints[i]) - iradv;
+            Vector3D boxMax = static_cast<Vector3D>(hpoints[i]) + iradv;
             hashgrid.add(&hpoints[i], boxMin, boxMax);
         }
     }
@@ -190,8 +190,8 @@ namespace spica {
             }
 
             Photon photon = Photon::sample(scene, rseq, numPhotons);
-            const Vector3& posOnLight = static_cast<Vector3>(photon);
-            const Vector3& normalOnLight = photon.normal();
+            const Vector3D& posOnLight = static_cast<Vector3D>(photon);
+            const Vector3D& normalOnLight = photon.normal();
 
             // Compute flux
             Color currentFlux = photon.flux();
@@ -199,10 +199,10 @@ namespace spica {
             // Prepare ray
             const double r1 = rseq.next();
             const double r2 = rseq.next();
-            Vector3 nextDir;
+            Vector3D nextDir;
             sampler::onHemisphere(normalOnLight, &nextDir, r1, r2);
             Ray currentRay(posOnLight, nextDir);
-            Vector3 prevNormal = normalOnLight;
+            Vector3D prevNormal = normalOnLight;
 
             // Shooting photons
             for (int bounce = 0; ; bounce++) {
@@ -224,7 +224,7 @@ namespace spica {
                 const int objectID = isect.objectId();
                 const Material& mtrl = scene.getMaterial(objectID);
                 const Hitpoint& hitpoint = isect.hitpoint();
-                const Vector3 orientNormal = Vector3::dot(hitpoint.normal(), currentRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+                const Vector3D orientNormal = Vector3D::dot(hitpoint.normal(), currentRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     // Photon reaches diffuse surface. Update hitpoints.
@@ -238,8 +238,8 @@ namespace spica {
                     // Update hit points
                     for (int i = 0; i < results.size(); i++) {
                         HitpointInfo* hpp = results[i];
-                        Vector3 v = (*hpp) - hitpoint.position();
-                        if (Vector3::dot(hpp->normal, hitpoint.normal()) > EPS && (v.squaredNorm() <= hpp->r2)) {
+                        Vector3D v = (*hpp) - hitpoint.position();
+                        if (Vector3D::dot(hpp->normal, hitpoint.normal()) > EPS && (v.squaredNorm() <= hpp->r2)) {
                             double g = (hpp->n * ALPHA + ALPHA) / (hpp->n * ALPHA + 1.0);
                             omplock{
                                 hpp->r2 *= g;
@@ -260,12 +260,12 @@ namespace spica {
                     }
 
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
-                    nextDir = Vector3::reflect(currentRay.direction(), hitpoint.normal());
+                    nextDir = Vector3D::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
                     currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
-                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
-                    Vector3 reflectDir, refractDir;
+                    bool isIncoming = Vector3D::dot(hitpoint.normal(), orientNormal) > 0.0;
+                    Vector3D reflectDir, refractDir;
                     double fresnelRe, fresnelTr;
                     bool isTotRef = helper::isTotalRef(isIncoming,
                                                        hitpoint.position(),
@@ -294,8 +294,8 @@ namespace spica {
                         }
                     }
                 } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
-                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
-                    Vector3 reflectDir, refractDir;
+                    bool isIncoming = Vector3D::dot(hitpoint.normal(), orientNormal) > 0.0;
+                    Vector3D reflectDir, refractDir;
                     double fresnelRe, fresnelTr;
                     bool isTotRef = helper::isTotalRef(isIncoming,
                                                        hitpoint.position(),
@@ -353,7 +353,7 @@ namespace spica {
             int objectID = isect.objectId();
             const Hitpoint& hitpoint = isect.hitpoint();
             const Material& mtrl = scene.getMaterial(objectID);
-            const Vector3 orientNormal = Vector3::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+            const Vector3D orientNormal = Vector3D::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
             if (mtrl.reftype == REFLECTION_DIFFUSE) {
                 // Ray hits diffuse object, return current weight
@@ -365,12 +365,12 @@ namespace spica {
                 hp->emission += weight.multiply(mtrl.emission) + accumEmit;
                 break;
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
-                Vector3 nextDir = Vector3::reflect(ray.direction(), orientNormal);
+                Vector3D nextDir = Vector3D::reflect(ray.direction(), orientNormal);
                 ray = Ray(hitpoint.position(), nextDir);
                 weight = weight.multiply(mtrl.color);
             } else if (mtrl.reftype == REFLECTION_REFRACTION) {
-                bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
-                Vector3 reflectDir, transmitDir;
+                bool isIncoming = Vector3D::dot(hitpoint.normal(), orientNormal) > 0.0;
+                Vector3D reflectDir, transmitDir;
                 double fresnelRe, fresnelTr;
                 bool isTotRef = helper::isTotalRef(isIncoming,
                                                    hitpoint.position(),
@@ -402,7 +402,7 @@ namespace spica {
             } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
                 const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
-                Vector3 reflectDir, transmitDir;
+                Vector3D reflectDir, transmitDir;
                 double fresnelRe, fresnelTr;
                 bool isTotRef = helper::isTotalRef(isIncoming,
                                                     hitpoint.position(),

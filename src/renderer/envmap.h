@@ -36,7 +36,7 @@ namespace spica {
         void resize(int width, int height);
         void clearColor(const Color& color);
 
-        Color sampleFromDir(const Vector3& dir) const;
+        Color sampleFromDir(const Vector3D& dir) const;
         Photon samplePhoton(RandomSeq& rseq, const int numPhotons) const;
         const Image& getImage() const;
 

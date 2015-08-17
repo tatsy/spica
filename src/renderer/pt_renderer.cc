@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include "../utils/common.h"
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/sampler.h"
 #include "../utils/image.h"
 #include "material.h"
@@ -18,9 +18,9 @@ namespace spica {
     namespace {
 
         Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq) {
-            Vector3 posOnSensor;        // Position on the image sensor
-            Vector3 posOnObjplane;      // Position on the object plane
-            Vector3 posOnLens;          // Position on the lens
+            Vector3D posOnSensor;        // Position on the image sensor
+            Vector3D posOnObjplane;      // Position on the object plane
+            Vector3D posOnLens;          // Position on the lens
             double  pImage, pLens;      // Sampling probability on image sensor and lens
 
             CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
@@ -58,7 +58,7 @@ namespace spica {
                 break;
 
             default:
-                msg_assert(false, "Unknown random number generator type!!");
+                Assertion(false, "Unknown random number generator type!!");
             }
         }
 

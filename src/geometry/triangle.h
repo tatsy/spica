@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_TRIANGLE_H_
 #define _SPICA_TRIANGLE_H_
 
@@ -11,39 +15,43 @@
     #define SPICA_TRIANGLE_DLL
 #endif
 
-#include "primitive.h"
+#include <array>
+
+#include "geometry_interface.h"
+#include "../utils/vector3d.h"
 
 namespace spica {
 
-    class SPICA_TRIANGLE_DLL Triangle : public Primitive {
+    class SPICA_TRIANGLE_DLL Triangle : public IGeometry {
     private:
-        Vector3 _p0;
-        Vector3 _p1;
-        Vector3 _p2;
+        std::array<Vector3D, 3> _points;
 
     public:
         Triangle();
-        Triangle(const Vector3& p0, const Vector3& p1, const Vector3& p2);
+        Triangle(const Vector3D& p0, const Vector3D& p1, const Vector3D& p2);
         Triangle(const Triangle& tri);
         ~Triangle();
 
         Triangle& operator=(const Triangle& tri);
 
-        Vector3 gravity() const;
-        Vector3 p(int id) const;
+        Vector3D gravity() const;
 
-        Vector3 normal() const;
+        // get a vertex with ID in [0, 1, 2]
+        Vector3D get(int id) const;
+
+        // get a vertex with ID in [0, 1, 2]
+        Vector3D operator[](int id) const;
+
+        Vector3D normal() const;
 
         // Compute ray-triangle intersection with Tomas Moller's algorithm
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
-        double area() const;
+        double area() const override;
 
-        inline Vector3 p0() const { return _p0; }
-        inline Vector3 p1() const { return _p1; }
-        inline Vector3 p2() const { return _p2; }
+        std::vector<Triangle> triangulate() const override;
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_TRIANGLE_H_

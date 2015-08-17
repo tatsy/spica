@@ -13,7 +13,7 @@
 
 #include "triangle.h"
 #include "../renderer/ray.h"
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 
 namespace spica {
 
@@ -22,13 +22,13 @@ namespace spica {
     // ----------------------------------------    
     class SPICA_BBOX_DLL BBox {
     private:
-        Vector3 _posMin;    // Position of minimum corner
-        Vector3 _posMax;    // Position of maximum corner
+        Vector3D _posMin;    // Position of minimum corner
+        Vector3D _posMax;    // Position of maximum corner
         
     public:
         BBox();
         explicit BBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
-        explicit BBox(const Vector3& posMin, const Vector3& posMax);
+        explicit BBox(const Vector3D& posMin, const Vector3D& posMax);
         BBox(const BBox& box);
 
         ~BBox();
@@ -38,15 +38,15 @@ namespace spica {
         bool intersect(const Ray& ray, double* tMin, double* tMax) const;
 
         // Enlarge box to contain vertex or box
-        void merge(const Vector3& v);
+        void merge(const Vector3D& v);
         void merge(const BBox& box);
         void merge(const Triangle& t);
 
         // Check if vertex is inside or not
-        bool inside(const Vector3& v) const;
+        bool inside(const Vector3D& v) const;
 
-        inline Vector3 posMin() const { return _posMin; }
-        inline Vector3 posMax() const { return _posMax; }
+        inline Vector3D posMin() const { return _posMin; }
+        inline Vector3D posMax() const { return _posMax; }
     };
 
 }  // namespace spica

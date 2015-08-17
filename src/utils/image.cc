@@ -113,7 +113,7 @@ namespace spica {
         , _height(height)
         , _pixels(0)
     {
-        msg_assert(width >= 0 && height >= 0, "Image size must be positive");
+        Assertion(width >= 0 && height >= 0, "Image size must be positive");
         _pixels = new Color[_width * _height];
     }
 
@@ -171,12 +171,12 @@ namespace spica {
     }
 
     const Color& Image::operator()(int x, int y) const {
-        msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+        Assertion(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
     Color& Image::pixel(int x, int y) {
-        msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+        Assertion(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
@@ -215,7 +215,7 @@ namespace spica {
         BitmapCoreHeader core;
 
         std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
-        msg_assert(ifs.is_open(), "Failed to open file!!");
+        Assertion(ifs.is_open(), "Failed to open file!!");
 
         ifs.read((char*)&header, sizeof(BitmapFileHeader));
         ifs.read((char*)&core, sizeof(BitmapCoreHeader));
@@ -485,7 +485,7 @@ namespace spica {
     }
 
     void Image::tonemap(TMAlgorithm algo) {
-        msg_assert(algo == TM_REINHARD, "Tone mapping algorithm other than Reinhard '02 is not supported");
+        Assertion(algo == TM_REINHARD, "Tone mapping algorithm other than Reinhard '02 is not supported");
 
         const double delta = 1.0e-8;
         const double a = 0.18;
@@ -506,7 +506,7 @@ namespace spica {
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color c = this->operator()(x, y);
-                Vector3 ret = c * a / lw_bar;
+                Vector3D ret = c * a / lw_bar;
                 ret = ret * (1.0 + ret / l_white2) / (1.0 + ret);
                 this->pixel(x, y) = ret;
             }

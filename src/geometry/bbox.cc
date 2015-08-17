@@ -19,7 +19,7 @@ namespace spica {
     {
     }
 
-    BBox::BBox(const Vector3& posMin, const Vector3& posMax)
+    BBox::BBox(const Vector3D& posMin, const Vector3D& posMax)
         : _posMin(posMin)
         , _posMax(posMax)
     {
@@ -41,23 +41,23 @@ namespace spica {
         return *this;
     }
 
-    void BBox::merge(const Vector3& v) {
-        _posMin = Vector3::minimum(_posMin, v);
-        _posMax = Vector3::maximum(_posMax, v);
+    void BBox::merge(const Vector3D& v) {
+        _posMin = Vector3D::minimum(_posMin, v);
+        _posMax = Vector3D::maximum(_posMax, v);
     }
 
     void BBox::merge(const BBox& box) {
-        _posMin = Vector3::minimum(_posMin, box._posMin);
-        _posMax = Vector3::maximum(_posMax, box._posMax);
+        _posMin = Vector3D::minimum(_posMin, box._posMin);
+        _posMax = Vector3D::maximum(_posMax, box._posMax);
     }
 
     void BBox::merge(const Triangle& t) {
         for (int k = 0; k < 3; k++) {
-            this->merge(t.p(k));
+            this->merge(t[k]);
         }
     }
 
-    bool BBox::inside(const Vector3& v) const {
+    bool BBox::inside(const Vector3D& v) const {
         return (_posMin.x() <= v.x() && v.x() <= _posMax.x()) &&
                (_posMin.y() <= v.y() && v.y() <= _posMax.y()) &&
                (_posMin.z() <= v.z() && v.z() <= _posMax.z());

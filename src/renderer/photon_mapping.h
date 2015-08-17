@@ -12,7 +12,7 @@
 #endif
 
 #include "../utils/uncopyable.h"
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/axis_comparable.h"
 #include "../utils/kdtree.h"
 

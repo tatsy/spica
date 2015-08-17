@@ -48,9 +48,9 @@ protected:
 
     int imageW;
     int imageH;
-    Vector3 center;
-    Vector3 direction;
-    Vector3 up;
+    Vector3D center;
+    Vector3D direction;
+    Vector3D up;
     double sensorSize;
     double distSensorToLens;
     double focalLength;
@@ -85,16 +85,16 @@ TEST_F(CameraTest, InstanceTest) {
 
 TEST_F(CameraTest, LensIntersection) {
     // Intersect
-    Vector3 posOnLens, posOnObjplane, posOnSensor, uvOnSensor;
-    Ray ray(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0));
+    Vector3D posOnLens, posOnObjplane, posOnSensor, uvOnSensor;
+    Ray ray(Vector3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 1.0));
     EXPECT_EQ(80.0, camera.intersectLens(ray, posOnLens, posOnObjplane, posOnSensor, uvOnSensor));
-    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 80.0), posOnLens);
-    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 100.0), posOnSensor);
-    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.0), posOnObjplane);
-    EXPECT_EQ_VEC(Vector3(imageW / 2.0, imageH / 2.0, 0.0), uvOnSensor);
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 80.0), posOnLens);
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 100.0), posOnSensor);
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), posOnObjplane);
+    EXPECT_EQ_VEC(Vector3D(imageW / 2.0, imageH / 2.0, 0.0), uvOnSensor);
 
     // Not intersect
-    ray = Ray(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 1.0, 0.0));
+    ray = Ray(Vector3D(0.0, 0.0, 0.0), Vector3D(0.0, 1.0, 0.0));
     EXPECT_EQ(-INFTY, camera.intersectLens(ray, posOnLens, posOnObjplane, posOnSensor, uvOnSensor));
 }
 
@@ -102,7 +102,7 @@ TEST_F(CameraTest, SampleTest) {
     const int numSample = 100;
     Random rng = Random();
 
-    Vector3 posOnLens, posOnObjplane, posOnSensor, uvOnSensor;
+    Vector3D posOnLens, posOnObjplane, posOnSensor, uvOnSensor;
     double pImage, pLens;
     for (int i = 0; i < numSample; i++) {
         camera.samplePoints(imageW / 2, imageH / 2, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);

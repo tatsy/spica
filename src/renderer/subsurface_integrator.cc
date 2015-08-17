@@ -86,12 +86,12 @@ namespace spica {
             return node;
         }
 
-        Vector3 posMid = (bbox.posMin() + bbox.posMax()) * 0.5;
+        Vector3D posMid = (bbox.posMin() + bbox.posMax()) * 0.5;
 
         const int numPoints = static_cast<int>(ipoints.size());
         std::vector<std::vector<IrradiancePoint> > childPoints(8);
         for (int i = 0; i < numPoints; i++) {
-            const Vector3& v = ipoints[i].pos;
+            const Vector3D& v = ipoints[i].pos;
             int id = (v.x() < posMid.x() ? 0 : 4) + (v.y() < posMid.y() ? 0 : 2) + (v.z() < posMid.z() ? 0 : 1);
             childPoints[id].push_back(ipoints[i]);
         }
@@ -109,8 +109,8 @@ namespace spica {
         node->isLeaf = false;
 
         // Accumulate child nodes
-        node->pt.pos = Vector3(0.0, 0.0, 0.0);
-        node->pt.normal = Vector3(0.0, 0.0, 0.0);
+        node->pt.pos = Vector3D(0.0, 0.0, 0.0);
+        node->pt.normal = Vector3D(0.0, 0.0, 0.0);
         node->pt.area = 0.0;
 
         double weight = 0.0;
@@ -139,11 +139,11 @@ namespace spica {
         return node;
     }
 
-    Color SubsurfaceIntegrator::Octree::iradSubsurface(const Vector3& pos, const BSSRDF& bssrdf) const {
+    Color SubsurfaceIntegrator::Octree::iradSubsurface(const Vector3D& pos, const BSSRDF& bssrdf) const {
         return iradSubsurfaceRec(_root, pos, bssrdf);
     }
 
-    Color SubsurfaceIntegrator::Octree::iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const BSSRDF& bssrdf) const {
+    Color SubsurfaceIntegrator::Octree::iradSubsurfaceRec(OctreeNode* node, const Vector3D& pos, const BSSRDF& bssrdf) const {
         if (node == NULL) return Color(0.0, 0.0, 0.0);
 
         const double distSquared = (node->pt.pos - pos).squaredNorm();
@@ -177,21 +177,21 @@ namespace spica {
     void SubsurfaceIntegrator::initialize(const Scene& scene, const BSSRDF& bssrdf_, const PMParams& params, const double areaRadius, const RandomType randType, const double maxError) {
         // Poisson disk sampling on SSS objects
         int objectID = -1;
-        std::vector<Vector3> points;
-        std::vector<Vector3> normals;
+        std::vector<Vector3D> points;
+        std::vector<Vector3D> normals;
         for (int i = 0; i < scene.numObjects(); i++) {
             if (scene.getMaterial(i).reftype == REFLECTION_SUBSURFACE) {
-                msg_assert(points.empty(), "# of objects with subsurface scattering property must be only one !!");
+                Assertion(points.empty(), "# of objects with subsurface scattering property must be only one !!");
 
-                const Primitive* obj = scene.get(i);
-                msg_assert(typeid(*obj) == typeid(Trimesh), "Object with subsurface scattering property must be Trimesh !!");
+                const IGeometry* obj = scene.get(i);
+                Assertion(typeid(*obj) == typeid(Trimesh), "Object with subsurface scattering property must be Trimesh !!");
 
                 const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(obj);
                 sampler::poissonDisk(*trimesh, areaRadius, &points, &normals);
                 objectID = i;
             }
         }
-        msg_assert(objectID >= 0, "The scene does not have subsurface scattering object!!");
+        Assertion(objectID >= 0, "The scene does not have subsurface scattering object!!");
 
         // Copy material data
         this->mtrl = scene.getMaterial(objectID);
@@ -207,7 +207,7 @@ namespace spica {
     }
 
 
-    void SubsurfaceIntegrator::buildOctree(const std::vector<Vector3>& points, const std::vector<Vector3>& normals, const PMParams& params) {
+    void SubsurfaceIntegrator::buildOctree(const std::vector<Vector3D>& points, const std::vector<Vector3D>& normals, const PMParams& params) {
         // Compute irradiance on each sampled point
         const int numPoints = static_cast<int>(points.size());
         std::vector<Color> irads(numPoints);
@@ -221,8 +221,8 @@ namespace spica {
         // Save radiance data for visual checking
         std::ofstream ofs("sss_sppm_irads.obj", std::ios::out);
         for (int i = 0; i < numPoints; i++) {
-            Vector3 p = points[i];
-            Vector3 clr = Vector3::minimum(irads[i], Vector3(1.0, 1.0, 1.0));
+            Vector3D p = points[i];
+            Vector3D clr = Vector3D::minimum(irads[i], Vector3D(1.0, 1.0, 1.0));
             ofs << "v " <<  p.x() << " " << p.y() << " " << p.z();
             ofs << " " << clr.x() << " " << clr.y() << " " << clr.z() << std::endl;
         }
@@ -240,7 +240,7 @@ namespace spica {
         std::cout << "Octree constructed !!" << std::endl;
     }
 
-    Color SubsurfaceIntegrator::irradiance(const Vector3& p) const {
+    Color SubsurfaceIntegrator::irradiance(const Vector3D& p) const {
         Color Mo = octree.iradSubsurface(p, bssrdf);
         return Color((1.0 / PI) * (1.0 - bssrdf.Fdr()) * Mo);
     }
@@ -257,7 +257,7 @@ namespace spica {
             rand = new Halton();
             break;
         default:
-            msg_assert(false, "Unknown random number generator type!!");
+            Assertion(false, "Unknown random number generator type!!");
             break;
         }
 
@@ -272,13 +272,13 @@ namespace spica {
 
             Photon photon = Photon::sample(scene, rseq, numPhotons);
 
-            const Vector3& lightNormal = photon.normal();
-            const Vector3& lightPos    = static_cast<Vector3>(photon);
+            const Vector3D& lightNormal = photon.normal();
+            const Vector3D& lightPos    = static_cast<Vector3D>(photon);
             Color currentFlux = photon.flux();
 
             const double r1 = rseq.next();
             const double r2 = rseq.next();
-            Vector3 nextDir;
+            Vector3D nextDir;
             sampler::onHemisphere(lightNormal, &nextDir, r1, r2);
             Ray currentRay(lightPos, nextDir);
 
@@ -301,20 +301,20 @@ namespace spica {
                 const Material& mtrl = scene.getMaterial(objectID);
                 const Hitpoint& hitpoint = isect.hitpoint();
 
-                const Vector3 orientNormal = Vector3::dot(currentRay.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+                const Vector3D orientNormal = Vector3D::dot(currentRay.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     sampler::onHemisphere(orientNormal, &nextDir, randnums[0], randnums[1]);
                     currentRay = Ray(hitpoint.position(), nextDir);
                     currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
-                    nextDir = Vector3::reflect(currentRay.direction(), orientNormal);
+                    nextDir = Vector3D::reflect(currentRay.direction(), orientNormal);
                     currentRay = Ray(hitpoint.position(), nextDir);
                     currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
-                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
+                    bool isIncoming = Vector3D::dot(hitpoint.normal(), orientNormal) > 0.0;
 
-                    Vector3 reflectDir, transmitDir;
+                    Vector3D reflectDir, transmitDir;
                     double fresnelRe, fresnelTr;
                     bool isTotRef = helper::isTotalRef(isIncoming,
                                                         hitpoint.position(),
@@ -371,9 +371,9 @@ namespace spica {
         delete rand;
     }
 
-    Color SubsurfaceIntegrator::irradianceWithPM(const Vector3& p, const Vector3& n, const PMParams& params) const {
+    Color SubsurfaceIntegrator::irradianceWithPM(const Vector3D& p, const Vector3D& n, const PMParams& params) const {
         // Estimate irradiance with photon map
-        Photon query = Photon(p, Color(), Vector3(), n);
+        Photon query = Photon(p, Color(), Vector3D(), n);
         std::vector<Photon> photons;
         photonMap.findKNN(query, &photons, params.gatherPhotons, params.gatherRadius);
 
@@ -383,9 +383,9 @@ namespace spica {
         std::vector<double> distances;
         double maxdist = 0.0;
         for (int i = 0; i < numPhotons; i++) {
-            Vector3 diff = query - photons[i];
+            Vector3D diff = query - photons[i];
             double dist = diff.norm();
-            if (std::abs(Vector3::dot(n, diff)) < diff.norm() * 0.1) {
+            if (std::abs(Vector3D::dot(n, diff)) < diff.norm() * 0.1) {
                 validPhotons.push_back(photons[i]);
                 distances.push_back(dist);
                 maxdist = std::max(maxdist, dist);

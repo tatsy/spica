@@ -44,7 +44,7 @@ namespace spica {
         }
 
         void set(int i, double val) {
-            msg_assert(0 <= i && i < _size, "Sample index out of bounds!!");
+            Assertion(0 <= i && i < _size, "Sample index out of bounds!!");
             _values[i] = val;
         }
 
@@ -53,7 +53,7 @@ namespace spica {
         }
 
         double next() {
-            msg_assert(_pos < _size, "No more samples are stored...");
+            Assertion(_pos < _size, "No more samples are stored...");
             return _values[_pos++];
         }
 

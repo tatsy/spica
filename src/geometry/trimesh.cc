@@ -33,7 +33,7 @@ namespace spica {
         load(filename);
     }
 
-    Trimesh::Trimesh(const std::vector<Vector3>& vertices, const std::vector<Triplet>& faceIDs) 
+    Trimesh::Trimesh(const std::vector<Vector3D>& vertices, const std::vector<Triplet>& faceIDs) 
         : _vertices(vertices)
         , _colors()
         , _faces(faceIDs)
@@ -45,11 +45,11 @@ namespace spica {
         _normals.resize(_vertices.size());
 
         for (unsigned int i = 0; i < _faces.size(); i++) {
-            const Vector3& v0 = _vertices[_faces[i][0]];
-            const Vector3& v1 = _vertices[_faces[i][1]];
-            const Vector3& v2 = _vertices[_faces[i][2]];
+            const Vector3D& v0 = _vertices[_faces[i][0]];
+            const Vector3D& v1 = _vertices[_faces[i][1]];
+            const Vector3D& v2 = _vertices[_faces[i][2]];
             _colors[i]  = Color(0.0, 0.0, 0.0);
-            _normals[i] = Vector3::cross(v1 - v0, v2 - v0).normalized();
+            _normals[i] = Vector3D::cross(v1 - v0, v2 - v0).normalized();
         }
     }
 
@@ -100,7 +100,7 @@ namespace spica {
     }
 
     bool Trimesh::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        msg_assert(_accel != NULL, "Accelerator is not constructed");
+        Assertion(_accel != NULL, "Accelerator is not constructed");
         hitpoint->setDistance(INFTY);
         return _accel->intersect(ray, hitpoint);
     }
@@ -114,6 +114,11 @@ namespace spica {
         return ret;
     }
 
+    std::vector<Triangle> Trimesh::triangulate() const {
+        std::vector<Triangle> retval;
+        return std::move(retval);
+    }
+
     void Trimesh::setAccelType(AccelType accelType, bool doBuild) {
         this->_accelType = accelType;
         if (doBuild) {
@@ -124,9 +129,9 @@ namespace spica {
     void Trimesh::buildAccel() {
         std::vector<Triangle> triangles(_faces.size());
         for (unsigned int i = 0; i < _faces.size(); i++) {
-            Vector3& p0 = _vertices[_faces[i][0]];
-            Vector3& p1 = _vertices[_faces[i][1]];
-            Vector3& p2 = _vertices[_faces[i][2]];
+            Vector3D& p0 = _vertices[_faces[i][0]];
+            Vector3D& p1 = _vertices[_faces[i][1]];
+            Vector3D& p2 = _vertices[_faces[i][2]];
             triangles[i] = Triangle(p0, p1, p2);
         }
 
@@ -140,7 +145,7 @@ namespace spica {
             _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
         default:
-            msg_assert(false, "Unknown accelerator type!!");
+            Assertion(false, "Unknown accelerator type!!");
             break;
         }
         _accel->construct(triangles);
@@ -155,20 +160,20 @@ namespace spica {
         } else if (ext == ".obj") {
             this->loadObj(filename);
         } else {
-            msg_assert(ext == ".ply" || ext == ".obj", "Mesh loader only accepts .ply and .obj file format");
+            Assertion(ext == ".ply" || ext == ".obj", "Mesh loader only accepts .ply and .obj file format");
         }
     }
 
     void Trimesh::loadPly(const std::string& filename) {
         std::ifstream in(filename.c_str(), std::ios::in | std::ios::binary);
-        msg_assert(in.is_open(), "Failed to open mesh file");
+        Assertion(in.is_open(), "Failed to open mesh file");
 
         std::string line, format, key, name, val;
         size_t numVerts = 0;
         size_t numFaces = 0;
 
         std::getline(in, format);
-        msg_assert(format == "ply", "Invalid format identifier");
+        Assertion(format == "ply", "Invalid format identifier");
 
         bool isBody = false;
         while(!in.eof()) {
@@ -180,7 +185,7 @@ namespace spica {
                 ss >> key;
                 if (key == "format") {
                     ss >> name >> val;
-                    msg_assert(name == "binary_little_endian", "PLY must be binary little endian format!");
+                    Assertion(name == "binary_little_endian", "PLY must be binary little endian format!");
                 } else if (key == "property") {
                     ss >> name >> val;
                 } else if (key == "element") {
@@ -190,7 +195,7 @@ namespace spica {
                     } else if (name == "face") {
                         ss >> numFaces;
                     } else {
-                        msg_assert(false, "Invalid element indentifier");
+                        Assertion(false, "Invalid element indentifier");
                     }
                 } else if (key == "end_header") {
                     isBody = true;
@@ -199,7 +204,7 @@ namespace spica {
                     continue;
                 }
             } else {
-                msg_assert(numVerts > 0 && numFaces > 0, "numVerts and numFaces must be positive");
+                Assertion(numVerts > 0 && numFaces > 0, "numVerts and numFaces must be positive");
 
                 _vertices.resize(numVerts);
                 _colors.resize(numVerts);
@@ -210,7 +215,7 @@ namespace spica {
                 float ff[3];
                 for (size_t i = 0; i < numVerts; i++) {
                     in.read((char*)ff, sizeof(float) * 3);
-                    _vertices[i] = Vector3(ff[0], ff[1], ff[2]);
+                    _vertices[i] = Vector3D(ff[0], ff[1], ff[2]);
                 }
 
                 unsigned char vs;
@@ -229,7 +234,7 @@ namespace spica {
                     const int p0 = ii[0];
                     const int p1 = ii[1];
                     const int p2 = ii[2];
-                    _normals[i] = Vector3::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]).normalized();
+                    _normals[i] = Vector3D::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]).normalized();
                 }
                 break;
             }
@@ -238,7 +243,7 @@ namespace spica {
 
     void Trimesh::loadObj(const std::string& filename) {
         std::ifstream ifs(filename.c_str(), std::ios::in);
-        msg_assert(ifs.is_open(), "Failed to open mesh file");
+        Assertion(ifs.is_open(), "Failed to open mesh file");
 
         std::stringstream ss;
         std::string line;
@@ -261,7 +266,7 @@ namespace spica {
             if (typ == "v") {               
                 double x, y, z;
                 ss >> x >> y >> z;
-                _vertices.push_back(Vector3(x, y, z));
+                _vertices.push_back(Vector3D(x, y, z));
             } else if (typ == "f") {
                 int v0, v1, v2;
                 ss >> v0 >> v1 >> v2;
@@ -269,7 +274,7 @@ namespace spica {
             } else {
                 char msg[256];
                 sprintf(msg, "Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
-                msg_assert(false, msg);
+                Assertion(false, msg);
             }
         }
 
@@ -280,13 +285,13 @@ namespace spica {
             const int p0 = _faces[i][0];
             const int p1 = _faces[i][1];
             const int p2 = _faces[i][2];
-            _normals[i] = Vector3::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]);
+            _normals[i] = Vector3D::cross(_vertices[p1] - _vertices[p0], _vertices[p2] - _vertices[p0]);
         }
 
         ifs.close();
     }
 
-    void Trimesh::translate(const Vector3& move) {
+    void Trimesh::translate(const Vector3D& move) {
         for (unsigned int i = 0; i < _vertices.size(); i++) {
             _vertices[i] += move;
         }
@@ -308,7 +313,7 @@ namespace spica {
         // Find nearest point
         double minval = INFTY;
         for (size_t i = 0; i < _vertices.size(); i++) {
-            minval = std::min(minval, Vector3::dot(plane.normal(), _vertices[i]));
+            minval = std::min(minval, Vector3D::dot(plane.normal(), _vertices[i]));
         }
 
         for (size_t i = 0; i < _vertices.size(); i++) {
@@ -322,8 +327,8 @@ namespace spica {
             orgBox.merge(_vertices[i]);
         }
 
-        const Vector3 targetSize = bbox.posMax() - bbox.posMin();
-        const Vector3 orgSize = orgBox.posMax() - orgBox.posMin();
+        const Vector3D targetSize = bbox.posMax() - bbox.posMin();
+        const Vector3D orgSize = orgBox.posMax() - orgBox.posMin();
 
         const double scaleX = targetSize.x() / orgSize.x();
         const double scaleY = targetSize.y() / orgSize.y();
@@ -331,8 +336,8 @@ namespace spica {
         const double scaleAll = std::min(scaleX, std::min(scaleY, scaleZ));
         this->scale(scaleAll);
 
-        const Vector3 prevCenter = (orgBox.posMin() + orgBox.posMax()) * (0.5 * scaleAll);
-        const Vector3 toCenter = (bbox.posMin() + bbox.posMax()) * 0.5;
+        const Vector3D prevCenter = (orgBox.posMin() + orgBox.posMax()) * (0.5 * scaleAll);
+        const Vector3D toCenter = (bbox.posMin() + bbox.posMax()) * 0.5;
         this->translate(toCenter - prevCenter);
     }
 
@@ -342,8 +347,8 @@ namespace spica {
         return std::move(ret);
     }
 
-    Vector3 Trimesh::getVertex(int id) const {
-        msg_assert(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
+    Vector3D Trimesh::getVertex(int id) const {
+        Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _vertices[id];
     }
 
@@ -352,20 +357,20 @@ namespace spica {
     }
 
     Color Trimesh::getColor(int id) const {
-        msg_assert(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
+        Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _colors[id];
     }
 
-    Vector3 Trimesh::getNormal(int id) const {
-        msg_assert(id >= 0 && id < _faces.size(), "Triangle index out of bounds");
+    Vector3D Trimesh::getNormal(int id) const {
+        Assertion(id >= 0 && id < _faces.size(), "Triangle index out of bounds");
         return _normals[id];
     }
 
     Triangle Trimesh::getTriangle(int id) const {
-        msg_assert(id >= 0 && id < _faces.size(), "Triangle index out of bounds");
-        const Vector3& p0 = _vertices[_faces[id][0]];
-        const Vector3& p1 = _vertices[_faces[id][1]];
-        const Vector3& p2 = _vertices[_faces[id][2]];
+        Assertion(id >= 0 && id < _faces.size(), "Triangle index out of bounds");
+        const Vector3D& p0 = _vertices[_faces[id][0]];
+        const Vector3D& p1 = _vertices[_faces[id][1]];
+        const Vector3D& p2 = _vertices[_faces[id][2]];
         return Triangle(p0, p1, p2);
     }
 

@@ -11,19 +11,19 @@ using namespace spica;
 const int nTrial = 100;
 
 TEST(SamplerTest, DiskSampleTest) {
-    Vector3 C(0.0, 0.0, 0.0);
-    Vector3 N(0.0, 0.0, 1.0);
+    Vector3D C(0.0, 0.0, 0.0);
+    Vector3D N(0.0, 0.0, 1.0);
     double R = 5.0;
     Disk disk(C, N, R);
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3 position;
-        Vector3 normal;
+        Vector3D position;
+        Vector3D normal;
         sampler::onDisk(disk, &position, &normal);
 
         EXPECT_EQ_VEC(N, normal);
         EXPECT_LE((C - position).norm(), R);
-        EXPECT_EQ(0.0, Vector3::dot(C - position, N));
+        EXPECT_EQ(0.0, Vector3D::dot(C - position, N));
     }
 }
 
@@ -33,8 +33,8 @@ TEST(SamplerTest, PoissonDiskTest) {
     const double maxdist = 0.5;
     Trimesh trimesh(DATA_DIR + "bunny.ply");
 
-    std::vector<Vector3> points;
-    std::vector<Vector3> normals;
+    std::vector<Vector3D> points;
+    std::vector<Vector3D> normals;
     sampler::poissonDisk(trimesh, mindist, maxdist, &points, &normals);
 
     for (int i = 0; i < points.size(); i++) {

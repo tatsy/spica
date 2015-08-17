@@ -74,7 +74,7 @@ namespace spica {
         , permute(NULL)
         , numUsedSamples(0)
     {
-        msg_assert(dim <= nPrimes, "You cannot specify dimension over 1000");
+        Assertion(dim <= nPrimes, "You cannot specify dimension over 1000");
 
         Random rng = Random(seed);
         bases = new int[dims];
@@ -104,7 +104,7 @@ namespace spica {
     }
 
     void Halton::requestSamples(RandomSeq& rseq, const int numRequested) {
-        msg_assert(numRequested <= dims, "Requested samples are too many !!");
+        Assertion(numRequested <= dims, "Requested samples are too many !!");
 
         rseq.resize(numRequested);
 

@@ -89,12 +89,12 @@ namespace spica {
             return node;
         }
 
-        Vector3 posMid = (bbox.posMin() + bbox.posMax()) * 0.5;
+        Vector3D posMid = (bbox.posMin() + bbox.posMax()) * 0.5;
 
         const int numPoints = static_cast<int>(iradPoints.size());
         std::vector<std::vector<IrradiancePoint> > childPoints(8);
         for (int i = 0; i < numPoints; i++) {
-            const Vector3& v = iradPoints[i].pos;
+            const Vector3D& v = iradPoints[i].pos;
             int id = (v.x() < posMid.x() ? 0 : 4) + (v.y() < posMid.y() ? 0 : 2) + (v.z() < posMid.z() ? 0 : 1);
             childPoints[id].push_back(iradPoints[i]);
         }
@@ -112,8 +112,8 @@ namespace spica {
         node->isLeaf = false;
 
         // Accumulate child nodes
-        node->pt.pos = Vector3(0.0, 0.0, 0.0);
-        node->pt.normal = Vector3(0.0, 0.0, 0.0);
+        node->pt.pos = Vector3D(0.0, 0.0, 0.0);
+        node->pt.normal = Vector3D(0.0, 0.0, 0.0);
         node->pt.area = 0.0;
 
         double weight = 0.0;
@@ -142,11 +142,11 @@ namespace spica {
         return node;
     }
 
-    Color SSSRenderer::Octree::iradSubsurface(const Vector3& pos, const DiffusionReflectance& Rd) {
+    Color SSSRenderer::Octree::iradSubsurface(const Vector3D& pos, const DiffusionReflectance& Rd) {
         return iradSubsurfaceRec(_root, pos, Rd);
     }
 
-    Color SSSRenderer::Octree::iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const DiffusionReflectance& Rd) {
+    Color SSSRenderer::Octree::iradSubsurfaceRec(OctreeNode* node, const Vector3D& pos, const DiffusionReflectance& Rd) {
         if (node == NULL) return Color(0.0, 0.0, 0.0);
 
         const double distSquared = (node->pt.pos - pos).squaredNorm();
@@ -177,21 +177,21 @@ namespace spica {
 
         // Poisson disk sampling on SSS objects
         int objectID = -1;
-        std::vector<Vector3> points;
-        std::vector<Vector3> normals;
+        std::vector<Vector3D> points;
+        std::vector<Vector3D> normals;
         for (int i = 0; i < scene.numObjects(); i++) {
             if (scene.getMaterial(i).reftype == REFLECTION_SUBSURFACE) {
-                msg_assert(points.empty(), "# of objects with subsurface scattering property must be only one !!");
+                Assertion(points.empty(), "# of objects with subsurface scattering property must be only one !!");
 
-                const Primitive* obj = scene.get(i);
-                msg_assert(typeid(*obj) == typeid(Trimesh), "Object with subsurface scattering property must be Trimesh !!");
+                const IGeometry* obj = scene.get(i);
+                Assertion(typeid(*obj) == typeid(Trimesh), "Object with subsurface scattering property must be Trimesh !!");
 
                 const Trimesh* trimesh = reinterpret_cast<const Trimesh*>(obj);
                 sampler::poissonDisk(*trimesh, minDist, &points, &normals);
                 objectID = i;
             }
         }
-        msg_assert(objectID >= 0, "The scene does not have subsurface scattering object!!");
+        Assertion(objectID >= 0, "The scene does not have subsurface scattering object!!");
 
         // Use photon mapping to compute irradiance for sample points
         buildPhotonMap(scene, camera, rng, numPhotons);
@@ -210,8 +210,8 @@ namespace spica {
         // Save radiance data for visual checking
         std::ofstream ofs("sample_rads.obj", std::ios::out);
         for (int i = 0; i < numPoints; i++) {
-            Vector3 p = points[i];
-            Vector3 clr = Vector3::minimum(irads[i], Vector3(1.0, 1.0, 1.0));
+            Vector3D p = points[i];
+            Vector3D clr = Vector3D::minimum(irads[i], Vector3D(1.0, 1.0, 1.0));
             ofs << "v " <<  p.x() << " " << p.y() << " " << p.z();
             ofs << " " << clr.x() << " " << clr.y() << " " << clr.z() << std::endl;
         }
@@ -268,14 +268,14 @@ namespace spica {
         ompfor (int pid = 0; pid < numPhotons; pid++) {
             // Generate sample on the light
             const int lightID = scene.lightID();
-            const Primitive* light = scene.get(lightID);
+            const IGeometry* light = scene.get(lightID);
 
-            Vector3 posLight, normalLight;
+            Vector3D posLight, normalLight;
             sampler::on(light, &posLight, &normalLight);
 
             Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
 
-            Vector3 nextDir;
+            Vector3D nextDir;
             sampler::onHemisphere(normalLight, &nextDir);
             Ray currentRay(posLight, nextDir);
 
@@ -295,20 +295,20 @@ namespace spica {
                 const Material& mtrl = scene.getMaterial(objectID);
                 const Hitpoint& hitpoint = isect.hitpoint();
 
-                const Vector3 orientNormal = Vector3::dot(currentRay.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+                const Vector3D orientNormal = Vector3D::dot(currentRay.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
                 if (mtrl.reftype == REFLECTION_DIFFUSE) {
                     sampler::onHemisphere(orientNormal, &nextDir);
                     currentRay = Ray(hitpoint.position(), nextDir);
                     currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_SPECULAR) {
-                    nextDir = Vector3::reflect(currentRay.direction(), orientNormal);
+                    nextDir = Vector3D::reflect(currentRay.direction(), orientNormal);
                     currentRay = Ray(hitpoint.position(), nextDir);
                     currentFlux = currentFlux.multiply(mtrl.color);
                 } else if (mtrl.reftype == REFLECTION_REFRACTION) {
-                    bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
+                    bool isIncoming = Vector3D::dot(hitpoint.normal(), orientNormal) > 0.0;
 
-                    Vector3 reflectDir, transmitDir;
+                    Vector3D reflectDir, transmitDir;
                     double fresnelRe, fresnelTr;
                     bool isTotRef = helper::isTotalRef(isIncoming,
                                                         hitpoint.position(),
@@ -362,9 +362,9 @@ namespace spica {
         photonMap.construct(photons);
     }
 
-    Color SSSRenderer::irradianceWithPM(const Vector3& p, const Vector3& n, const int gatherPhotons, const double gatherRadius) const {
+    Color SSSRenderer::irradianceWithPM(const Vector3D& p, const Vector3D& n, const int gatherPhotons, const double gatherRadius) const {
         // Estimate irradiance with photon map
-        Photon query = Photon(p, Color(), Vector3(), n);
+        Photon query = Photon(p, Color(), Vector3D(), n);
         std::vector<Photon> photons;
         photonMap.findKNN(query, &photons, gatherPhotons, gatherRadius);
 
@@ -374,9 +374,9 @@ namespace spica {
         std::vector<double> distances;
         double maxdist = 0.0;
         for (int i = 0; i < numPhotons; i++) {
-            Vector3 diff = query - photons[i];
+            Vector3D diff = query - photons[i];
             double dist = diff.norm();
-            if (std::abs(Vector3::dot(n, diff)) < diff.norm() * 0.1) {
+            if (std::abs(Vector3D::dot(n, diff)) < diff.norm() * 0.1) {
                 validPhotons.push_back(photons[i]);
                 distances.push_back(dist);
                 maxdist = std::max(maxdist, dist);
@@ -401,14 +401,14 @@ namespace spica {
     }
 
     Color SSSRenderer::executePathTracing(const Scene& scene, const Camera& camera, Random& rng, const int imageX, const int imageY) {
-        Vector3 posOnSensor, posOnObjplane, posOnLens;
+        Vector3D posOnSensor, posOnObjplane, posOnLens;
         double pImage, pLens;
         camera.samplePoints(imageX, imageY, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
 
-        Ray ray(posOnLens, Vector3::normalize(posOnObjplane - posOnLens));
+        Ray ray(posOnLens, Vector3D::normalize(posOnObjplane - posOnLens));
 
-        Vector3 lens2sensor = posOnSensor - posOnLens;
-        const double cosine = Vector3::dot(camera.direction(), lens2sensor.normalized());
+        Vector3D lens2sensor = posOnSensor - posOnLens;
+        const double cosine = Vector3D::dot(camera.direction(), lens2sensor.normalized());
         const double weight = cosine * cosine / lens2sensor.squaredNorm();
 
         return Color(radiance(scene, ray, rng, 0) * (weight * camera.sensitivity() / (pImage * pLens)));
@@ -424,7 +424,7 @@ namespace spica {
 
         const Material& mtrl = scene.getMaterial(isect.objectId());
         const Hitpoint& hitpoint = isect.hitpoint();
-        const Vector3 orientNormal = Vector3::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+        const Vector3D orientNormal = Vector3D::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
         double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
 
@@ -444,18 +444,18 @@ namespace spica {
         Color weight = Color(1.0, 1.0, 1.0);
 
         if (mtrl.reftype == REFLECTION_DIFFUSE) {
-            Vector3 nextDir;
+            Vector3D nextDir;
             sampler::onHemisphere(orientNormal, &nextDir);
             incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
             weight = mtrl.color / roulette;
         } else if (mtrl.reftype == REFLECTION_SPECULAR) {
-            Vector3 nextDir = ray.direction() - (2.0 * hitpoint.normal().dot(ray.direction())) * hitpoint.normal();
+            Vector3D nextDir = ray.direction() - (2.0 * hitpoint.normal().dot(ray.direction())) * hitpoint.normal();
             incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
             weight = mtrl.color / roulette;
         } else if (mtrl.reftype == REFLECTION_REFRACTION) {
             const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
-            Vector3 reflectDir, transmitDir;
+            Vector3D reflectDir, transmitDir;
             double fresnelRe, fresnelTr;
             bool isTotRef = helper::isTotalRef(isIncoming,
                 hitpoint.position(),
@@ -496,7 +496,7 @@ namespace spica {
         } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
             const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
-            Vector3 reflectDir, transmitDir;
+            Vector3D reflectDir, transmitDir;
             double fresnelRe, fresnelTr;
             bool isTotRef = helper::isTotalRef(isIncoming,
                                                 hitpoint.position(),

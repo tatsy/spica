@@ -32,7 +32,7 @@ TEST(ColorTest, OtherTest) {
     EXPECT_EQ(0.1, c.green());
     EXPECT_EQ(0.2, c.blue());
 
-    c = Vector3(0.5, 0.6, 0.7);
+    c = Vector3D(0.5, 0.6, 0.7);
     EXPECT_EQ(0.5, c.red());
     EXPECT_EQ(0.6, c.green());
     EXPECT_EQ(0.7, c.blue());

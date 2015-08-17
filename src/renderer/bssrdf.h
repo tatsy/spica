@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 
 namespace spica {
@@ -35,7 +35,7 @@ namespace spica {
 
     public:
         virtual ~BSSRDFBase() {}
-        virtual double Ft(const Vector3& nornal, const Vector3& in) const;
+        virtual double Ft(const Vector3D& nornal, const Vector3D& in) const;
         virtual double Fdr() const;
         virtual Color operator()(const double d2) const = 0;
         virtual BSSRDFBase* copy() const = 0;
@@ -116,7 +116,7 @@ namespace spica {
         BSSRDF& operator=(const BSSRDF& bssrdf);
         BSSRDF& operator=(BSSRDF&& bssrdf);
 
-        double Ft(const Vector3& normal, const Vector3& in) const;
+        double Ft(const Vector3D& normal, const Vector3D& in) const;
         double Fdr() const;
         Color operator()(const double d2) const;
 

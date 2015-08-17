@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_SCENE_H_
 #define _SPICA_SCENE_H_
 
@@ -12,7 +16,7 @@
 #endif
 
 #include "../utils/common.h"
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/uncopyable.h"
 #include "../geometry/geometry.h"
 
@@ -24,10 +28,10 @@ namespace spica {
     
     class SPICA_SCENE_DLL Scene : public Uncopyable {
     private:
-        unsigned int _nPrimitives;
+        unsigned int _nIGeometrys;
         unsigned int _arraySize;
         int _lightID;
-        const Primitive** _primitives;
+        const IGeometry** _primitives;
         Material* _materials;
         Envmap _envmap;
 
@@ -37,15 +41,15 @@ namespace spica {
 
         template <class Ty>
         void add(const Ty& primitive, const Material& material, bool isLight = false) {
-            static_assert(std::is_base_of<Primitive, Ty>::value, "Type inherits Primitive can only be added to the scene.");
-            if (isLight) _lightID = _nPrimitives;
-            _primitives[_nPrimitives] = new Ty(primitive);
-            _materials[_nPrimitives] = material;
-            _nPrimitives++;
+            static_assert(std::is_base_of<IGeometry, Ty>::value, "Type inherits IGeometry can only be added to the scene.");
+            if (isLight) _lightID = _nIGeometrys;
+            _primitives[_nIGeometrys] = new Ty(primitive);
+            _materials[_nIGeometrys] = material;
+            _nIGeometrys++;
             checkArraySize();
         }
 
-        const Primitive* get(int id) const;
+        const IGeometry* get(int id) const;
         const Material& getMaterial(int id) const;
 
         void clear();
@@ -53,7 +57,7 @@ namespace spica {
         bool intersect(const Ray& ray, Intersection& isect) const;
 
         inline int lightID() const { return _lightID; }
-        inline int numObjects() const { return _nPrimitives; }
+        inline int numObjects() const { return _nIGeometrys; }
 
         inline const Envmap& envmap() const { return _envmap; }
         inline void setEnvmap(const Envmap& envmap) { _envmap = envmap; }

@@ -12,7 +12,7 @@
 #endif
 
 #include "../utils/common.h"
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 
 namespace spica {
@@ -28,7 +28,7 @@ namespace spica {
     public:
         virtual ~BRDFBase() {}
         virtual Color reflectance() const = 0;
-        virtual void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const = 0;
+        virtual void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const = 0;
     };
 
     class SPICA_BRDF_DLL LambertianBRDF : public BRDFBase {
@@ -38,7 +38,7 @@ namespace spica {
     public:
         static BRDF factory(const Color& reflectance);
         Color reflectance() const;
-        void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
+        void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const;
 
     private:
         explicit LambertianBRDF(const Color& reflectance);
@@ -51,7 +51,7 @@ namespace spica {
     public:
         static BRDF factory(const Color& reflectance);
         Color reflectance() const;
-        void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
+        void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const;
 
     private:
         explicit SpecularBRDF(const Color& reflectance);
@@ -65,7 +65,7 @@ namespace spica {
     public:
         static BRDF factory(const Color& reflectance, const double n);
         Color reflectance() const;
-        void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
+        void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const;
 
     private:
         PhongBRDF(const Color& reflectance, const double n);
@@ -83,7 +83,7 @@ namespace spica {
 
         BRDF& operator=(const BRDF& brdf);
         Color reflectance() const;
-        void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
+        void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const;
 
     private:
         explicit BRDF(const BRDFBase* ptr);

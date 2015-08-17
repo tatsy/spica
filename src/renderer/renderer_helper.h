@@ -15,20 +15,23 @@
 #include "scene.h"
 #include "camera.h"
 
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 
 namespace spica {
 
     namespace helper {
 
+        // Calculate u and v axes from w vector
+        void SPICA_RENDERER_HELPER_DLL calcLocalCoords(const Vector3D& w, Vector3D* u, Vector3D* v);
+
         bool SPICA_RENDERER_HELPER_DLL isTotalRef(const bool isIncoming,
-                                                  const Vector3& position,
-                                                  const Vector3& in,
-                                                  const Vector3& normal,
-                                                  const Vector3& orientNormal,
-                                                  Vector3* reflectDir,
-                                                  Vector3* refractDir,
+                                                  const Vector3D& position,
+                                                  const Vector3D& in,
+                                                  const Vector3D& normal,
+                                                  const Vector3D& orientNormal,
+                                                  Vector3D* reflectDir,
+                                                  Vector3D* refractDir,
                                                   double* fresnelRef,
                                                   double* fresnelTransmit);
 

@@ -70,20 +70,20 @@ namespace spica {
             }
         }
 
-        double Ft(const Vector3& n, const Vector3& in) const {
+        double Ft(const Vector3D& n, const Vector3D& in) const {
             const double nnt = IOR_OBJECT / IOR_VACCUM;
             const double ddn = in.dot(n);
             const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
             if (cos2t < 0.0) return 0.0;
 
-            Vector3 refractDir = (in * nnt + n * (ddn * nnt + sqrt(cos2t))).normalized();
+            Vector3D refractDir = (in * nnt + n * (ddn * nnt + sqrt(cos2t))).normalized();
 
             const double a = IOR_OBJECT - IOR_VACCUM;
             const double b = IOR_OBJECT + IOR_VACCUM;
             const double R0 = (a * a) / (b * b);
 
-            const double c  = 1.0 - Vector3::dot(refractDir, -n);
+            const double c  = 1.0 - Vector3D::dot(refractDir, -n);
             const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
             return 1.0 - Re;
         }

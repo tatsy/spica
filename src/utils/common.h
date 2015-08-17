@@ -19,6 +19,10 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
 
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef SPICA_COMMON_H_
 #define SPICA_COMMON_H_
 
@@ -40,6 +44,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Parameter constants
 // ----------------------------------------------------------------------------
 static const double PI = 4.0 * atan(1.0);
+static const double INV_PI = 1.0 / PI;
 static const double INFTY = 1.0e128;
 static const double EPS = 1.0e-6;
 
@@ -88,7 +93,7 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
 // ----------------------------------------------------------------------------
 #undef NDEBUG
 #ifndef NDEBUG
-#define msg_assert(PREDICATE, MSG) \
+#define Assertion(PREDICATE, MSG) \
 do { \
     if (!(PREDICATE)) { \
         std::cerr << "Asssertion \"" << #PREDICATE << "\" failed in " << __FILE__ \
@@ -97,7 +102,7 @@ do { \
     } \
 } while (false)
 #else  // NDEBUG
-#define msg_assert(PREDICATE, MSG) do {} while (false)
+#define Assertion(PREDICATE, MSG) do {} while (false)
 #endif  // NDEBUG
 
 #endif  // SPICA_COMMON_H_

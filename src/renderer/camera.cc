@@ -20,9 +20,9 @@ namespace spica {
 
     Camera::Camera(int imageW,
                    int imageH,
-                   const Vector3& sensorCenter,
-                   const Vector3& sensorDir,
-                   const Vector3& sensorUp,
+                   const Vector3D& sensorCenter,
+                   const Vector3D& sensorDir,
+                   const Vector3D& sensorUp,
                    double sensorSize,
                    double distSensorToLens,
                    double focalLength,
@@ -46,9 +46,9 @@ namespace spica {
         sensor_.cellH = sensor_.height / imageH;
 
         sensor_.unitU = sensorDir.cross(sensorUp).normalized();
-        sensor_.unitV = Vector3::cross(sensor_.unitU, sensorDir).normalized();
+        sensor_.unitV = Vector3D::cross(sensor_.unitU, sensorDir).normalized();
 
-        Vector3 objplaneCenter = sensorCenter + (focalLength + distSensorToLens) * sensorDir;
+        Vector3D objplaneCenter = sensorCenter + (focalLength + distSensorToLens) * sensorDir;
         objplane_.width = sensor_.width;
         objplane_.height = sensor_.height;
         objplane_.center = objplaneCenter;
@@ -90,14 +90,14 @@ namespace spica {
         return *this;
     }
 
-    double Camera::PImageToPAx1(const double PImage, const Vector3& x0xV, const Vector3& x0x1, const Vector3& orientingNormal) const {
+    double Camera::PImageToPAx1(const double PImage, const Vector3D& x0xV, const Vector3D& x0x1, const Vector3D& orientingNormal) const {
         double ratio = distSensorToLens_ / lens_.focalLength;
         double lengthRatio = x0xV.dot(x0xV) / x0x1.dot(x0x1);
-        double dirRatio = - Vector3::dot(x0x1.normalized(), orientingNormal) / Vector3::dot(x0x1.normalized(), sensor_.direction);
+        double dirRatio = - Vector3D::dot(x0x1.normalized(), orientingNormal) / Vector3D::dot(x0x1.normalized(), sensor_.direction);
         return PImage * ratio * ratio * lengthRatio * dirRatio;
     }
 
-    double plane_intersection(const Vector3& normal, const Vector3& pos, const Ray& ray) {
+    double plane_intersection(const Vector3D& normal, const Vector3D& pos, const Ray& ray) {
         const double pn = pos.dot(normal);
         const double on = ray.origin().dot(normal);
         const double dn = ray.direction().dot(normal);
@@ -109,7 +109,7 @@ namespace spica {
         return -INFTY;
     }
 
-    double Camera::intersectLens(const Ray& ray, Vector3& positionOnLens, Vector3& positionOnObjplane, Vector3& positionOnSensor, Vector3& uvOnSensor) const {
+    double Camera::intersectLens(const Ray& ray, Vector3D& positionOnLens, Vector3D& positionOnObjplane, Vector3D& positionOnSensor, Vector3D& uvOnSensor) const {
         const double distToLens = plane_intersection(lens_.normal, lens_.center, ray);
         if (EPS < distToLens) {
             positionOnLens = ray.origin() + distToLens * ray.direction();
@@ -134,16 +134,16 @@ namespace spica {
         return -INFTY;
     }
 
-    double Camera::contribSensitivity(const Vector3& x0xV, const Vector3& x0xI, const Vector3& x0x1) const {
+    double Camera::contribSensitivity(const Vector3D& x0xV, const Vector3D& x0xI, const Vector3D& x0x1) const {
         double r0 = x0xV.dot(x0xV) / x0xI.dot(x0xI);
-        double a = distSensorToLens_ * Vector3::dot(x0xI.normalized(), -sensor_.direction.normalized());
-        double b = lens_.focalLength * Vector3::dot(x0x1.normalized(),  sensor_.direction.normalized());
+        double a = distSensorToLens_ * Vector3D::dot(x0xI.normalized(), -sensor_.direction.normalized());
+        double b = lens_.focalLength * Vector3D::dot(x0x1.normalized(),  sensor_.direction.normalized());
 
         double r1 = a / (b + EPS);
         return sensor_.sensitivity * r0 * r1 * r1;
     }
 
-    void Camera::samplePoints(const int imageX, const int imageY, Random& rng, Vector3& positionOnSensor, Vector3& positionOnObjplane, Vector3& positionOnLens, double& PImage, double& PLens) const {
+    void Camera::samplePoints(const int imageX, const int imageY, Random& rng, Vector3D& positionOnSensor, Vector3D& positionOnObjplane, Vector3D& positionOnLens, double& PImage, double& PLens) const {
         const double uOnPixel = rng.nextReal();
         const double vOnPixel = rng.nextReal();
 

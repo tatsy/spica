@@ -22,8 +22,8 @@ namespace spica {
     class SPICA_SSS_RENDERER_DLL SSSRenderer : private Uncopyable {
     private:
         struct IrradiancePoint {
-            Vector3 pos;
-            Vector3 normal;
+            Vector3D pos;
+            Vector3D normal;
             double area;
             Color irad;
 
@@ -35,7 +35,7 @@ namespace spica {
             {
             }
 
-            IrradiancePoint(const Vector3& pos_, const Vector3& normal_, const double area_, const Color& irad_)
+            IrradiancePoint(const Vector3D& pos_, const Vector3D& normal_, const double area_, const Color& irad_)
                 : pos(pos_)
                 , normal(normal_)
                 , area(area_)
@@ -93,14 +93,14 @@ namespace spica {
 
             void construct(std::vector<IrradiancePoint>& iradPoints);
 
-            Color iradSubsurface(const Vector3& pos, const DiffusionReflectance& Rd);
+            Color iradSubsurface(const Vector3D& pos, const DiffusionReflectance& Rd);
 
         private:
             void release();
             void deleteNode(OctreeNode* node);
             OctreeNode* constructRec(std::vector<IrradiancePoint>& iradPoints, const BBox& bbox);
 
-            Color iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const DiffusionReflectance& Rd);
+            Color iradSubsurfaceRec(OctreeNode* node, const Vector3D& pos, const DiffusionReflectance& Rd);
         };
 
         PhotonMap photonMap;
@@ -117,7 +117,7 @@ namespace spica {
         void buildPhotonMap(const Scene& scene, const Camera& camera, Random& rng, const int numPhotons);
 
         // Compute irradiance with photon map
-        Color irradianceWithPM(const Vector3& p, const Vector3& n, const int gatherPhotons, const double gatherRadius) const;
+        Color irradianceWithPM(const Vector3D& p, const Vector3D& n, const int gatherPhotons, const double gatherRadius) const;
 
         Color executePathTracing(const Scene& scene, const Camera& camera, Random& rng, const int imageX, const int imageY);
 

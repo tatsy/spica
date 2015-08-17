@@ -5,7 +5,7 @@
 
 #include "../include/spica.h"
 
-inline void EXPECT_EQ_VEC(const Vector3& expected, const Vector3& actual) {
+inline void EXPECT_EQ_VEC(const Vector3D& expected, const Vector3D& actual) {
     if (expected.x() != actual.x() ||
         expected.y() != actual.y() ||
         expected.z() != actual.z()) {

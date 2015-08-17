@@ -5,32 +5,32 @@
 #include "../include/spica.h"
 using namespace spica;
 
-TEST(Vector3Test, InstanceTest) {
-    Vector3 v;
+TEST(Vector3DTest, InstanceTest) {
+    Vector3D v;
     EXPECT_EQ(0.0, v.x());
     EXPECT_EQ(0.0, v.y());
     EXPECT_EQ(0.0, v.z());
 
-    Vector3 u(1.0, 2.0, 3.0);
+    Vector3D u(1.0, 2.0, 3.0);
     EXPECT_EQ(1.0, u.x());
     EXPECT_EQ(2.0, u.y());
     EXPECT_EQ(3.0, u.z());
 
-    v = Vector3(u);
+    v = Vector3D(u);
     EXPECT_EQ(1.0, v.x());
     EXPECT_EQ(2.0, v.y());
     EXPECT_EQ(3.0, v.z());
 
-    v = Vector3(2.0, 4.0, 6.0);
+    v = Vector3D(2.0, 4.0, 6.0);
     EXPECT_EQ(2.0, v.x());
     EXPECT_EQ(4.0, v.y());
     EXPECT_EQ(6.0, v.z());
 }
 
-TEST(Vector3Test, AlgebraTest) {
-    Vector3 w;
-    Vector3 v(1.0, 2.0, 3.0);
-    Vector3 u(1.0, 2.0, 3.0);
+TEST(Vector3DTest, AlgebraTest) {
+    Vector3D w;
+    Vector3D v(1.0, 2.0, 3.0);
+    Vector3D u(1.0, 2.0, 3.0);
 
     w = u + v;
     EXPECT_EQ(2.0, w.x());
@@ -68,24 +68,24 @@ TEST(Vector3Test, AlgebraTest) {
     EXPECT_EQ(u.z() / nrm, w.z());
 }
 
-TEST(Vector3Test, DotCrossTest) {
-    Vector3 u(1.0, 2.0, 3.0);
-    Vector3 v(4.0, 5.0, 6.0);
+TEST(Vector3DTest, DotCrossTest) {
+    Vector3D u(1.0, 2.0, 3.0);
+    Vector3D v(4.0, 5.0, 6.0);
     double dt = u.dot(v);
     EXPECT_EQ(32.0, dt);
     EXPECT_EQ(dt, v.dot(u));
 
-    Vector3 w = u.cross(v);
+    Vector3D w = u.cross(v);
     EXPECT_EQ(-3.0, w.x());
     EXPECT_EQ(6.0, w.y());
     EXPECT_EQ(-3.0, w.z());
 }
 
-TEST(Vector3Test, MaxMinTest) {
+TEST(Vector3DTest, MaxMinTest) {
     static const int nTrial = 100;
     Random rng = Random();
 
-    Vector3 minv(INFTY, INFTY, INFTY);
+    Vector3D minv(INFTY, INFTY, INFTY);
     double minx = INFTY;
     double miny = INFTY;
     double minz = INFTY;
@@ -94,7 +94,7 @@ TEST(Vector3Test, MaxMinTest) {
         double x = rng.nextReal();
         double y = rng.nextReal();
         double z = rng.nextReal();
-        minv = Vector3::minimum(minv, Vector3(x, y, z));
+        minv = Vector3D::minimum(minv, Vector3D(x, y, z));
         minx = std::min(minx, x);
         miny = std::min(miny, y);
         minz = std::min(minz, z);
@@ -104,7 +104,7 @@ TEST(Vector3Test, MaxMinTest) {
         EXPECT_EQ(minz, minv.z());
     }
 
-    Vector3 maxv(-INFTY, -INFTY, -INFTY);
+    Vector3D maxv(-INFTY, -INFTY, -INFTY);
     double maxx = -INFTY;
     double maxy = -INFTY;
     double maxz = -INFTY;
@@ -113,7 +113,7 @@ TEST(Vector3Test, MaxMinTest) {
         double x = rng.nextReal();
         double y = rng.nextReal();
         double z = rng.nextReal();
-        maxv = Vector3::maximum(maxv, Vector3(x, y, z));
+        maxv = Vector3D::maximum(maxv, Vector3D(x, y, z));
         maxx = std::max(maxx, x);
         maxy = std::max(maxy, y);
         maxz = std::max(maxz, z);

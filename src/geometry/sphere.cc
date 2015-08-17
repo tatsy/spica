@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "../utils/common.h"
+#include "triangle.h"
 
 namespace spica {
 
@@ -13,7 +14,7 @@ namespace spica {
     {
     }
 
-    Sphere::Sphere(double radius, const Vector3& center)
+    Sphere::Sphere(double radius, const Vector3D& center)
         :  _radius(radius)
         , _center(center)
     {
@@ -37,7 +38,7 @@ namespace spica {
     }
 
     bool Sphere::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        const Vector3 VtoC = _center - ray.origin();
+        const Vector3D VtoC = _center - ray.origin();
         const double b = VtoC.dot(ray.direction());
         const double D4 = b * b - VtoC.dot(VtoC) + _radius * _radius;
 
@@ -63,6 +64,11 @@ namespace spica {
 
     double Sphere::area() const {
         return 4.0 * PI * _radius * _radius;
+    }
+
+    std::vector<Triangle> Sphere::triangulate() const {
+        std::vector<Triangle> retval;
+        return std::move(retval);
     }
 
 }  // namespace spica

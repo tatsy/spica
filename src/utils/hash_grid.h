@@ -29,12 +29,12 @@ namespace spica {
         void init(const int hashSize, const double hashScale, const BBox& bbox);
 
         // Set point data for the cells inside the specifed bounding box
-        void add(const Ty& p, const Vector3& boxMin, const Vector3& boxMax);
+        void add(const Ty& p, const Vector3D& boxMin, const Vector3D& boxMax);
 
         // Clear grid data
         void clear();
 
-        std::vector<Ty>& operator[](const Vector3& v);
+        std::vector<Ty>& operator[](const Vector3D& v);
 
     private:
         unsigned int hash(const int ix, const int iy, const int iz) const;

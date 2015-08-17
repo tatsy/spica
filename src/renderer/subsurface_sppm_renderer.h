@@ -17,8 +17,8 @@
 
 namespace spica {
 
-    struct HitpointInfo : public Vector3 {
-        Vector3 normal;
+    struct HitpointInfo : public Vector3D {
+        Vector3D normal;
         Color flux;
         Color weight;
         Color emission;
@@ -30,8 +30,8 @@ namespace spica {
         int n;
         bool isPixel;
 
-        explicit HitpointInfo(const Vector3& pos = Vector3())
-            : Vector3(pos)
+        explicit HitpointInfo(const Vector3D& pos = Vector3D())
+            : Vector3D(pos)
             , normal()
             , flux()
             , weight()
@@ -47,7 +47,7 @@ namespace spica {
         }
 
         HitpointInfo(const HitpointInfo& hp)
-            : Vector3()
+            : Vector3D()
             , normal()
             , flux()
             , weight()
@@ -64,7 +64,7 @@ namespace spica {
         }
 
         HitpointInfo& operator=(const HitpointInfo& hp) {
-            Vector3::operator=(hp);
+            Vector3D::operator=(hp);
             this->normal = hp.normal;
             this->flux = hp.flux;
             this->weight = hp.weight;
@@ -79,7 +79,7 @@ namespace spica {
             return *this;
         }
 
-        void setPosition(const Vector3& p) {
+        void setPosition(const Vector3D& p) {
             this->x() = p.x();
             this->y() = p.y();
             this->z() = p.z();

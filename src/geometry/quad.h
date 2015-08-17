@@ -11,33 +11,38 @@
     #define SPICA_QUAD_DLL
 #endif
 
-#include "../utils/vector3.h"
-#include "triangle.h"
+#include <array>
+
+#include "geometry_interface.h"
+#include "../utils/vector3d.h"
 
 namespace spica {
 
-    class SPICA_QUAD_DLL Quad : public Primitive {
+    class SPICA_QUAD_DLL Quad : public IGeometry {
     private:
-        Triangle _t0;
-        Triangle _t1;
+        std::array<Vector3D, 4> _points;
 
     public:
         Quad();
-        Quad(const Vector3& v0, const Vector3& v1, const Vector3& v2, const Vector3& v3);
+        Quad(const Vector3D& v0, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3);
         Quad(const Quad& quad);
         ~Quad();
 
         Quad& operator=(const Quad& quad);
 
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
-        double area() const;
+        double area() const override;
 
-        inline Vector3 p0() const { return _t0.p0(); }
-        inline Vector3 p1() const { return _t0.p1(); }
-        inline Vector3 p2() const { return _t0.p2(); }
-        inline Vector3 p3() const { return _t1.p1(); }
-        inline Vector3 normal() const { return _t0.normal(); }
+        std::vector<Triangle> triangulate() const override;
+
+        Vector3D operator[](int id) const;
+        Vector3D get(int id) const;
+
+        Vector3D normal() const;
+
+    private:
+        Triangle tr(int i, int j, int k) const;
     };
 
 }  // namespace spica

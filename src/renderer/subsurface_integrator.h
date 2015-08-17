@@ -18,8 +18,8 @@
 namespace spica {
 
     struct IrradiancePoint {
-        Vector3 pos;
-        Vector3 normal;
+        Vector3D pos;
+        Vector3D normal;
         double area;
         Color irad;
 
@@ -31,7 +31,7 @@ namespace spica {
         {
         }
 
-        IrradiancePoint(const Vector3& pos_, const Vector3& normal_, const double area_, const Color& irad_)
+        IrradiancePoint(const Vector3D& pos_, const Vector3D& normal_, const double area_, const Color& irad_)
             : pos(pos_)
             , normal(normal_)
             , area(area_)
@@ -92,14 +92,14 @@ namespace spica {
 
             void construct(SubsurfaceIntegrator* parent, std::vector<IrradiancePoint>& ipoints);
 
-            Color iradSubsurface(const Vector3& pos, const BSSRDF& Rd) const;
+            Color iradSubsurface(const Vector3D& pos, const BSSRDF& Rd) const;
 
         private:
             void release();
             void deleteNode(OctreeNode* node);
             OctreeNode* constructRec(std::vector<IrradiancePoint>& pointers, const BBox& bbox);
 
-            Color iradSubsurfaceRec(OctreeNode* node, const Vector3& pos, const BSSRDF& Rd) const;
+            Color iradSubsurfaceRec(OctreeNode* node, const Vector3D& pos, const BSSRDF& Rd) const;
         };
 
 
@@ -117,14 +117,14 @@ namespace spica {
 
         void initialize(const Scene& scene, const BSSRDF& bssrdf, const PMParams& params, const double areaRadius, const RandomType randType, const double maxError = 0.05);
 
-        void buildOctree(const std::vector<Vector3>& points, const std::vector<Vector3>& normals, const PMParams& params);
+        void buildOctree(const std::vector<Vector3D>& points, const std::vector<Vector3D>& normals, const PMParams& params);
 
-        Color irradiance(const Vector3& p) const;
+        Color irradiance(const Vector3D& p) const;
 
     private:
         void buildPhotonMap(const Scene& scene, const int numPhotons, const int bounceLimit, const RandomType randType);
 
-        Color irradianceWithPM(const Vector3& p, const Vector3& n, const PMParams& params) const;
+        Color irradianceWithPM(const Vector3D& p, const Vector3D& n, const PMParams& params) const;
     };
 
 }

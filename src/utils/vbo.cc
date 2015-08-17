@@ -35,7 +35,7 @@ namespace spica {
         return *this;
     }
 
-    void VBO::add(const Primitive* p, const Color& color) {
+    void VBO::add(const IGeometry* p, const Color& color) {
         if (typeid(*p) == typeid(Quad)) {
             const Quad* quad = reinterpret_cast<const Quad*>(p);
             add(*quad, color);
@@ -50,11 +50,11 @@ namespace spica {
             add(*disk, color);
         } else {
             const std::string typname = typeid(*p).name();
-            msg_assert(false, (typname + "is not supported").c_str());        
+            Assertion(false, (typname + "is not supported").c_str());        
         }
     }
 
-    void VBO::add(const Vector3& v, const Vector3& normal, const Color& color) {
+    void VBO::add(const Vector3D& v, const Vector3D& normal, const Color& color) {
         _vertices.push_back(v.x());
         _vertices.push_back(v.y());
         _vertices.push_back(v.z());
@@ -68,10 +68,10 @@ namespace spica {
 
     void VBO::add(const Quad& quad, const Color& color) {
         unsigned int idx = static_cast<unsigned int>(_vertices.size()) / 3;
-        add(quad.p0(), quad.normal(), color);            
-        add(quad.p1(), quad.normal(), color);            
-        add(quad.p2(), quad.normal(), color);            
-        add(quad.p3(), quad.normal(), color);
+        add(quad[0], quad.normal(), color);            
+        add(quad[1], quad.normal(), color);            
+        add(quad[2], quad.normal(), color);            
+        add(quad[3], quad.normal(), color);
         _indices.push_back(idx);
         _indices.push_back(idx + 1);
         _indices.push_back(idx + 2);
@@ -82,9 +82,9 @@ namespace spica {
 
     void VBO::add(const Triangle& tri, const Color& color) {
         unsigned int idx = static_cast<unsigned int>(_vertices.size()) / 3;
-        add(tri.p0(), tri.normal(), color);
-        add(tri.p1(), tri.normal(), color);
-        add(tri.p2(), tri.normal(), color);
+        add(tri[0], tri.normal(), color);
+        add(tri[1], tri.normal(), color);
+        add(tri[2], tri.normal(), color);
         _indices.push_back(idx);
         _indices.push_back(idx + 1);
         _indices.push_back(idx + 2);
@@ -110,10 +110,10 @@ namespace spica {
                 double cp0 = cos(phi0);
                 double cp1 = cos(phi1);
 
-                Vector3 v00 = sphere.center() + sphere.radius() * Vector3(cp0 * st0, sp0 * st0, ct0);
-                Vector3 v01 = sphere.center() + sphere.radius() * Vector3(cp0 * st1, sp0 * st1, ct1);
-                Vector3 v10 = sphere.center() + sphere.radius() * Vector3(cp1 * st0, sp1 * st0, ct0);
-                Vector3 v11 = sphere.center() + sphere.radius() * Vector3(cp1 * st1, sp1 * st1, ct1);
+                Vector3D v00 = sphere.center() + sphere.radius() * Vector3D(cp0 * st0, sp0 * st0, ct0);
+                Vector3D v01 = sphere.center() + sphere.radius() * Vector3D(cp0 * st1, sp0 * st1, ct1);
+                Vector3D v10 = sphere.center() + sphere.radius() * Vector3D(cp1 * st0, sp1 * st0, ct0);
+                Vector3D v11 = sphere.center() + sphere.radius() * Vector3D(cp1 * st1, sp1 * st1, ct1);
 
                 unsigned int idx = static_cast<unsigned int>(_vertices.size()) / 3;
                 if (i == 0) {
@@ -151,11 +151,11 @@ namespace spica {
         const int numFaces = trimesh.numFaces();
 
         std::vector<int> belongCount(numVerts, 0);
-        std::vector<Vector3> normals(numVerts, Vector3(0.0, 0.0, 0.0));
+        std::vector<Vector3D> normals(numVerts, Vector3D(0.0, 0.0, 0.0));
 
         std::vector<Triplet> indices = trimesh.getIndices();
         for (int i = 0; i < numFaces; i++) {
-            const Vector3& normal = trimesh.getNormal(i);
+            const Vector3D& normal = trimesh.getNormal(i);
             for (int j = 0; j < 3; j++) {
                 const int vid = indices[i][j];
                 normals[vid] += normal;
@@ -164,7 +164,7 @@ namespace spica {
         }
 
         for (int i = 0; i < numVerts; i++) {
-            const Vector3 vNormal = normals[i] / belongCount[i];
+            const Vector3D vNormal = normals[i] / belongCount[i];
             add(trimesh.getVertex(i), vNormal, trimesh.getColor(i));
         }
 
@@ -188,20 +188,20 @@ namespace spica {
     void VBO::add(const Disk& disk, const Color& color) {
         static const int ndiv = 64;
 
-        Vector3 u, v, w;
+        Vector3D u, v, w;
         w = disk.normal();
         if (std::abs(w.x()) > EPS) {
-            u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
+            u = Vector3D(0.0, 1.0, 0.0).cross(w).normalized();
         } else {
-            u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
+            u = Vector3D(1.0, 0.0, 0.0).cross(w).normalized();
         }
         v = w.cross(u);
 
         for (int i = 0; i < ndiv; i++) {
             const double t1 = 2.0 * PI * i / ndiv;
             const double t2 = 2.0 * PI * (i + 1) / ndiv;
-            const Vector3 v1 = disk.center() + disk.radius() * (u * cos(t1) + v * sin(t1));
-            const Vector3 v2 = disk.center() + disk.radius() * (u * cos(t2) + v * sin(t2));
+            const Vector3D v1 = disk.center() + disk.radius() * (u * cos(t1) + v * sin(t1));
+            const Vector3D v2 = disk.center() + disk.radius() * (u * cos(t2) + v * sin(t2));
             Triangle tri = Triangle(disk.center(), v1, v2);
             add(tri, color);
         }

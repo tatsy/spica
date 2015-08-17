@@ -66,7 +66,7 @@ namespace spica {
         }
 
         Ty pop() {
-            msg_assert(_pos >= 0, "Queue is empty !!");
+            Assertion(_pos >= 0, "Queue is empty !!");
             int r = _rng.nextInt(_pos);
             _pos--;
 

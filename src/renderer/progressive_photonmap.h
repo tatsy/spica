@@ -21,8 +21,8 @@ namespace spica {
     class SPICA_PROGRESSIVE_PHOTONMAP_DLL PPMRenderer : private Uncopyable {
     private:
 
-        struct HPoint : public Vector3 {
-            Vector3 normal;
+        struct HPoint : public Vector3D {
+            Vector3D normal;
             Color flux;
             Color weight;
             Color emission;
@@ -31,8 +31,8 @@ namespace spica {
             double r2;
             int n;
 
-            explicit HPoint(Vector3 pos = Vector3())
-                : Vector3(pos)
+            explicit HPoint(Vector3D pos = Vector3D())
+                : Vector3D(pos)
                 , normal()
                 , flux()
                 , weight()
@@ -46,7 +46,7 @@ namespace spica {
             }
 
             HPoint(const HPoint& hp)
-                : Vector3()
+                : Vector3D()
                 , normal()
                 , flux()
                 , weight()
@@ -61,7 +61,7 @@ namespace spica {
             }
 
             HPoint& operator=(const HPoint& hp) {
-                Vector3::operator=(hp);
+                Vector3D::operator=(hp);
                 this->normal = hp.normal;
                 this->flux = hp.flux;
                 this->weight = hp.weight;
@@ -74,7 +74,7 @@ namespace spica {
                 return *this;
             }
 
-            void setPosition(const Vector3& p) {
+            void setPosition(const Vector3D& p) {
                 this->x() = p.x();
                 this->y() = p.y();
                 this->z() = p.z();

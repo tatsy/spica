@@ -108,17 +108,17 @@ namespace spica {
 
         };
 
-        Color direct_radiance_sample(const Scene& scene, const Vector3& v0, const Vector3& normal, const int id, KelemenMLT& mlt) {
-            const Primitive* light = scene.get(scene.lightID());
+        Color direct_radiance_sample(const Scene& scene, const Vector3D& v0, const Vector3D& normal, const int id, KelemenMLT& mlt) {
+            const IGeometry* light = scene.get(scene.lightID());
             const Material& lightMtrl = scene.getMaterial(scene.lightID());
 
             const double r1Light = mlt.nextSample();
             const double r2Light = mlt.nextSample();
-            Vector3 light_pos, light_normal;
+            Vector3D light_pos, light_normal;
             sampler::on(light, &light_pos, &light_normal, r1Light, r2Light);
 
-            const Vector3 v_to_l = light_pos - v0;
-            const Vector3 light_dir = v_to_l.normalized();
+            const Vector3D v_to_l = light_pos - v0;
+            const Vector3D light_dir = v_to_l.normalized();
             const double dist2 = v_to_l.squaredNorm();
             const double dot0 = normal.dot(light_dir);
             const double dot1 = light_normal.dot(-1.0 * light_dir);
@@ -142,7 +142,7 @@ namespace spica {
 
             const Material& mtrl = scene.getMaterial(isect.objectId());
             const Hitpoint& hitpoint = isect.hitpoint();
-            const Vector3 orientNormal = Vector3::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+            const Vector3D orientNormal = Vector3D::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
             double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
 
@@ -157,12 +157,12 @@ namespace spica {
             if (mtrl.reftype == REFLECTION_DIFFUSE) {
                 if (isect.objectId() != scene.lightID()) {
                     const int shadow_ray = 1;
-                    Vector3 direct_light;
+                    Vector3D direct_light;
                     for (int i = 0; i < shadow_ray; i++) {
                         direct_light += direct_radiance_sample(scene, hitpoint.position(), orientNormal, isect.objectId(), mlt) / shadow_ray;
                     }
 
-                    Vector3 nextDir;
+                    Vector3D nextDir;
                     const double r1 = mlt.nextSample();
                     const double r2 = mlt.nextSample();
                     sampler::onHemisphere(orientNormal, &nextDir, r1, r2);
@@ -175,8 +175,8 @@ namespace spica {
                 }
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                 Intersection light_intersect;
-                Ray reflection_ray = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
-                Vector3 direct_light;
+                Ray reflection_ray = Ray(hitpoint.position(), Vector3D::reflect(ray.direction(), hitpoint.normal()));
+                Vector3D direct_light;
                 if (scene.intersect(reflection_ray, light_intersect) && light_intersect.objectId() == scene.lightID()) {
                     direct_light = scene.getMaterial(scene.lightID()).emission;
                 }
@@ -184,16 +184,16 @@ namespace spica {
                 return Color((direct_light + mtrl.color.multiply(next_bounce_color)) / roulette);
             } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                 Intersection light_intersect;
-                Ray reflectRay = Ray(hitpoint.position(), Vector3::reflect(ray.direction(), hitpoint.normal()));
+                Ray reflectRay = Ray(hitpoint.position(), Vector3D::reflect(ray.direction(), hitpoint.normal()));
                 
-                Vector3 direct_light;
+                Vector3D direct_light;
                 if (scene.intersect(reflectRay, light_intersect) && light_intersect.objectId() == scene.lightID()) {
                     direct_light = scene.getMaterial(scene.lightID()).emission;
                 }
 
-                bool isIncoming = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;
+                bool isIncoming = Vector3D::dot(hitpoint.normal(), orientNormal) > 0.0;
 
-                Vector3 reflectDir, refractDir;
+                Vector3D reflectDir, refractDir;
                 double fresnelRe, fresnelTr;
                 if (helper::isTotalRef(isIncoming, hitpoint.position(), ray.direction(), hitpoint.normal(), orientNormal, &reflectDir, &refractDir, &fresnelRe, &fresnelTr)) {
                     // Total reflection
@@ -204,7 +204,7 @@ namespace spica {
                 Ray refractRay = Ray(hitpoint.position(), refractDir);
                 Intersection light_intersect_refract;
                 
-                Vector3 direct_light_refraction;
+                Vector3D direct_light_refraction;
                 if (scene.intersect(refractRay, light_intersect_refract) && light_intersect_refract.objectId() == scene.lightID()) {
                     direct_light_refraction = scene.getMaterial(scene.lightID()).emission;
                 }

@@ -26,7 +26,7 @@ namespace spica {
             explicit AxisComparator(int dim_ = 0)
                 : dim(dim_)
             {
-                msg_assert(0 <= dim_ && dim_ <= 2, "Dimension must be between 0 and 2");
+                Assertion(0 <= dim_ && dim_ <= 2, "Dimension must be between 0 and 2");
             }
 
             bool operator()(const Triangle& t1, const Triangle& t2) const {

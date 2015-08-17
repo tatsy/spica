@@ -32,8 +32,8 @@ namespace spica {
 
         VBO& operator=(const VBO& vbo);
 
-        void add(const Primitive* p, const Color& color);
-        void add(const Vector3& v, const Vector3& normal, const Color& color);
+        void add(const IGeometry* p, const Color& color);
+        void add(const Vector3D& v, const Vector3D& normal, const Color& color);
         void add(const Quad& quad, const Color& color);
         void add(const Triangle& tri, const Color& color);
         void add(const Trimesh& trimesh);

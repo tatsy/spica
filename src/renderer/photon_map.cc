@@ -7,15 +7,15 @@
 namespace spica {
 
     Photon::Photon()
-        : Vector3()
+        : Vector3D()
         , _flux()
         , _direction()
         , _normal()
     {
     }
 
-    Photon::Photon(const Vector3& position, const Color& flux, const Vector3& direction, const Vector3& normal)
-        : Vector3(position)
+    Photon::Photon(const Vector3D& position, const Color& flux, const Vector3D& direction, const Vector3D& normal)
+        : Vector3D(position)
         , _flux(flux)
         , _direction(direction)
         , _normal(normal)
@@ -23,7 +23,7 @@ namespace spica {
     }
 
     Photon::Photon(const Photon& photon)
-        : Vector3()
+        : Vector3D()
         , _flux()
         , _direction()
         , _normal()
@@ -36,7 +36,7 @@ namespace spica {
     }
 
     Photon& Photon::operator=(const Photon& photon) {
-        Vector3::operator=(photon);
+        Vector3D::operator=(photon);
         this->_flux      = photon._flux;
         this->_direction = photon._direction;
         this->_normal = photon._normal;
@@ -46,12 +46,12 @@ namespace spica {
     Photon Photon::sample(const Scene& scene, RandomSeq& rseq, const int numPhotons) {
         const int lightID = scene.lightID();
         if (lightID >= 0) {
-            const Primitive* light = scene.get(lightID);
+            const IGeometry* light = scene.get(lightID);
 
             const double r1 = rseq.next();
             const double r2 = rseq.next();
 
-            Vector3 posLight, normalLight;
+            Vector3D posLight, normalLight;
             sampler::on(light, &posLight, &normalLight, r1, r2);
             Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
             return Photon(posLight, currentFlux, normalLight, normalLight);

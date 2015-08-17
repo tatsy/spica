@@ -1,23 +1,29 @@
 #define SPICA_QUAD_EXPORT
 #include "quad.h"
 
+#include "../utils/vector3d.h"
+#include "../renderer/ray.h"
+
+#include "triangle.h"
+
 namespace spica {
     
     Quad::Quad()
-        : _t0()
-        , _t1()
+        : _points()
     {
     }
 
-    Quad::Quad(const Vector3& v0, const Vector3& v1, const Vector3& v2, const Vector3& v3)
-        : _t0(v0, v1, v2)
-        , _t1(v2, v3, v0)
+    Quad::Quad(const Vector3D& v0, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3)
+        : _points()
     {
+        _points[0] = v0;
+        _points[1] = v1;
+        _points[2] = v2;
+        _points[3] = v3;
     }
 
     Quad::Quad(const Quad& quad)
-        : _t0()
-        , _t1()
+        : _points()
     {
         operator=(quad);
     }
@@ -27,17 +33,16 @@ namespace spica {
     }
 
     Quad& Quad::operator=(const Quad& quad) {
-        this->_t0 = quad._t0;
-        this->_t1 = quad._t1;
+        this->_points = quad._points;
         return *this;
     }
 
     bool Quad::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        if (_t0.intersect(ray, hitpoint)) {
+        if (tr(0, 1, 2).intersect(ray, hitpoint)) {
             return true;
         }
 
-        if (_t1.intersect(ray, hitpoint)) {
+        if (tr(0, 2, 3).intersect(ray, hitpoint)) {
             return true;
         }
 
@@ -45,7 +50,36 @@ namespace spica {
     }
 
     double Quad::area() const {
-        return _t0.area() + _t1.area();
+        return tr(0, 1, 2).area() + tr(0, 2, 3).area();
+    }
+
+    Vector3D Quad::get(int id) const {
+        Assertion(0 <= id && id <= 3, "Point ID must be in between 0 and 3 !!");
+        return _points[id];
+    }
+
+    Vector3D Quad::operator[](int id) const {
+        Assertion(0 <= id && id <= 3, "Point ID must be in between 0 and 3 !!");
+        return _points[id];        
+    }
+
+    std::vector<Triangle> Quad::triangulate() const {
+        std::vector<Triangle> retval(2);
+        retval[0] = tr(0, 1, 2);
+        retval[1] = tr(0, 2, 3);
+        return std::move(retval);
+    }
+
+    Vector3D Quad::normal() const {
+        const Triangle t1 = tr(0, 1, 2);
+        const Triangle t2 = tr(0, 2, 3);
+        const double a1 = t1.area();
+        const double a2 = t2.area();
+        return (a1 / (a1 + a2)) * t1.normal() + (a2 / (a1 + a2)) * t2.normal();
+    }
+
+    Triangle Quad::tr(int i, int j, int k) const {
+        return Triangle(_points[i], _points[j], _points[k]);
     }
 
 }  // namespace spica

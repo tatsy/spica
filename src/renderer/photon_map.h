@@ -11,7 +11,7 @@
     #define SPICA_PHOTON_MAP_DLL
 #endif
 
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 #include "../utils/kdtree.h"
 #include "../utils/uncopyable.h"
@@ -22,15 +22,15 @@ namespace spica {
 
     class Scene;
 
-    class SPICA_PHOTON_MAP_DLL Photon : public Vector3 {
+    class SPICA_PHOTON_MAP_DLL Photon : public Vector3D {
     private:
         Color   _flux;
-        Vector3 _direction;
-        Vector3 _normal;
+        Vector3D _direction;
+        Vector3D _normal;
 
     public:
         Photon();
-        Photon(const Vector3& position, const Color& flux, const Vector3& direction, const Vector3& normal);
+        Photon(const Vector3D& position, const Color& flux, const Vector3D& direction, const Vector3D& normal);
         Photon(const Photon& photon);
         ~Photon();
 
@@ -39,8 +39,8 @@ namespace spica {
         static Photon sample(const Scene& scene, RandomSeq& rseq, const int numPhotons);
 
         inline Color   flux()      const { return _flux; }
-        inline Vector3 direction() const { return _direction; }
-        inline Vector3 normal()    const { return _normal; }
+        inline Vector3D direction() const { return _direction; }
+        inline Vector3D normal()    const { return _normal; }
     };
 
     class SPICA_PHOTON_MAP_DLL PhotonMap : public Uncopyable {

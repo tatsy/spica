@@ -14,20 +14,20 @@ namespace spica {
     // BSSRDF base class
     // ------------------------------------------------------------
 
-    double BSSRDFBase::Ft(const Vector3& normal, const Vector3& in) const {
+    double BSSRDFBase::Ft(const Vector3D& normal, const Vector3D& in) const {
         const double nnt = IOR_OBJECT / IOR_VACCUM;
         const double ddn = in.dot(normal);
         const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
         if (cos2t < 0.0) return 0.0;
 
-        Vector3 refractDir = (in * nnt + normal * (ddn * nnt + sqrt(cos2t))).normalized();
+        Vector3D refractDir = (in * nnt + normal * (ddn * nnt + sqrt(cos2t))).normalized();
 
         const double a = IOR_OBJECT - IOR_VACCUM;
         const double b = IOR_OBJECT + IOR_VACCUM;
         const double R0 = (a * a) / (b * b);
 
-        const double c  = 1.0 - Vector3::dot(refractDir, -normal);
+        const double c  = 1.0 - Vector3D::dot(refractDir, -normal);
         const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
         return 1.0 - Re;
     }
@@ -119,7 +119,7 @@ namespace spica {
         , _distances(distances)
         , _colors(colors)
     {
-        msg_assert(distances.size() == colors.size(), "Arrays for distances and colors must have the same length!!");
+        Assertion(distances.size() == colors.size(), "Arrays for distances and colors must have the same length!!");
     }
 
     DiffuseBSSRDF::DiffuseBSSRDF(const DiffuseBSSRDF& bssrdf)
@@ -210,7 +210,7 @@ namespace spica {
 
     void DiffuseBSSRDF::load(const std::string& filename) {
         std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
-        msg_assert(ifs.is_open(), "Faied to open file!!");
+        Assertion(ifs.is_open(), "Faied to open file!!");
 
         int intervals;
         ifs.read((char*)&intervals, sizeof(int));
@@ -269,7 +269,7 @@ namespace spica {
         return *this;
     }
 
-    double BSSRDF::Ft(const Vector3& normal, const Vector3& in) const {
+    double BSSRDF::Ft(const Vector3D& normal, const Vector3D& in) const {
         nullCheck();
         return _ptr->Ft(normal, in);
     }
@@ -284,7 +284,7 @@ namespace spica {
     }
 
     void BSSRDF::nullCheck() const {
-        msg_assert(_ptr != NULL, "BSSRDF does not have instance!!");
+        Assertion(_ptr != NULL, "BSSRDF does not have instance!!");
     }
 
 

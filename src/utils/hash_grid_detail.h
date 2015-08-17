@@ -33,9 +33,9 @@ namespace spica {
     }
 
     template <class Ty>
-    void HashGrid<Ty>::add(const Ty& p, const Vector3& boxMin, const Vector3& boxMax) {
-        const Vector3 bMin = (boxMin - _bbox.posMin()) * _hashScale;
-        const Vector3 bMax = (boxMax - _bbox.posMin()) * _hashScale;
+    void HashGrid<Ty>::add(const Ty& p, const Vector3D& boxMin, const Vector3D& boxMax) {
+        const Vector3D bMin = (boxMin - _bbox.posMin()) * _hashScale;
+        const Vector3D bMax = (boxMax - _bbox.posMin()) * _hashScale;
 
         const int minZ = std::abs(static_cast<int>(bMin.z()));
         const int maxZ = std::abs(static_cast<int>(bMax.z()));
@@ -60,13 +60,13 @@ namespace spica {
 
     template <class Ty>
     unsigned int HashGrid<Ty>::hash(const int ix, const int iy, const int iz) const {
-        msg_assert(_hashSize > 0, "hash size is not initialized");
+        Assertion(_hashSize > 0, "hash size is not initialized");
         return (unsigned int)((ix * 73856093) ^ (iy * 19349663) ^ (iz * 83492791)) % _hashSize;
     }
 
     template <class Ty>
-    typename std::vector<Ty>& HashGrid<Ty>::operator[](const Vector3& v) {
-        Vector3 b = (v - _bbox.posMin()) * _hashScale;
+    typename std::vector<Ty>& HashGrid<Ty>::operator[](const Vector3D& v) {
+        Vector3D b = (v - _bbox.posMin()) * _hashScale;
         const int ix = std::abs(static_cast<int>(b.x()));
         const int iy = std::abs(static_cast<int>(b.y()));
         const int iz = std::abs(static_cast<int>(b.z()));

@@ -9,17 +9,27 @@
 namespace spica {
 
     namespace helper {
+
+        void calcLocalCoords(const Vector3D& w, Vector3D* u, Vector3D* v) {
+            if (std::abs(w.x()) > 0.1) {
+                *u = Vector3D(0.0, 1.0, 0.0).cross(w).normalized();
+            } else {
+                *u = Vector3D(1.0, 0.0, 0.0).cross(w).normalized();
+            }
+            *v = w.cross(*u);
+        }
+
         bool isTotalRef(const bool isIncoming,
-                        const Vector3& position,
-                        const Vector3& in,
-                        const Vector3& normal,
-                        const Vector3& orientNormal,
-                        Vector3* reflectDir,
-                        Vector3* refractDir,
+                        const Vector3D& position,
+                        const Vector3D& in,
+                        const Vector3D& normal,
+                        const Vector3D& orientNormal,
+                        Vector3D* reflectDir,
+                        Vector3D* refractDir,
                         double* fresnelRef,
                         double* fresnelTransmit) {
 
-            *reflectDir = Vector3::reflect(in, normal);
+            *reflectDir = Vector3D::reflect(in, normal);
 
             // Snell's rule
             const double nnt = isIncoming ? IOR_VACCUM / IOR_OBJECT : IOR_OBJECT / IOR_VACCUM;
@@ -28,7 +38,7 @@ namespace spica {
 
             if (cos2t < 0.0) {
                 // Total reflect
-                *refractDir = Vector3();
+                *refractDir = Vector3D();
                 *fresnelRef = 1.0;
                 *fresnelTransmit = 0.0;
                 return true;
@@ -40,7 +50,7 @@ namespace spica {
             const double b = IOR_OBJECT + IOR_VACCUM;
             const double R0 = (a * a) / (b * b);
 
-            const double c = 1.0 - (isIncoming ? -ddn : Vector3::dot(*refractDir, -orientNormal));
+            const double c = 1.0 - (isIncoming ? -ddn : Vector3D::dot(*refractDir, -orientNormal));
             *fresnelRef = R0 + (1.0 - R0) * pow(c, 5.0);
             *fresnelTransmit = 1.0 - (*fresnelRef);
 
@@ -55,7 +65,7 @@ namespace spica {
 
             const Material& mtrl = scene.getMaterial(isect.objectId());
             const Hitpoint& hitpoint = isect.hitpoint();
-            const Vector3 orientNormal = Vector3::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+            const Vector3D orientNormal = Vector3D::dot(hitpoint.normal(), ray.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
             double roulette = std::max(mtrl.color.red(), std::max(mtrl.color.green(), mtrl.color.blue()));
 
@@ -75,18 +85,18 @@ namespace spica {
             Color weight = Color(1.0, 1.0, 1.0);
 
             if (mtrl.reftype == REFLECTION_DIFFUSE) {
-                Vector3 nextDir;
+                Vector3D nextDir;
                 sampler::onHemisphere(orientNormal, &nextDir);
                 incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
                 weight = mtrl.color / roulette;
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
-                Vector3 nextDir = Vector3::reflect(ray.direction(), orientNormal);
+                Vector3D nextDir = Vector3D::reflect(ray.direction(), orientNormal);
                 incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
                 weight = mtrl.color / roulette;
             } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                 const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
-                Vector3 reflectDir, transmitDir;
+                Vector3D reflectDir, transmitDir;
                 double fresnelRe, fresnelTr;
                 bool isTotRef = helper::isTotalRef(isIncoming,
                                                    hitpoint.position(),
@@ -119,7 +129,7 @@ namespace spica {
                     }
                 }
             } else if (mtrl.reftype == REFLECTION_SUBSURFACE) {
-                Vector3 nextDir;
+                Vector3D nextDir;
                 sampler::onHemisphere(orientNormal, &nextDir);
                 incomingRad = radiance(scene, Ray(hitpoint.position(), nextDir), rng, depth + 1);
                 weight = mtrl.color / roulette;
@@ -142,7 +152,7 @@ namespace spica {
             const int objectID = isect.objectId();
             const Material& mtrl = scene.getMaterial(objectID);
             const Hitpoint& hitpoint = isect.hitpoint();
-            const Vector3 orientNormal = Vector3::dot(ray.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
+            const Vector3D orientNormal = Vector3D::dot(ray.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
 
             // If depth is over depthLimit, terminate recursion
             if (depth >= depthLimit) {
@@ -167,7 +177,7 @@ namespace spica {
             // in the future, reftype is removed and 
             // all the material types are converted to BRDF
             if (mtrl.reftype == REFLECTION_BRDF) {
-                Vector3 nextDir;
+                Vector3D nextDir;
                 mtrl.brdf.sample(ray.direction(), orientNormal, randnums[1], randnums[2], &nextDir);
                 Ray nextRay(hitpoint.position(), nextDir);
                 weight = weight.multiply(mtrl.brdf.reflectance()) / roulette;
@@ -175,12 +185,12 @@ namespace spica {
             } else if (mtrl.reftype == REFLECTION_DIFFUSE) {
                 // Diffuse reflection
                 // Sample next direction with QMC
-                Vector3 u, v, w;
+                Vector3D u, v, w;
                 w = orientNormal;
                 if (std::abs(w.x()) > EPS) {
-                    u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
+                    u = Vector3D(0.0, 1.0, 0.0).cross(w).normalized();
                 } else {
-                    u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
+                    u = Vector3D(1.0, 0.0, 0.0).cross(w).normalized();
                 }
                 v = w.cross(u);
 
@@ -188,21 +198,21 @@ namespace spica {
                 const double r2 = randnums[2];
                 const double r2s = sqrt(r2);
 
-                Vector3 nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
+                Vector3D nextDir = (u * cos(r1) * r2s + v * sin(r1) * r2s + w * sqrt(1.0 - r2)).normalized();
                 Ray nextRay(hitpoint.position(), nextDir);
                 weight = weight.multiply(mtrl.color) / roulette;
                 nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin);
 
             } else if (mtrl.reftype == REFLECTION_SPECULAR) {
                 // Specular reflection
-                Vector3 nextDir = Vector3::reflect(ray.direction(), orientNormal);
+                Vector3D nextDir = Vector3D::reflect(ray.direction(), orientNormal);
                 Ray nextRay(hitpoint.position(), nextDir);
                 weight = weight.multiply(mtrl.color) / roulette;
                 nextRad = radiance(scene, nextRay, rseq, depth + 1, depthLimit, depthMin);
             } else if (mtrl.reftype == REFLECTION_REFRACTION) {
                 // Refraction
-                bool isInto = Vector3::dot(hitpoint.normal(), orientNormal) > 0.0;              
-                Vector3 reflectDir, transmitDir;
+                bool isInto = Vector3D::dot(hitpoint.normal(), orientNormal) > 0.0;              
+                Vector3D reflectDir, transmitDir;
                 double fresnelRe, fresnelTr;
                 bool isTotRef = helper::isTotalRef(isInto,
                                                    hitpoint.position(),

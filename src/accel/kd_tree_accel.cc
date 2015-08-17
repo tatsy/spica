@@ -136,7 +136,7 @@ namespace spica {
                 const Triangle& tri = node->triangles[i];
                 Hitpoint hpTemp;
                 if (tri.intersect(ray, &hpTemp)) {
-                    if (hitpoint->distance() > hpTemp.distance() && Vector3::dot(ray.direction(), tri.normal()) < 0.0) {
+                    if (hitpoint->distance() > hpTemp.distance() && Vector3D::dot(ray.direction(), tri.normal()) < 0.0) {
                         *hitpoint = hpTemp;
                         triID = i;
                     }

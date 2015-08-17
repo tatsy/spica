@@ -46,7 +46,7 @@ namespace spica {
         return _ptr->reflectance();
     }
 
-    void BRDF::sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const {
+    void BRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
         _ptr->sample(in, normal, rand1, rand2, out);
     }
 
@@ -76,7 +76,7 @@ namespace spica {
         return _reflectance;
     }
 
-    void LambertianBRDF::sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const {
+    void LambertianBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
         sampler::onHemisphere(normal, out, rand1, rand2);
     }
 
@@ -97,8 +97,8 @@ namespace spica {
         return _reflectance;
     }
 
-    void SpecularBRDF::sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const {
-        (*out) = Vector3::reflect(in, normal);
+    void SpecularBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
+        (*out) = Vector3D::reflect(in, normal);
     }
 
     BRDF SpecularBRDF::factory(const Color& reflectance) {
@@ -119,16 +119,16 @@ namespace spica {
         return _reflectance;
     }
 
-    void PhongBRDF::sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const {
-        Vector3 refDir = Vector3::reflect(in, normal);
+    void PhongBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
+        Vector3D refDir = Vector3D::reflect(in, normal);
 
-        Vector3 u, v, w;
+        Vector3D u, v, w;
         w = refDir;
         if (std::abs(w.x()) > EPS) {
-            u = Vector3(0.0, 1.0, 0.0).cross(w).normalized();
+            u = Vector3D(0.0, 1.0, 0.0).cross(w).normalized();
         }
         else {
-            u = Vector3(1.0, 0.0, 0.0).cross(w).normalized();
+            u = Vector3D(1.0, 0.0, 0.0).cross(w).normalized();
         }
         v = w.cross(u);
 

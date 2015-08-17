@@ -13,7 +13,6 @@
 
 #include <vector>
 
-#include "../renderer/material.h"
 #include "../geometry/geometry.h"
 
 namespace spica {

@@ -119,17 +119,17 @@ namespace spica {
         return node;
     }
 
-    bool KdTreeAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
+    int KdTreeAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
         double tMin, tMax;
         KdTreeNode* node = _root;
         if (!node->bbox.intersect(ray, &tMin, &tMax)) {
-            return false;
+            return -1;
         }
 
         return intersectRec(node, ray, hitpoint, tMin, tMax);
     }
 
-    bool KdTreeAccel::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) {
+    int KdTreeAccel::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) {
         if (node->isLeaf) {
             int triID = -1;
             for (int i = 0; i < node->numTriangles; i++) {
@@ -142,11 +142,7 @@ namespace spica {
                     }
                 }
             }
-
-            if (triID != -1) {
-                return true;
-            }
-            return false;
+            return triID;
         }
 
         // Check which child is nearer
@@ -156,7 +152,7 @@ namespace spica {
 
         // Intesecting NO children
         if (!isectL && !isectR) {
-            return false;
+            return -1;
         }
 
         // Intersecting only one child
@@ -181,8 +177,9 @@ namespace spica {
         }
 
         // Check nearer child first
-        if (intersectRec(nearer, ray, hitpoint, lMin, lMax)) {
-            return true;
+        const int triID = intersectRec(nearer, ray, hitpoint, lMin, lMax);
+        if (triID != -1) {
+            return triID;
         }
         return intersectRec(farther, ray, hitpoint, rMin, rMax);
     }

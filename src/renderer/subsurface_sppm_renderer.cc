@@ -3,6 +3,7 @@
 
 #include <cstdio>
 
+#include "renderer_constants.h"
 #include "renderer_helper.h"
 #include "../utils/sampler.h"
 
@@ -388,7 +389,7 @@ namespace spica {
                     weight = weight.multiply(mtrl.color);
                 } else {
                     // Trace either reflection or refraction ray with probability
-                    const double probability = 0.25 + REFLECT_PROBABLITY * fresnelRe;
+                    const double probability = 0.25 + kReflectProbability * fresnelRe;
                     if (randnum < probability) {
                         // Reflection
                         ray = Ray(hitpoint.position(), reflectDir);

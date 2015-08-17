@@ -104,8 +104,6 @@ namespace spica {
 
 
     private:
-        Material mtrl;
-        BSSRDF bssrdf;
         PhotonMap photonMap;
         Octree octree;
         double dA;

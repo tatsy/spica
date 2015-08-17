@@ -2,17 +2,18 @@
 #define _SPICA_TEST_MACROS_H_
 
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include "../include/spica.h"
 
-inline void EXPECT_EQ_VEC(const Vector3D& expected, const Vector3D& actual) {
-    if (expected.x() != actual.x() ||
-        expected.y() != actual.y() ||
-        expected.z() != actual.z()) {
-        FAIL() << "expected: " << expected.toString() << std::endl
-               << "  actual: " << actual.toString()   << std::endl;
-    }
-    SUCCEED();
-}
-
+#define EXPECT_EQ_VEC(expected, actual) \
+do { \
+    if (std::abs(expected.x() - actual.x()) >= EPS || \
+        std::abs(expected.y() - actual.y()) >= EPS || \
+        std::abs(expected.z() - actual.z()) >= EPS) { \
+        FAIL() << "expected: " << expected.toString() << std::endl  \
+               << "  actual: " << actual.toString()   << std::endl; \
+    } \
+    SUCCEED(); \
+} while (false)
 #endif  // _SPICA_TEST_MACROS_H_

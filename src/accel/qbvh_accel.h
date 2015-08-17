@@ -58,7 +58,7 @@ namespace spica {
 
         void construct(const std::vector<Triangle>& triangles);
 
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        int intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
     private:
         void release();

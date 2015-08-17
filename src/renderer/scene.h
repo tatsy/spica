@@ -15,24 +15,27 @@
     #define SPICA_SCENE_DLL
 #endif
 
+#include <vector>
+#include <memory>
+
 #include "../utils/common.h"
 #include "../utils/vector3d.h"
 #include "../utils/uncopyable.h"
 #include "../geometry/geometry.h"
 
+#include "bsdf.h"
 #include "envmap.h"
 #include "ray.h"
-#include "material.h"
 
 namespace spica {
     
-    class SPICA_SCENE_DLL Scene : public Uncopyable {
+    class SPICA_SCENE_DLL Scene : private Uncopyable {
     private:
-        unsigned int _nIGeometrys;
-        unsigned int _arraySize;
-        int _lightID;
-        const IGeometry** _primitives;
-        Material* _materials;
+        std::vector<Triangle> _triangles;
+        std::vector<Triangle> _lights;
+        std::vector<unsigned int> _bsdfIds;
+        std::vector<BSDF> _bsdfs;
+        std::shared_ptr<AccelBase> _accel;
         Envmap _envmap;
 
     public:
@@ -40,36 +43,38 @@ namespace spica {
         ~Scene();
 
         template <class Ty>
-        void add(const Ty& primitive, const Material& material, bool isLight = false) {
-            static_assert(std::is_base_of<IGeometry, Ty>::value, "Type inherits IGeometry can only be added to the scene.");
-            if (isLight) _lightID = _nIGeometrys;
-            _primitives[_nIGeometrys] = new Ty(primitive);
-            _materials[_nIGeometrys] = material;
-            _nIGeometrys++;
-            checkArraySize();
+        void add(const Ty& geom, const BSDF& bsdf, bool isLight = false) {
+            static_assert(std::is_base_of<IGeometry, Ty>::value, "Type inherits IGeometry can only be added to the scene !!");
+
+            std::vector<Triangle> newTriangles = geom.triangulate();
+            if (isLight) {
+                // If geometry is a light, set it to lights
+                _lights.insert(_lights.end(), newTriangles.begin(), newTriangles.end());
+            }
+
+            // Both normal geoms and light geoms are set to triangles
+            _triangles.insert(_triangles.end(), newTriangles.begin(), newTriangles.end());
+            
+            // Update BSDF ids
+            const int newBsdfId = static_cast<int>(_bsdfs.size());
+            const int numTriangles = static_cast<int>(_bsdfIds.size());
+            _bsdfIds.resize(_bsdfIds.size() + newTriangles.size());
+            std::fill(_bsdfIds.begin() + numTriangles, _bsdfIds.end(), newBsdfId);
+            _bsdfs.push_back(bsdf);
         }
 
-        const IGeometry* get(int id) const;
-        const Material& getMaterial(int id) const;
+        const Triangle& getTriangle(int id) const;
+        const BSDF& getBsdf(int id) const;
 
         void clear();
+        void setAccelerator(AccelType accel = QBVH_ACCEL);
 
         bool intersect(const Ray& ray, Intersection& isect) const;
 
-        inline int lightID() const { return _lightID; }
-        inline int numObjects() const { return _nIGeometrys; }
+        inline size_t numTriangles() const { return _triangles.size(); }
 
         inline const Envmap& envmap() const { return _envmap; }
         inline void setEnvmap(const Envmap& envmap) { _envmap = envmap; }
-
-    private:
-        Scene(const Scene& scene);
-        Scene& operator=(const Scene& scene);
-
-        void init();
-        void release();
-
-        void checkArraySize();
     };
 }
 

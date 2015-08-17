@@ -4,6 +4,7 @@
 #ifndef __AVX__
 
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <algorithm>
 
@@ -163,6 +164,8 @@ namespace spica {
 
     std::string Vector3D::toString() const {
         std::stringstream ss;
+        ss << std::fixed;
+        ss << std::setprecision(8);
         ss << "(" << _xyz[0] << ", " << _xyz[1] << ", " << _xyz[2] << ")";
         return ss.str();
     }

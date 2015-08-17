@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_RENDERER_HELPER_H_
 #define _SPICA_RENDERER_HELPER_H_
 
@@ -11,7 +15,6 @@
     #define SPICA_RENDERER_HELPER_DLL
 #endif
 
-#include "material.h"
 #include "scene.h"
 #include "camera.h"
 
@@ -38,13 +41,11 @@ namespace spica {
         // Standard radiance simulator
         // @param[in] scene: rendered scene
         // @param[in] ray: ray casted from camera
-        // @param[in] rng: random number generator
+        // @param[in] rseq: random number sequence
         // @param[in] depth: depth of recursion
         // @param[in] depthLimit: maximum depth of recursion
         // @param[in] depthMin: depth in which recursion begin to be terminated with Russian roulette
-        Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth, const int depthLimit = 64, const int depthMin = 5);
-
-        Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int depth, const int depthLimit = 64, const int depthMin = 6);    
+        Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int depth, const int depthLimit = 64, const int depthMin = 6);
     }
 
 }

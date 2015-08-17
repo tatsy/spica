@@ -6,83 +6,66 @@
 namespace spica {
     
     Scene::Scene()
-        : _nIGeometrys(0)
-        , _arraySize(0)
-        , _lightID(-1)
-        , _primitives(0)
-        , _materials(0)
+        : _triangles()
+        , _lights()
+        , _bsdfs()
+        , _bsdfIds()
+        , _accel()
         , _envmap()
     {
-        init();
+        _envmap.resize(512, 512);
+        _envmap.clearColor(Color::BLACK);
     }
 
     Scene::~Scene()
     {
-        release();
     }
 
-    void Scene::checkArraySize() {
-        if (_nIGeometrys == _arraySize) {
-            _arraySize *= 2;
-            const IGeometry** primPtr = new const IGeometry*[_arraySize];
-            Material* matPtr = new Material[_arraySize];
-            memcpy((void*)primPtr, (void*)_primitives, sizeof(IGeometry*) * _nIGeometrys);
-            memcpy((void*)matPtr, (void*)_materials, sizeof(Material) * _nIGeometrys);
-            release();
-            _primitives = primPtr;
-            _materials = matPtr;
-        }
+    const Triangle& Scene::getTriangle(int id) const {
+        Assertion(id >= 0 && id < _triangles.size(), "Object index out of bounds");
+        return _triangles[id];
     }
 
-    const IGeometry* Scene::get(int id) const {
-        Assertion(id >= 0 && id < _nIGeometrys, "Object index out of bounds");
-        return _primitives[id];
-    }
-
-    const Material& Scene::getMaterial(int id) const {
-        Assertion(id >= 0 && id < _nIGeometrys, "Object index out of boudns");
-        return _materials[id];
-    }
-
-    void Scene::init() {
-        this->_nIGeometrys = 0;
-        this->_arraySize = 1024;
-        _primitives = new const IGeometry*[_arraySize];
-        _materials = new Material[_arraySize];
-        _envmap.resize(512, 512);
-        _envmap.clearColor(Color(0.0, 0.0, 0.0));
+    const BSDF& Scene::getBsdf(int id) const {
+        Assertion(id >= 0 && id < _bsdfIds.size(), "Object index out of boudns");
+        return _bsdfs[_bsdfIds[id]];
     }
 
     void Scene::clear() {
-        release();
-        init();
+        _triangles.clear();
+        _triangles.shrink_to_fit();
+        _bsdfIds.clear();
+        _bsdfIds.shrink_to_fit();
+        _bsdfs.clear();
+        _bsdfs.shrink_to_fit();
     }
 
-    void Scene::release() {
-        for (int i = 0; i < _nIGeometrys; i++) {
-            delete _primitives[i];
+    void Scene::setAccelerator(AccelType type) {
+        switch (type) {
+        case QBVH_ACCEL:
+            _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
+            break;
+        
+        case KD_TREE_ACCEL:
+            _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
+            break;
+        
+        default:
+            std::cerr << "[ERROR] unknown accelerator type !!" << std::endl;
+            std::abort();
         }
-        delete[] _primitives;    
-        delete[] _materials;
+        _accel->construct(_triangles);
     }
 
     bool Scene::intersect(const Ray& ray, Intersection& isect) const {
-        // Linear search
-        int objID = -1;
-        Hitpoint hitpoint;
-        for (int i = 0; i < _nIGeometrys; i++) {
-            Hitpoint hpTemp;
-            if (_primitives[i]->intersect(ray, &hpTemp)) {
-                if (hitpoint.distance() > hpTemp.distance()) {
-                    objID = i;
-                    hitpoint = hpTemp;
-                }
-            }
-        }
+        Assertion(_accel, "Accelerator is not prepared !!");
 
-        isect.setObjectId(objID);
+        Hitpoint hitpoint;
+        const int triID = _accel->intersect(ray, &hitpoint);
+
+        isect.setObjectId(triID);
         isect.setHitpoint(hitpoint);
-        return objID != -1;
+        return triID != -1;
     }
 
 }  // namespace spica

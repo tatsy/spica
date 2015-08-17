@@ -36,8 +36,8 @@ namespace spica {
 
         this->resize(camera_.imageW(), camera_.imageH());
 
-        for (int i = 0; i < scene.numObjects(); i++) {
-            vbo.add(scene.get(i), scene.getMaterial(i).color);
+        for (int i = 0; i < scene.numTriangles(); i++) {
+            vbo.add(scene.getTriangle(i), scene.getBsdf(i).reflectance());
         }
     }
 

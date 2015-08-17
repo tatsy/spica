@@ -17,7 +17,6 @@
 
 #include "geometry_interface.h"
 #include "../utils/vector3d.h"
-#include "../renderer/material.h"
 #include "../renderer/ray.h"
 
 namespace spica {

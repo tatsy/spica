@@ -4,10 +4,11 @@ spica
 [![Build Status](https://travis-ci.org/tatsy/spica.svg?branch=master)](https://travis-ci.org/tatsy/spica)
 [![Coverage Status](https://coveralls.io/repos/tatsy/spica/badge.svg?branch=master)](https://coveralls.io/r/tatsy/spica?branch=master)
 
-> **spica** is a cross-platform physically-based renderer that is written in C++.
-> HDR images are from sIBL Archive [http://www.hdrlabs.com/sibl/archive.html](http://www.hdrlabs.com/sibl/archive.html). These images are licensed under the Creative Commons Attribution-Noncommercial-Share Alike 3.0 License.
+> **spica** is a cross-platform physically-based renderer written with C++.
 
-## Renderer
+## Overview
+
+#### Renderer
 
 * Monte-Carlo path tracing
 * Bidirectional path tracing
@@ -15,26 +16,31 @@ spica
 * Photon mapping
 * Stochastic progressive photon mapping
 
-## Materials
+#### Materials
 
-* Lambertian
-* Specular
-* Complete refract
+* Lambertian BRDF
+* Phong BRDF
+* Specular BRDF
+* Refractive object
 * Subsurface scattering (dipole diffusion)
 
-## Sampler
+#### Sampler
 
-* Mersenne twister
+* Pseudo random number generator (Mersenne Twister)
 * Quasi Monte Carlo (permuted Halton sequence)
 
-#### Future support
-
-* Precomputed radiance transfer
-
-## Data structure for rendering acceleration
+#### Data structures
 
 * K-D tree
-* QBVH (with SIMD)
+* QBVH (accelerated with SIMD)
+
+## Build
+
+```shell
+$ git clone https://github.com/tatsy.spica.git
+$ cmake -DSPICA_BUILD_TEST=OFF .
+$ cmake --build .
+```
 
 ## Results
 
@@ -61,6 +67,10 @@ spica
 #### Subsurface scattering (Stochastic progressive photon mapping)
 
 <img src="./results/subsurface_sppm.jpg" width="480" />
+
+## Acknowledgment
+
+The author sincerely thank for HDR images provided by sIBL Archive [http://www.hdrlabs.com/sibl/archive.html](http://www.hdrlabs.com/sibl/archive.html). These images are licensed under the Creative Commons Attribution-Noncommercial-Share Alike 3.0 License.
 
 ## License
 

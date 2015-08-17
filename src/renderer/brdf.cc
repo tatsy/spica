@@ -3,72 +3,17 @@
 
 #include "../utils/sampler.h"
 
+#include "bsdf.h"
+
 namespace spica {
-
-    // --------------------------------------------------
-    // BRDF
-    // --------------------------------------------------
-    BRDF::BRDF()
-        : _numCopies(NULL)
-        , _ptr(NULL)
-    {
-    }
-
-    BRDF::BRDF(const BRDF& brdf)
-        : _numCopies(NULL)
-        , _ptr(NULL)
-    {
-        this->operator=(brdf);
-    }
-
-    BRDF::BRDF(const BRDFBase* ptr)
-        : _numCopies(new int(0))
-        , _ptr(ptr)
-    {
-    }
-
-    BRDF::~BRDF()
-    {
-        release();
-    }
-
-    BRDF& BRDF::operator=(const BRDF& brdf) {
-        release();
-        _numCopies = brdf._numCopies;
-        _ptr = brdf._ptr;
-        if (_numCopies != NULL) {
-            (*_numCopies)++;
-        }
-        return *this;
-    }
-
-    Color BRDF::reflectance() const {
-        return _ptr->reflectance();
-    }
-
-    void BRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
-        _ptr->sample(in, normal, rand1, rand2, out);
-    }
-
-    void BRDF::release() {
-        if (_numCopies != NULL) {
-            if ((*_numCopies) == 0) {
-                delete _numCopies;
-                delete _ptr;
-                _numCopies = NULL;
-                _ptr = NULL;
-            } else {
-                (*_numCopies) -= 1;
-            }
-        }
-    }
 
     // --------------------------------------------------
     // Lambertian BRDF
     // --------------------------------------------------
 
-    LambertianBRDF::LambertianBRDF(const Color& reflectance)
+    LambertianBRDF::LambertianBRDF(const Color& reflectance, const Color& emittance)
         : _reflectance(reflectance)
+        , _emittance(emittance)
     {
     }
 
@@ -76,20 +21,29 @@ namespace spica {
         return _reflectance;
     }
 
+    Color LambertianBRDF::emittance() const {
+        return _emittance;
+    }
+
     void LambertianBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
         sampler::onHemisphere(normal, out, rand1, rand2);
     }
 
-    BRDF LambertianBRDF::factory(const Color& reflectance) {
-        return BRDF(new LambertianBRDF(reflectance));
+    BSDF LambertianBRDF::factory(const Color& reflectance, const Color& emittance) {
+        return std::move(BSDF(new LambertianBRDF(reflectance, emittance), BSDF_TYPE_LAMBERTIAN_BRDF));
+    }
+
+    BSDFBase* LambertianBRDF::clone() const {
+        return new LambertianBRDF(_reflectance, _emittance);
     }
 
     // --------------------------------------------------
     // Specular BRDF
     // --------------------------------------------------
 
-    SpecularBRDF::SpecularBRDF(const Color& reflectance)
+    SpecularBRDF::SpecularBRDF(const Color& reflectance, const Color& emittance)
         : _reflectance(reflectance)
+        , _emittance(emittance)
     {
     }
 
@@ -97,26 +51,39 @@ namespace spica {
         return _reflectance;
     }
 
+    Color SpecularBRDF::emittance() const {
+        return _emittance;
+    }
+
     void SpecularBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
         (*out) = Vector3D::reflect(in, normal);
     }
 
-    BRDF SpecularBRDF::factory(const Color& reflectance) {
-        return BRDF(new SpecularBRDF(reflectance));
+    BSDF SpecularBRDF::factory(const Color& reflectance, const Color& emittance) {
+        return std::move(BSDF(new SpecularBRDF(reflectance, emittance), BSDF_TYPE_SPECULAR_BRDF));
+    }
+
+    BSDFBase* SpecularBRDF::clone() const {
+        return new SpecularBRDF(_reflectance, _emittance);
     }
 
     // --------------------------------------------------
     // Phong BRDF
     // --------------------------------------------------
 
-    PhongBRDF::PhongBRDF(const Color& reflectance, const double n)
+    PhongBRDF::PhongBRDF(const Color& reflectance, const Color& emittance, const double n)
         : _reflectance(reflectance)
-        , _coeffN(n)
+        , _emittance(emittance)
+        , _coeff(n)
     {
     }
 
     Color PhongBRDF::reflectance() const {
         return _reflectance;
+    }
+
+    Color PhongBRDF::emittance() const {
+        return _emittance;
     }
 
     void PhongBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
@@ -132,14 +99,18 @@ namespace spica {
         }
         v = w.cross(u);
 
-        double theta = acos(pow(rand1, 1.0 / (_coeffN + 1.0)));
+        double theta = acos(pow(rand1, 1.0 / (_coeff + 1.0)));
         double phi = 2.0 * PI * rand2;
 
         (*out) = u * sin(theta) * cos(phi) + w * cos(theta) + v * sin(theta) * sin(phi);
     }
 
-    BRDF PhongBRDF::factory(const Color& reflectance, const double n) {
-        return BRDF(new PhongBRDF(reflectance, n));
+    BSDF PhongBRDF::factory(const Color& reflectance, const Color& emittance, const double n) {
+        return std::move(BSDF(new PhongBRDF(reflectance, emittance, n), BSDF_TYPE_PHONG_BRDF));
+    }
+
+    BSDFBase* PhongBRDF::clone() const {
+        return new PhongBRDF(_reflectance, _emittance, _coeff);
     }
 
 }

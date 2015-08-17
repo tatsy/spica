@@ -60,6 +60,7 @@ namespace spica {
         return _image(iblx, ibly);
     }
 
+    /*
     Photon Envmap::samplePhoton(RandomSeq& rseq, const int numPhotons) const {
         const double R = 20.0;
         const int width = IMPORTANCE_MAP_SIZE;
@@ -84,6 +85,7 @@ namespace spica {
 
         return Photon(R * dir, currentFlux, -dir, -dir);                
     }
+    */
 
     void Envmap::createImportanceMap() {
         _importance.resize(IMPORTANCE_MAP_SIZE, IMPORTANCE_MAP_SIZE);

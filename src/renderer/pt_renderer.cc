@@ -9,7 +9,6 @@
 #include "../utils/vector3d.h"
 #include "../utils/sampler.h"
 #include "../utils/image.h"
-#include "material.h"
 #include "scene.h"
 #include "renderer_helper.h"
 

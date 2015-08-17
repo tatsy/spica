@@ -37,7 +37,7 @@ namespace spica {
     public:
         virtual ~AccelBase() {}
         virtual void construct(const std::vector<Triangle>& triangles) = 0;
-        virtual bool intersect(const Ray& ray, Hitpoint* hitpoint) const = 0;
+        virtual int  intersect(const Ray& ray, Hitpoint* hitpoint) const = 0;
 
     protected:
         static BBox enclosingBox(const std::vector<Triangle>& triangles);

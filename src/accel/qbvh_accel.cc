@@ -177,7 +177,7 @@ namespace spica {
         return node;
     }
 
-    bool QBVHAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
+    int QBVHAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
         // ray for SIMD arthimetic
         __m128 simdOrig[3];  // origin
         __m128 simdIdir[3];  // inverse direction
@@ -211,7 +211,7 @@ namespace spica {
         sgn[1] = idiry > 0.0f ? 0 : 1;
         sgn[2] = idirz > 0.0f ? 0 : 1;
 
-        bool hit = false;
+        int hit = -1;
         std::stack<QBVHNode*> stk;
         stk.push(_root);
         while(!stk.empty()) {
@@ -232,7 +232,7 @@ namespace spica {
                 }
 
                 if (triID != -1) {
-                    hit = true;
+                    hit = triID;
                 }
                 continue;
             }

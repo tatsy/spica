@@ -57,7 +57,7 @@ namespace spica {
         KdTreeAccel& operator=(KdTreeAccel&& kdtree);       // Move
         
         void construct(const std::vector<Triangle>& triangles);
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        int  intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
     private:
         void release();
@@ -65,7 +65,7 @@ namespace spica {
         KdTreeNode* copyNode(KdTreeNode* node);
         KdTreeNode* constructRec(std::vector<Triangle>& triangles, int dim);
 
-        static bool intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax);
+        static int intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax);
     };
 
 }

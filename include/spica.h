@@ -26,7 +26,6 @@
 #include "../src/renderer/mlt_renderer.h"
 #include "../src/renderer/photon_mapping.h"
 #include "../src/renderer/progressive_photonmap.h"
-#include "../src/renderer/sss_renderer.h"
 #include "../src/renderer/subsurface_sppm_renderer.h"
 
 // --------------------------------------------

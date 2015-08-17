@@ -6,7 +6,7 @@
 #include <string>
 #include <algorithm>
 
-#include "material.h"
+#include "renderer_constants.h"
 
 namespace spica {
 
@@ -15,7 +15,7 @@ namespace spica {
     // ------------------------------------------------------------
 
     double BSSRDFBase::Ft(const Vector3D& normal, const Vector3D& in) const {
-        const double nnt = IOR_OBJECT / IOR_VACCUM;
+        const double nnt = kIorObject / kIorVaccum;
         const double ddn = in.dot(normal);
         const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
@@ -23,8 +23,8 @@ namespace spica {
 
         Vector3D refractDir = (in * nnt + normal * (ddn * nnt + sqrt(cos2t))).normalized();
 
-        const double a = IOR_OBJECT - IOR_VACCUM;
-        const double b = IOR_OBJECT + IOR_VACCUM;
+        const double a = kIorObject - kIorVaccum;
+        const double b = kIorObject + kIorVaccum;
         const double R0 = (a * a) / (b * b);
 
         const double c  = 1.0 - Vector3D::dot(refractDir, -normal);
@@ -37,7 +37,7 @@ namespace spica {
             return -1.4399 / (_eta * _eta) + 0.7099 / _eta + 0.6681 + 0.0636 * _eta;
         } else {
             return -0.4399 + 0.7099 / _eta - 0.3319 / (_eta * _eta) + 0.0636 / (_eta * _eta * _eta);
-        }    
+        }
     }
 
     // ------------------------------------------------------------
@@ -99,7 +99,7 @@ namespace spica {
         return Color(ret, ret, ret);    
     }
 
-    BSSRDFBase* DipoleBSSRDF::copy() const {
+    BSSRDFBase* DipoleBSSRDF::clone() const {
         return new DipoleBSSRDF(*this);
     }
 
@@ -166,7 +166,7 @@ namespace spica {
         return _colors[idx];
     }
 
-    BSSRDFBase* DiffuseBSSRDF::copy() const {
+    BSSRDFBase* DiffuseBSSRDF::clone() const {
         return new DiffuseBSSRDF(*this);
     }
 
@@ -259,11 +259,21 @@ namespace spica {
     }
 
     BSSRDF& BSSRDF::operator=(const BSSRDF& bssrdf) {
-        _ptr = bssrdf._ptr->copy();
+        delete _ptr;
+        _ptr = NULL;
+
+        printf("nande\n");
+        if (bssrdf._ptr != NULL) {
+            printf("ptr: %p\n", bssrdf._ptr);
+            _ptr = bssrdf._ptr->clone();
+        }
+        printf("nanda\n");
         return *this;
     }
 
     BSSRDF& BSSRDF::operator=(BSSRDF&& bssrdf) {
+        delete _ptr;
+
         this->_ptr = bssrdf._ptr;
         bssrdf._ptr = nullptr;
         return *this;

@@ -117,8 +117,8 @@ namespace spica {
                 }
                 return 0.0;
             } else if (fromVert.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
-                const Material& mtrl = scene.getMaterial(fromVert.objectId);
-                if (mtrl.reftype == REFLECTION_SPECULAR) {
+                const BSDF& bsdf = scene.getBsdf(fromVert.objectId);
+                if (bsdf.type() == BSDF_TYPE_SPECULAR_BRDF) {
                     if (prevFromVertex != NULL) {
                         const Vector3D intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalized();
                         const bool isIncoming = intoFromVertexDir.dot(fromVert.objectNormal) < 0.0;
@@ -143,7 +143,7 @@ namespace spica {
 
             const Vector3D nextNewOrientNormal = to.dot(nextVert.objectNormal) < 0.0 ? nextVert.objectNormal : -nextVert.objectNormal;
             return pdf * (-1.0 * normalizedTo).dot(nextNewOrientNormal) / to.dot(to);
-         }
+        }
 
         double calcMISWeight(const Scene& scene, const Camera& camera, const double totalPdfA, const std::vector<Vertex>& eyeVerts, const std::vector<Vertex>& lightVerts, const int nEyeVerts, const int nLightVerts) {
             std::vector<const Vertex*> verts(nEyeVerts + nLightVerts);

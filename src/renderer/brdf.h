@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_BRDF_H_
 #define _SPICA_BRDF_H_
 
@@ -17,85 +21,71 @@
 
 namespace spica {
 
-    class BRDF;
+    class BSDF;
 
-    // Interface class for BRDF object
-    class SPICA_BRDF_DLL BRDFBase {
+    // Interface class for BSDF object
+    class SPICA_BRDF_DLL BSDFBase {
     protected:
-        BRDFBase() {}
-        explicit BRDFBase(const BRDFBase&) {}
+        BSDFBase() {}
+        explicit BSDFBase(const BSDFBase&) {}
 
     public:
-        virtual ~BRDFBase() {}
+        virtual ~BSDFBase() {}
         virtual Color reflectance() const = 0;
+        virtual Color emittance() const = 0;
         virtual void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const = 0;
+        virtual BSDFBase* clone() const = 0;
     };
 
-    class SPICA_BRDF_DLL LambertianBRDF : public BRDFBase {
+    class SPICA_BRDF_DLL LambertianBRDF : public BSDFBase {
     private:
         Color _reflectance;
+        Color _emittance;
 
     public:
-        static BRDF factory(const Color& reflectance);
-        Color reflectance() const;
-        void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const;
+        static BSDF factory(const Color& reflectance, const Color& emittance = Color(0.0, 0.0, 0.0));
+        Color reflectance() const override;
+        Color emittance() const override;
+        void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const override;
+        BSDFBase* clone() const override;
 
     private:
-        explicit LambertianBRDF(const Color& reflectance);
+        explicit LambertianBRDF(const Color& reflectance, const Color& emittance);
     };
 
-    class SPICA_BRDF_DLL SpecularBRDF : public BRDFBase {
+    class SPICA_BRDF_DLL SpecularBRDF : public BSDFBase {
     private:
         Color _reflectance;
+        Color _emittance;
 
     public:
-        static BRDF factory(const Color& reflectance);
-        Color reflectance() const;
+        static BSDF factory(const Color& reflectance, const Color& emittance = Color(0.0, 0.0, 0.0));
+        Color reflectance() const override;
+        Color emittance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const;
+        BSDFBase* clone() const override;
 
     private:
-        explicit SpecularBRDF(const Color& reflectance);
+        explicit SpecularBRDF(const Color& reflectance, const Color& emittance);
     };
 
-    class SPICA_BRDF_DLL PhongBRDF : public BRDFBase {
+    class SPICA_BRDF_DLL PhongBRDF : public BSDFBase {
     private:
         Color _reflectance;
-        double _coeffN;
+        Color _emittance;
+        double _coeff;
 
     public:
-        static BRDF factory(const Color& reflectance, const double n);
-        Color reflectance() const;
+        static BSDF factory(const Color& reflectance, const Color& emittance = Color(0.0, 0.0, 0.0), const double n = 32);
+        Color reflectance() const override;
+        Color emittance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const;
+        BSDFBase* clone() const override;
 
     private:
-        PhongBRDF(const Color& reflectance, const double n);
+        PhongBRDF(const Color& reflectance, const Color& emittance, const double n);
     };
 
-    class SPICA_BRDF_DLL BRDF {
-    private:
-        int* _numCopies;
-        const BRDFBase* _ptr;
-
-    public:
-        BRDF();
-        BRDF(const BRDF& brdf);
-        ~BRDF();
-
-        BRDF& operator=(const BRDF& brdf);
-        Color reflectance() const;
-        void sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const;
-
-    private:
-        explicit BRDF(const BRDFBase* ptr);
-        void release();
-
-    // Friend classes
-        friend class LambertianBRDF;
-        friend class SpecularBRDF;
-        friend class PhongBRDF;
-    };
-
-
-}
+}  // namespace spica
 
 #endif  // _SPICA_BRDF_H_

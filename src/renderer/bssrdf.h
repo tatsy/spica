@@ -38,7 +38,7 @@ namespace spica {
         virtual double Ft(const Vector3D& nornal, const Vector3D& in) const;
         virtual double Fdr() const;
         virtual Color operator()(const double d2) const = 0;
-        virtual BSSRDFBase* copy() const = 0;
+        virtual BSSRDFBase* clone() const = 0;
     };
 
 
@@ -64,7 +64,7 @@ namespace spica {
     public:
         static BSSRDF factory(double sigma_a, double sigmap_s, double eta = 1.3);
         Color operator()(const double d2) const override;
-        BSSRDFBase* copy() const override;
+        BSSRDFBase* clone() const override;
     };
 
     // ------------------------------------------------------------
@@ -87,7 +87,7 @@ namespace spica {
         static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
         BSSRDF factory() const;
         Color operator()(const double d2) const override;
-        BSSRDFBase* copy() const override;
+        BSSRDFBase* clone() const override;
 
         int numIntervals() const;
         const std::vector<double>& distances() const;

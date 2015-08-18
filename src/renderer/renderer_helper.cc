@@ -39,7 +39,7 @@ namespace spica {
 
             if (cos2t < 0.0) {
                 // Total reflect
-                *refractDir = Vector3D();
+                *refractDir = Vector3D(0.0, 0.0, 0.0);
                 *fresnelRef = 1.0;
                 *fresnelTransmit = 0.0;
                 return true;
@@ -52,7 +52,7 @@ namespace spica {
             const double R0 = (a * a) / (b * b);
 
             const double c = 1.0 - (isIncoming ? -ddn : Vector3D::dot(*refractDir, -orientNormal));
-            *fresnelRef = R0 + (1.0 - R0) * pow(c, 5.0);
+            *fresnelRef = R0 + (1.0 - R0) * (c * c * c * c * c);
             *fresnelTransmit = 1.0 - (*fresnelRef);
 
             return false;

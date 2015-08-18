@@ -115,19 +115,18 @@ namespace spica {
                 return 0.0;
             } else if (fromVert.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
                 const BSDF& bsdf = scene.getBsdf(fromVert.objectId);
-                if (bsdf.type() == BSDF_TYPE_SPECULAR_BRDF) {
+                if (bsdf.type() == BSDF_TYPE_REFRACTION) {
                     if (prevFromVertex != NULL) {
                         const Vector3D intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalized();
                         const bool isIncoming = intoFromVertexDir.dot(fromVert.objectNormal) < 0.0;
                         const Vector3D fromNewOrientNormal = isIncoming ? fromVert.objectNormal : -fromVert.objectNormal;
 
-                        Vector3D reflectDir;
-                        Vector3D refractDir;
-                        double fresnelRef;
-                        double fresnelTransmit;
-                        
-                        if (helper::checkTotalReflection(isIncoming, intoFromVertexDir, fromVert.objectNormal, fromNewOrientNormal,
-                                              &reflectDir, &refractDir, &fresnelRef, &fresnelTransmit)) {
+                        Vector3D reflectdir, transdir;
+                        double fresnelRe, fresnelTr;
+                        bool totalReflection = helper::checkTotalReflection(isIncoming,
+                                                                            intoFromVertexDir, fromVert.objectNormal, fromNewOrientNormal,
+                                                                             &reflectdir, &transdir, &fresnelRe, &fresnelTr);
+                        if (totalReflection) {
                             pdf = 1.0;
                         } else {
                             pdf = fromNewOrientNormal.dot(normalizedTo) > 0.0 ? reflectProb : 1.0 - reflectProb;
@@ -264,7 +263,7 @@ namespace spica {
                 const Color& emittance = scene.getEmittance(triangleID);
                 const Hitpoint& hitpoint = isect.hitpoint();
 
-                const Vector3D orientNormal = hitpoint.normal().dot(currentRay.direction()) < 0.0 ? hitpoint.normal() : -1.0 * hitpoint.normal();
+                const Vector3D orientNormal = hitpoint.normal().dot(currentRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
                 const double rouletteProb = emittance.norm() > 1.0 ? 1.0 : std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
                 
                 if (rands[0] >= rouletteProb) {
@@ -414,7 +413,7 @@ namespace spica {
                     bool totalReflection = helper::checkTotalReflection(isIncoming,
                                                                         nowRay.direction(), hitpoint.normal(), orientNormal,
                                                                         &reflectdir, &transdir, &fresnelRe, &fresnelTr);
-                    
+
                     if (totalReflection) {
                         nowSampledPdfOmega = 1.0;
                         nowRay = Ray(hitpoint.position(), reflectdir);
@@ -431,7 +430,7 @@ namespace spica {
                             const double nnt2 = ratio * ratio;
                             nowSampledPdfOmega = 1.0;
                             nowRay = Ray(hitpoint.position(), transdir);
-                            throughput = nnt2 * fresnelTr * bsdf.reflectance() * throughput / (toNextVertex.normalized().dot(orientNormal));
+                            throughput = (nnt2 * fresnelTr) * (bsdf.reflectance() * throughput) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= (1.0 - probability);
                         }
                     }
@@ -516,6 +515,7 @@ namespace spica {
                         if (dist >= EPS) {
                             continue;
                         }
+
                         const BSDF& eyeEndBsdf = scene.getBsdf(eyeEnd.objectId);
                         connectedThroughput = connectedThroughput * eyeEndBsdf.reflectance() * INV_PI;
                     } else if (eyeEnd.objtype == Vertex::OBJECT_TYPE_LENS) {

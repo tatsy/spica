@@ -9,6 +9,9 @@
 #include "../utils/vector3d.h"
 #include "../utils/sampler.h"
 #include "../utils/image.h"
+
+#include "../random/random_sampler.h"
+
 #include "scene.h"
 #include "renderer_helper.h"
 
@@ -16,16 +19,16 @@ namespace spica {
 
     namespace {
 
-        Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, RandomSeq& rseq) {
+        Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, Stack<double>& rands) {
             Vector3D posOnSensor;        // Position on the image sensor
             Vector3D posOnObjplane;      // Position on the object plane
             Vector3D posOnLens;          // Position on the lens
             double  pImage, pLens;      // Sampling probability on image sensor and lens
 
-            CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
+            CameraSample camSample = camera.sample(pixelX, pixelY, rands);
             const Ray ray = camSample.generateRay();
 
-            return Color(helper::radiance(scene, ray, rseq, 0) * (camera.sensitivity() / camSample.totalPdf()));
+            return Color(helper::radiance(scene, ray, rands, 0) * (camera.sensitivity() / camSample.totalPdf()));
         }
 
     }   // anonymous namespace
@@ -44,17 +47,17 @@ namespace spica {
         const int height = camera.imageH();
 
         // Prepare random number generators
-        RandomBase** rand = new RandomBase*[OMP_NUM_CORE];
+        RandomSampler* samplers = new RandomSampler[OMP_NUM_CORE];
         for (int i = 0; i < OMP_NUM_CORE; i++) {
             switch (randType) {
             case PSEUDO_RANDOM_TWISTER:
                 printf("Use pseudo random numbers (Twister)\n");
-                rand[i] = new Random(i);
+                samplers[i] = Random::factory(i);
                 break;
 
             case QUASI_MONTE_CARLO:
                 printf("Use quasi random numbers (Halton)\n");
-                rand[i] = new Halton(200, true, i);
+                samplers[i] = Halton::factory(200, true, i);
                 break;
 
             default:
@@ -87,11 +90,11 @@ namespace spica {
             for (int t = 0; t < taskPerThread; t++) {
                 ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
                     if (t < tasks[threadID].size()) {
-                        RandomSeq rseq;
+                        Stack<double> rstk;
                         const int y = tasks[threadID][t];
                         for (int x = 0; x < width; x++) {                    
-                            rand[threadID]->requestSamples(rseq, 200);
-                            buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rseq);
+                            samplers[threadID].request(&rstk, 200);
+                            buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rstk);
                         }
                     }
                 }
@@ -112,10 +115,7 @@ namespace spica {
         }
         printf("\nFinish!!\n");
 
-        for (int i = 0; i < OMP_NUM_CORE; i++) {
-            delete rand[i];
-        }
-        delete[] rand;
+        delete[] samplers;
 
         if (isAllocImageInside) {
             delete _image;

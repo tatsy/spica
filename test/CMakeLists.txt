@@ -30,6 +30,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   set(SOURCE_FILES
       all_tests.cc
       test_macros.h
+      test_stack.cc
       test_geometry.cc
       test_vector.cc
       test_image.cc

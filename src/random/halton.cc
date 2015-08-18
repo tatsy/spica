@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <algorithm>
 
+#include "random_sampler.h"
+
 namespace spica {
 
     namespace {
@@ -68,7 +70,7 @@ namespace spica {
         }
     }
 
-    Halton::Halton(int dim, bool isPermute, int seed)
+    Halton::Halton(int dim, bool isPermute, unsigned int seed)
         : dims(dim)
         , bases(NULL)
         , permute(NULL)
@@ -103,18 +105,23 @@ namespace spica {
         delete[] permute;
     }
 
-    void Halton::requestSamples(RandomSeq& rseq, const int numRequested) {
+    void Halton::request(Stack<double>* rstk, const int numRequested) {
         Assertion(numRequested <= dims, "Requested samples are too many !!");
 
-        rseq.resize(numRequested);
+        rstk->clear();
 
         int* p = permute;
         for (int i = 0; i < numRequested; i++) {
-            rseq.set(i, radicalInverse(numUsedSamples, bases[i], p));
+            rstk->push(radicalInverse(numUsedSamples, bases[i], p));
             p += bases[i];
         }
         numUsedSamples++;
-        rseq.reset();
+    }
+
+    RandomSampler Halton::factory(int dim, bool isPermute, unsigned int seed) {
+        RandomSampler rand;
+        rand._rng.reset(new Halton(dim, isPermute, seed));
+        return std::move(rand);
     }
 
     double Halton::radicalInverse(int n, int base, const int* p) const {

@@ -36,7 +36,7 @@ namespace spica {
 
         Photon& operator=(const Photon& photon);
 
-        static Photon sample(const Scene& scene, RandomSeq& rseq, const int numPhotons);
+        static Photon sample(const Scene& scene, Stack<double>& rstk, const int numPhotons);
 
         inline Color   flux()      const { return _flux; }
         inline Vector3D direction() const { return _direction; }

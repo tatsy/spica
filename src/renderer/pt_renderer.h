@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef SPICA_PT_RENDERER_H_
 #define SPICA_PT_RENDERER_H_
 

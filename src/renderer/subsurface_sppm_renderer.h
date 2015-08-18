@@ -106,7 +106,7 @@ namespace spica {
         // 2nd pass: Trace photons from lights
         void tracePhotons(const Scene& scene, RandomBase* rand, const int numPhotons, const int bounceLimit = 64);
 
-        void executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, HitpointInfo* hp, const int bounceLimit = 64);
+        void executePathTracing(const Scene& scene, const Camera& camera, Stack<double>& rseq, HitpointInfo* hp, const int bounceLimit = 64);
 
         void constructHashGrid(std::vector<HitpointInfo>& hpoints, const int imageW, const int imageH);
 

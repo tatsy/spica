@@ -58,6 +58,8 @@ Thanks!
 
 #include "../utils/common.h"
 
+#include "random_sampler.h"
+
 namespace spica {
 
     /* Period parameters */
@@ -65,11 +67,10 @@ namespace spica {
     const unsigned int Random::UPPER_MASK = 0x80000000U;  /* most significant w-r bits */
     const unsigned int Random::LOWER_MASK = 0x7fffffffU;  /* least significant r bits */
 
-    Random::Random(int seed)
+    Random::Random(unsigned int seed)
         : mti(N + 1)
     {
-        unsigned int ulseed = seed >= 0 ? seed : (unsigned int)time(NULL);
-        init_genrand(ulseed);
+        init_genrand(seed);
     }
 
     int Random::nextInt() {
@@ -85,12 +86,11 @@ namespace spica {
         return genrand_real2();
     }
 
-    void Random::requestSamples(RandomSeq& rseq, const int numRequested) {
-        rseq.resize(numRequested);
+    void Random::request(Stack<double>* rands, const int numRequested) {
+        rands->clear();
         for (int i = 0; i < numRequested; i++) {
-            rseq.set(i, nextReal());
+            rands->push(nextReal());
         }
-        rseq.reset();
     }
 
     /* initializes mt[N] with a seed */
@@ -171,6 +171,12 @@ namespace spica {
         y ^= (y >> 18);
 
         return y;
+    }
+
+    RandomSampler Random::factory(unsigned int seed) {
+        RandomSampler rand;
+        rand._rng.reset(new Random(seed));
+        return std::move(rand);
     }
 
     /* generates a random number on [0,0x7fffffff]-interval */

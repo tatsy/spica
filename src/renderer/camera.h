@@ -12,7 +12,10 @@
 #endif
 
 #include "../geometry/plane.h"
+
 #include "../utils/image.h"
+#include "../utils/stack.h"
+
 #include "../random/random.h"
 #include "../random/halton.h"
 
@@ -127,7 +130,7 @@ namespace spica {
         void samplePoints(const int imageX, const int imageY, Random& rng, Vector3D& positionOnSensor, Vector3D& positionOnObjplane, Vector3D& positionOnLens, double& PImage, double& PLens) const;
 
         CameraSample sample(const double imageX, const double imageY, double randnum[4]) const;
-        CameraSample sample(const double imageX, const double imageY, RandomSeq& rseq) const;
+        CameraSample sample(const double imageX, const double imageY, Stack<double>& rseq) const;
 
         inline unsigned int imageW() const { return width_; }
         inline unsigned int imageH() const { return height_; }

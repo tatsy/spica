@@ -58,7 +58,7 @@ namespace spica {
             return false;
         }
 
-        Color radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int depth, const int depthLimit, const int depthMin) {
+        Color radiance(const Scene& scene, const Ray& ray, Stack<double>& rands, const int depth, const int depthLimit, const int depthMin) {
             if (depth >= depthLimit) {
                 return Color::BLACK;
             }
@@ -69,8 +69,7 @@ namespace spica {
             }
 
             // Require random numbers
-            std::vector<double> randnums;
-            rseq.next(3, &randnums);
+            const double randnums[3] = { rands.pop(), rands.pop(), rands.pop() };
 
             // Get intersecting material
             const int objectID = isect.objectId();
@@ -93,7 +92,7 @@ namespace spica {
             bsdf.sample(ray.direction(), hitpoint.normal(), randnums[1], randnums[2], &nextdir, &pdf);
             
             Ray nextray(hitpoint.position(), nextdir);
-            const Color nextrad = radiance(scene, nextray, rseq, depth + 1, depthLimit, depthMin);
+            const Color nextrad = radiance(scene, nextray, rands, depth + 1, depthLimit, depthMin);
             
             // Return result
             return Color(bsdf.emittance() + bsdf.reflectance() * nextrad / (roulette * pdf));       

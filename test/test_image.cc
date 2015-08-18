@@ -3,20 +3,31 @@
 using namespace spica;
 
 #include <string>
+#include <direct.h>
 
 namespace {
     const int width = 320;
     const int height = 240;
     Random rng = Random();
-    const std::string filepath = DATA_DIR + "test_image.bmp";
-    const std::string hdrpath = DATA_DIR + "test_hdr.hdr";
+    const std::string filepath = TEMP_DIR + "test_image.bmp";
+    const std::string hdrpath = TEMP_DIR + "test_hdr.hdr";
 }
+
+class ImageTest : public ::testing::Test {
+protected:
+    ImageTest() {}
+    ~ImageTest() {}
+
+    void SetUp() {
+        _mkdir(TEMP_DIR.c_str());
+    }
+};
 
 // --------------------------------------------------
 // Image 
 // --------------------------------------------------
 
-TEST(ImageTest, InstanceTest) {
+TEST_F(ImageTest, InstanceTest) {
     Image image;
     EXPECT_EQ(0, image.width());
     EXPECT_EQ(0, image.height());
@@ -53,14 +64,14 @@ TEST(ImageTest, InstanceTest) {
     }
 }
 
-TEST(ImageTest, InvalidPathToLoad) {
+TEST_F(ImageTest, InvalidPathToLoad) {
     Image image;
     ASSERT_DEATH(image.load("dammy_path.bmp"), "");
 
     ASSERT_DEATH(image.load("image.jpg"), "");
 }
 
-TEST(ImageTest, SaveLoadTest) {
+TEST_F(ImageTest, SaveLoadTest) {
     Image image(width, height);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
@@ -94,10 +105,9 @@ TEST(ImageTest, SaveLoadTest) {
     }
 }
 
-TEST(ImageTest, TonemapTest) {
+TEST_F(ImageTest, TonemapTest) {
     Image image;
     image.load(DATA_DIR + "gold_room.hdr");
-    image.tonemap();
-
-    image.save(DATA_DIR + "gold_room.bmp");
+    EXPECT_NO_FATAL_FAILURE(image.tonemap());
+    image.save(TEMP_DIR + "gold_room.bmp");
 }

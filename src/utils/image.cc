@@ -242,7 +242,10 @@ namespace spica {
         BitmapCoreHeader core;
 
         std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
-        Assertion(ifs.is_open(), "Failed to open file!!");
+        if (!ifs.is_open()) {
+            std::cerr << "[ERROR] failed to load file \"" << filename << "\"" << std::endl;
+            std::abort();
+        }
 
         ifs.read((char*)&header, sizeof(BitmapFileHeader));
         ifs.read((char*)&core, sizeof(BitmapCoreHeader));
@@ -329,8 +332,8 @@ namespace spica {
         // Open file
         FILE* fp = fopen(filename.c_str(), "rb");
         if (fp == NULL) {
-            std::cerr << "Failed to load file \"" << filename << "\"" << std::endl;
-            return;
+            std::cerr << "[ERROR] failed to load file \"" << filename << "\"" << std::endl;
+            std::abort();
         }
 
         const int bufSize = 4096;

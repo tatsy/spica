@@ -9,6 +9,7 @@ namespace spica {
 
     static const std::string ROOT_DIR = "@SPICA_ROOT_DIRECTORY@/";
     static const std::string DATA_DIR = ROOT_DIR + "data/";
+    static const std::string TEMP_DIR = ROOT_DIR + "tmp/";
 
 }
 

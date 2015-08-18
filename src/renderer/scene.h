@@ -66,8 +66,7 @@ namespace spica {
 
             // Compute and store emittance
             for (int i = 0; i < newTriangles.size(); i++) {
-                Color emt = Color(emittance * (newTriangles[i].area() / geom.area()));
-                _emittance.push_back(emt);
+                _emittance.push_back(emittance);
             }
             
             // Update BSDF ids

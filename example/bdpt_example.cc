@@ -7,8 +7,8 @@ using namespace spica;
 int main(int argc, char **argv) {
     std::cout << "*** spica: Bidirectional path tracing ***" << std::endl;
 
-    const int width = argc >= 2 ? atoi(argv[1]) : 320;
-    const int height = argc >= 3 ? atoi(argv[2]) : 240;
+    const int width = argc >= 2 ? atoi(argv[1]) : 400;
+    const int height = argc >= 3 ? atoi(argv[2]) : 300;
     const int samplePerPixel = argc >= 4 ? atoi(argv[3]) : 32;
 
     std::cout << "      width: " << width << std::endl;

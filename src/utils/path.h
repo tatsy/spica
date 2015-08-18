@@ -9,8 +9,9 @@
 #include <direct.h>
 #define makedir(d) _mkdir(d)
 #else
+#include <sys/types.h>
 #include <sys/stat.h>
-#define makedir(d) mkdir(d, 0644)
+#define makedir(d) mkdir(d, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
 #endif
 
 #include <string>

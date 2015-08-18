@@ -100,9 +100,8 @@ namespace spica {
         if (node != NULL) {
             ret = new QBVHNode();
             memcpy((void*)ret->childBoxes, (void*)node->childBoxes, sizeof(__m128) * 6);
-            ret->numTriangles = node->numTriangles;
-            ret->triangles = new Triangle[node->numTriangles];
-            memcpy((void*)ret->triangles, (void*)node->triangles, sizeof(Triangle) * node->numTriangles);
+            ret->triangles.resize(node->triangles.size());
+            std::copy(node->triangles.begin(), node->triangles.end(), ret->triangles.begin());
             memcpy((void*)ret->sepAxes, (void*)node->sepAxes, sizeof(char) * 3);
             ret->isLeaf = node->isLeaf;
 
@@ -116,18 +115,22 @@ namespace spica {
     void QBVHAccel::construct(const std::vector<Triangle>& triangles) {
         release();
 
-        std::vector<Triangle> temp(triangles);
+        const int numTriangles = static_cast<int>(triangles.size());
+        std::vector<TriangleWithID> temp(numTriangles);
+        for (int i = 0; i < triangles.size(); i++) {
+            temp[i].first = triangles[i];
+            temp[i].second = i;
+        }
         _root = constructRec(temp, 0);
     }
     
-    QBVHAccel::QBVHNode* QBVHAccel::constructRec(std::vector<Triangle>& triangles, int dim) {
+    QBVHAccel::QBVHNode* QBVHAccel::constructRec(std::vector<TriangleWithID>& triangles, int dim) {
         const int nTri = static_cast<int>(triangles.size());
 
         if (triangles.size() <= _maxNodeSize) {
             QBVHNode* node = new QBVHNode();
-            node->numTriangles = nTri;
-            node->triangles = new Triangle[nTri];
-            memcpy((void*)node->triangles, (void*)&triangles[0], sizeof(Triangle) * nTri);
+            node->triangles.resize(nTri);
+            std::copy(triangles.begin(), triangles.end(), node->triangles.begin());
             node->isLeaf = true;
             return node;
         }
@@ -138,10 +141,10 @@ namespace spica {
         std::sort(triangles.begin(), triangles.begin() + mid, AxisComparator((dim + 1) % 3));
         std::sort(triangles.begin() + mid, triangles.end(), AxisComparator((dim + 1) % 3));
 
-        std::vector<Triangle> c0(triangles.begin(), triangles.begin() + (mid / 2));
-        std::vector<Triangle> c1(triangles.begin() + (mid / 2), triangles.begin() + mid);
-        std::vector<Triangle> c2(triangles.begin() + mid, triangles.begin() + (mid + mid / 2));
-        std::vector<Triangle> c3(triangles.begin() + (mid + mid / 2), triangles.end());
+        std::vector<TriangleWithID> c0(triangles.begin(), triangles.begin() + (mid / 2));
+        std::vector<TriangleWithID> c1(triangles.begin() + (mid / 2), triangles.begin() + mid);
+        std::vector<TriangleWithID> c2(triangles.begin() + mid, triangles.begin() + (mid + mid / 2));
+        std::vector<TriangleWithID> c3(triangles.begin() + (mid + mid / 2), triangles.end());
 
         BBox boxes[4];
         boxes[0] = enclosingBox(c0);
@@ -168,8 +171,6 @@ namespace spica {
         node->children[1] = constructRec(c1, (dim + 2) % 3);
         node->children[2] = constructRec(c2, (dim + 2) % 3);
         node->children[3] = constructRec(c3, (dim + 2) % 3);
-        node->numTriangles = 0;
-        node->triangles = NULL;
         node->sepAxes[0] = (char)dim;
         node->sepAxes[1] = (char)((dim + 1) % 3);
         node->sepAxes[2] = (char)((dim + 1) % 3);
@@ -220,13 +221,13 @@ namespace spica {
 
             if (node->isLeaf) {
                 int triID = -1;
-                for (int i = 0; i < node->numTriangles; i++) {
-                    const Triangle& tri = node->triangles[i];
+                for (int i = 0; i < node->triangles.size(); i++) {
+                    const Triangle& tri = node->triangles[i].first;
                     Hitpoint hpTemp;
                     if (tri.intersect(ray, &hpTemp)) {
                         if (hitpoint->distance() > hpTemp.distance() && Vector3D::dot(ray.direction(), tri.normal()) < 0.0) {
                             *hitpoint = hpTemp;
-                            triID = i;
+                            triID = node->triangles[i].second;
                         }
                     }
                 }

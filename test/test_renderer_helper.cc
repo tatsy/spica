@@ -13,7 +13,7 @@ TEST(RendererHelperTest, TotalRefTest) {
 
     Vector3D reflectDir, reflactDir;
     double fresnelRef, fresnelTransmit;
-    EXPECT_FALSE(helper::isTotalRef(true, position, in, normal, normal, &reflectDir, &reflactDir, &fresnelRef, &fresnelTransmit));
+    EXPECT_FALSE(helper::checkTotalReflection(true, in, normal, normal, &reflectDir, &reflactDir, &fresnelRef, &fresnelTransmit));
 
     Vector3D refdirExp = Vector3D::reflect(in, normal);
     EXPECT_EQ_VEC(refdirExp, reflectDir);

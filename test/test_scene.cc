@@ -38,8 +38,8 @@ TEST_F(SceneTest, AccelNotPrepared) {
     ASSERT_DEATH(scene.intersect(ray, isect), "");
 }
 
-TEST_F(SceneTest, IntersectionTest) {
-    scene.setAccelerator();
+TEST_F(SceneTest, QBVHIntersectionTest) {
+    scene.setAccelerator(QBVH_ACCEL);
 
     Intersection isect;
     Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
@@ -52,4 +52,44 @@ TEST_F(SceneTest, IntersectionTest) {
     ray = Ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
     EXPECT_FALSE(scene.intersect(ray, isect));
     EXPECT_EQ(isect.objectId(), -1);
+}
+
+TEST_F(SceneTest, KdTreeIntersectionTest) {
+    scene.setAccelerator(KD_TREE_ACCEL);
+
+    Intersection isect;
+    Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
+    EXPECT_TRUE(scene.intersect(ray, isect));
+
+    Hitpoint hitpoint = isect.hitpoint();
+    EXPECT_NE(isect.objectId(), -1);
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), hitpoint.position());
+
+    ray = Ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
+    EXPECT_FALSE(scene.intersect(ray, isect));
+    EXPECT_EQ(isect.objectId(), -1);
+}
+
+TEST_F(SceneTest, QBVHvsKdTreeTest) {
+    static const int nTrial = 100;
+
+    Scene scene1, scene2;
+    Camera cam1, cam2;
+    cornellBox(&scene1, &cam1, 400, 300);
+    cornellBox(&scene2, &cam2, 400, 300);
+    scene1.setAccelerator(QBVH_ACCEL);
+    scene2.setAccelerator(KD_TREE_ACCEL);
+
+    Random rng = Random();
+
+    for (int i = 0; i < nTrial; i++) {
+        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
+        Vector3D to    = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Vector3D dir = (to - from).normalized();
+        Ray ray(from, dir);
+
+        Intersection isect1, isect2;
+        EXPECT_EQ(scene1.intersect(ray, isect1), scene2.intersect(ray, isect2));
+        EXPECT_EQ(isect1.hitpoint().distance(), isect2.hitpoint().distance());
+    }
 }

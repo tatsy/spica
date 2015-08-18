@@ -3,14 +3,14 @@
 
 namespace spica {
     
-    BBox AccelBase::enclosingBox(const std::vector<Triangle>& triangles) {
+    BBox AccelBase::enclosingBox(const std::vector<TriangleWithID>& triangles) {
         Vector3D posMin(INFTY, INFTY, INFTY);
         Vector3D posMax(-INFTY, -INFTY, -INFTY);
         const int nTri = (int)triangles.size();
         for (int i = 0; i < nTri; i++) {
             for (int j = 0; j < 3; j++) {
-                posMin = Vector3D::minimum(posMin, triangles[i].get(j));
-                posMax = Vector3D::maximum(posMax, triangles[i].get(j));
+                posMin = Vector3D::minimum(posMin, triangles[i].first.get(j));
+                posMax = Vector3D::maximum(posMax, triangles[i].first.get(j));
             }
         }
         return BBox(posMin, posMax);

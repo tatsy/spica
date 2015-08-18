@@ -11,6 +11,7 @@
     #define SPICA_QBVH_ACCEL_DLL
 #endif
 
+#include <vector>
 #include <xmmintrin.h>
 
 #include "../utils/uncopyable.h"
@@ -23,16 +24,14 @@ namespace spica {
         struct QBVHNode : public Uncopyable {
             __m128 childBoxes[2][3];  // [min-max][x-y-z]
             QBVHNode* children[4];    // Child nodes
-            Triangle* triangles;
-            int  numTriangles;
+            std::vector<TriangleWithID> triangles;
             char sepAxes[3];          // top-left-right
             bool isLeaf;
 
             QBVHNode()
                 : childBoxes()
                 , children()
-                , triangles(NULL)
-                , numTriangles(0)
+                , triangles()
                 , sepAxes()
                 , isLeaf(false)
             {
@@ -40,7 +39,6 @@ namespace spica {
 
             ~QBVHNode()
             {
-                delete[] triangles;
             }
         };
 
@@ -65,7 +63,7 @@ namespace spica {
         void deleteNode(QBVHNode* node);
         QBVHNode* copyNode(QBVHNode* node);
         
-        QBVHNode* constructRec(std::vector<Triangle>& triangles, int dim);
+        QBVHNode* constructRec(std::vector<TriangleWithID>& triangles, int dim);
     };
 
 }

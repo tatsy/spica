@@ -49,11 +49,8 @@ namespace spica {
         // @param[in] inv: if true inverse gamma correction is performed
         void gamma(const double gam, bool inv = false);
 
-        void loadBMP(const std::string& filename);
-        virtual void saveBMP(const std::string& filename) const;
-
-        void loadHDR(const std::string& filename);
-        virtual void saveHDR(const std::string& filename) const;
+        void load(const std::string& filename);
+        void save(const std::string& filename) const;
 
         void tonemap(TMAlgorithm algo = TM_REINHARD);
 
@@ -64,6 +61,14 @@ namespace spica {
         void release();
         static double toReal(unsigned char b);
         static unsigned char toByte(double d);
+
+        void loadBmp(const std::string& filename);
+        virtual void saveBmp(const std::string& filename) const;
+
+        void loadHdr(const std::string& filename);
+        virtual void saveHdr(const std::string& filename) const;
+
+        void savePng(const std::string& filename) const;
     };
 
 }

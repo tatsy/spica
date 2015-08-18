@@ -7,7 +7,12 @@ if (${SPICA_BUILD_EXAMPLE} STREQUAL "ON")
   function (generate_example example_name)
     add_executable(${example_name} "${example_name}_example.cc")
     target_link_libraries(${example_name} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
-    configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${example_name}.vcxproj.user" @ONLY)
+
+    if (MSVC)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+      set_property(TARGET ${example_name} APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
+      configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${example_name}.vcxproj.user" @ONLY)
+    endif()
   endfunction()
 
   generate_example(pathtracing)

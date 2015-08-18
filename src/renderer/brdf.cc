@@ -4,6 +4,8 @@
 #include "../utils/sampler.h"
 
 #include "bsdf.h"
+#include "renderer_helper.h"
+#include "renderer_constants.h"
 
 namespace spica {
 
@@ -25,8 +27,11 @@ namespace spica {
         return _emittance;
     }
 
-    void LambertianBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
-        sampler::onHemisphere(normal, out, rand1, rand2);
+    void LambertianBRDF::sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const {
+        const Vector3D orieintingNormal = in.dot(normal) < 0.0 ? normal : -normal;
+
+        (*pdf) = 1.0;
+        sampler::onHemisphere(orieintingNormal, out, rand1, rand2);
     }
 
     BSDF LambertianBRDF::factory(const Color& reflectance, const Color& emittance) {
@@ -55,8 +60,11 @@ namespace spica {
         return _emittance;
     }
 
-    void SpecularBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
-        (*out) = Vector3D::reflect(in, normal);
+    void SpecularBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out, double* pdf) const {
+        const Vector3D orieintingNormal = in.dot(normal) < 0.0 ? normal : -normal;
+
+        (*pdf) = 1.0;
+        (*out) = Vector3D::reflect(in, orieintingNormal);
     }
 
     BSDF SpecularBRDF::factory(const Color& reflectance, const Color& emittance) {
@@ -86,23 +94,20 @@ namespace spica {
         return _emittance;
     }
 
-    void PhongBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out) const {
-        Vector3D refDir = Vector3D::reflect(in, normal);
+    void PhongBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out, double* pdf) const {
+        const Vector3D orieintingNormal = in.dot(normal) < 0.0 ? normal : -normal;
+
+        const Vector3D refDir = Vector3D::reflect(in, orieintingNormal);
 
         Vector3D u, v, w;
         w = refDir;
-        if (std::abs(w.x()) > EPS) {
-            u = Vector3D(0.0, 1.0, 0.0).cross(w).normalized();
-        }
-        else {
-            u = Vector3D(1.0, 0.0, 0.0).cross(w).normalized();
-        }
-        v = w.cross(u);
+        helper::calcLocalCoords(w, &u, &v);
 
-        double theta = acos(pow(rand1, 1.0 / (_coeff + 1.0)));
-        double phi = 2.0 * PI * rand2;
+        const double theta = acos(pow(rand1, 1.0 / (_coeff + 1.0)));
+        const double phi   = 2.0 * PI * rand2;
 
-        (*out) = u * sin(theta) * cos(phi) + w * cos(theta) + v * sin(theta) * sin(phi);
+        (*pdf) = 1.0;
+        (*out) = (u * sin(theta) * cos(phi) + w * cos(theta) + v * sin(theta) * sin(phi)).normalized();
     }
 
     BSDF PhongBRDF::factory(const Color& reflectance, const Color& emittance, const double n) {
@@ -112,5 +117,56 @@ namespace spica {
     BSDFBase* PhongBRDF::clone() const {
         return new PhongBRDF(_reflectance, _emittance, _coeff);
     }
+
+    // --------------------------------------------------
+    // Refractive BSDF
+    // --------------------------------------------------
+    
+    RefractiveBSDF::RefractiveBSDF(const Color& reflectance, const Color& emittance)
+        : _reflectance(reflectance)
+        , _emittance(emittance)
+    {
+    }
+
+    Color RefractiveBSDF::reflectance() const {
+        return _reflectance;
+    }
+
+    Color RefractiveBSDF::emittance() const {
+        return _emittance;
+    }
+
+    void RefractiveBSDF::sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const {
+        const Vector3D orientingNormal = in.dot(normal) < 0.0 ? normal : -normal;
+        const bool into = normal.dot(orientingNormal) > 0.0;
+
+        Vector3D reflectdir, transmitdir;
+        double fresnelRe, fresnelTr;
+        const bool isTotalReflectance = helper::checkTotalReflection(into, in, normal, orientingNormal, &reflectdir, &transmitdir, &fresnelRe, &fresnelTr);
+    
+        if (isTotalReflectance) {
+            *out = reflectdir;
+            *pdf = 1.0;
+        } else {
+            const double probability = 0.25 + 0.5 * kReflectProbability;
+            if (rand1 < probability) {
+                *pdf = probability / fresnelRe;
+                *out = reflectdir;
+            } else {
+                *pdf = (1.0 - probability) / fresnelTr;
+                *out = transmitdir;
+            }
+        }
+    }
+
+    BSDF RefractiveBSDF::factory(const Color& reflectance, const Color& emittance) {
+        return std::move(BSDF(new RefractiveBSDF(reflectance, emittance), BSDF_TYPE_REFRACTION));
+    }
+
+    BSDFBase* RefractiveBSDF::clone() const {
+        return new RefractiveBSDF(_reflectance, _emittance);
+    }
+
+
 
 }

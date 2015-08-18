@@ -34,7 +34,7 @@ namespace spica {
         , _pdf()
         , _cdf()
     {
-        _image.loadHDR(filename);
+        _image.load(filename);
         createImportanceMap();
     }
 

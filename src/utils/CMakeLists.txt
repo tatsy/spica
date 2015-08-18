@@ -14,6 +14,7 @@ set(SOURCES ${SOURCES}
 
 set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/common.h
+    ${CMAKE_CURRENT_LIST_DIR}/path.h
     ${CMAKE_CURRENT_LIST_DIR}/uncopyable.h
     ${CMAKE_CURRENT_LIST_DIR}/vector3d.h
     ${CMAKE_CURRENT_LIST_DIR}/color.h

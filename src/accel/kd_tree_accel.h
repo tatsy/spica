@@ -11,6 +11,8 @@
     #define SPICA_KDTREE_ACCEL_DLL 
 #endif
 
+#include <vector>
+
 #include "accel_base.h"
 #include "../utils/common.h"
 #include "../utils/uncopyable.h"
@@ -22,16 +24,14 @@ namespace spica {
     private:
         struct KdTreeNode : public Uncopyable {
             BBox bbox;
-            unsigned int numTriangles;
-            Triangle* triangles;
+            std::vector<TriangleWithID> triangles;
             KdTreeNode* left;
             KdTreeNode* right;
             bool isLeaf;
 
             KdTreeNode()
                 : bbox()
-                , numTriangles(0)
-                , triangles(NULL)
+                , triangles()
                 , left(NULL)
                 , right(NULL)
                 , isLeaf(false)
@@ -40,7 +40,6 @@ namespace spica {
 
             ~KdTreeNode()
             {
-                delete[] triangles;
             }
         };
 
@@ -63,7 +62,7 @@ namespace spica {
         void release();
         void deleteNode(KdTreeNode* node);
         KdTreeNode* copyNode(KdTreeNode* node);
-        KdTreeNode* constructRec(std::vector<Triangle>& triangles, int dim);
+        KdTreeNode* constructRec(std::vector<TriangleWithID>& triangles, int dim);
 
         static int intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax);
     };

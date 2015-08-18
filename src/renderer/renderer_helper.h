@@ -28,15 +28,14 @@ namespace spica {
         // Calculate u and v axes from w vector
         void SPICA_RENDERER_HELPER_DLL calcLocalCoords(const Vector3D& w, Vector3D* u, Vector3D* v);
 
-        bool SPICA_RENDERER_HELPER_DLL isTotalRef(const bool isIncoming,
-                                                  const Vector3D& position,
-                                                  const Vector3D& in,
-                                                  const Vector3D& normal,
-                                                  const Vector3D& orientNormal,
-                                                  Vector3D* reflectDir,
-                                                  Vector3D* refractDir,
-                                                  double* fresnelRef,
-                                                  double* fresnelTransmit);
+        bool SPICA_RENDERER_HELPER_DLL checkTotalReflection(const bool isIncoming,
+                                                            const Vector3D& in,
+                                                            const Vector3D& normal,
+                                                            const Vector3D& orientNormal,
+                                                            Vector3D* reflectDir,
+                                                            Vector3D* refractDir,
+                                                            double* fresnelRef,
+                                                            double* fresnelTransmit);
 
         // Standard radiance simulator
         // @param[in] scene: rendered scene

@@ -75,7 +75,7 @@ namespace spica {
     }
 
     void BSDF::sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const {
-    
+        _ptr->sample(in, normal, rand1, rand2, out, pdf);
     }
 
     BsdfType BSDF::type() const {

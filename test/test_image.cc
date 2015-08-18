@@ -55,7 +55,9 @@ TEST(ImageTest, InstanceTest) {
 
 TEST(ImageTest, InvalidPathToLoad) {
     Image image;
-    ASSERT_DEATH(image.loadBMP("dammy_path.bmp"), "");
+    ASSERT_DEATH(image.load("dammy_path.bmp"), "");
+
+    ASSERT_DEATH(image.load("image.jpg"), "");
 }
 
 TEST(ImageTest, SaveLoadTest) {
@@ -65,10 +67,10 @@ TEST(ImageTest, SaveLoadTest) {
             image.pixel(x, y) = Color(rng.nextReal(), rng.nextReal(), rng.nextReal());
         }
     }
-    image.saveBMP(filepath);
+    image.save(filepath);
 
     Image loaded;
-    loaded.loadBMP(filepath);
+    loaded.load(filepath);
     EXPECT_EQ(image.width(), loaded.width());
     EXPECT_EQ(image.height(), loaded.height());
     for (int y = 0; y < height; y++) {
@@ -79,8 +81,8 @@ TEST(ImageTest, SaveLoadTest) {
         }
     }
 
-    image.saveHDR(hdrpath);
-    loaded.loadHDR(hdrpath);
+    image.save(hdrpath);
+    loaded.load(hdrpath);
     EXPECT_EQ(image.width(), loaded.width());
     EXPECT_EQ(image.height(), loaded.height());
     for (int y = 0; y < height; y++) {
@@ -94,8 +96,8 @@ TEST(ImageTest, SaveLoadTest) {
 
 TEST(ImageTest, TonemapTest) {
     Image image;
-    image.loadHDR(DATA_DIR + "gold_room.hdr");
+    image.load(DATA_DIR + "gold_room.hdr");
     image.tonemap();
 
-    image.saveBMP(DATA_DIR + "gold_room.bmp");
+    image.save(DATA_DIR + "gold_room.bmp");
 }

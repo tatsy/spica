@@ -34,6 +34,7 @@ set(SPICA_ROOT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 # Use Intel AVX or not
 option(ENABLE_AVX "ENABLE_AVX" OFF)
 if (${ENABLE_AVX} STREQUAL "ON")
+  add_definitions(-DENABLE_AVX)
   if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
   else()

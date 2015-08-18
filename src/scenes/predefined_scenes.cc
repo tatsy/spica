@@ -14,7 +14,7 @@ namespace spica {
         Vector3D l01(-5.0, 9.99,  5.0);
         Vector3D l10( 5.0, 9.99, -5.0);
         Vector3D l11( 5.0, 9.99,  5.0);
-        scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Color(1.0, 1.0, 1.0)), true); // TODO: this object is light
+        scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Color(0.0, 0.0, 0.0), Color(12.0, 12.0, 12.0)), true);
 
         Vector3D v000(-10.0, -10.0, -10.0);
         Vector3D v100( 10.0, -10.0, -10.0);
@@ -39,7 +39,9 @@ namespace spica {
 
         scene->add(Sphere(3.0,  Vector3D( 0.0, -7.0,  0.0)), LambertianBRDF::factory(Color(0.25, 0.75, 0.25)));
         scene->add(Sphere(3.0,  Vector3D(-5.0, -7.0, -5.0)), SpecularBRDF::factory(Color(0.99, 0.99, 0.99)));   // Mirror ball
-        scene->add(Sphere(3.0,  Vector3D( 5.0, -7.0,  5.0)), SpecularBRDF::factory(Color(0.99, 0.99, 0.99)));   // TODO: Glass ball 
+        scene->add(Sphere(3.0,  Vector3D( 5.0, -7.0,  5.0)), RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));   // Glass ball 
+
+        scene->setAccelerator(KD_TREE_ACCEL);
 
         (*camera) = Camera(width, height, 
                            Vector3D(0.0, 0.0, 100.0),

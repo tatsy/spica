@@ -21,15 +21,14 @@ namespace spica {
             *v = w.cross(*u);
         }
 
-        bool isTotalRef(const bool isIncoming,
-                        const Vector3D& position,
-                        const Vector3D& in,
-                        const Vector3D& normal,
-                        const Vector3D& orientNormal,
-                        Vector3D* reflectDir,
-                        Vector3D* refractDir,
-                        double* fresnelRef,
-                        double* fresnelTransmit) {
+        bool checkTotalReflection(const bool isIncoming,
+                                  const Vector3D& in,
+                                  const Vector3D& normal,
+                                  const Vector3D& orientNormal,
+                                  Vector3D* reflectDir,
+                                  Vector3D* refractDir,
+                                  double* fresnelRef,
+                                  double* fresnelTransmit) {
 
             *reflectDir = Vector3D::reflect(in, normal);
 
@@ -60,6 +59,10 @@ namespace spica {
         }
 
         Color radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int depth, const int depthLimit, const int depthMin) {
+            if (depth >= depthLimit) {
+                return Color::BLACK;
+            }
+
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
                 return scene.envmap().sampleFromDir(ray.direction());
@@ -73,35 +76,27 @@ namespace spica {
             const int objectID = isect.objectId();
             const BSDF& bsdf = scene.getBsdf(objectID);
             const Hitpoint& hitpoint = isect.hitpoint();
-            const Vector3D orientNormal = Vector3D::dot(ray.direction(), hitpoint.normal()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
-
-            // If depth is over depthLimit, terminate recursion
-            if (depth >= depthLimit) {
-                return bsdf.emittance();
-            }
 
             // Russian roulette
             double roulette = std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
-            if (depth > depthMin) {
-                if (roulette < randnums[0]) {
+            if (depth < depthMin) {
+                roulette = 1.0;
+            } else {
+                if (roulette <= randnums[0]) {
                     return bsdf.emittance();
                 }
-            } else {
-                roulette = 1.0;
             }
-
-            // Handle hitting materials
-            Color weight(1.0, 1.0, 1.0);
-            Color nextRad(1.0, 1.0, 1.0);
 
             // Sample next direction
             double pdf = 1.0;
             Vector3D nextdir;
             bsdf.sample(ray.direction(), hitpoint.normal(), randnums[1], randnums[2], &nextdir, &pdf);
-            Color nextrad = radiance(scene, Ray(hitpoint.position(), nextdir), rseq, depth + 1, depthLimit, depthMin);
+            
+            Ray nextray(hitpoint.position(), nextdir);
+            const Color nextrad = radiance(scene, nextray, rseq, depth + 1, depthLimit, depthMin);
             
             // Return result
-            return Color(bsdf.emittance() + weight.multiply(nextRad));        
+            return Color(bsdf.emittance() + bsdf.reflectance() * nextrad / (roulette * pdf));       
         }
 
     }

@@ -15,6 +15,10 @@
 #include <algorithm>
 
 #include "common.h"
+#include "path.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 namespace spica {
 
@@ -208,7 +212,30 @@ namespace spica {
         }
     }
 
-    void Image::loadBMP(const std::string& filename) {
+    void Image::load(const std::string& filename) {
+        const std::string& ext = path::getExtension(filename);
+        if (ext == ".bmp") {
+            loadBmp(filename);
+        } else if (ext == ".hdr") {
+            loadHdr(filename);
+        } else {
+            fprintf(stderr, "[ERROR] unknown file extension: %s\n", ext.c_str());
+            std::abort();
+        }
+    }
+
+    void Image::save(const std::string& filename) const {
+        const std::string& ext = path::getExtension(filename);
+        if (ext == ".bmp") {
+            saveBmp(filename);
+        } else if (ext == ".hdr") {
+            saveHdr(filename);
+        } else if (ext == ".png") {
+            
+        }
+    }
+
+    void Image::loadBmp(const std::string& filename) {
         release();
 
         BitmapFileHeader header;
@@ -245,7 +272,7 @@ namespace spica {
         ifs.close();
     }
 
-    void Image::saveBMP(const std::string& filename) const {
+    void Image::saveBmp(const std::string& filename) const {
         const int lineSize = (sizeof(RGBTriple) * _width + 3) / 4 * 4;
         const int totalSize = lineSize * _height;
         const int offBits = sizeof(BitmapFileHeader) + sizeof(BitmapCoreHeader);
@@ -296,7 +323,7 @@ namespace spica {
         ofs.close();
     }
 
-    void Image::loadHDR(const std::string& filename) {
+    void Image::loadHdr(const std::string& filename) {
         release();
 
         // Open file
@@ -436,7 +463,7 @@ namespace spica {
         delete[] buffer;
     }
 
-    void Image::saveHDR(const std::string& filename) const {
+    void Image::saveHdr(const std::string& filename) const {
         std::ofstream ofs(filename.c_str(), std::ios::out | std::ios::binary);
         if (!ofs.is_open()) {
             std::cerr << "Failed to open file \"" << filename << "\"" << std::endl;
@@ -482,6 +509,20 @@ namespace spica {
         ofs.write((char*)&pixbuf[0], pixbuf.size());
 
         ofs.close();
+    }
+
+    void Image::savePng(const std::string& filename) const {
+        unsigned char* data = new unsigned char[_width * _height * 3];
+        for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _width; x++) {
+                int idx = y * _width + x;
+                data[idx * 3 + 0] = toByte(_pixels[idx].x());
+                data[idx * 3 + 1] = toByte(_pixels[idx].y());
+                data[idx * 3 + 2] = toByte(_pixels[idx].z());
+            }
+        }
+        stbi_write_png(filename.c_str(), _width, _height, 3, data, _width * 3);
+        delete[] data;
     }
 
     void Image::tonemap(TMAlgorithm algo) {

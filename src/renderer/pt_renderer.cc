@@ -43,12 +43,13 @@ namespace spica {
         const int width  = camera.imageW();
         const int height = camera.imageH();
 
+        // Prepare random number generators
         RandomBase** rand = new RandomBase*[OMP_NUM_CORE];
         for (int i = 0; i < OMP_NUM_CORE; i++) {
             switch (randType) {
             case PSEUDO_RANDOM_TWISTER:
                 printf("Use pseudo random numbers (Twister)\n");
-                rand[i] = new Random();
+                rand[i] = new Random(i);
                 break;
 
             case QUASI_MONTE_CARLO:
@@ -62,14 +63,16 @@ namespace spica {
         }
 
         // Vectors spanning screen
-        Image* buffer = new Image[OMP_NUM_CORE];
-        for (int i = 0; i < OMP_NUM_CORE; i++) {
-            buffer[i] = Image(width, height);
+        Image buffer = Image(width, height);
+
+        // Distribute rendering tasks
+        const int taskPerThread = (height + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
+        std::vector<std::vector<int> > tasks(OMP_NUM_CORE);
+        for (int y = 0; y < height; y++) {
+            tasks[y % OMP_NUM_CORE].push_back(y);
         }
 
-        const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
-        int processed = 0;        
-
+        // Allocate image
         bool isAllocImageInside = false;
         if (_image == NULL) {
             _image = new Image();
@@ -77,31 +80,35 @@ namespace spica {
         }
         _image->resize(width, height);
 
-        for (int t = 0; t < taskPerThread; t++) {
-            ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
-                RandomSeq rseq;
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {                    
-                        rand[threadID]->requestSamples(rseq, 200);
-                        buffer[threadID].pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rseq);
+        // Trace rays
+        int processed = 0;
+        buffer.fill(Color::BLACK);
+        for (int i = 0; i < samplePerPixel; i++) {
+            for (int t = 0; t < taskPerThread; t++) {
+                ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
+                    if (t < tasks[threadID].size()) {
+                        RandomSeq rseq;
+                        const int y = tasks[threadID][t];
+                        for (int x = 0; x < width; x++) {                    
+                            rand[threadID]->requestSamples(rseq, 200);
+                            buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rseq);
+                        }
                     }
+                }
+            }
+
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    _image->pixel(x, y) = buffer(x, y) / (i + 1);
                 }
             }
 
             char filename[256];
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    _image->pixel(x, y) = Color(0.0, 0.0, 0.0);
-                    for (int k = 0; k < OMP_NUM_CORE; k++) {
-                        _image->pixel(x, y) += buffer[k](x, y) / ((t + 1) * OMP_NUM_CORE);
-                    }
-                }
-            }
-            sprintf(filename, "pathtrace_%03d.bmp", t + 1);
+            sprintf(filename, "pathtrace_%03d.bmp", i + 1);
             _image->gamma(2.2, true);
-            _image->saveBMP(filename);
+            _image->save(filename);
 
-            printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);
+            printf("  %6.2f %%  processed -> %s\r", 100.0 * (i + 1) / samplePerPixel, filename);
         }
         printf("\nFinish!!\n");
 
@@ -109,7 +116,6 @@ namespace spica {
             delete rand[i];
         }
         delete[] rand;
-        delete[] buffer;
 
         if (isAllocImageInside) {
             delete _image;

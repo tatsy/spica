@@ -59,7 +59,6 @@ namespace spica {
         BSDF& operator=(BSDF&& bsdf);
 
         const Color& reflectance() const;
-        const Color& emittance() const;
 
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const;
         BsdfType type() const;

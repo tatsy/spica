@@ -14,7 +14,7 @@ namespace spica {
         Vector3D l01(-5.0, 9.99,  5.0);
         Vector3D l10( 5.0, 9.99, -5.0);
         Vector3D l11( 5.0, 9.99,  5.0);
-        scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Color(0.0, 0.0, 0.0), Color(12.0, 12.0, 12.0)), true);
+        scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), Color(12.0, 12.0, 12.0), true);
 
         Vector3D v000(-10.0, -10.0, -10.0);
         Vector3D v100( 10.0, -10.0, -10.0);

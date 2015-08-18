@@ -76,7 +76,7 @@ namespace spica {
                 r2 = 1.0 - r2;
             }
             (*position) = r1 * (tri[1] - tri[0]) + r2 * (tri[2] - tri[0]);
-            (*position) = tri.normal();
+            (*normal) = tri.normal();
         }
 
         void onQuad(const Quad& quad, Vector3D* position, Vector3D* normal, double r1, double r2) {

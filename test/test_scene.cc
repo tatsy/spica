@@ -18,7 +18,7 @@ protected:
 
     virtual void SetUp() {
         scene.add(Sphere(5.0, Vector3D(0.0, 0.0, 0.0)), LambertianBRDF::factory(Color(0.3, 0.5, 0.7)));
-        scene.add(Sphere(2.0, Vector3D(0.0, 10.0, 0.0)), LambertianBRDF::factory(Color(0.0, 0.0, 0.0), Color(32.0, 32.0, 32.0)), true);
+        scene.add(Sphere(2.0, Vector3D(0.0, 10.0, 0.0)), LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), Color(32.0, 32.0, 32.0), true);
     }
 
     virtual void TearDown() {

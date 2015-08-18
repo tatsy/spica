@@ -2,6 +2,7 @@
 #define SPICA_H_
 
 #include "../src/utils/common.h"
+#include "../src/utils/path.h"
 #include "../src/utils/timer.h"
 #include "../src/utils/vector3d.h"
 #include "../src/utils/sampler.h"
@@ -21,8 +22,8 @@
 // Renderers
 // --------------------------------------------
 
-#include "../src/renderer/pt_renderer.h"
-#include "../src/renderer/bpt_renderer.h"
+#include "../src/renderer/pathtrace.h"
+#include "../src/renderer/bdpt.h"
 #include "../src/renderer/mlt_renderer.h"
 #include "../src/renderer/photon_mapping.h"
 #include "../src/renderer/progressive_photonmap.h"

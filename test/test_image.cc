@@ -3,7 +3,6 @@
 using namespace spica;
 
 #include <string>
-#include <direct.h>
 
 namespace {
     const int width = 320;
@@ -19,7 +18,7 @@ protected:
     ~ImageTest() {}
 
     void SetUp() {
-        _mkdir(TEMP_DIR.c_str());
+        path::createDirectory(TEMP_DIR);
     }
 };
 

@@ -7,9 +7,12 @@ namespace spica {
     
     Scene::Scene()
         : _triangles()
-        , _lights()
-        , _bsdfs()
+        , _emittance()
         , _bsdfIds()
+        , _lightIds()
+        , _lightPdfs()
+        , _totalLightArea(0.0)
+        , _bsdfs()
         , _accel()
         , _envmap()
     {
@@ -29,6 +32,27 @@ namespace spica {
     const BSDF& Scene::getBsdf(int id) const {
         Assertion(id >= 0 && id < _bsdfIds.size(), "Object index out of boudns");
         return _bsdfs[_bsdfIds[id]];
+    }
+
+    const Color& Scene::getEmittance(int id) const {
+        Assertion(id >= 0 && id < _bsdfIds.size(), "Object index out of boudns");
+        return _emittance[id];    
+    }
+
+    int Scene::sampleLight(double rand1) const {
+        Assertion(!_lightPdfs.empty(), "Light PDFs are not computed yet, call Scene::computeLightPdfs first!!");
+        
+        int lo = 0;
+        int hi = _lightIds.size();
+        while (lo < hi) {
+            const int mid = (lo + hi) / 2;
+            if (rand1 < _lightPdfs[mid]) {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        return lo;
     }
 
     void Scene::clear() {
@@ -55,6 +79,21 @@ namespace spica {
             std::abort();
         }
         _accel->construct(_triangles);
+    }
+
+    void Scene::computeLightPdfs() {        
+        _lightPdfs.resize(_lightIds.size());
+
+        _totalLightArea = 0.0;
+        for (int i = 0; i < _lightIds.size(); i++) {
+            const double A = _triangles[_lightIds[i]].area();
+            _lightPdfs[i] = A;
+            _totalLightArea += A;
+        }
+
+        for (int i = 0; i < _lightIds.size(); i++) {
+            _lightPdfs[i] /= _totalLightArea;
+        }
     }
 
     bool Scene::intersect(const Ray& ray, Intersection& isect) const {

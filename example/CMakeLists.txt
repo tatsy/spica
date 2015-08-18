@@ -16,7 +16,7 @@ if (${SPICA_BUILD_EXAMPLE} STREQUAL "ON")
   endfunction()
 
   generate_example(pathtracing)
-#  generate_example(simplebpt)
+  generate_example(bdpt)
 #  generate_example(simplemlt)
 #  generate_example(photonmap)
 #  generate_example(ppm)

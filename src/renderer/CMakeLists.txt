@@ -9,8 +9,8 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/bssrdf.cc
     ${CMAKE_CURRENT_LIST_DIR}/envmap.cc
     ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.cc
-    ${CMAKE_CURRENT_LIST_DIR}/pt_renderer.cc
-#    ${CMAKE_CURRENT_LIST_DIR}/bpt_renderer.cc
+    ${CMAKE_CURRENT_LIST_DIR}/pathtrace.cc
+    ${CMAKE_CURRENT_LIST_DIR}/bdpt.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/photon_mapping.cc
@@ -31,8 +31,8 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/bssrdf.h
     ${CMAKE_CURRENT_LIST_DIR}/envmap.h
     ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.h
-    ${CMAKE_CURRENT_LIST_DIR}/pt_renderer.h
-#    ${CMAKE_CURRENT_LIST_DIR}/bpt_renderer.h
+    ${CMAKE_CURRENT_LIST_DIR}/pathtrace.h
+    ${CMAKE_CURRENT_LIST_DIR}/bdpt.h
 #    ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.h
 #    ${CMAKE_CURRENT_LIST_DIR}/photon_map.h
 #    ${CMAKE_CURRENT_LIST_DIR}/photon_mapping.h

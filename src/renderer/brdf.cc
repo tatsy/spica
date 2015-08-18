@@ -13,18 +13,13 @@ namespace spica {
     // Lambertian BRDF
     // --------------------------------------------------
 
-    LambertianBRDF::LambertianBRDF(const Color& reflectance, const Color& emittance)
+    LambertianBRDF::LambertianBRDF(const Color& reflectance)
         : _reflectance(reflectance)
-        , _emittance(emittance)
     {
     }
 
     Color LambertianBRDF::reflectance() const {
         return _reflectance;
-    }
-
-    Color LambertianBRDF::emittance() const {
-        return _emittance;
     }
 
     void LambertianBRDF::sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const {
@@ -34,30 +29,25 @@ namespace spica {
         sampler::onHemisphere(orieintingNormal, out, rand1, rand2);
     }
 
-    BSDF LambertianBRDF::factory(const Color& reflectance, const Color& emittance) {
-        return std::move(BSDF(new LambertianBRDF(reflectance, emittance), BSDF_TYPE_LAMBERTIAN_BRDF));
+    BSDF LambertianBRDF::factory(const Color& reflectance) {
+        return std::move(BSDF(new LambertianBRDF(reflectance), BSDF_TYPE_LAMBERTIAN_BRDF));
     }
 
     BSDFBase* LambertianBRDF::clone() const {
-        return new LambertianBRDF(_reflectance, _emittance);
+        return new LambertianBRDF(_reflectance);
     }
 
     // --------------------------------------------------
     // Specular BRDF
     // --------------------------------------------------
 
-    SpecularBRDF::SpecularBRDF(const Color& reflectance, const Color& emittance)
+    SpecularBRDF::SpecularBRDF(const Color& reflectance)
         : _reflectance(reflectance)
-        , _emittance(emittance)
     {
     }
 
     Color SpecularBRDF::reflectance() const {
         return _reflectance;
-    }
-
-    Color SpecularBRDF::emittance() const {
-        return _emittance;
     }
 
     void SpecularBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out, double* pdf) const {
@@ -67,31 +57,26 @@ namespace spica {
         (*out) = Vector3D::reflect(in, orieintingNormal);
     }
 
-    BSDF SpecularBRDF::factory(const Color& reflectance, const Color& emittance) {
-        return std::move(BSDF(new SpecularBRDF(reflectance, emittance), BSDF_TYPE_SPECULAR_BRDF));
+    BSDF SpecularBRDF::factory(const Color& reflectance) {
+        return std::move(BSDF(new SpecularBRDF(reflectance), BSDF_TYPE_SPECULAR_BRDF));
     }
 
     BSDFBase* SpecularBRDF::clone() const {
-        return new SpecularBRDF(_reflectance, _emittance);
+        return new SpecularBRDF(_reflectance);
     }
 
     // --------------------------------------------------
     // Phong BRDF
     // --------------------------------------------------
 
-    PhongBRDF::PhongBRDF(const Color& reflectance, const Color& emittance, const double n)
+    PhongBRDF::PhongBRDF(const Color& reflectance, const double n)
         : _reflectance(reflectance)
-        , _emittance(emittance)
         , _coeff(n)
     {
     }
 
     Color PhongBRDF::reflectance() const {
         return _reflectance;
-    }
-
-    Color PhongBRDF::emittance() const {
-        return _emittance;
     }
 
     void PhongBRDF::sample(const Vector3D& in, const Vector3D& normal, const double rand1, const double rand2, Vector3D* out, double* pdf) const {
@@ -110,30 +95,25 @@ namespace spica {
         (*out) = (u * sin(theta) * cos(phi) + w * cos(theta) + v * sin(theta) * sin(phi)).normalized();
     }
 
-    BSDF PhongBRDF::factory(const Color& reflectance, const Color& emittance, const double n) {
-        return std::move(BSDF(new PhongBRDF(reflectance, emittance, n), BSDF_TYPE_PHONG_BRDF));
+    BSDF PhongBRDF::factory(const Color& reflectance, const double n) {
+        return std::move(BSDF(new PhongBRDF(reflectance, n), BSDF_TYPE_PHONG_BRDF));
     }
 
     BSDFBase* PhongBRDF::clone() const {
-        return new PhongBRDF(_reflectance, _emittance, _coeff);
+        return new PhongBRDF(_reflectance, _coeff);
     }
 
     // --------------------------------------------------
     // Refractive BSDF
     // --------------------------------------------------
     
-    RefractiveBSDF::RefractiveBSDF(const Color& reflectance, const Color& emittance)
+    RefractiveBSDF::RefractiveBSDF(const Color& reflectance)
         : _reflectance(reflectance)
-        , _emittance(emittance)
     {
     }
 
     Color RefractiveBSDF::reflectance() const {
         return _reflectance;
-    }
-
-    Color RefractiveBSDF::emittance() const {
-        return _emittance;
     }
 
     void RefractiveBSDF::sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const {
@@ -159,12 +139,12 @@ namespace spica {
         }
     }
 
-    BSDF RefractiveBSDF::factory(const Color& reflectance, const Color& emittance) {
-        return std::move(BSDF(new RefractiveBSDF(reflectance, emittance), BSDF_TYPE_REFRACTION));
+    BSDF RefractiveBSDF::factory(const Color& reflectance) {
+        return std::move(BSDF(new RefractiveBSDF(reflectance), BSDF_TYPE_REFRACTION));
     }
 
     BSDFBase* RefractiveBSDF::clone() const {
-        return new RefractiveBSDF(_reflectance, _emittance);
+        return new RefractiveBSDF(_reflectance);
     }
 
 

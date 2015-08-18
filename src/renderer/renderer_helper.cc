@@ -74,6 +74,7 @@ namespace spica {
             // Get intersecting material
             const int objectID = isect.objectId();
             const BSDF& bsdf = scene.getBsdf(objectID);
+            const Color& emittance = scene.getEmittance(objectID);
             const Hitpoint& hitpoint = isect.hitpoint();
 
             // Russian roulette
@@ -82,7 +83,7 @@ namespace spica {
                 roulette = 1.0;
             } else {
                 if (roulette <= randnums[0]) {
-                    return bsdf.emittance();
+                    return emittance;
                 }
             }
 
@@ -95,7 +96,7 @@ namespace spica {
             const Color nextrad = radiance(scene, nextray, rands, depth + 1, depthLimit, depthMin);
             
             // Return result
-            return Color(bsdf.emittance() + bsdf.reflectance() * nextrad / (roulette * pdf));       
+            return Color(emittance + bsdf.reflectance() * nextrad / (roulette * pdf));       
         }
 
     }

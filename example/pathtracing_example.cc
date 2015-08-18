@@ -5,7 +5,7 @@
 using namespace spica;
 
 int main(int argc, char **argv) {
-    std::cout << "*** spica: Monte-Carlor path tracing ***" << std::endl;
+    std::cout << "*** spica: uni-directional path tracing ***" << std::endl;
 
     const int width  = argc >= 2 ? atoi(argv[1]) : 400;
     const int height = argc >= 3 ? atoi(argv[2]) : 300;

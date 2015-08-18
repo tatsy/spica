@@ -299,9 +299,9 @@ namespace spica {
 
                     Vector3D reflectdir, transdir;
                     double fresnelRe, fresnelTr;
-                    bool totalReflection = !helper::checkTotalReflection(isIncoming,
-                                                                         currentRay.direction(), hitpoint.normal(), orientNormal,
-                                                                         &reflectdir, &transdir, &fresnelRe, &fresnelTr);
+                    bool totalReflection = helper::checkTotalReflection(isIncoming,
+                                                                        currentRay.direction(), hitpoint.normal(), orientNormal,
+                                                                        &reflectdir, &transdir, &fresnelRe, &fresnelTr);
 
                     if (totalReflection) {
                         pdfOmega = 1.0;
@@ -312,14 +312,14 @@ namespace spica {
                         if (rands[1] < probability) {
                             pdfOmega = 1.0;
                             currentRay = Ray(hitpoint.position(), reflectdir);
-                            throughput = fresnelRe * (bsdf.reflectance().multiply(throughput)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughput = fresnelRe * (bsdf.reflectance() * throughput) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= probability;
                         } else {
                             const double ratio = isIncoming ? kIorVaccum / kIorObject : kIorObject / kIorVaccum;
                             const double nnt2   = ratio * ratio;
                             pdfOmega = 1.0;
                             currentRay = Ray(hitpoint.position(), transdir);
-                            throughput = nnt2 * fresnelTr * (bsdf.reflectance().multiply(throughput)) / (toNextVertex.normalized().dot(orientNormal));
+                            throughput = (nnt2 * fresnelTr) * (bsdf.reflectance() * throughput) / (toNextVertex.normalized().dot(orientNormal));
                             totalPdfA *= (1.0 - probability);
                         }
                     }
@@ -344,7 +344,7 @@ namespace spica {
             double nowSampledPdfOmega = 1.0;
             Vector3D prevNormal = camera.lensNormal();
 
-            for (int bounce = 1; bounce <= bounceLimit; bounce++) {
+            for (int bounce = 0; bounce < bounceLimit; bounce++) {
                 // Get next random
                 const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
@@ -367,7 +367,7 @@ namespace spica {
                 totalPdfA *= rouletteProb;
 
                 const Vector3D toNextVertex = nowRay.origin() - hitpoint.position();
-                if (bounce == 1) {
+                if (bounce == 0) {
                     const Vector3D x0xI = camSample.posSensor - camSample.posLens;
                     const Vector3D x0xV = camSample.posObjectPlane - camSample.posLens;
                     const Vector3D x0x1 = hitpoint.position() - camSample.posLens;
@@ -499,29 +499,29 @@ namespace spica {
 
                     Color eyeThoughput = eyeEnd.throughput;
                     Color lightThrouput = lightEnd.throughput;
-                    Color connectedThrought = Color(1.0, 1.0, 1.0);
+                    Color connectedThroughput = Color(1.0, 1.0, 1.0);
 
                     if (lightVertId == 1) {
                         lightThrouput = scene.getEmittance(lightVerts[0].objectId);
                     }
 
-                    // End-to-end ray tracing
-                    Intersection intersection;
+                    // Cast ray from light-end to path-end to check existance of occluders
+                    Intersection isect;
                     const Vector3D lendToEend = eyeEnd.position - lightEnd.position;
                     const Ray testRay(lightEnd.position, lendToEend.normalized());
-                    scene.intersect(testRay, intersection);
+                    scene.intersect(testRay, isect);
 
                     if (eyeEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
-                        const BSDF& eyeEndBsdf = scene.getBsdf(eyeEnd.objectId);
-                        connectedThrought = connectedThrought.multiply(eyeEndBsdf.reflectance()) * INV_PI;
-                        double dist = (intersection.hitpoint().position() - eyeEnd.position).norm();
-                        if ((intersection.hitpoint().position() - eyeEnd.position).norm() >= EPS) {
+                        const double dist = (isect.hitpoint().position() - eyeEnd.position).norm();
+                        if (dist >= EPS) {
                             continue;
                         }
+                        const BSDF& eyeEndBsdf = scene.getBsdf(eyeEnd.objectId);
+                        connectedThroughput = connectedThroughput * eyeEndBsdf.reflectance() * INV_PI;
                     } else if (eyeEnd.objtype == Vertex::OBJECT_TYPE_LENS) {
                         Vector3D positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor;
                         const double lensT = camera.intersectLens(testRay, positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor);
-                        if (EPS < lensT && lensT < intersection.hitpoint().distance()) {
+                        if (EPS < lensT && lensT < isect.hitpoint().distance()) {
                             const Vector3D x0xI = positionOnSensor - positionOnLens;
                             const Vector3D x0xV = positionOnObjplane - positionOnLens;
                             const Vector3D x0x1 = testRay.origin() - positionOnLens;
@@ -531,7 +531,7 @@ namespace spica {
                             targetX = targetX < 0 ? 0 : targetX >= camera.imageW() ? camera.imageW() - 1 : targetX;
                             targetY = targetY < 0 ? 0 : targetY >= camera.imageH() ? camera.imageH() - 1 : targetY;
 
-                            connectedThrought = camera.contribSensitivity(x0xV, x0xI, x0x1) * connectedThrought;
+                            connectedThroughput *= camera.contribSensitivity(x0xV, x0xI, x0x1);
                         } else {
                             continue;
                         }
@@ -541,7 +541,7 @@ namespace spica {
 
                     if (lightEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
                         const BSDF& tempBsdf = scene.getBsdf(lightEnd.objectId);
-                        connectedThrought = connectedThrought.multiply(tempBsdf.reflectance()) * INV_PI;
+                        connectedThroughput = connectedThroughput * tempBsdf.reflectance() * INV_PI;
                     } else if (lightEnd.objtype == Vertex::OBJECT_TYPE_LIGHT) {
 
                     } else if (lightEnd.objtype == Vertex::OBJECT_TYPE_LENS || lightEnd.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
@@ -551,14 +551,14 @@ namespace spica {
                     double G = std::max(0.0, (-1.0 * lendToEend.normalized().dot(eyeEnd.orientNormal)));
                     G *= std::max(0.0, lendToEend.normalized().dot(lightEnd.orientNormal));
                     G /= lendToEend.dot(lendToEend);
-                    connectedThrought = G * connectedThrought;
+                    connectedThroughput *= G;
 
                     const double weightMIS = calcMISWeight(scene, camera, totalPdfA, eyeVerts, lightVerts, eyeVertId, lightVertId);
                     if (isnan(weightMIS)) {
                         continue;
                     }
 
-                    const Color result = Color(weightMIS * connectedThrought.multiply(eyeThoughput).multiply(lightThrouput) / totalPdfA);
+                    const Color result = Color(weightMIS * (connectedThroughput * eyeThoughput * lightThrouput) / totalPdfA);
                     bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId > 1.0));
                 }
             }
@@ -625,24 +625,33 @@ namespace spica {
             _image->resize(width, height);
         }
 
+        // Distribute tasks
+        const int taskPerThread = (height + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
+        std::vector<std::vector<int> > tasks(OMP_NUM_CORE);
+        for (int y = 0; y < height; y++) {
+            tasks[y % OMP_NUM_CORE].push_back(y);
+        }
+
         // Rendering
-        const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
-        for (int t = 0; t < taskPerThread; t++) {
-            ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
-                Stack<double> rstk;
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        samplers[threadID].request(&rstk, 250);
-                        BPTResult bptResult = executeBPT(scene, camera, rstk, x, y, bounceLimit);
+        for (int s = 0; s < samplePerPixel; s++) {
+            for (int t = 0; t < taskPerThread; t++) {
+                ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
+                    Stack<double> rstk;
+                    if (t < tasks[threadID].size()) {
+                        const int y = tasks[threadID][t];
+                        for (int x = 0; x < width; x++) {
+                            samplers[threadID].request(&rstk, 250);
+                            BPTResult bptResult = executeBPT(scene, camera, rstk, x, y, bounceLimit);
                     
-                        for (int i = 0; i < bptResult.samples.size(); i++) {
-                            const int ix = bptResult.samples[i].imageX;
-                            const int iy = bptResult.samples[i].imageY;
-                            if (isValidValue(bptResult.samples[i].value)) {
-                                if (bptResult.samples[i].startFromPixel) {
-                                    buffer[threadID].pixel(ix, iy) += bptResult.samples[i].value;     
-                                } else {
-                                    buffer[threadID].pixel(ix, iy) += bptResult.samples[i].value / ((double)width * height);
+                            for (int i = 0; i < bptResult.samples.size(); i++) {
+                                const int ix = bptResult.samples[i].imageX;
+                                const int iy = bptResult.samples[i].imageY;
+                                if (isValidValue(bptResult.samples[i].value)) {
+                                    if (bptResult.samples[i].startFromPixel) {
+                                        buffer[threadID].pixel(ix, iy) += bptResult.samples[i].value;     
+                                    } else {
+                                        buffer[threadID].pixel(ix, iy) += bptResult.samples[i].value / ((double)width * height);
+                                    }
                                 }
                             }
                         }
@@ -650,22 +659,21 @@ namespace spica {
                 }
             }
 
-            char filename[256];
-            const int usedSamples = (t + 1) * OMP_NUM_CORE;
-
             _image->fill(Color(0.0, 0.0, 0.0));
             for (int k = 0; k < OMP_NUM_CORE; k++) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
-                        _image->pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
+                        _image->pixel(width - x - 1, y) += buffer[k](x, y) / (s + 1);
                     }
                 }
             }
-            sprintf(filename, "bdpt_%03d.bmp", t + 1);
+
+            char filename[256];
+            sprintf(filename, "bdpt_%03d.bmp", s + 1);
             _image->gamma(2.2, true);
             _image->save(filename);
 
-            printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);
+            printf("  %6.2f %%  processed -> %s\r", 100.0 * (s + 1) / samplePerPixel, filename);
         }
         printf("\nFinish!!\n");
 

@@ -33,7 +33,7 @@ namespace spica {
 
     public:
         virtual ~BSDFBase() {}
-        virtual Color reflectance() const = 0;
+        virtual const Color& reflectance() const = 0;
         virtual void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const = 0;
         virtual BSDFBase* clone() const = 0;
     };
@@ -49,7 +49,7 @@ namespace spica {
 
     public:
         static BSDF factory(const Color& reflectance);
-        Color reflectance() const override;
+        const Color& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
         BSDFBase* clone() const override;
 
@@ -68,7 +68,7 @@ namespace spica {
 
     public:
         static BSDF factory(const Color& reflectance);
-        Color reflectance() const override;
+        const Color& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
         BSDFBase* clone() const override;
 
@@ -88,7 +88,7 @@ namespace spica {
 
     public:
         static BSDF factory(const Color& reflectance, const double n = 32);
-        Color reflectance() const override;
+        const Color& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
         BSDFBase* clone() const override;
 
@@ -106,7 +106,7 @@ namespace spica {
 
     public:
         static BSDF factory(const Color& reflectance);
-        Color reflectance() const override;
+        const Color& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
         BSDFBase* clone() const override;
 

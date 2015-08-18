@@ -35,7 +35,7 @@ namespace spica {
     }
 
     const Color& Scene::getEmittance(int id) const {
-        Assertion(id >= 0 && id < _bsdfIds.size(), "Object index out of boudns");
+        Assertion(id >= 0 && id < _emittance.size(), "Object index out of boudns");
         return _emittance[id];    
     }
 
@@ -52,7 +52,7 @@ namespace spica {
                 hi = mid;
             }
         }
-        return lo;
+        return _lightIds[lo];
     }
 
     void Scene::clear() {

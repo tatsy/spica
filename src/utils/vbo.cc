@@ -125,8 +125,8 @@ namespace spica {
                     _indices.push_back(idx + 2);
                 } else if (i == nTheta - 1) {
                     add(v00, (v00 - sphere.center()).normalized(), color);
+                    add(v11, (v11 - sphere.center()).normalized(), color);
                     add(v10, (v10 - sphere.center()).normalized(), color);
-                    add(v01, (v01 - sphere.center()).normalized(), color);
                     _indices.push_back(idx);
                     _indices.push_back(idx + 1);
                     _indices.push_back(idx + 2);
@@ -135,12 +135,12 @@ namespace spica {
                     add(v01, (v01 - sphere.center()).normalized(), color);
                     add(v11, (v11 - sphere.center()).normalized(), color);
                     add(v10, (v10 - sphere.center()).normalized(), color);
-                    _indices.push_back(idx);
+                    _indices.push_back(idx + 0);
                     _indices.push_back(idx + 1);
                     _indices.push_back(idx + 2);
+                    _indices.push_back(idx + 0);
                     _indices.push_back(idx + 2);
                     _indices.push_back(idx + 3);
-                    _indices.push_back(idx + 0);
                 }
             }
         }

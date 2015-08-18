@@ -18,7 +18,7 @@ namespace spica {
     {
     }
 
-    Color LambertianBRDF::reflectance() const {
+    const Color& LambertianBRDF::reflectance() const {
         return _reflectance;
     }
 
@@ -46,7 +46,7 @@ namespace spica {
     {
     }
 
-    Color SpecularBRDF::reflectance() const {
+    const Color& SpecularBRDF::reflectance() const {
         return _reflectance;
     }
 
@@ -75,7 +75,7 @@ namespace spica {
     {
     }
 
-    Color PhongBRDF::reflectance() const {
+    const Color& PhongBRDF::reflectance() const {
         return _reflectance;
     }
 
@@ -112,7 +112,7 @@ namespace spica {
     {
     }
 
-    Color RefractiveBSDF::reflectance() const {
+    const Color& RefractiveBSDF::reflectance() const {
         return _reflectance;
     }
 

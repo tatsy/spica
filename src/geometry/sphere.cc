@@ -97,8 +97,8 @@ namespace spica {
                 } 
                 
                 if (i != 0) {
-                    retval.emplace_back(v00, v10, v01);
-                } 
+                    retval.emplace_back(v00, v11, v10);
+                }
             }
         }
         return std::move(retval);

@@ -43,10 +43,10 @@ namespace spica {
         Assertion(!_lightPdfs.empty(), "Light PDFs are not computed yet, call Scene::computeLightPdfs first!!");
         
         int lo = 0;
-        int hi = _lightIds.size();
+        int hi = _lightIds.size() - 1;
         while (lo < hi) {
             const int mid = (lo + hi) / 2;
-            if (rand1 < _lightPdfs[mid]) {
+            if (_lightPdfs[mid] < rand1) {
                 lo = mid + 1;
             } else {
                 hi = mid;
@@ -91,8 +91,9 @@ namespace spica {
             _totalLightArea += A;
         }
 
-        for (int i = 0; i < _lightIds.size(); i++) {
-            _lightPdfs[i] /= _totalLightArea;
+        _lightPdfs[0] /= _totalLightArea;
+        for (int i = 1; i < _lightIds.size(); i++) {
+            _lightPdfs[i] += _lightPdfs[i - 1] + _lightPdfs[i] / _totalLightArea;
         }
     }
 

@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     Timer timer;
     timer.start();
     BDPTRenderer renderer;
-    renderer.render(scene, camera, samplePerPixel, QUASI_MONTE_CARLO);
+    renderer.render(scene, camera, samplePerPixel, PSEUDO_RANDOM_TWISTER);
     printf("Timer: %f sec\n", timer.stop());
 
     return 0;

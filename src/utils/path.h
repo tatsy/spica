@@ -7,9 +7,10 @@
 
 #if _MSC_VER
 #include <direct.h>
-#define mkdir(d) _mkdir(d)
+#define makedir(d) _mkdir(d)
 #else
 #include <sys/stat.h>
+#define makedir(d) mkdir(d, 0644)
 #endif
 
 #include <string>
@@ -24,7 +25,7 @@ namespace spica {
         }
 
         inline bool createDirectory(const std::string& dirname) {
-            return mkdir(dirname.c_str()) == 0;   
+            return makedir(dirname.c_str()) == 0;   
         }
 
     }

@@ -210,9 +210,7 @@ namespace spica {
             const Triangle& light = scene.getTriangle(lightId);
 
             Vector3D positionOnLight, normalOnLight;
-            const double r1Light = rstk.pop();
-            const double r2Light = rstk.pop();
-            sampler::onTriangle(light, &positionOnLight, &normalOnLight, r1Light, r2Light);
+            sampler::onTriangle(light, &positionOnLight, &normalOnLight, rstk.pop(), rstk.pop());
             double pdfAreaOnLight = 1.0 / light.area();
 
             double totalPdfA = pdfAreaOnLight;

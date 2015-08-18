@@ -75,7 +75,7 @@ namespace spica {
                 r1 = 1.0 - r1;
                 r2 = 1.0 - r2;
             }
-            (*position) = r1 * (tri[1] - tri[0]) + r2 * (tri[2] - tri[0]);
+            (*position) = tri[0] +  r1 * (tri[1] - tri[0]) + r2 * (tri[2] - tri[0]);
             (*normal) = tri.normal();
         }
 

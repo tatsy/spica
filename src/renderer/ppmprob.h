@@ -47,10 +47,10 @@ namespace spica {
         void render(const Scene& scne, const Camera& camera, const int samplePerPixel, const PMParams& params, const RandomType randType = PSEUDO_RANDOM_TWISTER);
 
     private:
-        void buildPM(const Scene& scene, const Camera& camera, const int numPhotons, const RandomType randType);
+        void buildPM(const Scene& scene, const Camera& camera, const int numPhotons, const int maxBounces, const RandomType randType);
 
         Color executePathTracing(const Scene& scene, const Camera& camera, Stack<double>& rseq, const double pixelX, const double pixelY, const int numTargetPhotons, const double targetRadius) const;
-        Color radiance(const Scene& scene, const Ray& ray, Stack<double>& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit = 32, const int maxDepth = 6) const;
+        Color radiance(const Scene& scene, const Ray& ray, Stack<double>& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit = 32, const int maxDepth = 5) const;
     };
 
 }

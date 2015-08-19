@@ -7,7 +7,7 @@
 namespace spica {
 
     Photon::Photon()
-        : Vector3D()
+        : _position()
         , _flux()
         , _direction()
         , _normal()
@@ -15,7 +15,7 @@ namespace spica {
     }
 
     Photon::Photon(const Vector3D& position, const Color& flux, const Vector3D& direction, const Vector3D& normal)
-        : Vector3D(position)
+        : _position(position)
         , _flux(flux)
         , _direction(direction)
         , _normal(normal)
@@ -23,12 +23,12 @@ namespace spica {
     }
 
     Photon::Photon(const Photon& photon)
-        : Vector3D()
+        : _position()
         , _flux()
         , _direction()
         , _normal()
     {
-        operator=(photon);
+        this->operator=(photon);
     }
 
     Photon::~Photon()
@@ -36,14 +36,23 @@ namespace spica {
     }
 
     Photon& Photon::operator=(const Photon& photon) {
-        Vector3D::operator=(photon);
+        this->_position  = photon._position;
         this->_flux      = photon._flux;
         this->_direction = photon._direction;
-        this->_normal = photon._normal;
+        this->_normal    = photon._normal;
         return *this;
     }
 
-    Photon Photon::sample(const Scene& scene, RandomSeq& rseq, const int numPhotons) {
+    double Photon::get(int id) const {
+        return _position.get(id);
+    }
+
+    double Photon::distance(const Photon& p1, const Photon& p2) {
+        return (p1._position - p2._position).norm();
+    }
+
+    Photon Photon::sample(const Scene& scene, Stack<double>& rstk, const int numPhotons) {
+        /*
         const int lightID = scene.lightID();
         if (lightID >= 0) {
             const IGeometry* light = scene.get(lightID);
@@ -58,6 +67,9 @@ namespace spica {
         } else {
             return scene.envmap().samplePhoton(rseq, numPhotons);
         }
+        */
+        Assertion(false, "This is not implemented!!");
+        return Photon();
     }
 
     PhotonMap::PhotonMap()

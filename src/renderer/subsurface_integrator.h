@@ -12,7 +12,7 @@
 #endif
 
 #include "renderer_constants.h"
-#include "photon_mapping.h"
+#include "ppmprob.h"
 #include "bssrdf.h"
 
 namespace spica {

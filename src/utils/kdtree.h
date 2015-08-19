@@ -87,6 +87,8 @@ namespace spica {
     private:
         KdTreeNode* constructRec(std::vector<const Ty*>& points, const int nodeID, const int startID, const int endID, const int dim);
         void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const;
+
+        static double distance(const Ty& p1, const Ty& p2);
     };
 }
 

@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_PHOTON_MAP_H_
 #define _SPICA_PHOTON_MAP_H_
 
@@ -22,9 +26,10 @@ namespace spica {
 
     class Scene;
 
-    class SPICA_PHOTON_MAP_DLL Photon : public Vector3D {
+    class SPICA_PHOTON_MAP_DLL Photon  {
     private:
-        Color   _flux;
+        Vector3D _position;
+        Color    _flux;
         Vector3D _direction;
         Vector3D _normal;
 
@@ -36,11 +41,16 @@ namespace spica {
 
         Photon& operator=(const Photon& photon);
 
+        inline double get(int id) const;
+
+        static double distance(const Photon& p1, const Photon& p2);
+
         static Photon sample(const Scene& scene, Stack<double>& rstk, const int numPhotons);
 
-        inline Color   flux()      const { return _flux; }
+        inline Vector3D position()  const { return _position;  }
+        inline Color    flux()      const { return _flux;      }
         inline Vector3D direction() const { return _direction; }
-        inline Vector3D normal()    const { return _normal; }
+        inline Vector3D normal()    const { return _normal;    }
     };
 
     class SPICA_PHOTON_MAP_DLL PhotonMap : public Uncopyable {

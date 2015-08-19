@@ -51,17 +51,16 @@ namespace spica {
         for (int i = 0; i < OMP_NUM_CORE; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
-                printf("Use pseudo random numbers (Twister)\n");
                 samplers[i] = Random::factory(i);
                 break;
 
             case QUASI_MONTE_CARLO:
-                printf("Use quasi random numbers (Halton)\n");
                 samplers[i] = Halton::factory(200, true, i);
                 break;
 
             default:
-                Assertion(false, "Unknown random number generator type!!");
+                std::cerr << "[ERROR] Unknown random number generator type!!" << std::endl;
+                std::abort();
             }
         }
 
@@ -107,8 +106,8 @@ namespace spica {
             }
 
             char filename[256];
-            sprintf(filename, "pathtrace_%03d.bmp", i + 1);
-            _image->gamma(2.2, true);
+            sprintf(filename, params.saveFilenameFormat().c_str(), i + 1);
+            _image->gammaCorrect(1.0 / 2.2);
             _image->save(filename);
 
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (i + 1) / params.samplePerPixel(), filename);

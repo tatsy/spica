@@ -7,6 +7,7 @@
 #include "../src/utils/vector3d.h"
 #include "../src/utils/sampler.h"
 #include "../src/utils/vbo.h"
+#include "../src/utils/spica_dirs.h"
 
 #include "../src/geometry/geometry.h"
 

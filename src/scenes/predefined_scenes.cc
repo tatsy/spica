@@ -89,7 +89,7 @@ namespace spica {
         scene->add(rightWall, Material(Color(), Color(0.25, 0.25, 0.75), REFLECTION_DIFFUSE));
 
         // Objects
-        Trimesh bunny(DATA_DIR + "bunny.ply");
+        Trimesh bunny(kDataDirectory + "bunny.ply");
         bunny.translate(Vector3D(-3.0, 0.0, 0.0));
         bunny.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
         scene->add(bunny, Material(Color(), Color(0.75, 0.75, 0.25), REFLECTION_DIFFUSE));                         
@@ -151,7 +151,7 @@ namespace spica {
         scene->add(sphere, Material(Color(), Color(0.25, 0.75, 0.25), REFLECTION_DIFFUSE));
 
         // Objects
-        Trimesh dragon(DATA_DIR + "dragon.ply");
+        Trimesh dragon(kDataDirectory + "dragon.ply");
         dragon.scale(50.0, 50.0, 50.0);
         dragon.translate(Vector3D(2.0, 0.0, 0.0));
         dragon.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
@@ -197,7 +197,7 @@ namespace spica {
         scene->add(rightWall, Material(Color(), Color(0.25, 0.25, 0.75), REFLECTION_DIFFUSE));
 
         // Objects
-        Trimesh dragon(DATA_DIR + "dragon.ply");
+        Trimesh dragon(kDataDirectory + "dragon.ply");
         dragon.scale(70.0, 70.0, 70.0);
         dragon.translate(Vector3D(0.0, 0.0, 0.0));
         dragon.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
@@ -245,7 +245,7 @@ namespace spica {
         scene->add(rightWall, Material(Color(), Color(0.25, 0.25, 0.75), REFLECTION_DIFFUSE));
 
         // Objects
-        Trimesh kitten(DATA_DIR + "kitten.ply");
+        Trimesh kitten(kDataDirectory + "kitten.ply");
         kitten.scale(0.15, 0.15, 0.15);
         kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
         kitten.buildAccel();
@@ -267,11 +267,11 @@ namespace spica {
         scene->clear(); 
 
         // Envmap
-        Envmap envmap(DATA_DIR + "cave_room.hdr");
+        Envmap envmap(kDataDirectory + "cave_room.hdr");
         scene->setEnvmap(envmap);
 
         // Objects
-        Trimesh kitten(DATA_DIR + "kitten.ply");
+        Trimesh kitten(kDataDirectory + "kitten.ply");
         kitten.scale(0.15, 0.15, 0.15);
         kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
         kitten.buildAccel();

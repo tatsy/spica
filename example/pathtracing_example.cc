@@ -22,6 +22,7 @@ int main(int argc, char **argv) {
     timer.start();
 
     RenderParameters params(samples);
+    params.saveFilenameFormat(kOutputDirectory + "pathtrace_%03d.png");
 
     PathTracingRenderer renderer;
     renderer.render(scene, camera, params);

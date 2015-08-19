@@ -668,8 +668,8 @@ namespace spica {
             }
 
             char filename[256];
-            sprintf(filename, "bdpt_%03d.bmp", s + 1);
-            _image->gamma(2.2, true);
+            sprintf(filename, params.saveFilenameFormat().c_str(), s + 1);
+            _image->gammaCorrect(1.0 / 2.2);
             _image->save(filename);
 
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (s + 1) / params.samplePerPixel(), filename);

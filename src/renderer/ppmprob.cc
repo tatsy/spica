@@ -66,8 +66,8 @@ namespace spica {
                     }
                 }
             }
-            sprintf(filename, "photonmap_%03d.bmp", usedSamples);
-            image.gamma(2.2, true);
+            sprintf(filename, params.saveFilenameFormat().c_str(), usedSamples);
+            image.gammaCorrect(1.0 / 2.2);
             image.save(filename);
 
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (t + 1) / taskPerThread, filename);

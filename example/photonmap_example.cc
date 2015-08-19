@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
     params.castPhotons(numPhotons);
     params.gatherPhotons(gatherPhotons);
     params.gatherRadius(gatherRadius);
+    params.saveFilenameFormat("photonmap_%03d.png");
 
     Timer timer;
     timer.start();

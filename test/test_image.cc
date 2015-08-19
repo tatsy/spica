@@ -8,8 +8,8 @@ namespace {
     const int width = 320;
     const int height = 240;
     Random rng = Random();
-    const std::string filepath = TEMP_DIR + "test_image.bmp";
-    const std::string hdrpath = TEMP_DIR + "test_hdr.hdr";
+    const std::string filepath = kTempDirectory + "test_image.bmp";
+    const std::string hdrpath  = kTempDirectory + "test_hdr.hdr";
 }
 
 class ImageTest : public ::testing::Test {
@@ -18,7 +18,7 @@ protected:
     ~ImageTest() {}
 
     void SetUp() {
-        path::createDirectory(TEMP_DIR);
+        path::createDirectory(kTempDirectory);
     }
 };
 
@@ -106,7 +106,7 @@ TEST_F(ImageTest, SaveLoadTest) {
 
 TEST_F(ImageTest, TonemapTest) {
     Image image;
-    image.load(DATA_DIR + "gold_room.hdr");
+    image.load(kDataDirectory + "gold_room.hdr");
     EXPECT_NO_FATAL_FAILURE(image.tonemap());
-    image.save(TEMP_DIR + "gold_room.bmp");
+    image.save(kTempDirectory + "gold_room.bmp");
 }

@@ -31,7 +31,7 @@ TEST(SamplerTest, PoissonDiskTest) {
     /*
     const double mindist = 0.1;
     const double maxdist = 0.5;
-    Trimesh trimesh(DATA_DIR + "bunny.ply");
+    Trimesh trimesh(kDataDirectory + "bunny.ply");
 
     std::vector<Vector3D> points;
     std::vector<Vector3D> normals;

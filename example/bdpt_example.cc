@@ -20,6 +20,7 @@ int main(int argc, char **argv) {
     scene.computeLightPdfs();
 
     RenderParameters params(samples);
+    params.saveFilenameFormat("bdpt_%03d.png");
 
     Timer timer;
     timer.start();

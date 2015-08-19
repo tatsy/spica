@@ -199,14 +199,13 @@ namespace spica {
         }
     }
 
-    void Image::gamma(const double gam, bool inv) {
-        const double gg = inv ? 1.0 / gam : gam;
+    void Image::gammaCorrect(double gamma) {
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color& c = _pixels[y * _width + x];
-                double r = pow(c.red(),   gg);
-                double g = pow(c.green(), gg);
-                double b = pow(c.blue(),  gg);
+                double r = pow(c.red(),   gamma);
+                double g = pow(c.green(), gamma);
+                double b = pow(c.blue(),  gamma);
                 c = Color(r, g, b);
             }
         }
@@ -231,7 +230,10 @@ namespace spica {
         } else if (ext == ".hdr") {
             saveHdr(filename);
         } else if (ext == ".png") {
-            
+            savePng(filename);
+        } else {
+            fprintf(stderr, "[ERROR] unknown file extension: %s\n", ext.c_str());
+            std::abort();
         }
     }
 

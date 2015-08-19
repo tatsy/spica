@@ -5,19 +5,22 @@
 #ifndef _SPICA_RENDER_PARAMETERS_H_
 #define _SPICA_RENDER_PARAMETERS_H_
 
+#include <string>
+
 #include "renderer_constants.h"
 
 namespace spica {
 
     class RenderParameters {
     private:
-        int        _bounceLimit;
-        int        _bounceStartRoulette;
-        int        _samplePerPixel;
-        int        _castPhotons;
-        int        _gatherPhotons;
-        double     _gatherRadius;
-        RandomType _randomType;
+        int         _bounceLimit;
+        int         _bounceStartRoulette;
+        int         _samplePerPixel;
+        int         _castPhotons;
+        int         _gatherPhotons;
+        double      _gatherRadius;
+        RandomType  _randomType;
+        std::string _saveFilenameFormat;
 
     public:
         RenderParameters(int samplePerPixel = 8,
@@ -26,7 +29,8 @@ namespace spica {
                          int castPhotons = 1000000,
                          int gatherPhotons = 64,
                          double gatherRadius = 32.0,
-                         RandomType randomType = PSEUDO_RANDOM_TWISTER)
+                         RandomType randomType = PSEUDO_RANDOM_TWISTER,
+                         std::string saveFilenameFormat = "%03d.png")
             : _samplePerPixel(samplePerPixel)
             , _bounceLimit(bounceLimit)
             , _bounceStartRoulette(bounceStartRoulette)
@@ -34,6 +38,7 @@ namespace spica {
             , _gatherPhotons(gatherPhotons)
             , _gatherRadius(gatherRadius)
             , _randomType(randomType)
+            , _saveFilenameFormat(saveFilenameFormat)
         {
         }
 
@@ -45,6 +50,7 @@ namespace spica {
             , _gatherPhotons()
             , _gatherRadius()
             , _randomType()
+            , _saveFilenameFormat()
         {
             this->operator=(params);
         }
@@ -61,6 +67,7 @@ namespace spica {
             this->_gatherPhotons       = params._gatherPhotons;
             this->_gatherRadius        = params._gatherRadius;
             this->_randomType          = params._randomType;
+            this->_saveFilenameFormat  = params._saveFilenameFormat;
             return *this;
         }
 
@@ -91,6 +98,10 @@ namespace spica {
         // Type of random number sampler
         inline RandomType randomType() const                { return _randomType;       }
         inline void       randomType(RandomType randomType) { _randomType = randomType; }
+
+        // File name format string
+        inline std::string saveFilenameFormat() const                    { return _saveFilenameFormat;   }
+        inline void        saveFilenameFormat(const std::string& newval) { _saveFilenameFormat = newval; }
     };
 
 }  // namespace spica

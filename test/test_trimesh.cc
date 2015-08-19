@@ -29,21 +29,21 @@ namespace {
 // ------------------------------
 TEST(TrimeshTest, InvalidLoad) {
     Trimesh trimesh;
-    ASSERT_DEATH(trimesh.load(DATA_DIR + "box.obj"), "");
-    ASSERT_DEATH(trimesh.load(DATA_DIR + "bax.ply"), "");
+    ASSERT_DEATH(trimesh.load(kDataDirectory + "box.obj"), "");
+    ASSERT_DEATH(trimesh.load(kDataDirectory + "bax.ply"), "");
 }
 
 TEST(TrimeshTest, LoadTest) {
     Trimesh objmesh, plymesh;
-    EXPECT_NO_FATAL_FAILURE(objmesh.load(DATA_DIR + "bunny.obj"));
-    EXPECT_NO_FATAL_FAILURE(plymesh.load(DATA_DIR + "bunny.ply"));
+    EXPECT_NO_FATAL_FAILURE(objmesh.load(kDataDirectory + "bunny.obj"));
+    EXPECT_NO_FATAL_FAILURE(plymesh.load(kDataDirectory + "bunny.ply"));
 
     EXPECT_EQ(objmesh.numVerts(), plymesh.numVerts());
     EXPECT_EQ(objmesh.numFaces(), plymesh.numFaces());
 }
 
 TEST(TrimeshTest, CopyAndMove) {
-    Trimesh trimesh(DATA_DIR + "bunny.ply");
+    Trimesh trimesh(kDataDirectory + "bunny.ply");
     Trimesh trimesh2(trimesh);
 
     EXPECT_EQ(trimesh.numFaces(), trimesh2.numFaces());
@@ -65,7 +65,7 @@ TEST(TrimeshTest, CopyAndMove) {
 }
 
 TEST(TrimeshTest, BoxIntersection) {
-    Trimesh trimesh(DATA_DIR + "box.ply");
+    Trimesh trimesh(kDataDirectory + "box.ply");
     trimesh.setAccelType(KD_TREE_ACCEL, true);
 
     Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
@@ -77,7 +77,7 @@ TEST(TrimeshTest, BoxIntersection) {
 }
 
 TEST(TrimeshTest, BunnyIntersection) {
-    Trimesh trimesh(DATA_DIR + "bunny.ply");
+    Trimesh trimesh(kDataDirectory + "bunny.ply");
     trimesh.setAccelType(KD_TREE_ACCEL, true);
 
     Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
@@ -111,7 +111,7 @@ TEST(TrimeshTest, RandomKdTreeIntersection) {
     Random rng = Random();
 
     Trimesh trimesh;
-    trimesh.load(DATA_DIR + "bunny.ply");
+    trimesh.load(kDataDirectory + "bunny.ply");
     trimesh.setAccelType(KD_TREE_ACCEL, true);
 
     for (int i = 0; i < nTrial; i++) {
@@ -138,7 +138,7 @@ TEST(TrimeshTest, RandomQVBHIntersection) {
     Random rng = Random();
 
     Trimesh trimesh;
-    trimesh.load(DATA_DIR + "bunny.ply");
+    trimesh.load(kDataDirectory + "bunny.ply");
     trimesh.setAccelType(QBVH_ACCEL, true);
 
     for (int i = 0; i < nTrial; i++) {

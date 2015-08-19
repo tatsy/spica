@@ -589,15 +589,14 @@ namespace spica {
     {
     }
 
-    void BDPTRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, const RandomType randType) {
+    void BDPTRenderer::render(const Scene& scene, const Camera& camera, const RenderParameters& params) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
-        const int bounceLimit = 32;
 
         // Prepare random samplers
         RandomSampler* samplers = new RandomSampler[OMP_NUM_CORE];
         for (int i = 0; i < OMP_NUM_CORE; i++) {
-            switch (randType) {
+            switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory(i);
                 break;
@@ -633,7 +632,7 @@ namespace spica {
         }
 
         // Rendering
-        for (int s = 0; s < samplePerPixel; s++) {
+        for (int s = 0; s < params.samplePerPixel(); s++) {
             for (int t = 0; t < taskPerThread; t++) {
                 ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
                     Stack<double> rstk;
@@ -641,7 +640,7 @@ namespace spica {
                         const int y = tasks[threadID][t];
                         for (int x = 0; x < width; x++) {
                             samplers[threadID].request(&rstk, 250);
-                            BPTResult bptResult = executeBPT(scene, camera, rstk, x, y, bounceLimit);
+                            BPTResult bptResult = executeBPT(scene, camera, rstk, x, y, params.bounceLimit());
                     
                             for (int i = 0; i < bptResult.samples.size(); i++) {
                                 const int ix = bptResult.samples[i].imageX;
@@ -673,7 +672,7 @@ namespace spica {
             _image->gamma(2.2, true);
             _image->save(filename);
 
-            printf("  %6.2f %%  processed -> %s\r", 100.0 * (s + 1) / samplePerPixel, filename);
+            printf("  %6.2f %%  processed -> %s\r", 100.0 * (s + 1) / params.samplePerPixel(), filename);
         }
         printf("\nFinish!!\n");
 

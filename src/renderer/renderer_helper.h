@@ -17,6 +17,7 @@
 
 #include "scene.h"
 #include "camera.h"
+#include "render_parameters.h"
 
 #include "../utils/vector3d.h"
 #include "../utils/color.h"
@@ -25,7 +26,7 @@ namespace spica {
 
     namespace helper {
 
-        // Calculate u and v axes from w vector
+        // Calculate u and v axes from w, which is the surface normal
         void SPICA_RENDERER_HELPER_DLL calcLocalCoords(const Vector3D& w, Vector3D* u, Vector3D* v);
 
         bool SPICA_RENDERER_HELPER_DLL checkTotalReflection(const bool isIncoming,
@@ -39,14 +40,17 @@ namespace spica {
 
         // Standard radiance simulator
         // @param[in] scene: rendered scene
+        // @param[in] params: rendering parameters
         // @param[in] ray: ray casted from camera
         // @param[in] rseq: random number sequence
-        // @param[in] depth: depth of recursion
-        // @param[in] depthLimit: maximum depth of recursion
-        // @param[in] depthMin: depth in which recursion begin to be terminated with Russian roulette
-        Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const Ray& ray, Stack<double>& rands, const int depth, const int depthLimit = 64, const int depthMin = 6);
-    }
+        // @param[in] bounces: # of bounces
+        // @param[in] bounceLimit: maximum bounces to be accounted for
+        // @param[in] bounceStartRoulette: # of bounces that the Russian roulette starts to terminate recursion
+        Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const RenderParameters& params,
+                                                 const Ray& ray, Stack<double>& rands, int bounces);
 
-}
+    }  // namespace helper
+
+}  // namespace spica
 
 #endif  // _SPICA_RENDERER_HELPER_H_

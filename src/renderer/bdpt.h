@@ -12,6 +12,7 @@
 #endif
 
 #include "renderer_constants.h"
+#include "render_parameters.h"
 #include "renderer_helper.h"
 
 namespace spica {
@@ -24,7 +25,7 @@ namespace spica {
         BDPTRenderer(spica::Image* image = NULL);
         ~BDPTRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, const RandomType randType);
+        void render(const Scene& scene, const Camera& camera, const RenderParameters& params);
     };
 
 }

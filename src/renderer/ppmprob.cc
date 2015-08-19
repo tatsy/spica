@@ -20,7 +20,7 @@ namespace spica {
     {
     }
 
-    void PMRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, const PMParams& params, const RandomType randType) {
+    void PMRenderer::render(const Scene& scene, const Camera& camera, const RenderParameters& params) {
         const int width = camera.imageW();
         const int height = camera.imageH();
         Image* buffer = new Image[OMP_NUM_CORE];
@@ -30,7 +30,7 @@ namespace spica {
 
         RandomBase** rand = new RandomBase*[OMP_NUM_CORE];
         for (int i = 0; i < OMP_NUM_CORE; i++) {
-            switch (randType) {
+            switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 rand[i] = new Random();
                 break;
@@ -40,10 +40,10 @@ namespace spica {
             }
         }
 
-        const int taskPerThread = (samplePerPixel + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
+        const int taskPerThread = (params.samplePerPixel() + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
         for (int t = 0; t < taskPerThread; t++) {
             // Construct photon map
-            buildPM(scene, camera, params.numPhotons, 32, randType);
+            buildPM(scene, camera, params.castPhotons(), params.bounceLimit(), params.randomType());
 
             // Path tracing
             ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
@@ -51,7 +51,7 @@ namespace spica {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         rand[threadID]->request(&rstk, 250);
-                        buffer[threadID].pixel(width - x - 1, y) += executePathTracing(scene, camera, rstk, x, y, params.gatherPhotons, params.gatherRadius);
+                        buffer[threadID].pixel(width - x - 1, y) += executePathTracing(scene, camera, params, rstk, x, y);
                     }
                 }
             }
@@ -81,14 +81,14 @@ namespace spica {
         delete[] buffer;
     }
 
-    Color PMRenderer::executePathTracing(const Scene& scene, const Camera& camera, Stack<double>& rseq, const double pixelX, const double pixelY, const int numTargetPhotons, const double targetRadius) const {
+    Color PMRenderer::executePathTracing(const Scene& scene, const Camera& camera, const RenderParameters& params, Stack<double>& rseq, const double pixelX, const double pixelY) const {
         CameraSample camSample = camera.sample(pixelX, pixelY, rseq);
         const Ray ray = camSample.generateRay();
-        return Color(radiance(scene, ray, rseq, numTargetPhotons, targetRadius, 0) * (camera.sensitivity() / camSample.totalPdf()));
+        return Color(radiance(scene, params, ray, rseq, 0) * (camera.sensitivity() / camSample.totalPdf()));
     }    
     
-    Color PMRenderer::radiance(const Scene& scene, const Ray& ray, Stack<double>& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit, const int maxDepth) const {
-        if (depth >= depthLimit) {
+    Color PMRenderer::radiance(const Scene& scene, const RenderParameters& params, const Ray& ray, Stack<double>& rseq, int bounces) const {
+        if (bounces >= params.bounceLimit()) {
             return Color::BLACK;
         }
 
@@ -110,7 +110,7 @@ namespace spica {
 
         // Russian roulette
         double roulette = std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
-        if (depth > maxDepth) {
+        if (bounces > params.bounceStartRoulette()) {
             if (rands[0] > roulette) {
                 return emission;
             }
@@ -122,7 +122,7 @@ namespace spica {
             // Estimate irradiance with photon map
             Photon query = Photon(hitpoint.position(), Color(), ray.direction(), hitpoint.normal());
             std::vector<Photon> photons;
-            photonMap.findKNN(query, &photons, numTargetPhotons, targetRadius);
+            photonMap.findKNN(query, &photons, params.gatherPhotons(), params.gatherRadius());
 
             const int numPhotons = static_cast<int>(photons.size());
 
@@ -132,7 +132,7 @@ namespace spica {
             for (int i = 0; i < numPhotons; i++) {
                 const Vector3D diff = query.position() - photons[i].position();
                 const double dist = diff.norm();
-                if (std::abs(Vector3D::dot(hitpoint.normal(), diff) / dist) < targetRadius * targetRadius * 0.01) {
+                if (std::abs(Vector3D::dot(hitpoint.normal(), diff) / dist) < params.gatherRadius() * params.gatherRadius() * 0.01) {
                     validPhotons.push_back(photons[i]);
                     distances.push_back(dist);
                     maxdist = std::max(maxdist, dist);
@@ -158,7 +158,7 @@ namespace spica {
             Vector3D nextDir;
             bsdf.sample(ray.direction(), hitpoint.normal(), rands[1], rands[2], &nextDir, &pdf);
             Ray nextRay = Ray(hitpoint.position(), nextDir);
-            nextRad = radiance(scene, nextRay, rseq, numTargetPhotons, targetRadius, depth + 1, depthLimit, maxDepth) / pdf;
+            nextRad = radiance(scene, params, nextRay, rseq, bounces + 1) / pdf;
         }
 
         return Color(emission + (bsdf.reflectance() * nextRad) / roulette);

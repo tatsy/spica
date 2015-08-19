@@ -58,8 +58,10 @@ namespace spica {
             return false;
         }
 
-        Color radiance(const Scene& scene, const Ray& ray, Stack<double>& rands, const int depth, const int depthLimit, const int depthMin) {
-            if (depth >= depthLimit) {
+        Color radiance(const Scene& scene, const RenderParameters& params,
+                       const Ray& ray, Stack<double>& rands, const int bounces)
+        {
+            if (bounces >= params.bounceLimit()) {
                 return Color::BLACK;
             }
 
@@ -79,7 +81,7 @@ namespace spica {
 
             // Russian roulette
             double roulette = std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
-            if (depth < depthMin) {
+            if (bounces < params.bounceStartRoulette()) {
                 roulette = 1.0;
             } else {
                 if (roulette <= randnums[0]) {
@@ -93,7 +95,7 @@ namespace spica {
             bsdf.sample(ray.direction(), hitpoint.normal(), randnums[1], randnums[2], &nextdir, &pdf);
             
             Ray nextray(hitpoint.position(), nextdir);
-            const Color nextrad = radiance(scene, nextray, rands, depth + 1, depthLimit, depthMin);
+            const Color nextrad = radiance(scene, params, nextray, rands, bounces + 1);
             
             // Return result
             return Color(emittance + bsdf.reflectance() * nextrad / (roulette * pdf));       

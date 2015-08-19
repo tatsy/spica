@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_PHOTON_MAPPING_H_
 #define _SPICA_PHOTON_MAPPING_H_
 
@@ -17,24 +21,10 @@
 #include "../utils/kdtree.h"
 
 #include "renderer_constants.h"
+#include "render_parameters.h"
 #include "photon_map.h"
 
 namespace spica {
-
-    // --------------------------------------------------
-    // Parameter set for photon mapping
-    // --------------------------------------------------
-    struct PMParams {
-        int numPhotons;
-        int gatherPhotons;
-        int gatherRadius;
-        explicit PMParams(const int numPhotons_ = 1000000, const int gatherPhotons_ = 100, const int gatherRadius_ = 20.0)
-            : numPhotons(numPhotons_)
-            , gatherPhotons(gatherPhotons_)
-            , gatherRadius(gatherRadius_)
-        {
-        }
-    };
 
     class SPICA_PHOTON_MAPPING_DLL PMRenderer : public Uncopyable {
     private:
@@ -44,15 +34,17 @@ namespace spica {
         PMRenderer();
         ~PMRenderer();
 
-        void render(const Scene& scne, const Camera& camera, const int samplePerPixel, const PMParams& params, const RandomType randType = PSEUDO_RANDOM_TWISTER);
+        void render(const Scene& scne, const Camera& camera, const RenderParameters& params);
 
     private:
         void buildPM(const Scene& scene, const Camera& camera, const int numPhotons, const int maxBounces, const RandomType randType);
 
-        Color executePathTracing(const Scene& scene, const Camera& camera, Stack<double>& rseq, const double pixelX, const double pixelY, const int numTargetPhotons, const double targetRadius) const;
-        Color radiance(const Scene& scene, const Ray& ray, Stack<double>& rseq, const int numTargetPhotons, const double targetRadius, const int depth, const int depthLimit = 32, const int maxDepth = 5) const;
+        Color executePathTracing(const Scene& scene, const Camera& camera, const RenderParameters& params,
+                                 Stack<double>& rstk, double pixelX, double pixelY) const;
+
+        Color radiance(const Scene& scene, const RenderParameters& params, const Ray& ray, Stack<double>& rstk, int bounces) const;
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_PHOTON_MAPPING_H_

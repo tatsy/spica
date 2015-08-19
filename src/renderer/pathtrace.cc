@@ -19,7 +19,7 @@ namespace spica {
 
     namespace {
 
-        Color executePathTracing(const Scene& scene, const Camera& camera, const double pixelX, const double pixelY, Stack<double>& rands) {
+        Color executePathTracing(const Scene& scene, const Camera& camera, const RenderParameters& params, const double pixelX, const double pixelY, Stack<double>& rands) {
             Vector3D posOnSensor;        // Position on the image sensor
             Vector3D posOnObjplane;      // Position on the object plane
             Vector3D posOnLens;          // Position on the lens
@@ -28,7 +28,7 @@ namespace spica {
             CameraSample camSample = camera.sample(pixelX, pixelY, rands);
             const Ray ray = camSample.generateRay();
 
-            return Color(helper::radiance(scene, ray, rands, 0) * (camera.sensitivity() / camSample.totalPdf()));
+            return Color(helper::radiance(scene, params, ray, rands, 0) * (camera.sensitivity() / camSample.totalPdf()));
         }
 
     }   // anonymous namespace
@@ -42,14 +42,14 @@ namespace spica {
     {
     }
 
-    void PathTracingRenderer::render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType) {
+    void PathTracingRenderer::render(const Scene& scene, const Camera& camera, const RenderParameters& params) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
 
         // Prepare random number generators
         RandomSampler* samplers = new RandomSampler[OMP_NUM_CORE];
         for (int i = 0; i < OMP_NUM_CORE; i++) {
-            switch (randType) {
+            switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 printf("Use pseudo random numbers (Twister)\n");
                 samplers[i] = Random::factory(i);
@@ -86,7 +86,7 @@ namespace spica {
         // Trace rays
         int processed = 0;
         buffer.fill(Color::BLACK);
-        for (int i = 0; i < samplePerPixel; i++) {
+        for (int i = 0; i < params.samplePerPixel(); i++) {
             for (int t = 0; t < taskPerThread; t++) {
                 ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
                     if (t < tasks[threadID].size()) {
@@ -94,7 +94,7 @@ namespace spica {
                         const int y = tasks[threadID][t];
                         for (int x = 0; x < width; x++) {
                             samplers[threadID].request(&rstk, 200);
-                            buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, x, y, rstk);
+                            buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, params, x, y, rstk);
                         }
                     }
                 }
@@ -111,7 +111,7 @@ namespace spica {
             _image->gamma(2.2, true);
             _image->save(filename);
 
-            printf("  %6.2f %%  processed -> %s\r", 100.0 * (i + 1) / samplePerPixel, filename);
+            printf("  %6.2f %%  processed -> %s\r", 100.0 * (i + 1) / params.samplePerPixel(), filename);
         }
         printf("\nFinish!!\n");
 

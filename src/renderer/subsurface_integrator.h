@@ -113,16 +113,16 @@ namespace spica {
         SubsurfaceIntegrator();
         ~SubsurfaceIntegrator();
 
-        void initialize(const Scene& scene, const BSSRDF& bssrdf, const PMParams& params, const double areaRadius, const RandomType randType, const double maxError = 0.05);
+        void initialize(const Scene& scene, const BSSRDF& bssrdf, const RenderParameters& params, const double areaRadius, const RandomType randType, const double maxError = 0.05);
 
-        void buildOctree(const std::vector<Vector3D>& points, const std::vector<Vector3D>& normals, const PMParams& params);
+        void buildOctree(const std::vector<Vector3D>& points, const std::vector<Vector3D>& normals, const RenderParameters& params);
 
         Color irradiance(const Vector3D& p) const;
 
     private:
         void buildPhotonMap(const Scene& scene, const int numPhotons, const int bounceLimit, const RandomType randType);
 
-        Color irradianceWithPM(const Vector3D& p, const Vector3D& n, const PMParams& params) const;
+        Color irradianceWithPM(const Vector3D& p, const Vector3D& n, const RenderParameters& params) const;
     };
 
 }

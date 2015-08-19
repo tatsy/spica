@@ -18,6 +18,8 @@
 #include <string>
 
 #include "renderer_constants.h"
+#include "render_parameters.h"
+
 #include "../utils/uncopyable.h"
 #include "../random/random.h"
 #include "../random/halton.h"
@@ -35,7 +37,7 @@ namespace spica {
         explicit PathTracingRenderer(spica::Image* image = NULL);
         ~PathTracingRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const int samplePerPixel, RandomType randType = PSEUDO_RANDOM_TWISTER);
+        void render(const Scene& scene, const Camera& camera, const RenderParameters& params);
     };
 }
 

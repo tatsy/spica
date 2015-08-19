@@ -8,12 +8,15 @@ namespace spica {
     Scene::Scene()
         : _triangles()
         , _emittance()
+
         , _bsdfIds()
         , _lightIds()
         , _lightPdfs()
         , _totalLightArea(0.0)
+
         , _bsdfs()
         , _accel()
+        , _accelType(QBVH_ACCEL)
         , _envmap()
     {
         _envmap.resize(512, 512);
@@ -64,8 +67,12 @@ namespace spica {
         _bsdfs.shrink_to_fit();
     }
 
-    void Scene::setAccelerator(AccelType type) {
-        switch (type) {
+    void Scene::setAccelType(AccelType type) {
+        this->_accelType = type;
+    }
+
+    void Scene::computeAccelerator() {
+        switch (this->_accelType) {
         case QBVH_ACCEL:
             _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
@@ -78,7 +85,7 @@ namespace spica {
             std::cerr << "[ERROR] unknown accelerator type !!" << std::endl;
             std::abort();
         }
-        _accel->construct(_triangles);
+        _accel->construct(_triangles);    
     }
 
     void Scene::computeLightPdfs() {        
@@ -95,6 +102,11 @@ namespace spica {
         for (int i = 1; i < _lightIds.size(); i++) {
             _lightPdfs[i] += _lightPdfs[i - 1] + _lightPdfs[i] / _totalLightArea;
         }
+    }
+
+    void Scene::finalize() {
+        this->computeAccelerator();
+        this->computeLightPdfs();
     }
 
     bool Scene::intersect(const Ray& ray, Intersection& isect) const {

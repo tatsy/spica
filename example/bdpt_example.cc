@@ -17,7 +17,6 @@ int main(int argc, char **argv) {
     Scene scene;
     Camera camera;
     cornellBox(&scene, &camera, width, height);
-    scene.computeLightPdfs();
 
     RenderParameters params(samples);
     params.saveFilenameFormat("bdpt_%03d.png");

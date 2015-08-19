@@ -41,7 +41,7 @@ namespace spica {
         scene->add(Sphere(3.0,  Vector3D(-5.0, -7.0, -5.0)), SpecularBRDF::factory(Color(0.99, 0.99, 0.99)));   // Mirror ball
         scene->add(Sphere(3.0,  Vector3D( 5.0, -7.0,  5.0)), RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));   // Glass ball 
 
-        scene->setAccelerator(KD_TREE_ACCEL);
+        scene->finalize();
 
         (*camera) = Camera(width, height, 
                            Vector3D(0.0, 0.0, 100.0),

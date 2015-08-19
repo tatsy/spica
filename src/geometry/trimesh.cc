@@ -137,16 +137,14 @@ namespace spica {
 
         switch(_accelType) {
         case KD_TREE_ACCEL:
-            printf("Accelerator: K-D tree\n");
             _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
             break;
         case QBVH_ACCEL:
-            printf("Accelerator: QBVH\n");
             _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
         default:
-            Assertion(false, "Unknown accelerator type!!");
-            break;
+            std::cerr << "Unknown accelerator type!!" << std::endl;
+            std::abort();
         }
         _accel->construct(triangles);
     }

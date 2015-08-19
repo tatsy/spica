@@ -41,6 +41,7 @@ namespace spica {
 
         std::vector<BSDF> _bsdfs;
         std::shared_ptr<AccelBase> _accel;
+        AccelType _accelType;
 
         Envmap _envmap;
 
@@ -84,8 +85,15 @@ namespace spica {
         int sampleLight(double rand1) const;
 
         void clear();
-        void setAccelerator(AccelType accel = QBVH_ACCEL);
+
+        void setAccelType(AccelType accel);
+
+        void computeAccelerator();
         void computeLightPdfs();
+
+        // Call both "computeAccelerator" and "computeLightPdfs" to finalize the scene.
+        // If you update the scene, you should call this function again.
+        void finalize();
 
         bool intersect(const Ray& ray, Intersection& isect) const;
 

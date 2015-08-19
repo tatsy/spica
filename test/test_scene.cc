@@ -39,7 +39,8 @@ TEST_F(SceneTest, AccelNotPrepared) {
 }
 
 TEST_F(SceneTest, QBVHIntersectionTest) {
-    scene.setAccelerator(QBVH_ACCEL);
+    scene.setAccelType(QBVH_ACCEL);
+    scene.computeAccelerator();
 
     Intersection isect;
     Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
@@ -55,7 +56,8 @@ TEST_F(SceneTest, QBVHIntersectionTest) {
 }
 
 TEST_F(SceneTest, KdTreeIntersectionTest) {
-    scene.setAccelerator(KD_TREE_ACCEL);
+    scene.setAccelType(KD_TREE_ACCEL);
+    scene.computeAccelerator();
 
     Intersection isect;
     Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
@@ -77,8 +79,10 @@ TEST_F(SceneTest, QBVHvsKdTreeTest) {
     Camera cam1, cam2;
     cornellBox(&scene1, &cam1, 400, 300);
     cornellBox(&scene2, &cam2, 400, 300);
-    scene1.setAccelerator(QBVH_ACCEL);
-    scene2.setAccelerator(KD_TREE_ACCEL);
+    scene1.setAccelType(QBVH_ACCEL);
+    scene1.computeAccelerator();
+    scene2.setAccelType(KD_TREE_ACCEL);
+    scene2.computeAccelerator();
 
     Random rng = Random();
 

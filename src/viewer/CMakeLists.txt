@@ -36,14 +36,18 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
 
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
+  set(SOURCES main.cc scene_viewer.cc qgl_render_widget.cc)
+  set(HEADERS scene_viewer.h qgl_render_widget.h)
+  set(SHADERS blinn_phong.vs blinn_phong.fs)
+  set(QT_GEN_FILES ${CMAKE_CURRENT_BINARY_DIR}/scene_viewer_automoc.cpp)
 
-  add_executable(scene_viewer main.cc
-                 scene_viewer.cc
-                 scene_viewer.h
-                 qgl_render_widget.cc
-                 qgl_render_widget.h
-                 blinn_phong.vs
-                 blinn_phong.fs)
+  add_executable(scene_viewer ${SOURCES} ${HEADERS} ${SHADERS})
+
+  if (MSVC)
+    source_group(Sources FILES ${SOURCES} ${HEADERS})
+    source_group(Shaders FILES ${SHADERS})
+    source_group("Qt Files" FILES ${QT_GEN_FILES})
+  endif()
 
   configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
 

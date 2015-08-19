@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(spica)
+project(spica CXX)
 
 if (NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -16,6 +16,9 @@ else()
   set(LIB_PREFIX "lib")
   set(LIB_SUFFIX ".so")
 endif()
+
+# Turn on using solution folders
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Set output path
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)

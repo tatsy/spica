@@ -1,10 +1,17 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_SCENE_VIEWER_H_
 #define _SPICA_SCENE_VIEWER_H_
 
-#include <qmainwindow.h>
-#include <qboxlayout.h>
+#include <QtWidgets/qmainwindow.h>
+#include <QtWidgets/qwidget.h>
+#include <QtWidgets/qboxlayout.h>
 
 #include "qgl_render_widget.h"
+#include "render_param_widget.h"
+
 #include "../renderer/camera.h"
 #include "../renderer/scene.h"
 
@@ -18,7 +25,17 @@ namespace spica {
         void setScene(const Scene& scene, const Camera& camera);
 
     protected:
+        QWidget* mainContainer;
+        QHBoxLayout* mainLayout;
+        
+        QWidget* rightContainer;
+        QWidget* leftContainer;
+
+        QVBoxLayout* rightLayout;
+        QVBoxLayout* leftLayout;
+
         QGLRenderWidget* qglWidget;
+        RenderParamWidget* paramWidget;
     };
 
 }

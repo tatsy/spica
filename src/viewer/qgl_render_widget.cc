@@ -55,6 +55,11 @@ namespace spica {
         shaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../../src/viewer/blinn_phong.vs");
         shaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../../src/viewer/blinn_phong.fs");
         shaderProgram->link();
+        
+        if (!shaderProgram->isLinked()) {
+            std::cerr << "[ERROR] failed to link shader program !!" << std::endl;
+            exit(1);
+        }
     }
 
     void QGLRenderWidget::resizeGL(int width, int height) {
@@ -69,7 +74,7 @@ namespace spica {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        QMatrix4x4 projMat, viewMat, modelMat;
+        QMatrix4x4 projMat, viewMat, modelMat, normalMat;
         projMat.perspective(verticalAngle, (float)width() / (float)height(), 1.0f, 1000.0f);
         
         viewMat.lookAt(QVector3D(eye.x(), eye.y(), eye.z()),
@@ -80,10 +85,13 @@ namespace spica {
         modelMat = modelMat * rotationMat;
         modelMat.scale(1.0 - _scrallDelta * 0.1);
 
+        normalMat = (viewMat * modelMat).inverted().transposed();
+
         shaderProgram->bind();
         shaderProgram->setUniformValue("mMat", modelMat);
         shaderProgram->setUniformValue("vMat", viewMat);
         shaderProgram->setUniformValue("pMat", projMat);
+        shaderProgram->setUniformValue("normalMat", normalMat);
 
         shaderProgram->setAttributeArray("vertices", vbo.vertices(), 3);
         shaderProgram->setAttributeArray("normals", vbo.normals(), 3);

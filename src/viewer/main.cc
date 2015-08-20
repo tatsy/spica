@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     cornellBox(&scene, &camera, 640, 480);
 
     SceneViewer viewer;
-    viewer.show();
+    viewer.showMaximized();
 
     viewer.setScene(scene, camera);
 

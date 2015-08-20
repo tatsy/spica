@@ -36,9 +36,17 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
 
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-  set(SOURCES main.cc scene_viewer.cc qgl_render_widget.cc)
-  set(HEADERS scene_viewer.h qgl_render_widget.h)
+  set(SOURCES main.cc
+              scene_viewer.cc
+              render_param_widget.cc
+              qgl_render_widget.cc)
+
+  set(HEADERS scene_viewer.h
+              render_param_widget.h
+              qgl_render_widget.h)
+
   set(SHADERS blinn_phong.vs blinn_phong.fs)
+
   set(QT_GEN_FILES ${CMAKE_CURRENT_BINARY_DIR}/scene_viewer_automoc.cpp)
 
   add_executable(scene_viewer ${SOURCES} ${HEADERS} ${SHADERS})

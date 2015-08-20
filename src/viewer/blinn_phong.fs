@@ -1,15 +1,25 @@
 #version 150
 
-in vec4 color_fs;
-in vec4 normal_fs;
-in vec3 VtoL;
+uniform vec3 cameraPosition;
+
+smooth in vec3 vertexCameraspace;
+smooth in vec3 normalCameraspace;
+smooth in vec3 lightCameraspace;
+smooth in vec4 vertexColor;
 
 out vec4 color;
 
 void main(void) {
-    vec3 N = normalize(normal_fs.xyz);
-    vec3 L = normalize(VtoL);
-    float NdotL = dot(N, L);
-    vec4 diffuse = vec4(max(0.0, NdotL));
-    color = color_fs * diffuse + 0.2 * color_fs;
+    vec3 V = normalize(cameraPosition - vertexCameraspace);
+    vec3 N = normalize(normalCameraspace);
+    vec3 L = normalize(lightCameraspace - vertexCameraspace);
+    vec3 H = normalize(L + V);
+
+    float n_dot_l = dot(N, L);
+    vec4 diffuse = vec4(max(0.0, n_dot_l));
+
+    float n_dot_h = dot(N, H);
+    vec4 specular = vec4(pow(max(0.0, n_dot_h), 64.0));
+
+    color = vertexColor * (diffuse + specular);
 }

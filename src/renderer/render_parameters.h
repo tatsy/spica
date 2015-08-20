@@ -13,9 +13,9 @@ namespace spica {
 
     class RenderParameters {
     private:
+        int         _samplePerPixel;
         int         _bounceLimit;
         int         _bounceStartRoulette;
-        int         _samplePerPixel;
         int         _castPhotons;
         int         _gatherPhotons;
         double      _gatherRadius;

@@ -18,20 +18,20 @@ int main(int argc, char** argv) {
     Camera camera;
     cornellBox(&scene, &camera, width, height);
 
-    const int numPhotons = 1000000;
-    const int gatherPhotons = 200;
-    const double gatherRadius = 20.0;
+    const int    numPhotons    = 1000000;
+    const int    gatherPhotons = 128;
+    const double gatherRadius  = 32.0;
 
     RenderParameters params(samples);
     params.castPhotons(numPhotons);
     params.gatherPhotons(gatherPhotons);
     params.gatherRadius(gatherRadius);
-    params.saveFilenameFormat("photonmap_%03d.png");
+    params.saveFilenameFormat(kOutputDirectory + "photonmap_%03d.png");
 
     Timer timer;
     timer.start();
 
-    PMRenderer renderer;
+    PPMPRenderer renderer;
     renderer.render(scene, camera, params);
     printf("Time: %f sec\n", timer.stop());
 }

@@ -37,11 +37,14 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
   set(SOURCES main.cc
+              render_thread.cc
               scene_viewer.cc
+              scene_viewer_slots.cc
               render_param_widget.cc
               qgl_render_widget.cc)
 
   set(HEADERS scene_viewer.h
+              render_thread.h
               render_param_widget.h
               qgl_render_widget.h)
 

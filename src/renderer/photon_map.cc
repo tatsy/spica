@@ -1,8 +1,15 @@
 #define SPICA_PHOTON_MAP_EXPORT
 #include "photon_map.h"
 
+#include <ctime>
+
 #include "../utils/sampler.h"
+
+#include "../random/random_sampler.h"
+
 #include "scene.h"
+#include "camera.h"
+#include "render_parameters.h"
 
 namespace spica {
 
@@ -14,7 +21,8 @@ namespace spica {
     {
     }
 
-    Photon::Photon(const Vector3D& position, const Color& flux, const Vector3D& direction, const Vector3D& normal)
+    Photon::Photon(const Vector3D& position, const Color& flux, 
+                   const Vector3D& direction, const Vector3D& normal)
         : _position(position)
         , _flux(flux)
         , _direction(direction)
@@ -51,7 +59,8 @@ namespace spica {
         return (p1._position - p2._position).norm();
     }
 
-    Photon Photon::sample(const Scene& scene, Stack<double>& rstk, const int numPhotons) {
+    Photon Photon::sample(const Scene& scene, 
+                          Stack<double>& rstk, const int numPhotons) {
         /*
         const int lightID = scene.lightID();
         if (lightID >= 0) {
@@ -85,12 +94,200 @@ namespace spica {
         _kdtree.release();
     }
 
-    void PhotonMap::construct(const std::vector<Photon>& photons) {
-        _kdtree.construct(photons);
+    void PhotonMap::construct(const Scene& scene, const Camera& camera, 
+                              const RenderParameters& params) {
+
+        std::cout << "Shooting photons..." << std::endl;
+
+        // Random number generator
+        RandomSampler* samplers = new RandomSampler[kNumCores];
+        for (int i = 0; i < kNumCores; i++) {
+            switch (params.randomType()) {
+            case PSEUDO_RANDOM_TWISTER:
+                samplers[i] = Random::factory((unsigned int)time(NULL));
+                break;
+
+            case QUASI_MONTE_CARLO:
+                samplers[i] = Halton::factory(250, true, 
+                                              (unsigned int)time(NULL));
+                break;
+
+            default:
+                std::cerr << "Unknown random sampler type !!" << std::endl;
+                std::abort();
+            }
+        }
+
+        // Distribute tasks
+        const int np = params.castPhotons();
+        const int taskPerThread = (np + kNumCores - 1) / kNumCores;
+        std::vector<std::vector<Photon> > photons(kNumCores);
+
+        // Shooting photons
+        int proc = 0;
+        for (int t = 0; t < taskPerThread; t++) {
+            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {                
+                // Request random numbers in each thread
+                Stack<double> rstk;
+                samplers[threadID].request(&rstk, 250);
+
+                // Generate sample on the light
+                const int       lightID  = scene.sampleLight(rstk.pop());
+                const Triangle& light    = scene.getTriangle(lightID);
+                const Color     lightEmt = scene.getEmittance(lightID);
+
+                Vector3D posLight, normalLight;
+                sampler::onTriangle(light, &posLight, &normalLight,
+                                    rstk.pop(), rstk.pop());
+                
+                Color flux = Color(light.area() * lightEmt * PI
+                                                / params.castPhotons());
+
+                Vector3D dir;
+                sampler::onHemisphere(normalLight, &dir,
+                                      rstk.pop(), rstk.pop());
+
+                // Trace photon
+                Ray ray(posLight, dir);
+                tracePhoton(scene, ray, params, flux, 
+                            rstk, 0, &photons[threadID]);
+            }
+
+            proc += kNumCores;
+            if (proc % 1000 == 0) {
+                printf("%6.2f %% processed...\r", 
+                        100.0 * proc / params.castPhotons());
+            }
+        }
+        printf("\n");
+
+        // Deallocate memories
+        delete[] samplers;
+
+        // Contruct tree structure
+        printf("Constructing photon map -> ");
+        
+        clear();
+        std::vector<Photon> photonsAll;
+        for (int i = 0; i < kNumCores; i++) {
+            photonsAll.insert(photonsAll.end(), 
+                              photons[i].begin(), photons[i].end());
+        }
+        _kdtree.construct(photonsAll);
+        printf("OK\n");
     }
 
-    void PhotonMap::findKNN(const Photon& query, std::vector<Photon>* photons, const int numTargetPhotons, const double targetRadius) const {
-        _kdtree.knnSearch(query, KnnQuery(K_NEAREST | EPSILON_BALL, numTargetPhotons, targetRadius), photons);
+    Color PhotonMap::evaluate(const Vector3D& position, const Vector3D& in,
+                              const Vector3D& normal,
+                              int gatherPhotons, double gatherRadius) const {
+        // Find k-nearest neightbors
+        Photon query(position, Color(), in, normal);
+        std::vector<Photon> photons;
+        knnFind(query, &photons, gatherPhotons, gatherRadius);
+
+        const int numPhotons = static_cast<int>(photons.size());
+
+        std::vector<Photon> validPhotons;
+        std::vector<double> distances;
+        double maxdist = 0.0;
+        for (int i = 0; i < numPhotons; i++) {
+            const Vector3D diff = query.position() - photons[i].position();
+            const double dist = diff.norm();
+            const double dt   = Vector3D::dot(normal, diff) / dist;
+            if (std::abs(dt) < gatherRadius * gatherRadius * 0.01) {
+                validPhotons.push_back(photons[i]);
+                distances.push_back(dist);
+                maxdist = std::max(maxdist, dist);
+            }
+        }
+
+        // Cone filter
+        const int numValidPhotons = static_cast<int>(validPhotons.size());
+        const double k = 1.1;
+        Color totalFlux = Color(0.0, 0.0, 0.0);
+        for (int i = 0; i < numValidPhotons; i++) {
+            const double w = 1.0 - (distances[i] / (k * maxdist));
+            const Color v = Color(photons[i].flux() * INV_PI);
+            totalFlux += w * v;
+        }
+        totalFlux /= (1.0 - 2.0 / (3.0 * k));
+
+        if (maxdist > EPS) {
+            return Color(totalFlux / (PI * maxdist * maxdist));
+        }
+        return Color(0.0, 0.0, 0.0);
+
     }
 
-}
+    void PhotonMap::knnFind(const Photon& photon, std::vector<Photon>* photons,
+                            const int gatherPhotons,
+                            const double gatherRadius) const {
+        KnnQuery query(K_NEAREST | EPSILON_BALL, gatherPhotons, gatherRadius);
+        _kdtree.knnSearch(photon, query, photons);
+    }
+
+    void PhotonMap::tracePhoton(const Scene& scene,
+                                const Ray& ray,
+                                const RenderParameters& params,
+                                const Color& flux,
+                                Stack<double>& rstk,
+                                int bounces,
+                                std::vector<Photon>* photons) {
+        // Too many bounces terminate recursion
+        if (bounces >= params.bounceLimit()) {
+            return;
+        }
+
+        // Request random numbers
+        const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
+
+        // Remove photon with zero flux
+        if (max3(flux.red(), flux.green(), flux.blue()) <= 0.0) {
+            return;
+        }
+
+        // If not hit the scene, then break
+        Intersection isect;
+        if (!scene.intersect(ray, isect)) {
+            return;
+        }
+
+        // Hitting object
+        const int       objID  = isect.objectId();
+        const BSDF&     bsdf   = scene.getBsdf(objID);
+        const Color&    refl   = bsdf.reflectance();
+        const Hitpoint& hpoint = isect.hitpoint();
+
+        const bool into = Vector3D::dot(hpoint.normal(), ray.direction()) < 0.0;
+        const Vector3D orientNormal = (into ? 1.0 : -1.0) * hpoint.normal();
+
+        double photonPdf = 1.0;
+        if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
+            photons->push_back(Photon(hpoint.position(), flux, 
+                                      ray.direction(), hpoint.normal()));
+        
+            // Russian roulette
+            const double prob = (refl.red() + refl.green() + refl.blue()) / 3.0;
+            if (rands[0] < prob) {
+                // Reflection
+                photonPdf *= prob;
+            } else {
+                // Absorption
+                return;
+            }
+        }
+
+        double samplePdf = 1.0;
+        Vector3D nextdir;
+        bsdf.sample(ray.direction(), hpoint.normal(), rands[1], rands[2],
+                    &nextdir, &samplePdf);
+
+        Ray nextRay(hpoint.position(), nextdir);
+        Color nextFlux = Color((flux * refl) / (samplePdf * photonPdf));
+
+        // Next bounce
+        tracePhoton(scene, nextRay, params, nextFlux, 
+                    rstk, bounces + 1, photons);
+    }
+
+}  // namespace spica

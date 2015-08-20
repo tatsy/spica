@@ -17,10 +17,10 @@
 
 #include <string>
 
+#include "renderer_interface.h"
 #include "renderer_constants.h"
 #include "render_parameters.h"
 
-#include "../utils/uncopyable.h"
 #include "../random/random.h"
 #include "../random/halton.h"
 
@@ -29,7 +29,7 @@ namespace spica {
     // --------------------------------------------------
     // Monte Carlo path tracing renderer
     // --------------------------------------------------
-    class SPICA_PT_RENDERER_DLL PathTracingRenderer : public Uncopyable {
+    class SPICA_PT_RENDERER_DLL PathTracingRenderer : public IRenderer {
     private:
         spica::Image* _image;
 
@@ -37,7 +37,7 @@ namespace spica {
         explicit PathTracingRenderer(spica::Image* image = NULL);
         ~PathTracingRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const RenderParameters& params);
+        void render(const Scene& scene, const Camera& camera, const RenderParameters& params) override;
     };
 }
 

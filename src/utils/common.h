@@ -48,25 +48,6 @@ static const double INV_PI = 1.0 / PI;
 static const double INFTY = 1.0e128;
 static const double EPS = 1.0e-6;
 
-#define WITH_ENABLER
-#if defined(_WIN32) || defined(__WIN32__)
-    #if _MSC_VER <= 1600
-        #undef WITH_ENABLER
-    #endif
-#endif
-
-#ifdef WITH_ENABLER
-extern void* enabler;
-template <class Ty, typename std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
-#else
-template <class Ty>
-#endif
-inline Ty clamp(Ty v, Ty lo, Ty hi) {
-    if (v < lo) v = lo;
-    if (v > hi) v = hi;
-    return v;
-}
-
 // ----------------------------------------------------------------------------
 // Parallel for
 // ----------------------------------------------------------------------------
@@ -79,12 +60,12 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
         #define ompfor _Pragma("omp parallel for") for
         #define omplock _Pragma("omp critical")
     #endif
-    const int OMP_NUM_CORE = omp_get_max_threads();
+    const int kNumCores = omp_get_max_threads();
     inline int omp_thread_id() { return omp_get_thread_num(); }
 #else  // _OPENMP
     #define ompfor for
     #define omplock
-    const int OMP_NUM_CORE = 1;
+    const int kNumCores = 1;
     inline int omp_thread_id() { return 0; }
 #endif  // _OPENMP
 
@@ -96,9 +77,10 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
 #define Assertion(PREDICATE, MSG) \
 do { \
     if (!(PREDICATE)) { \
-        std::cerr << "Asssertion \"" << #PREDICATE << "\" failed in " << __FILE__ \
+        std::cerr << "Asssertion \"" \
+        << #PREDICATE << "\" failed in " << __FILE__ \
         << " line " << __LINE__ << " : " << MSG << std::endl; \
-        abort(); \
+        std::abort(); \
     } \
 } while (false)
 #else  // NDEBUG
@@ -126,3 +108,40 @@ do { \
 #define isinf(x) (!_finite(x))
 #endif
 #endif
+
+// ----------------------------------------------------------------------------
+// Utility functions
+// ----------------------------------------------------------------------------
+
+#define WITH_ENABLER
+#if defined(_WIN32) || defined(__WIN32__)
+    #if _MSC_VER <= 1600
+        #undef WITH_ENABLER
+    #endif
+#endif
+
+#ifdef WITH_ENABLER
+extern void* enabler;
+template <class Ty, 
+          typename 
+          std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
+#else
+template <class Ty>
+#endif
+inline Ty clamp(Ty v, Ty lo, Ty hi) {
+    if (v < lo) v = lo;
+    if (v > hi) v = hi;
+    return v;
+}
+
+#ifdef WITH_ENABLER
+extern void* enabler;
+template <class Ty, 
+          typename 
+          std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
+#else
+template <class Ty>
+#endif
+inline Ty max3(Ty a, Ty b, Ty c) {
+    return std::max(a, std::max(b, c));
+}

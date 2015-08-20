@@ -15,34 +15,39 @@
     #define SPICA_PHOTON_MAPPING_DLL
 #endif
 
-#include "../utils/uncopyable.h"
 #include "../utils/vector3d.h"
 #include "../utils/axis_comparable.h"
 #include "../utils/kdtree.h"
 
+#include "renderer_interface.h"
 #include "renderer_constants.h"
 #include "render_parameters.h"
 #include "photon_map.h"
 
 namespace spica {
 
-    class SPICA_PHOTON_MAPPING_DLL PMRenderer : public Uncopyable {
+    // ------------------------------------------------------------------------
+    // Progressive photon mapping: a probabilistic approach
+    // ------------------------------------------------------------------------
+    class SPICA_PHOTON_MAPPING_DLL PPMPRenderer : public IRenderer {
+
     private:
         PhotonMap photonMap;
 
     public:
-        PMRenderer();
-        ~PMRenderer();
+        PPMPRenderer();
+        ~PPMPRenderer();
 
-        void render(const Scene& scne, const Camera& camera, const RenderParameters& params);
+        void render(const Scene& scne, const Camera& camera, 
+                    const RenderParameters& params) override;
 
     private:
-        void buildPM(const Scene& scene, const Camera& camera, const int numPhotons, const int maxBounces, const RandomType randType);
+        Color tracePath(const Scene& scene, const Camera& camera,
+                        const RenderParameters& params, Stack<double>& rstk, 
+                        int pixelX, int pixelY) const;
 
-        Color executePathTracing(const Scene& scene, const Camera& camera, const RenderParameters& params,
-                                 Stack<double>& rstk, double pixelX, double pixelY) const;
-
-        Color radiance(const Scene& scene, const RenderParameters& params, const Ray& ray, Stack<double>& rstk, int bounces) const;
+        Color radiance(const Scene& scene, const RenderParameters& params, 
+                       const Ray& ray, Stack<double>& rstk, int bounces) const;
     };
 
 }  // namespace spica

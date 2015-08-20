@@ -27,23 +27,63 @@ namespace spica {
     {
     }
 
+    Scene::Scene(const Scene& scene)
+        : _triangles()
+        , _emittance()
+
+        , _bsdfIds()
+        , _lightIds()
+        , _lightPdfs()
+        , _totalLightArea(0.0)
+
+        , _bsdfs()
+        , _accel()
+        , _accelType(QBVH_ACCEL)
+        , _envmap()
+    {
+        this->operator=(scene);
+    }
+
+
+    Scene& Scene::operator=(const Scene& scene) {
+        this->_triangles = scene._triangles;
+        this->_emittance = scene._emittance;
+
+        this->_bsdfIds   = scene._bsdfIds;
+        this->_lightIds  = scene._lightIds;
+        
+        this->_totalLightArea = scene._totalLightArea;
+        this->_bsdfs = scene._bsdfs;
+        this->_accel = scene._accel;
+        this->_accelType = scene._accelType;
+        
+        this->_envmap = scene._envmap;
+        
+        return *this;
+    }
+
     const Triangle& Scene::getTriangle(int id) const {
-        Assertion(id >= 0 && id < _triangles.size(), "Object index out of bounds");
+        Assertion(id >= 0 && id < _triangles.size(),
+                  "Object index out of bounds");
         return _triangles[id];
     }
 
     const BSDF& Scene::getBsdf(int id) const {
-        Assertion(id >= 0 && id < _bsdfIds.size(), "Object index out of boudns");
+        Assertion(id >= 0 && id < _bsdfIds.size(),
+                  "Object index out of boudns");
         return _bsdfs[_bsdfIds[id]];
     }
 
     const Color& Scene::getEmittance(int id) const {
-        Assertion(id >= 0 && id < _emittance.size(), "Object index out of boudns");
+        Assertion(id >= 0 && id < _emittance.size(),
+                  "Object index out of boudns");
         return _emittance[id];    
     }
 
     int Scene::sampleLight(double rand1) const {
-        Assertion(!_lightPdfs.empty(), "Light PDFs are not computed yet, call Scene::computeLightPdfs first!!");
+        Assertion(!_lightPdfs.empty(), 
+                  "Light PDFs are not computed yet, "
+                  "Scene::computeLightPdfs first!!");
         
         int lo = 0;
         int hi = _lightIds.size() - 1;
@@ -100,7 +140,8 @@ namespace spica {
 
         _lightPdfs[0] /= _totalLightArea;
         for (int i = 1; i < _lightIds.size(); i++) {
-            _lightPdfs[i] += _lightPdfs[i - 1] + _lightPdfs[i] / _totalLightArea;
+            _lightPdfs[i] += _lightPdfs[i - 1] + 
+                             _lightPdfs[i] / _totalLightArea;
         }
     }
 

@@ -15,6 +15,9 @@ namespace spica {
 
         , qglWidget(new QGLRenderWidget)
         , paramWidget(new RenderParamWidget)
+
+        , renderer()
+        , renderThread(new RenderThread)
     {
         setFont(QFont("Meiryo UI"));
 
@@ -37,6 +40,8 @@ namespace spica {
         rightLayout->addWidget(paramWidget);
 
         setCentralWidget(mainContainer);
+
+        setSignalSlots();
     }
 
     SceneViewer::~SceneViewer()
@@ -52,10 +57,16 @@ namespace spica {
 
         delete mainLayout;
         delete mainContainer;
+    
+        delete renderThread;
     }
 
     void SceneViewer::setScene(const Scene& scene, const Camera& camera) {
         qglWidget->setScene(scene, camera);
+    }
+
+    void SceneViewer::setSignalSlots() {
+        connect(paramWidget->renderButton, SIGNAL(clicked()), this, SLOT(onRenderButtonClicked()));
     }
 
 }  // namespace spica

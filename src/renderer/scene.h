@@ -29,7 +29,7 @@
 
 namespace spica {
     
-    class SPICA_SCENE_DLL Scene : private Uncopyable {
+    class SPICA_SCENE_DLL Scene {
     private:
         std::vector<Triangle> _triangles;
         std::vector<Color> _emittance;
@@ -47,11 +47,17 @@ namespace spica {
 
     public:
         Scene();
+        Scene(const Scene& scene);
         ~Scene();
 
+        Scene& operator=(const Scene& scene);
+
         template <class Ty>
-        void add(const Ty& geom, const BSDF& bsdf, const Color& emittance = Color(0.0, 0.0, 0.0), bool isLight = false) {
-            static_assert(std::is_base_of<IGeometry, Ty>::value, "Type inherits IGeometry can only be added to the scene !!");
+        void add(const Ty& geom, const BSDF& bsdf,
+                 const Color& emittance = Color(0.0, 0.0, 0.0),
+                 bool isLight = false) {
+            static_assert(std::is_base_of<IGeometry, Ty>::value,
+                          "Added geometry must inherit IGeometry !!");
 
             std::vector<Triangle> newTriangles = geom.triangulate();
 
@@ -63,7 +69,8 @@ namespace spica {
             }
 
             // Both normal geoms and light geoms are set to triangles
-            _triangles.insert(_triangles.end(), newTriangles.begin(), newTriangles.end());
+            _triangles.insert(_triangles.end(), 
+                              newTriangles.begin(), newTriangles.end());
 
             // Compute and store emittance
             for (int i = 0; i < newTriangles.size(); i++) {
@@ -74,7 +81,8 @@ namespace spica {
             const int newBsdfId = static_cast<int>(_bsdfs.size());
             const int numTriangles = static_cast<int>(_bsdfIds.size());
             _bsdfIds.resize(_bsdfIds.size() + newTriangles.size());
-            std::fill(_bsdfIds.begin() + numTriangles, _bsdfIds.end(), newBsdfId);
+            std::fill(_bsdfIds.begin() + numTriangles,
+                      _bsdfIds.end(), newBsdfId);
             _bsdfs.push_back(bsdf);
         }
 
@@ -91,8 +99,9 @@ namespace spica {
         void computeAccelerator();
         void computeLightPdfs();
 
-        // Call both "computeAccelerator" and "computeLightPdfs" to finalize the scene.
-        // If you update the scene, you should call this function again.
+        // Call both "computeAccelerator" and "computeLightPdfs" 
+        // to finalize the scene. If you update the scene, you should
+        // call this function again.
         void finalize();
 
         bool intersect(const Ray& ray, Intersection& isect) const;

@@ -35,6 +35,8 @@ namespace spica {
         QLineEdit* filenameFormatEdit;
 
         QPushButton* renderButton;
+
+        friend class SceneViewer;
     };
 
 }  // namespace spica

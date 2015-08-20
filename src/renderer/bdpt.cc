@@ -581,7 +581,8 @@ namespace spica {
     }  // unnamed namespace
     
     BDPTRenderer::BDPTRenderer(spica::Image* image)
-        : _image(image)
+        : IRenderer()
+        , _image(image)
     {
     }
 
@@ -594,8 +595,8 @@ namespace spica {
         const int height = camera.imageH();
 
         // Prepare random samplers
-        RandomSampler* samplers = new RandomSampler[OMP_NUM_CORE];
-        for (int i = 0; i < OMP_NUM_CORE; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumCores];
+        for (int i = 0; i < kNumCores; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory(i);
@@ -611,8 +612,8 @@ namespace spica {
             }
         }
         
-        Image* buffer = new Image[OMP_NUM_CORE];
-        for (int i = 0; i < OMP_NUM_CORE; i++) {
+        Image* buffer = new Image[kNumCores];
+        for (int i = 0; i < kNumCores; i++) {
             buffer[i] = Image(width, height);
         }
 
@@ -625,16 +626,16 @@ namespace spica {
         }
 
         // Distribute tasks
-        const int taskPerThread = (height + OMP_NUM_CORE - 1) / OMP_NUM_CORE;
-        std::vector<std::vector<int> > tasks(OMP_NUM_CORE);
+        const int taskPerThread = (height + kNumCores - 1) / kNumCores;
+        std::vector<std::vector<int> > tasks(kNumCores);
         for (int y = 0; y < height; y++) {
-            tasks[y % OMP_NUM_CORE].push_back(y);
+            tasks[y % kNumCores].push_back(y);
         }
 
         // Rendering
         for (int s = 0; s < params.samplePerPixel(); s++) {
             for (int t = 0; t < taskPerThread; t++) {
-                ompfor (int threadID = 0; threadID < OMP_NUM_CORE; threadID++) {
+                ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
                     Stack<double> rstk;
                     if (t < tasks[threadID].size()) {
                         const int y = tasks[threadID][t];
@@ -659,7 +660,7 @@ namespace spica {
             }
 
             _image->fill(Color(0.0, 0.0, 0.0));
-            for (int k = 0; k < OMP_NUM_CORE; k++) {
+            for (int k = 0; k < kNumCores; k++) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         _image->pixel(width - x - 1, y) += buffer[k](x, y) / (s + 1);

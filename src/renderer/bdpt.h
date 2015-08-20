@@ -11,13 +11,14 @@
     #define SPICA_BPT_RENDERER_DLL
 #endif
 
+#include "renderer_interface.h"
 #include "renderer_constants.h"
 #include "render_parameters.h"
 #include "renderer_helper.h"
 
 namespace spica {
     
-    class SPICA_BPT_RENDERER_DLL BDPTRenderer : public Uncopyable {
+    class SPICA_BPT_RENDERER_DLL BDPTRenderer : public IRenderer {
     private:
         spica::Image* _image;
 
@@ -25,7 +26,7 @@ namespace spica {
         BDPTRenderer(spica::Image* image = NULL);
         ~BDPTRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const RenderParameters& params);
+        void render(const Scene& scene, const Camera& camera, const RenderParameters& params) override;
     };
 
 }

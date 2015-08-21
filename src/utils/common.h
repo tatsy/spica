@@ -87,8 +87,6 @@ do { \
 #define Assertion(PREDICATE, MSG) do {} while (false)
 #endif  // NDEBUG
 
-#endif  // SPICA_COMMON_H_
-
 // ----------------------------------------------------------------------------
 // Alignment
 // ----------------------------------------------------------------------------
@@ -148,3 +146,5 @@ template <class Ty>
 inline Ty max3(Ty a, Ty b, Ty c) {
     return std::max(a, std::max(b, c));
 }
+
+#endif  // _SPICA_COMMON_H_

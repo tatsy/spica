@@ -13,12 +13,15 @@ namespace spica {
 
     class RenderParameters {
     private:
+        // Path tracing parameters
         int         _samplePerPixel;
         int         _bounceLimit;
         int         _bounceStartRoulette;
+        // Photon mapping parameters
         int         _castPhotons;
         int         _gatherPhotons;
         double      _gatherRadius;
+        // Other parameters
         RandomType  _randomType;
         std::string _saveFilenameFormat;
 

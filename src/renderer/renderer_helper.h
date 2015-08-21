@@ -18,6 +18,7 @@
 #include "scene.h"
 #include "camera.h"
 #include "render_parameters.h"
+#include "bsdf.h"
 
 #include "../utils/vector3d.h"
 #include "../utils/color.h"
@@ -48,6 +49,13 @@ namespace spica {
         // @param[in] bounceStartRoulette: # of bounces that the Russian roulette starts to terminate recursion
         Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const RenderParameters& params,
                                                  const Ray& ray, Stack<double>& rands, int bounces);
+
+        Color SPICA_RENDERER_HELPER_DLL directLight(const Scene& scene,
+                                                    const Vector3D& pos,
+                                                    const Vector3D& in,
+                                                    const Vector3D& normal, 
+                                                    const BSDF& bsdf,
+                                                    Stack<double>& rstk);
 
     }  // namespace helper
 

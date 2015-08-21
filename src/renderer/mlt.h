@@ -21,9 +21,6 @@
 namespace spica {
 
     class SPICA_MLT_RENDERER_DLL MLTRenderer : private IRenderer {
-    private:
-        spica::Image* _image;
-
     public:
         explicit MLTRenderer(spica::Image* image = NULL);
         ~MLTRenderer();
@@ -33,11 +30,8 @@ namespace spica {
         // ------------------------------------------------------------
         // @param[in] scene: scene to be rendered
         // @param[in] camera: camera viewing the scene
-        // @param[in] rng: random number generator
-        // @param[in] numMLT: # of independent MLT process to be executed
-        // @param[in] numMutate: # of mutation in a single MLT process
-        // @param[in] maxDepth: maximum depth for path tracing recursion
-        void render(const Scene& scene, const Camera& camera, Random& rng, int numMLT, int numMutate, int maxDepth);
+        // @param[in] params: rendering parameters
+        void render(const Scene& scene, const Camera& camera, const RenderParameters& params) override;
     };
 
 }  // namespace spica

@@ -111,6 +111,11 @@ namespace spica {
         this->_accelType = type;
     }
 
+    bool Scene::isLightCheck(int id) const {
+        auto it = std::lower_bound(_lightIds.begin(), _lightIds.end(), id);
+        return it != _lightIds.end() && (*it) == id;
+    }
+
     void Scene::computeAccelerator() {
         switch (this->_accelType) {
         case QBVH_ACCEL:

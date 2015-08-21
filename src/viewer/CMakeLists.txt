@@ -60,7 +60,13 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
     source_group("Qt Files" FILES ${QT_GEN_FILES})
   endif()
 
-  configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
+
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+    set_property(TARGET scene_viewer APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
+    configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
+  endif()
+
 
   qt5_use_modules(scene_viewer Widgets OpenGL)
 

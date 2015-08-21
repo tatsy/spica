@@ -96,6 +96,10 @@ namespace spica {
 
         void setAccelType(AccelType accel);
 
+        // Check specified triangle is light or not
+        // This method is O(log N) implementation
+        bool isLightCheck(int id) const;
+
         void computeAccelerator();
         void computeLightPdfs();
 

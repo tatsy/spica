@@ -65,7 +65,7 @@ namespace spica {
     }
 
     template <class Ty>
-    typename const std::vector<Ty>& HashGrid<Ty>::operator[](const Vector3D& v) const {
+    const typename std::vector<Ty>& HashGrid<Ty>::operator[](const Vector3D& v) const {
         Vector3D b = (v - _bbox.posMin()) * _hashScale;
         const int ix = std::abs(static_cast<int>(b.x()));
         const int iy = std::abs(static_cast<int>(b.y()));

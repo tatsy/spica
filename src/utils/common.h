@@ -122,6 +122,9 @@ do { \
 
 #ifdef WITH_ENABLER
 extern void* enabler;
+#endif
+
+#ifdef WITH_ENABLER
 template <class Ty, 
           typename 
           std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
@@ -135,7 +138,6 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
 }
 
 #ifdef WITH_ENABLER
-extern void* enabler;
 template <class Ty, 
           typename 
           std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>

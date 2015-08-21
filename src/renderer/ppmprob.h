@@ -33,6 +33,8 @@ namespace spica {
 
     private:
         PhotonMap photonMap;
+        double    globalRadius;
+        static const double kAlpha;
 
     public:
         PPMPRenderer();

@@ -12,9 +12,12 @@
 
 namespace spica {
 
+    const double PPMPRenderer::kAlpha = 0.7;
+
     PPMPRenderer::PPMPRenderer()
         : IRenderer()
         , photonMap()
+        , globalRadius(0.0)
     {
     }
 
@@ -24,7 +27,6 @@ namespace spica {
 
     void PPMPRenderer::render(const Scene& scene, const Camera& camera, 
                             const RenderParameters& params) {
-
         const int width   = camera.imageW();
         const int height  = camera.imageH();
         const int samples = params.samplePerPixel();
@@ -47,6 +49,15 @@ namespace spica {
                 std::abort();
             }
         }
+
+        // Compute global radius for PPMP
+        BBox bbox;
+        for (int i = 0;  i < scene.numTriangles(); i++) {
+            bbox.merge(scene.getTriangle(i));
+        }
+        globalRadius = (bbox.posMax() - bbox.posMin()).norm() * 0.1;
+        RenderParameters globalParams = params;
+        globalParams.gatherRadius(globalRadius);
 
         // Distribute tasks
         const int tasksThread = (height + kNumCores - 1) / kNumCores;
@@ -80,6 +91,10 @@ namespace spica {
                        100.0 * (t + 1) / tasksThread);
             }
             printf("\n");
+
+            // Update gather radius
+            globalRadius = ((i + 1) + 1) / ((i + 1) + kAlpha) * globalRadius;
+            globalParams.gatherRadius(globalRadius);
 
             // Buffer accumulation
             for (int y = 0; y < height; y++) {

@@ -18,7 +18,7 @@ if (${SPICA_BUILD_EXAMPLE} STREQUAL "ON")
 
   generate_example(pathtracing)
   generate_example(bdpt)
-#  generate_example(simplemlt)
+  generate_example(mlt)
   generate_example(photonmap)
   generate_example(sppm)
 #  generate_example(subsurface)

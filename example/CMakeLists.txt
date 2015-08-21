@@ -20,7 +20,7 @@ if (${SPICA_BUILD_EXAMPLE} STREQUAL "ON")
   generate_example(bdpt)
 #  generate_example(simplemlt)
   generate_example(photonmap)
-#  generate_example(ppm)
+  generate_example(sppm)
 #  generate_example(subsurface)
 #  generate_example(sss_sppm)
 

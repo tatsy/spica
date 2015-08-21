@@ -26,7 +26,7 @@ namespace spica {
         virtual ~RandomBase() {}
 
         // Request specified amount of random numbers
-        virtual void request(Stack<double>* randSeq, const int numRequested) = 0;
+        virtual void request(Stack<double>* rstack, const int numRequested) = 0;
     };
 };
 

@@ -14,7 +14,7 @@ set(SOURCES
 #    ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.cc
     ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
     ${CMAKE_CURRENT_LIST_DIR}/ppmprob.cc
-#    ${CMAKE_CURRENT_LIST_DIR}/progressive_photonmap.cc
+    ${CMAKE_CURRENT_LIST_DIR}/sppm.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/subsurface_integrator.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/subsurface_sppm_renderer.cc
     PARENT_SCOPE)
@@ -37,7 +37,7 @@ set(HEADERS
 #    ${CMAKE_CURRENT_LIST_DIR}/mlt_renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/photon_map.h
     ${CMAKE_CURRENT_LIST_DIR}/ppmprob.h
-#    ${CMAKE_CURRENT_LIST_DIR}/progressive_photonmap.h
+    ${CMAKE_CURRENT_LIST_DIR}/sppm.h
 #    ${CMAKE_CURRENT_LIST_DIR}/subsurface_integrator.h
 #    ${CMAKE_CURRENT_LIST_DIR}/subsurface_sppm_renderer.h
     PARENT_SCOPE)

@@ -34,7 +34,7 @@ namespace spica {
         // Clear grid data
         void clear();
 
-        std::vector<Ty>& operator[](const Vector3D& v);
+        const std::vector<Ty>& operator[](const Vector3D& v) const;
 
     private:
         unsigned int hash(const int ix, const int iy, const int iz) const;

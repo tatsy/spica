@@ -1,5 +1,9 @@
-#ifndef SPICA_H_
-#define SPICA_H_
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#ifndef _SPICA_H_
+#define _SPICA_H_
 
 #include "../src/utils/common.h"
 #include "../src/utils/path.h"
@@ -28,7 +32,7 @@
 #include "../src/renderer/bdpt.h"
 #include "../src/renderer/mlt_renderer.h"
 #include "../src/renderer/ppmprob.h"
-#include "../src/renderer/progressive_photonmap.h"
+#include "../src/renderer/sppm.h"
 #include "../src/renderer/subsurface_sppm_renderer.h"
 
 // --------------------------------------------
@@ -37,4 +41,4 @@
 
 #include "../src/scenes/predefined_scenes.h"
 
-#endif  // SPICA_H_
+#endif  // _SPICA_H_

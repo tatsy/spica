@@ -163,7 +163,7 @@ namespace spica {
             while (!que.empty()) {
                 int id = que.pop();
                 Vector3D v = candPoints[id];
-                std::vector<int>& cellvs = hashgrid[v];
+                const std::vector<int>& cellvs = hashgrid[v];
 
                 bool accept = true;
                 for (int k = 0; k < cellvs.size(); k++) {

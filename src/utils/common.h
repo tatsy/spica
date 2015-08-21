@@ -103,11 +103,12 @@ do { \
 // isnan / isinf
 // ----------------------------------------------------------------------------
 #if defined(_WIN32) || defined(__WIN32__)
-#if _MSC_VER <= 1600
-#define isnan(x) _isnan(x)
-#define isinf(x) (!_finite(x))
+    #if _MSC_VER <= 1600
+        #define isnan(x) _isnan(x)
+        #define isinf(x) (!_finite(x))
+    #endif
 #endif
-#endif
+
 
 // ----------------------------------------------------------------------------
 // Utility functions
@@ -126,7 +127,7 @@ extern void* enabler;
 
 #ifdef WITH_ENABLER
 template <class Ty, 
-          typename 
+          typename
           std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
 #else
 template <class Ty>

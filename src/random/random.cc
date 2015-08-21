@@ -145,7 +145,7 @@ namespace spica {
         if (mti >= N) { /* generate N words at one time */
             int kk;
 
-            if (mti == N + 1)   /* if init_genrand() has not been called, */
+            if (mti == N + 1) /* if init_genrand() has not been called, */
                 init_genrand(5489UL); /* a default initial seed is used */
 
             for (kk = 0; kk < N - M; kk++) {
@@ -166,7 +166,7 @@ namespace spica {
 
         /* Tempering */
         y ^= (y >> 11);
-        y ^= (y << 7) & 0x9d2c5680ULL;
+        y ^= (y <<  7) & 0x9d2c5680ULL;
         y ^= (y << 15) & 0xefc60000ULL;
         y ^= (y >> 18);
 

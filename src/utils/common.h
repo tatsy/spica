@@ -23,8 +23,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #pragma once
 #endif
 
-#ifndef SPICA_COMMON_H_
-#define SPICA_COMMON_H_
+#ifndef _SPICA_COMMON_H_
+#define _SPICA_COMMON_H_
 
 #include <cstdlib>
 #include <cmath>
@@ -147,4 +147,4 @@ inline Ty max3(Ty a, Ty b, Ty c) {
     return std::max(a, std::max(b, c));
 }
 
-#endif  // SPICA_COMMON_H_
+#endif  // _SPICA_COMMON_H_

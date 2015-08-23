@@ -72,7 +72,7 @@ namespace spica {
         _result.resize(width, height);
         for (int i = 0; i < params.samplePerPixel(); i++) {
             // 1th pass: Construct photon map
-            photonMap.construct(scene, camera, params);
+            photonMap.construct(scene, params, BSDF_TYPE_LAMBERTIAN_BRDF);
 
             // 2nd pass: Path tracing
             for (int t = 0; t < tasksThread; t++) {
@@ -174,7 +174,7 @@ namespace spica {
         Color nextRad(0.0, 0.0, 0.0);
         if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
             nextRad = photonMap.evaluate(hpoint.position(),
-                                         ray.direction(), hpoint.normal(),
+                                         hpoint.normal(),
                                          params.gatherPhotons(),
                                          params.gatherRadius());
         } else {

@@ -15,6 +15,8 @@
     #define SPICA_PHOTON_MAP_DLL
 #endif
 
+#include "bsdf.h"
+
 #include "../utils/vector3d.h"
 #include "../utils/color.h"
 #include "../utils/kdtree.h"
@@ -75,11 +77,12 @@ namespace spica {
         ~PhotonMap();
 
         void clear();
-        void construct(const Scene& scene, const Camera& camera, 
-                       const RenderParameters& params);
+        void construct(const Scene& scene,
+                       const RenderParameters& params,
+                       BsdfType absorbBsdf);
 
         Color evaluate(const Vector3D& position,
-                       const Vector3D& in, const Vector3D& normal,
+                       const Vector3D& normal,
                        int gatherPhotons, double gatherRadius) const;
         
     private:
@@ -89,7 +92,8 @@ namespace spica {
         void tracePhoton(const Scene& scene, const Ray& ray,
                          const RenderParameters& params,
                          const Color& flux, Stack<double>& rstk,
-                         int bounces, std::vector<Photon>* photons);
+                         int bounces, BsdfType absorbBsdf,
+                         std::vector<Photon>* photons);
     };
 
 }

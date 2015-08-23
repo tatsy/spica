@@ -72,7 +72,7 @@ namespace spica {
         friend class SpecularBRDF;
         friend class PhongBRDF;
         friend class RefractiveBSDF;
-        friend class SubsufraceIntegrator;
+        friend class SubsurfaceIntegrator;
     };
 
 }  // namespace spica

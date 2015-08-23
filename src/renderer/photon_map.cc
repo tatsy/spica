@@ -94,8 +94,9 @@ namespace spica {
         _kdtree.release();
     }
 
-    void PhotonMap::construct(const Scene& scene, const Camera& camera, 
-                              const RenderParameters& params) {
+    void PhotonMap::construct(const Scene& scene,
+                              const RenderParameters& params,
+                              BsdfType absorbBsdf) {
 
         std::cout << "Shooting photons..." << std::endl;
 
@@ -150,7 +151,7 @@ namespace spica {
                 // Trace photon
                 Ray ray(posLight, dir);
                 tracePhoton(scene, ray, params, flux, 
-                            rstk, 0, &photons[threadID]);
+                            rstk, 0, absorbBsdf, &photons[threadID]);
             }
 
             proc += kNumCores;
@@ -177,11 +178,11 @@ namespace spica {
         printf("OK\n");
     }
 
-    Color PhotonMap::evaluate(const Vector3D& position, const Vector3D& in,
+    Color PhotonMap::evaluate(const Vector3D& position,
                               const Vector3D& normal,
                               int gatherPhotons, double gatherRadius) const {
         // Find k-nearest neightbors
-        Photon query(position, Color(), in, normal);
+        Photon query(position, Color(), Vector3D(), normal);
         std::vector<Photon> photons;
         knnFind(query, &photons, gatherPhotons, gatherRadius);
 
@@ -232,6 +233,7 @@ namespace spica {
                                 const Color& flux,
                                 Stack<double>& rstk,
                                 int bounces,
+                                BsdfType absorbBsdf,
                                 std::vector<Photon>* photons) {
         // Too many bounces terminate recursion
         if (bounces >= params.bounceLimit()) {
@@ -262,7 +264,7 @@ namespace spica {
         const Vector3D orientNormal = (into ? 1.0 : -1.0) * hpoint.normal();
 
         double photonPdf = 1.0;
-        if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
+        if (bsdf.type() & absorbBsdf) {
             photons->push_back(Photon(hpoint.position(), flux, 
                                       ray.direction(), hpoint.normal()));
         
@@ -287,7 +289,7 @@ namespace spica {
 
         // Next bounce
         tracePhoton(scene, nextRay, params, nextFlux, 
-                    rstk, bounces + 1, photons);
+                    rstk, bounces + 1, absorbBsdf, photons);
     }
 
 }  // namespace spica

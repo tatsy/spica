@@ -31,7 +31,8 @@ namespace spica {
         {
         }
 
-        IrradiancePoint(const Vector3D& pos_, const Vector3D& normal_, const double area_, const Color& irad_)
+        IrradiancePoint(const Vector3D& pos_, const Vector3D& normal_,
+                        const double area_, const Color& irad_)
             : pos(pos_)
             , normal(normal_)
             , area(area_)
@@ -57,7 +58,8 @@ namespace spica {
         }
     };
 
-    class SPICA_SUBSURFACE_INTEGRATOR_DLL  SubsurfaceIntegrator : private Uncopyable {
+    class SPICA_SUBSURFACE_INTEGRATOR_DLL
+    SubsurfaceIntegrator : private Uncopyable {
     private:
         struct OctreeNode {
             IrradiancePoint pt;
@@ -90,18 +92,20 @@ namespace spica {
             Octree(const Octree& octree);
             Octree& operator=(const Octree& octree);
 
-            void construct(SubsurfaceIntegrator* parent, std::vector<IrradiancePoint>& ipoints);
+            void construct(SubsurfaceIntegrator* parent,
+                           std::vector<IrradiancePoint>& ipoints);
 
             Color iradSubsurface(const Vector3D& pos, const BSSRDF& Rd) const;
 
         private:
             void release();
             void deleteNode(OctreeNode* node);
-            OctreeNode* constructRec(std::vector<IrradiancePoint>& pointers, const BBox& bbox);
+            OctreeNode* constructRec(std::vector<IrradiancePoint>& pointers,
+                                     const BBox& bbox);
 
-            Color iradSubsurfaceRec(OctreeNode* node, const Vector3D& pos, const BSSRDF& Rd) const;
+            Color iradSubsurfaceRec(OctreeNode* node, const Vector3D& pos,
+                                    const BSSRDF& Rd) const;
         };
-
 
     private:
         PhotonMap photonMap;
@@ -113,18 +117,16 @@ namespace spica {
         SubsurfaceIntegrator();
         ~SubsurfaceIntegrator();
 
-        void initialize(const Scene& scene, const BSSRDF& bssrdf, const RenderParameters& params, const double areaRadius, const RandomType randType, const double maxError = 0.05);
+        void initialize(const Scene& scene, const RenderParameters& params,
+                        const double areaRadius, const double maxError = 0.05);
 
-        void buildOctree(const std::vector<Vector3D>& points, const std::vector<Vector3D>& normals, const RenderParameters& params);
+        void buildOctree(const std::vector<Vector3D>& points,
+                         const std::vector<Vector3D>& normals,
+                         const RenderParameters& params);
 
-        Color irradiance(const Vector3D& p) const;
-
-    private:
-        void buildPhotonMap(const Scene& scene, const int numPhotons, const int bounceLimit, const RandomType randType);
-
-        Color irradianceWithPM(const Vector3D& p, const Vector3D& n, const RenderParameters& params) const;
+        Color irradiance(const Vector3D& p, const BSDF& bsdf) const;
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_SUBSURFACE_INTEGRATOR_H_

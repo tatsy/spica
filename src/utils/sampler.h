@@ -41,7 +41,11 @@ namespace spica {
 
         SPICA_SAMPLER_DLL void on(const IGeometry* primitive, Vector3D* position, Vector3D* normal, double r1, double r2);
 
-        SPICA_SAMPLER_DLL void poissonDisk(const Trimesh& trimesh, const double minDist, std::vector<Vector3D>* points, std::vector<Vector3D>* normals);
+        SPICA_SAMPLER_DLL
+        void poissonDisk(const std::vector<Triangle>& triangles,
+                         const double minDist,
+                         std::vector<Vector3D>* points,
+                         std::vector<Vector3D>* normals);
 
     }  // namespace sampler
 

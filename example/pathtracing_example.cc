@@ -16,7 +16,8 @@ int main(int argc, char **argv) {
 
     Scene scene;
     Camera camera;
-    cornellBox(&scene, &camera, width, height);
+    // cornellBox(&scene, &camera, width, height);
+    kittenBox(&scene, &camera, width, height);
 
     Timer timer;
     timer.start();
@@ -24,7 +25,7 @@ int main(int argc, char **argv) {
     RenderParameters params(samples);
     params.saveFilenameFormat(kOutputDirectory + "pathtrace_%03d.png");
 
-    PathTracingRenderer renderer;
+    PathRenderer renderer;
     renderer.render(scene, camera, params);
 
     printf("Timer: %f sec\n", timer.stop());

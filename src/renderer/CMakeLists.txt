@@ -1,6 +1,7 @@
 # Add source files
 set(SOURCES
     ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/renderer_interface.cc
     ${CMAKE_CURRENT_LIST_DIR}/ray.cc
     ${CMAKE_CURRENT_LIST_DIR}/camera.cc
     ${CMAKE_CURRENT_LIST_DIR}/scene.cc

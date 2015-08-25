@@ -44,31 +44,32 @@ namespace spica {
     // BSSRDF with dipole approximation
     // ------------------------------------------------------------
 
-    DipoleBSSRDF::DipoleBSSRDF(double sigma_a, double sigmap_s, double eta)
+    DipoleBSSRDF::DipoleBSSRDF(const Color& sigma_a,
+                               const Color& sigmap_s, double eta)
         : BSSRDFBase(eta)
         , _A(0.0)
-        , _sigmap_t(0.0)
-        , _sigma_tr(0.0)
-        , _alphap(0.0)
-        , _zpos(0.0)
-        , _zneg(0.0)
+        , _sigmap_t()
+        , _sigma_tr()
+        , _alphap()
+        , _zpos()
+        , _zneg()
     {
         _A = (1.0 + Fdr()) / (1.0 - Fdr());
         _sigmap_t = sigma_a + sigmap_s;
-        _sigma_tr = sqrt(3.0 * sigma_a * _sigmap_t);
+        _sigma_tr = Color::sqrt(3.0 * sigma_a * _sigmap_t);
         _alphap = sigmap_s / _sigmap_t;
-        _zpos = 1.0 / _sigmap_t;
+        _zpos = Color(1.0, 1.0, 1.0) / _sigmap_t;
         _zneg = _zpos * (1.0 + (4.0 / 3.0) * _A);
     }
 
     DipoleBSSRDF::DipoleBSSRDF(const DipoleBSSRDF& bssrdf)
         : BSSRDFBase()
         , _A(0.0)
-        , _sigmap_t(0.0)
-        , _sigma_tr(0.0)
-        , _alphap(0.0)
-        , _zpos(0.0)
-        , _zneg(0.0)
+        , _sigmap_t()
+        , _sigma_tr()
+        , _alphap()
+        , _zpos()
+        , _zneg()
     {
         this->operator=(bssrdf);
     }
@@ -84,19 +85,16 @@ namespace spica {
         return *this;
     }
 
-    BSSRDF DipoleBSSRDF::factory(double sigma_a, double sigmap_s, double eta) {
+    BSSRDF DipoleBSSRDF::factory(const Color& sigma_a, const Color& sigmap_s, double eta) {
         return BSSRDF(new DipoleBSSRDF(sigma_a, sigmap_s, eta));
     }
 
     Color DipoleBSSRDF::operator()(const double d2) const {
-        double dpos = sqrt(d2 + _zpos * _zpos);
-        double dneg = sqrt(d2 + _zneg * _zneg);
-        double posTerm = _zpos * (dpos * _sigma_tr + 1.0) * exp(-_sigma_tr * dpos) / (dpos * dpos * dpos);
-        double negTerm = _zneg * (dneg * _sigma_tr + 1.0) * exp(-_sigma_tr * dneg) / (dneg * dneg * dneg);
-        double ret = (_alphap / (4.0 * PI * _sigma_tr)) * (posTerm + negTerm);
-
-        // TODO: it should be revised for multi color channels
-        return Color(ret, ret, ret);    
+        const Color dpos = Color::sqrt(d2 + _zpos * _zpos);
+        const Color dneg = Color::sqrt(d2 + _zneg * _zneg);
+        const Color posTerm = _zpos * (dpos * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dpos) / (dpos * dpos * dpos);
+        const Color negTerm = _zneg * (dneg * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dneg) / (dneg * dneg * dneg);
+        return (_alphap / (4.0 * PI * _sigma_tr)) * (posTerm + negTerm);
     }
 
     BSSRDFBase* DipoleBSSRDF::clone() const {
@@ -259,15 +257,17 @@ namespace spica {
     }
 
     BSSRDF& BSSRDF::operator=(const BSSRDF& bssrdf) {
-        delete _ptr;
-        _ptr = NULL;
+        if (this == &bssrdf) {
+            return *this;
+        }
 
-        printf("nande\n");
-        if (bssrdf._ptr != NULL) {
-            printf("ptr: %p\n", bssrdf._ptr);
+        delete _ptr;
+
+        if (bssrdf._ptr == NULL) {
+            _ptr = NULL;
+        } else {
             _ptr = bssrdf._ptr->clone();
         }
-        printf("nanda\n");
         return *this;
     }
 

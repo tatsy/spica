@@ -14,38 +14,26 @@
 
 #include "scene.h"
 #include "renderer_helper.h"
+#include "subsurface_integrator.h"
 
 namespace spica {
 
-    namespace {
-
-        Color executePathTracing(const Scene& scene, const Camera& camera, const RenderParameters& params, const double pixelX, const double pixelY, Stack<double>& rands) {
-            Vector3D posOnSensor;        // Position on the image sensor
-            Vector3D posOnObjplane;      // Position on the object plane
-            Vector3D posOnLens;          // Position on the lens
-            double  pImage, pLens;      // Sampling probability on image sensor and lens
-
-            CameraSample camSample = camera.sample(pixelX, pixelY, rands);
-            const Ray ray = camSample.generateRay();
-
-            return Color(helper::radiance(scene, params, ray, rands, 0) * (camera.sensitivity() / camSample.totalPdf()));
-        }
-
-    }  // anonymous namespace
-
-    PathTracingRenderer::PathTracingRenderer(spica::Image* image)
+    PathRenderer::PathRenderer()
         : IRenderer()
-        , _image(image)
     {
     }
 
-    PathTracingRenderer::~PathTracingRenderer()
+    PathRenderer::~PathRenderer()
     {
     }
 
-    void PathTracingRenderer::render(const Scene& scene, const Camera& camera, const RenderParameters& params) {
+    void PathRenderer::render(const Scene& scene, const Camera& camera,
+                                     const RenderParameters& params) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
+
+        // Preparation for accouting for BSSRDF
+        _integrator->initialize(scene, params);
 
         // Prepare random number generators
         RandomSampler* samplers = new RandomSampler[kNumCores];
@@ -60,7 +48,8 @@ namespace spica {
                 break;
 
             default:
-                std::cerr << "[ERROR] Unknown random number generator type!!" << std::endl;
+                std::cerr << "[ERROR] Unknown random number generator type!!"
+                          << std::endl;
                 std::abort();
             }
         }
@@ -75,16 +64,9 @@ namespace spica {
             tasks[y % kNumCores].push_back(y);
         }
 
-        // Allocate image
-        bool isAllocImageInside = false;
-        if (_image == NULL) {
-            _image = new Image();
-            isAllocImageInside = true;
-        }
-        _image->resize(width, height);
-
         // Trace rays
         int processed = 0;
+        _result.resize(width, height);
         buffer.fill(Color::BLACK);
         for (int i = 0; i < params.samplePerPixel(); i++) {
             for (int t = 0; t < taskPerThread; t++) {
@@ -94,7 +76,8 @@ namespace spica {
                         const int y = tasks[threadID][t];
                         for (int x = 0; x < width; x++) {
                             samplers[threadID].request(&rstk, 200);
-                            buffer.pixel(width - x - 1, y) += executePathTracing(scene, camera, params, x, y, rstk);
+                            buffer.pixel(width - x - 1, y) +=
+                                tracePath(scene, camera, params, x, y, rstk);
                         }
                     }
                 }
@@ -102,24 +85,96 @@ namespace spica {
 
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    _image->pixel(x, y) = buffer(x, y) / (i + 1);
+                    _result.pixel(x, y) = buffer(x, y) / (i + 1);
                 }
             }
 
             char filename[256];
             sprintf(filename, params.saveFilenameFormat().c_str(), i + 1);
-            _image->gammaCorrect(1.0 / 2.2);
-            _image->save(filename);
+            _result.gammaCorrect(1.0 / 2.2);
+            _result.save(filename);
 
-            printf("  %6.2f %%  processed -> %s\r", 100.0 * (i + 1) / params.samplePerPixel(), filename);
+            printf("%6.2f %%  processed -> %s\r",
+                    100.0 * (i + 1) / params.samplePerPixel(), filename);
         }
         printf("\nFinish!!\n");
 
         delete[] samplers;
+    }
 
-        if (isAllocImageInside) {
-            delete _image;
+    Color PathRenderer::tracePath(const Scene& scene, const Camera& camera, 
+                                  const RenderParameters& params,
+                                  const double pixelX, const double pixelY,
+                                  Stack<double>& rands) {
+        CameraSample camSample = camera.sample(pixelX, pixelY, rands);
+        const Ray ray = camSample.generateRay();
+
+        return Color(radiance(scene, params, ray, rands, 0) * 
+                        (camera.sensitivity() / camSample.totalPdf()));
+    }
+
+    Color PathRenderer::radiance(const Scene& scene,
+                                const RenderParameters& params,
+                                const Ray& ray, Stack<double>& rstack,
+                                int bounces) const {
+        if (bounces >= params.bounceLimit()) {
+            return Color::BLACK;
         }
+
+        Intersection isect;
+        if (!scene.intersect(ray, isect)) {
+            return scene.envmap().sampleFromDir(ray.direction());
+        }
+
+        // Require random numbers
+        const double randnums[3] = { rstack.pop(), rstack.pop(), rstack.pop() };
+
+        // Get intersecting material
+        const int objectID     = isect.objectId();
+        const BSDF& bsdf       = scene.getBsdf(objectID);
+        const Color& refl      = bsdf.reflectance();
+        const Color& emittance = scene.getEmittance(objectID);
+        const Hitpoint& hpoint = isect.hitpoint();
+
+        // Russian roulette
+        double roulette = max3(refl.red(), refl.green(), refl.blue());
+        if (bounces < params.bounceStartRoulette()) {
+            roulette = 1.0;
+        } else {
+            if (roulette <= randnums[0]) {
+                return emittance;
+            }
+        }
+
+        // Variables for next bounce
+        Color bssrdfRad(0.0, 0.0, 0.0);
+        Vector3D nextdir;
+        double pdf = 1.0;
+
+        // Account for BSSRDF
+        if (bsdf.type() & BSDF_TYPE_BSSRDF) {
+            Assertion(_integrator != NULL,
+                      "Subsurface intergrator is NULL !!");
+            bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
+                                          hpoint.position(),
+                                          hpoint.normal(),
+                                          randnums[1], randnums[2],
+                                          *_integrator,
+                                          &nextdir, &pdf);
+        } else {
+            // Sample next direction
+            bsdf.sample(ray.direction(), hpoint.normal(), 
+                        randnums[1], randnums[2], &nextdir, &pdf);
+            
+        }
+
+        // Compute next bounce
+        const Ray nextray(hpoint.position(), nextdir);
+        const Color nextrad = radiance(scene, params, nextray,
+                                       rstack, bounces + 1);
+            
+        // Return result
+        return Color(emittance + (bssrdfRad + refl * nextrad / pdf) / roulette);
     }
 
 }  // namespace spica

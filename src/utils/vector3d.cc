@@ -116,8 +116,16 @@ namespace spica {
         return v1.cross(v2);
     }
 
+    Vector3D Vector3D::sqrt(const Vector3D& v) {
+        return Vector3D(::sqrt(v.x()), ::sqrt(v.y()), ::sqrt(v.z()));
+    }
+
+    Vector3D Vector3D::exp(const Vector3D& v) {
+        return Vector3D(::exp(v.x()), ::exp(v.y()), ::exp(v.z()));
+    }
+
     double Vector3D::norm() const {
-        return sqrt(this->squaredNorm());
+        return ::sqrt(this->squaredNorm());
     }
 
     double Vector3D::squaredNorm() const {

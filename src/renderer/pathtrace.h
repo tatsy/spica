@@ -26,18 +26,27 @@
 
 namespace spica {
 
-    // --------------------------------------------------
-    // Monte Carlo path tracing renderer
-    // --------------------------------------------------
-    class SPICA_PT_RENDERER_DLL PathTracingRenderer : public IRenderer {
-    private:
-        spica::Image* _image;
-
+    /*! Unidirectional path tracing
+     */
+    class SPICA_PT_RENDERER_DLL PathRenderer : public IRenderer {
     public:
-        explicit PathTracingRenderer(spica::Image* image = NULL);
-        ~PathTracingRenderer();
+        PathRenderer();
+        ~PathRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const RenderParameters& params) override;
+        void render(const Scene& scene, const Camera& camera,
+                    const RenderParameters& params) override;
+
+    private:
+        Color tracePath(const Scene& scene, const Camera& camera,
+                        const RenderParameters& params,
+                        const double pixelX, const double pixelY,
+                        Stack<double>& rands);
+
+        Color radiance(const Scene& scene,
+                       const RenderParameters& params,
+                       const Ray& ray,
+                       Stack<double>& rstack,
+                       int bounces) const;
     };
 }
 

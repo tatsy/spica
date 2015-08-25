@@ -116,6 +116,9 @@ namespace spica {
 
     std::vector<Triangle> Trimesh::triangulate() const {
         std::vector<Triangle> retval;
+        for (int i = 0; i < _faces.size(); i++) {
+            retval.push_back(getTriangle(i));
+        }
         return std::move(retval);
     }
 

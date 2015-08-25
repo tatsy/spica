@@ -25,6 +25,7 @@ namespace spica {
     // Forward declarations
     class BSDFBase;
     class BSSRDF;
+    class SubsurfaceIntegrator;
 
     // Types of BSDF
     enum BsdfType {
@@ -60,7 +61,17 @@ namespace spica {
 
         const Color& reflectance() const;
 
-        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const;
+        void sample(const Vector3D& in, const Vector3D& normal, 
+                    double rand1, double rand2,
+                    Vector3D* out, double* pdf) const;
+
+        Color sampleBssrdf(const Vector3D& in, 
+                           const Vector3D& pos,
+                           const Vector3D& normal,
+                           double rand1, double rand2,
+                           const SubsurfaceIntegrator& integr,
+                           Vector3D* out, double* pdf) const;
+
         BsdfType type() const;
         void setBssrdf(const BSSRDF& bssrdf);
 

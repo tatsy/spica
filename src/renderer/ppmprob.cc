@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "renderer_helper.h"
+#include "subsurface_integrator.h"
 #include "../utils/sampler.h"
 #include "../random/random_sampler.h"
 
@@ -30,6 +31,9 @@ namespace spica {
         const int width   = camera.imageW();
         const int height  = camera.imageH();
         const int samples = params.samplePerPixel();
+
+        // Preparation for  accouting for BSSRDF
+        _integrator->initialize(scene, params);
 
         // Random number generator
         RandomSampler* samplers = new RandomSampler[kNumCores];
@@ -170,23 +174,37 @@ namespace spica {
         }
         roulette = 1.0;
 
-        // Reflection
+        // Variables for next bounce
+        Color bssrdfRad(0.0, 0.0, 0.0);
+        Vector3D nextdir;
+        double pdf = 1.0;
+
+        // Account for BSSRDF
         Color nextRad(0.0, 0.0, 0.0);
         if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
             nextRad = photonMap.evaluate(hpoint.position(),
-                                         hpoint.normal(),
-                                         params.gatherPhotons(),
-                                         params.gatherRadius());
+                                            hpoint.normal(),
+                                            params.gatherPhotons(),
+                                            params.gatherRadius());
         } else {
-            double pdf = 1.0;
-            Vector3D nextDir;
-            bsdf.sample(ray.direction(), hpoint.normal(), 
-                        rands[1], rands[2], &nextDir, &pdf);
-            Ray nextRay = Ray(hpoint.position(), nextDir);
-            nextRad = radiance(scene, params, nextRay, rseq, bounces + 1) / pdf;
+            if (bsdf.type() & BSDF_TYPE_BSSRDF) {
+                Assertion(_integrator != NULL,
+                          "Subsurface intergrator is NULL !!");
+                bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
+                                              hpoint.position(),
+                                              hpoint.normal(),
+                                              rands[1], rands[2],
+                                              *_integrator,
+                                              &nextdir, &pdf);
+            } else {
+                bsdf.sample(ray.direction(), hpoint.normal(), 
+                            rands[1], rands[2], &nextdir, &pdf);
+            }
+            const Ray nextRay(hpoint.position(), nextdir);
+            nextRad = radiance(scene, params, nextRay, rseq, bounces + 1);
         }
 
-        return Color(emission + (bsdf.reflectance() * nextRad) / roulette);
+        return Color(emission + (bssrdfRad + bsdf.reflectance() * nextRad / pdf) / roulette);
     }
 
 }  // namespace spica

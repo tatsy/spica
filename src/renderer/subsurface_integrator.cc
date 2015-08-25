@@ -180,9 +180,9 @@ namespace spica {
     }
 
     SubsurfaceIntegrator::SubsurfaceIntegrator()
-        : octree()
-        , photonMap()
-        , dA(0.0)
+        : _octree()
+        , _photonMap()
+        , _dA(0.0)
     {
     }
 
@@ -192,29 +192,31 @@ namespace spica {
 
     void SubsurfaceIntegrator::initialize(const Scene& scene,
                                           const RenderParameters& params,
-                                          const double areaRadius,
                                           const double maxError) {
         // Extract triangles with BSSRDF
         std::vector<Triangle> triangles;
+        double avgArea = 0.0;
         for (int i = 0; i < scene.numTriangles(); i++) {
             if (scene.getBsdf(i).type() & BSDF_TYPE_BSSRDF) {
-                triangles.push_back(scene.getTriangle(i));
+                const Triangle& tri = scene.getTriangle(i);
+                triangles.push_back(tri);
+                avgArea += tri.area();
             }
         }
-        Assertion(!triangles.empty(),
-                  "The scene does not have subsurface scattering object!!");
+        if (triangles.empty()) return;
+
+        // Compute dA and copy maxError
+        const double areaRadius = avgArea / triangles.size();
+        _dA       = areaRadius * areaRadius * PI;
+        _maxError = maxError;
 
         // Poisson disk sampling
         std::vector<Vector3D> points;
         std::vector<Vector3D> normals;
         sampler::poissonDisk(triangles, areaRadius, &points, &normals);
 
-        // Copy material data
-        this->dA = (0.5 * areaRadius) * (0.5 * areaRadius) * PI;
-        this->_maxError = maxError;
-
         // Cast photons to compute irradiance at sample points
-        photonMap.construct(scene, params, BSDF_TYPE_BSSRDF);
+        _photonMap.construct(scene, params, BSDF_TYPE_BSSRDF);
 
         // Compute irradiance at sample points
         buildOctree(points, normals, params);
@@ -229,9 +231,9 @@ namespace spica {
 
         for(int i = 0; i < numPoints; i++) {
             // Estimate irradiance with photon map
-            Color irad = photonMap.evaluate(points[i], normals[i],
-                                            params.gatherPhotons(),
-                                            params.gatherRadius());
+            Color irad = _photonMap.evaluate(points[i], normals[i],
+                                             params.gatherPhotons(),
+                                             params.gatherRadius());
             irads[i] = irad;
         }
 
@@ -240,10 +242,10 @@ namespace spica {
         for (int i = 0; i < numPoints; i++) {
             iradPoints[i].pos = points[i];
             iradPoints[i].normal = normals[i];
-            iradPoints[i].area = dA;
+            iradPoints[i].area = _dA;
             iradPoints[i].irad = irads[i];
         }
-        octree.construct(this, iradPoints);
+        _octree.construct(this, iradPoints);
         std::cout << "Octree constructed !!" << std::endl;
     }
 
@@ -251,8 +253,8 @@ namespace spica {
                                            const BSDF& bsdf) const {
         Assertion(bsdf._bssrdf != NULL,
                   "Specified object does not have BSSRDF !!");
-        Color Mo = octree.iradSubsurface(p, *bsdf._bssrdf);
-        return Color((1.0 / PI) * (1.0 - bsdf._bssrdf->Fdr()) * Mo);
+        const Color Mo = _octree.iradSubsurface(p, *bsdf._bssrdf);
+        return Color(INV_PI * (1.0 - bsdf._bssrdf->Fdr()) * Mo);
     }
 
 }  // namespace spica

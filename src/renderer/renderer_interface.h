@@ -6,28 +6,36 @@
 #define _RENDERER_INTERFACE_H_
 
 #if defined(_WIN32) || defined(__WIN32__)
-    #define SPICA_RENDERER_INTERFACE_DLL __declspec(dllexport)
+    #ifdef SPICA_RENDERER_INTERFACE_EXPORT
+        #define SPICA_RENDERER_INTERFACE_DLL __declspec(dllexport)
+    #else
+        #define SPICA_RENDERER_INTERFACE_DLL __declspec(dllimport)
+    #endif
 #else
     #define SPICA_RENDERER_INTERFACE_DLL
 #endif
 
-#include "../utils/uncopyable.h"
 #include "../utils/image.h"
-
-#include "scene.h"
-#include "camera.h"
-#include "render_parameters.h"
+#include "../utils/uncopyable.h"
 
 namespace spica {
+
+    // Forward declarations
+    class Scene;
+    class Camera;
+    class Image;
+    class RenderParameters;
+    class SubsurfaceIntegrator;
 
     class SPICA_RENDERER_INTERFACE_DLL IRenderer : private Uncopyable {
         
     protected:
         Image _result;
+        SubsurfaceIntegrator* _integrator;
 
     public:
-        IRenderer() {}
-        virtual ~IRenderer() {}
+        IRenderer();
+        virtual ~IRenderer();
 
         virtual void render(const Scene& scene, const Camera& camera, 
                             const RenderParameters& params) = 0;

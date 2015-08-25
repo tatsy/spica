@@ -7,7 +7,7 @@ namespace spica {
     void SceneViewer::onRenderButtonClicked() {
         if (!renderThread->isRunning()) {
             // TODO: implement scene graph class and load the graph from XML
-            renderer.reset(new PathTracingRenderer());
+            renderer.reset(new PathRenderer());
         }
     }
 

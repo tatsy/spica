@@ -49,20 +49,20 @@ namespace spica {
     class SPICA_BSSRDF_DLL DipoleBSSRDF : public BSSRDFBase {
     private:
         double _A;
-        double _sigmap_t;
-        double _sigma_tr;
-        double _alphap;
-        double _zpos;
-        double _zneg;
+        Color  _sigmap_t;
+        Color  _sigma_tr;
+        Color  _alphap;
+        Color  _zpos;
+        Color  _zneg;
 
     private:
         DipoleBSSRDF();
-        DipoleBSSRDF(double sigma_a, double sigmap_s, double eta = 1.3);
+        DipoleBSSRDF(const Color& sigma_a, const Color& sigmap_s, double eta = 1.3);
         DipoleBSSRDF(const DipoleBSSRDF& bssrdf);
         DipoleBSSRDF& operator=(const DipoleBSSRDF& bssrdf);
 
     public:
-        static BSSRDF factory(double sigma_a, double sigmap_s, double eta = 1.3);
+        static BSSRDF factory(const Color& sigma_a, const Color& sigmap_s, double eta = 1.3);
         Color operator()(const double d2) const override;
         BSSRDFBase* clone() const override;
     };

@@ -31,7 +31,7 @@ namespace spica {
         Color();
         Color(double red, double green, double blue);
         Color(const Color& color);
-        explicit Color(const Vector3D& v);
+        Color(const Vector3D& v);
 
         ~Color();
 

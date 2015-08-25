@@ -39,14 +39,13 @@ namespace spica {
                                                             double* fresnelRef,
                                                             double* fresnelTransmit);
 
-        // Standard radiance simulator
-        // @param[in] scene: rendered scene
-        // @param[in] params: rendering parameters
-        // @param[in] ray: ray casted from camera
-        // @param[in] rseq: random number sequence
-        // @param[in] bounces: # of bounces
-        // @param[in] bounceLimit: maximum bounces to be accounted for
-        // @param[in] bounceStartRoulette: # of bounces that the Russian roulette starts to terminate recursion
+        /* ! Standard radiance simulator
+         * @param[in] scene: rendered scene
+         * @param[in] params: rendering parameters
+         * @param[in] ray: ray casted from camera
+         * @param[in] rseq: random number sequence
+         * @param[in] bounces: # of bounces
+         */
         Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const RenderParameters& params,
                                                  const Ray& ray, Stack<double>& rands, int bounces);
 

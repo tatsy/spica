@@ -105,12 +105,12 @@ namespace spica {
         for (int i = 0; i < kNumCores; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
-                samplers[i] = Random::factory((unsigned int)time(NULL));
+                samplers[i] = Random::factory((unsigned int)i);
                 break;
 
             case QUASI_MONTE_CARLO:
                 samplers[i] = Halton::factory(250, true, 
-                                              (unsigned int)time(NULL));
+                                              (unsigned int)i);
                 break;
 
             default:
@@ -141,8 +141,8 @@ namespace spica {
                 sampler::onTriangle(light, &posLight, &normalLight,
                                     rstk.pop(), rstk.pop());
                 
-                Color flux = Color(light.area() * lightEmt * PI
-                                                / params.castPhotons());
+                Color flux = Color(scene.totalLightArea() * lightEmt * PI /
+                                   params.castPhotons());
 
                 Vector3D dir;
                 sampler::onHemisphere(normalLight, &dir,
@@ -264,7 +264,7 @@ namespace spica {
         const Vector3D orientNormal = (into ? 1.0 : -1.0) * hpoint.normal();
 
         double photonPdf = 1.0;
-        if (bsdf.type() & absorbBsdf) {
+        if ((bsdf.type() & absorbBsdf) != 0) {
             photons->push_back(Photon(hpoint.position(), flux, 
                                       ray.direction(), hpoint.normal()));
         

@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_SUBSURFACE_INTEGRATOR_H_
 #define _SPICA_SUBSURFACE_INTEGRATOR_H_
 
@@ -58,8 +62,10 @@ namespace spica {
         }
     };
 
-    class SPICA_SUBSURFACE_INTEGRATOR_DLL
-    SubsurfaceIntegrator : private Uncopyable {
+    /*! Irradiance integrator for subsurface scattering objects
+     */
+    class SPICA_SUBSURFACE_INTEGRATOR_DLL SubsurfaceIntegrator
+        : private Uncopyable {
     private:
         struct OctreeNode {
             IrradiancePoint pt;
@@ -108,17 +114,17 @@ namespace spica {
         };
 
     private:
-        PhotonMap photonMap;
-        Octree octree;
-        double dA;
-        double _maxError;
+        PhotonMap _photonMap;
+        Octree    _octree;
+        double    _dA;
+        double    _maxError;
 
     public:
         SubsurfaceIntegrator();
         ~SubsurfaceIntegrator();
 
         void initialize(const Scene& scene, const RenderParameters& params,
-                        const double areaRadius, const double maxError = 0.05);
+                        const double maxError = 0.05);
 
         void buildOctree(const std::vector<Vector3D>& points,
                          const std::vector<Vector3D>& normals,

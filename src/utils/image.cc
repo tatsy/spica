@@ -18,7 +18,7 @@
 #include "path.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "../../3rdparty/stb_image_write.h"
 
 namespace spica {
 

@@ -49,3 +49,16 @@ TEST_F(RandomTest, RandReal) {
         ASSERT_NEAR(accum / nLoop, PI / 4.0, 1.0e-2);
     }
 }
+
+const double hal2[10] = { 0.0, 0.5, 0.25, 0.75, 0.125, 0.625, 0.375, 0.875, 1/16.0, 9/16.0 };
+const double hal3[10] = { 0.0, 1/3.0, 2/3.0, 1/9.0, 4/9.0, 7/9.0, 2/9.0, 5/9.0, 8/9.0, 1/27.0 };
+
+TEST_F(RandomTest, HaltonTest) {
+    Halton hal(2, false);
+    Stack<double> stk;
+    for (int i = 0; i < 10; i++) {
+        hal.request(&stk, 2);
+        EXPECT_FLOAT_EQ(hal3[i], stk.pop());
+        EXPECT_FLOAT_EQ(hal2[i], stk.pop());
+    }
+}

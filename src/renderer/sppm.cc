@@ -13,6 +13,7 @@
 #include "../utils/sampler.h"
 
 #include "../random/random_sampler.h"
+#include "subsurface_integrator.h"
 
 namespace spica {
 
@@ -32,6 +33,11 @@ namespace spica {
         const int width = camera.imageW();
         const int height = camera.imageH();
         const int numPoints = width * height;
+
+        // Preparation for taking BSSRDF into account
+        _integrator->initialize(scene, params);
+
+        // Initialize hitpoints
         std::vector<SPPMPixel> hpoints(numPoints);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
@@ -42,6 +48,7 @@ namespace spica {
             }
         }
 
+        // Initialize random number samplers
         RandomSampler* samplers = new RandomSampler[kNumCores];
         for (int i = 0; i < kNumCores; i++) {
             switch (params.randomType()) {
@@ -204,7 +211,7 @@ namespace spica {
                                     rstk.pop(), rstk.pop());
 
                 // Compute flux
-                Color flux = Color(emission * light.area() * PI / numPhotons);
+                Color flux = Color(scene.totalLightArea() * emission * PI / numPhotons);
 
                 // Prepare ray
                 Vector3D nextDir;
@@ -315,6 +322,7 @@ namespace spica {
 
         Intersection isect;
         Color weight(1.0, 1.0, 1.0);
+        Color throughput(0.0, 0.0, 0.0);
         for (int bounce = 0; ; bounce++) {
             const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
@@ -322,6 +330,7 @@ namespace spica {
                 weight = weight * scene.envmap().sampleFromDir(ray.direction());
                 pixel->weight = weight;
                 pixel->coeff = coeff;
+                pixel->emission += throughput;
                 break;
             }
 
@@ -340,14 +349,26 @@ namespace spica {
                 pixel->normal   = hpoint.normal();
                 pixel->weight   = weight * bsdf.reflectance();
                 pixel->coeff    = coeff;
-                pixel->emission += weight * emission;
+                pixel->emission += throughput + weight * emission;
                 break;
             } else {
                 double pdf = 1.0;
-                Vector3D nextDir;
-                bsdf.sample(ray.direction(), hpoint.normal(), 
-                            rands[1], rands[2], &nextDir, &pdf);
-                ray = Ray(hpoint.position(), nextDir);
+                Vector3D nextdir;
+                if (bsdf.type() & BSDF_TYPE_BSSRDF) {
+                    Assertion(_integrator != NULL,
+                              "Subsurface integrator is NULL !!");
+                    Color bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
+                                                        hpoint.position(),
+                                                        hpoint.normal(),
+                                                        rands[1], rands[2],
+                                                        *_integrator,
+                                                        &nextdir, &pdf);
+                    throughput += weight * bssrdfRad;
+                } else {
+                    bsdf.sample(ray.direction(), hpoint.normal(),
+                                rands[1], rands[2], &nextdir, &pdf);
+                }
+                ray = Ray(hpoint.position(), nextdir);
                 weight = weight * bsdf.reflectance() / pdf;
             }
         }

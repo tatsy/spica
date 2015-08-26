@@ -12,38 +12,9 @@ namespace spica {
     {
     }
 
-    KdTreeAccel::KdTreeAccel(const KdTreeAccel& kdtree)
-        : _root(NULL)
-    {
-        this->operator=(kdtree);
-    }
-
-    KdTreeAccel::KdTreeAccel(KdTreeAccel&& kdtree)
-        : _root(NULL)
-    {
-        this->operator=(std::move(kdtree));
-    }
-
     KdTreeAccel::~KdTreeAccel() 
     {
         release();
-    }
-
-    KdTreeAccel& KdTreeAccel::operator=(const KdTreeAccel& kdtree) {
-        release();
-
-        _root = copyNode(kdtree._root);
-
-        return *this;
-    }
-
-    KdTreeAccel& KdTreeAccel::operator=(KdTreeAccel&& kdtree) {
-        release();
-
-        _root = kdtree._root;
-        kdtree._root = nullptr;
-
-        return *this;
     }
 
     void KdTreeAccel::release() {
@@ -82,15 +53,15 @@ namespace spica {
         release();
 
         const int numTriangles = static_cast<int>(triangles.size());
-        std::vector<TriangleWithID> temp(numTriangles);
+        std::vector<IndexedTriangle> temp(numTriangles);
         for (int i = 0; i < numTriangles; i++) {
-            temp[i].first = triangles[i];
-            temp[i].second = i;
+            temp[i].tri = triangles[i];
+            temp[i].idx = i;
         }
         _root = constructRec(temp, 0, temp.size());
     }
 
-    KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<TriangleWithID>& triangles, int start, int end) {
+    KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<IndexedTriangle>& triangles, int start, int end) {
         if (start == end) {
             return nullptr;
         }
@@ -101,13 +72,13 @@ namespace spica {
             node->left = nullptr;
             node->right = nullptr;
             node->triangle = triangles[start];
-            node->bbox = BBox::fromTriangle(triangles[start].first);
+            node->bbox = BBox::fromTriangle(triangles[start].tri);
             return node;
         }
 
         BBox bounds;
         for (int i = start; i < end; i++) {
-            bounds.merge(triangles[i].first);
+            bounds.merge(triangles[i].tri);
         }
         const int dim = bounds.maximumExtent();
 
@@ -137,10 +108,10 @@ namespace spica {
 
             if (node->isLeaf) {
                 Hitpoint hptemp;
-                if (node->triangle.first.intersect(ray, &hptemp)) {
+                if (node->triangle.tri.intersect(ray, &hptemp)) {
                     if (hitpoint->distance() > hptemp.distance()) {
                         *hitpoint = hptemp;
-                        tid = node->triangle.second;
+                        tid = node->triangle.idx;
                     }
                 }
             } else {

@@ -3,6 +3,7 @@
 
 #include <stack>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <algorithm>
 
@@ -14,9 +15,9 @@ namespace spica {
     
         const float inff = (float)INFTY;
         const float epsf = (float)EPS;
-        align_attrib(float, 32) infs[4]  = { inff, inff, inff, inff };
-        align_attrib(float, 32) zeros[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        align_attrib(float, 32) epss[4] = { epsf, epsf, epsf, epsf };
+        align_attrib(float, 16) infs[4]  = { inff, inff, inff, inff };
+        align_attrib(float, 16) zeros[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        align_attrib(float, 16) epss[4] = { epsf, epsf, epsf, epsf };
         __m128 simdInf = _mm_load_ps(infs);
         __m128 simdZero = _mm_load_ps(zeros);
         __m128 simdEps  = _mm_load_ps(epss);
@@ -69,60 +70,18 @@ namespace spica {
     {
     }
 
-    QBVHAccel::QBVHAccel(const QBVHAccel& qbvh)
-        : _root(NULL)
-        , _triangles()
-        , _ordered()
-        , _simdNodes()
-        , _simdTris()
-    {
-        this->operator=(qbvh);
-    }
-
-    QBVHAccel::QBVHAccel(QBVHAccel&& qbvh) 
-        : _root(NULL)
-        , _triangles()
-        , _ordered()
-        , _simdNodes()
-        , _simdTris()
-    {
-        this->operator=(std::move(qbvh));    
-    }
-
     QBVHAccel::~QBVHAccel()
     {
         release();
     }
 
-    QBVHAccel& QBVHAccel::operator=(const QBVHAccel& qbvh) {
-        release();
-
-        // _root = copyNode(qbvh._root);
-        std::cerr << "Hoge" << std::endl;
-        exit(1);
-
-        return *this;
-    }
-
-    QBVHAccel& QBVHAccel::operator=(QBVHAccel&& qbvh) {
-        std::cerr << "Hoge" << std::endl;
-        exit(1);
-
-        release();
-
-        _root = qbvh._root;
-        qbvh._root = nullptr;
-
-        return *this;
-    }
-
     void QBVHAccel::release() {
         for (int i = 0; i < _simdNodes.size(); i++) {
-            _aligned_free(_simdNodes[i]);
+            align_free(_simdNodes[i]);
         }
 
         for (int i = 0; i < _simdTris.size(); i++) {
-            _aligned_free(_simdTris[i]);
+            align_free(_simdTris[i]);
         }
 
         _root = nullptr;
@@ -169,8 +128,8 @@ namespace spica {
             // This is leaf node
             int firstPrimOffset = orderedPrims.size();
             
-            SIMDTrianglePack* simdt = (SIMDTrianglePack*)_aligned_malloc(sizeof(SIMDTrianglePack), 16);
-            Assertion(simdt != NULL, "allocation failed !!");
+            SIMDTrianglePack* simdt = (SIMDTrianglePack*)align_alloc(sizeof(SIMDTrianglePack), 16);
+            Assertion(simdt != nullptr, "allocation failed !!");
 
             align_attrib(float, 16) x[4 * 3] = {0};
             align_attrib(float, 16) y[4 * 3] = {0};
@@ -275,8 +234,8 @@ namespace spica {
         BVHBuildNode* c[4] = {0};
 
         SIMDBVHNode* n;
-        n = (SIMDBVHNode*)_aligned_malloc(sizeof(SIMDBVHNode), 16);
-        Assertion(n != NULL, "allocation failed !!");
+        n = (SIMDBVHNode*)align_alloc(sizeof(SIMDBVHNode), 16);
+        Assertion(n != nullptr, "allocation failed !!");
 
         _simdNodes.push_back(n);
         n->axis_top = node->splitAxis;
@@ -384,8 +343,6 @@ namespace spica {
         sgn[1] = idiry >= 0.0f ? 0 : 1;
         sgn[2] = idirz >= 0.0f ? 0 : 1;
         
-        const SIMDBVHNode* nodes = _simdNodes[0];
-
         Children nodeStack[40];
         int todoNode = 0;
 
@@ -424,8 +381,8 @@ namespace spica {
                 SIMDTrianglePack* s = _simdTris[item.leaf.index];
 
                 float eps = 1.0e-12f;
-                align_attrib(float, 32) t0_f[4] = { 0.0f - eps, 0.0f - eps, 0.0f - eps, 0.0f - eps };
-                align_attrib(float, 32) t1_f[4] = { 1.0f + eps, 1.0f + eps, 1.0f + eps, 1.0f + eps };
+                align_attrib(float, 16) t0_f[4] = { 0.0f - eps, 0.0f - eps, 0.0f - eps, 0.0f - eps };
+                align_attrib(float, 16) t1_f[4] = { 1.0f + eps, 1.0f + eps, 1.0f + eps, 1.0f + eps };
 
                 __m128 t0 = _mm_load_ps(t0_f);
                 __m128 t1 = _mm_load_ps(t1_f);

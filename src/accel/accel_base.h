@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_ACCEL_BASE_H_
 #define _SPICA_ACCEL_BASE_H_
 
@@ -15,15 +19,27 @@
 #include <map>
 
 #include "../utils/common.h"
+#include "../utils/uncopyable.h"
 #include "../renderer/ray.h"
 #include "../geometry/triangle.h"
 #include "../geometry/bbox.h"
 
 namespace spica {
 
-    class AccelBase {
+    class AccelBase : public Uncopyable {
     protected:
-        typedef std::pair<Triangle, int> TriangleWithID;
+        struct IndexedTriangle {
+            int idx;
+            Triangle tri;
+            IndexedTriangle()
+                : idx(-1)
+                , tri() {
+            }
+            IndexedTriangle(int i, const Triangle& t)
+                : idx(i)
+                , tri(t) {
+            }
+        };
 
         struct AxisComparator {
             int dim;
@@ -33,8 +49,8 @@ namespace spica {
                 Assertion(0 <= dim_ && dim_ <= 2, "Dimension must be between 0 and 2");
             }
 
-            bool operator()(const TriangleWithID& t1, const TriangleWithID& t2) const {
-                return t1.first.gravity().get(dim) < t2.first.gravity().get(dim);
+            bool operator()(const IndexedTriangle& t1, const IndexedTriangle& t2) const {
+                return t1.tri.gravity().get(dim) < t2.tri.gravity().get(dim);
             }
         };
 
@@ -45,9 +61,9 @@ namespace spica {
         virtual int  intersect(const Ray& ray, Hitpoint* hitpoint) const = 0;
 
     protected:
-        static BBox enclosingBox(const std::vector<TriangleWithID>& triangles);
+        static BBox enclosingBox(const std::vector<IndexedTriangle>& triangles);
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_ACCEL_BASE_H_

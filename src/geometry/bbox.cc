@@ -97,10 +97,10 @@ namespace spica {
 
     bool BBox::intersect(const Ray& ray, double* tMin, double* tMax) const {
         double xMin = (_posMin.x() - ray.origin().x()) * ray.invdir().x();
-        double xMax = (_posMax.x() - ray.origin().x()) * ray.invdir().x();
         double yMin = (_posMin.y() - ray.origin().y()) * ray.invdir().y();
-        double yMax = (_posMax.y() - ray.origin().y()) * ray.invdir().y();
         double zMin = (_posMin.z() - ray.origin().z()) * ray.invdir().z();
+        double xMax = (_posMax.x() - ray.origin().x()) * ray.invdir().x();
+        double yMax = (_posMax.y() - ray.origin().y()) * ray.invdir().y();
         double zMax = (_posMax.z() - ray.origin().z()) * ray.invdir().z();
         
         if (xMin > xMax) std::swap(xMin, xMax);

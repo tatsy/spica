@@ -79,23 +79,22 @@ TEST_F(SceneTest, QBVHvsKdTreeTest) {
     Camera cam1, cam2;
     cornellBox(&scene1, &cam1, 400, 300);
     cornellBox(&scene2, &cam2, 400, 300);
-    // scene1.setAccelType(QBVH_ACCEL);
-    // scene1.computeAccelerator();
+    scene1.setAccelType(QBVH_ACCEL);
+    scene1.computeAccelerator();
     scene2.setAccelType(KD_TREE_ACCEL);
     scene2.computeAccelerator();
 
     Random rng = Random();
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
+        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
         Vector3D to    = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
         Vector3D dir = (to - from).normalized();
-        // Ray ray(from, dir);
-        Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.001, -1.0).normalized());
+        Ray ray(from, dir);
 
         Intersection isect1, isect2;
         EXPECT_EQ(scene1.intersect(ray, isect1), scene2.intersect(ray, isect2));
         EXPECT_EQ(isect1.objectId(), isect2.objectId());
-        EXPECT_NEAR(isect1.hitpoint().distance(), isect2.hitpoint().distance(), 1.0e-2);
+        EXPECT_NEAR(isect1.hitpoint().distance(), isect2.hitpoint().distance(), 1.0e-4);
     }
 }

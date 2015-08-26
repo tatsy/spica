@@ -97,6 +97,20 @@ do { \
     #define align_attrib(typ, siz) typ __attribute__((aligned(siz)))
 #endif
 
+#if defined(_WIN32) || defined(__WIN32__)
+inline void* align_alloc(size_t size, size_t alignsize) {
+    return _aligned_malloc(size, alignsize);
+}
+inline void align_free(void* mem) { _aligned_free(mem); }
+#else
+inline void* align_alloc(size_t size, size_t alignsize) {
+    void* mem = nullptr;
+    int ret = posix_memalign((void**)&mem, alignsize, size);
+    return (ret == 0) ? mem : nullptr;
+}
+inline void align_free(void* mem) { free(mem); }
+#endif
+
 // ----------------------------------------------------------------------------
 // isnan / isinf
 // ----------------------------------------------------------------------------
@@ -106,7 +120,6 @@ do { \
         #define isinf(x) (!_finite(x))
     #endif
 #endif
-
 
 // ----------------------------------------------------------------------------
 // Utility functions

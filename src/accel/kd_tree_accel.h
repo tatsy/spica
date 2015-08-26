@@ -24,7 +24,7 @@ namespace spica {
     private:
         struct KdTreeNode : public Uncopyable {
             BBox bbox;
-            TriangleWithID triangle;
+            IndexedTriangle triangle;
             KdTreeNode* left;
             KdTreeNode* right;
             bool isLeaf;
@@ -47,12 +47,7 @@ namespace spica {
 
     public:
         KdTreeAccel();
-        KdTreeAccel(const KdTreeAccel& kdtree);     // Copy
-        KdTreeAccel(KdTreeAccel&& kdtree);          // Move
         ~KdTreeAccel();
-
-        KdTreeAccel& operator=(const KdTreeAccel& kdtree);  // Copy
-        KdTreeAccel& operator=(KdTreeAccel&& kdtree);       // Move
         
         void construct(const std::vector<Triangle>& triangles);
         int  intersect(const Ray& ray, Hitpoint* hitpoint) const override;
@@ -61,7 +56,7 @@ namespace spica {
         void release();
         void deleteNode(KdTreeNode* node);
         KdTreeNode* copyNode(KdTreeNode* node);
-        KdTreeNode* constructRec(std::vector<TriangleWithID>& triangles, int start, int end);
+        KdTreeNode* constructRec(std::vector<IndexedTriangle>& triangles, int start, int end);
     };
 
 }

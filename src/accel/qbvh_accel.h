@@ -134,12 +134,7 @@ namespace spica {
 
     public:
         QBVHAccel();
-        QBVHAccel(const QBVHAccel& qbvh);
-        QBVHAccel(QBVHAccel&& qbvh);
         ~QBVHAccel();
-
-        QBVHAccel& operator=(const QBVHAccel& qbvh);
-        QBVHAccel& operator=(QBVHAccel&& qbvh);
 
         void construct(const std::vector<Triangle>& triangles);
 

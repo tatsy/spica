@@ -6,11 +6,13 @@
 
 #include "../include/spica.h"
 
+const double tol = 0.001;
+
 #define EXPECT_EQ_VEC(expected, actual) \
 do { \
-    if (std::abs(expected.x() - actual.x()) >= EPS || \
-        std::abs(expected.y() - actual.y()) >= EPS || \
-        std::abs(expected.z() - actual.z()) >= EPS) { \
+    if (std::abs(expected.x() - actual.x()) >= tol || \
+        std::abs(expected.y() - actual.y()) >= tol || \
+        std::abs(expected.z() - actual.z()) >= tol) { \
         FAIL() << "expected: " << expected.toString() << std::endl  \
                << "  actual: " << actual.toString()   << std::endl; \
     } \

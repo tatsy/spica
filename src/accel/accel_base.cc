@@ -16,5 +16,5 @@ namespace spica {
         return BBox(posMin, posMax);
     }
 
-}
+}  // namespace spica
 

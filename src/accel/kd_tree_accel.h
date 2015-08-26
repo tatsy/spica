@@ -62,7 +62,7 @@ namespace spica {
         void release();
         void deleteNode(KdTreeNode* node);
         KdTreeNode* copyNode(KdTreeNode* node);
-        KdTreeNode* constructRec(std::vector<TriangleWithID>& triangles, int dim);
+        KdTreeNode* constructRec(std::vector<TriangleWithID>& triangles);
 
         static int intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax);
     };

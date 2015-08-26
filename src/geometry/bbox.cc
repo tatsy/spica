@@ -41,6 +41,14 @@ namespace spica {
         return *this;
     }
 
+    BBox BBox::fromTriangle(const Triangle& t) {
+        BBox retval;
+        retval.merge(t[0]);
+        retval.merge(t[1]);
+        retval.merge(t[2]);
+        return retval;
+    }
+
     void BBox::merge(const Vector3D& v) {
         _posMin = Vector3D::minimum(_posMin, v);
         _posMax = Vector3D::maximum(_posMax, v);
@@ -49,6 +57,12 @@ namespace spica {
     void BBox::merge(const BBox& box) {
         _posMin = Vector3D::minimum(_posMin, box._posMin);
         _posMax = Vector3D::maximum(_posMax, box._posMax);
+    }
+
+    BBox BBox::merge(const BBox& b1, const BBox& b2) {
+        BBox retval = b1;
+        retval.merge(b2);
+        return retval;
     }
 
     void BBox::merge(const Triangle& t) {
@@ -61,6 +75,24 @@ namespace spica {
         return (_posMin.x() <= v.x() && v.x() <= _posMax.x()) &&
                (_posMin.y() <= v.y() && v.y() <= _posMax.y()) &&
                (_posMin.z() <= v.z() && v.z() <= _posMax.z());
+    }
+
+    int BBox::maximumExtent() const {
+        const Vector3D g = _posMin - _posMax;
+        const double gx = std::abs(g.x());
+        const double gy = std::abs(g.y());
+        const double gz = std::abs(g.z());
+        if (gx >= gy && gx >= gz) return 0;
+        if (gy >= gx && gy >= gz) return 1;
+        return 2;
+    }
+
+    double BBox::area() const {
+        const Vector3D g = _posMin - _posMax;
+        const double gx = std::abs(g.x());
+        const double gy = std::abs(g.y());
+        const double gz = std::abs(g.z());
+        return 2.0 * (gx * gy + gy * gz + gz * gx);
     }
 
     bool BBox::intersect(const Ray& ray, double* tMin, double* tMax) const {

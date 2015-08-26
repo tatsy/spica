@@ -87,11 +87,14 @@ namespace spica {
             temp[i].first = triangles[i];
             temp[i].second = i;
         }
-        _root = constructRec(temp, 0);
+        _root = constructRec(temp);
     }
 
-    KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<TriangleWithID>& triangles, int dim) {
+    KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<TriangleWithID>& triangles) {
         const int nTri = static_cast<int>(triangles.size());
+
+        BBox bbox = enclosingBox(triangles);
+        int dim = bbox.maximumExtent();
 
         // Sort triangles
         std::sort(triangles.begin(), triangles.end(), AxisComparator(dim));
@@ -104,7 +107,7 @@ namespace spica {
             KdTreeNode* node = new KdTreeNode();
             node->triangles.resize(nTri);
             std::copy(triangles.begin(), triangles.end(), node->triangles.begin());
-            node->bbox = enclosingBox(triangles);
+            node->bbox = bbox;
             node->left = NULL;
             node->right = NULL;
             node->isLeaf = true;
@@ -113,8 +116,8 @@ namespace spica {
 
         KdTreeNode* node = new KdTreeNode();
         node->bbox = enclosingBox(triangles);
-        node->left = constructRec(triLeft, (dim + 1) % 3);
-        node->right = constructRec(triRight, (dim + 1) % 3);
+        node->left = constructRec(triLeft);
+        node->right = constructRec(triRight);
         node->isLeaf = false;
 
         return node;

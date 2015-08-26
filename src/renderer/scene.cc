@@ -124,7 +124,9 @@ namespace spica {
         _accel->construct(_triangles);    
     }
 
-    void Scene::computeLightPdfs() {        
+    void Scene::computeLightPdfs() {
+        if (_lightIds.empty()) return; 
+
         _lightPdfs.resize(_lightIds.size());
 
         _totalLightArea = 0.0;

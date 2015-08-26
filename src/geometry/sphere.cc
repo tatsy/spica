@@ -67,8 +67,8 @@ namespace spica {
     }
 
     std::vector<Triangle> Sphere::triangulate() const {
-        static const int nTheta = 128;
-        static const int nPhi   = 256;
+        static const int nTheta = 64;
+        static const int nPhi   = 128;
 
         std::vector<Triangle> retval;
         for (int i = 0; i < nTheta; i++) {

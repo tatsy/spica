@@ -16,8 +16,8 @@ int main(int argc, char** argv) {
 
     Scene scene;
     Camera camera;
-    // cornellBox(&scene, &camera, width, height);
-    kittenBox(&scene, &camera, width, height);
+    cornellBox(&scene, &camera, width, height);
+    // kittenBox(&scene, &camera, width, height);
 
     const int    numPhotons    = 1000000;
     const int    gatherPhotons = 128;

@@ -2,6 +2,7 @@
 #include "kd_tree_accel.h"
 
 #include <cstring>
+#include <stack>
 #include <algorithm>
 
 namespace spica {
@@ -68,8 +69,7 @@ namespace spica {
         if (node != NULL) {
             ret = new KdTreeNode();
             ret->bbox = node->bbox;
-            ret->triangles.resize(node->triangles.size());
-            std::copy(node->triangles.begin(), node->triangles.end(), ret->triangles.begin());
+            node->triangle = ret->triangle;
             ret->isLeaf = node->isLeaf;
 
             node->left = copyNode(node->left);
@@ -87,112 +87,78 @@ namespace spica {
             temp[i].first = triangles[i];
             temp[i].second = i;
         }
-        _root = constructRec(temp);
+        _root = constructRec(temp, 0, temp.size());
     }
 
-    KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<TriangleWithID>& triangles) {
-        const int nTri = static_cast<int>(triangles.size());
+    KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<TriangleWithID>& triangles, int start, int end) {
+        if (start == end) {
+            return nullptr;
+        }
 
-        BBox bbox = enclosingBox(triangles);
-        int dim = bbox.maximumExtent();
-
-        // Sort triangles
-        std::sort(triangles.begin(), triangles.end(), AxisComparator(dim));
-
-        const int mid = nTri / 2;
-        std::vector<TriangleWithID> triLeft(triangles.begin(), triangles.begin() + mid);
-        std::vector<TriangleWithID> triRight(triangles.begin() + mid, triangles.end());
-
-        if (triangles.size() <= _maxNodeSize || (triLeft.size() == nTri || triRight.size() == nTri)) {
+        if (start + 1 == end) {
             KdTreeNode* node = new KdTreeNode();
-            node->triangles.resize(nTri);
-            std::copy(triangles.begin(), triangles.end(), node->triangles.begin());
-            node->bbox = bbox;
-            node->left = NULL;
-            node->right = NULL;
             node->isLeaf = true;
+            node->left = nullptr;
+            node->right = nullptr;
+            node->triangle = triangles[start];
+            node->bbox = BBox::fromTriangle(triangles[start].first);
             return node;
         }
 
+        BBox bounds;
+        for (int i = start; i < end; i++) {
+            bounds.merge(triangles[i].first);
+        }
+        const int dim = bounds.maximumExtent();
+
+        // Sort triangles
+        std::sort(triangles.begin() + start, triangles.begin() + end, AxisComparator(dim));
+
+        const int mid = (start + end) / 2;
+
         KdTreeNode* node = new KdTreeNode();
-        node->bbox = enclosingBox(triangles);
-        node->left = constructRec(triLeft);
-        node->right = constructRec(triRight);
+        node->bbox = bounds;
+        node->left = constructRec(triangles, start, mid);
+        node->right = constructRec(triangles, mid, end);
         node->isLeaf = false;
 
         return node;
     }
 
     int KdTreeAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        double tMin, tMax;
-        KdTreeNode* node = _root;
-        if (!node->bbox.intersect(ray, &tMin, &tMax)) {
-            return -1;
-        }
+        int tid = -1;
+        bool hit = false;
 
-        return intersectRec(node, ray, hitpoint, tMin, tMax);
-    }
+        std::stack<KdTreeNode*> todoNode;
+        todoNode.push(_root);
+        while(!todoNode.empty()) {
+            KdTreeNode* node = todoNode.top();
+            todoNode.pop();
 
-    int KdTreeAccel::intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax) {
-        if (node->isLeaf) {
-            int triID = -1;
-            for (int i = 0; i < node->triangles.size(); i++) {
-                const Triangle& tri = node->triangles[i].first;
-                Hitpoint hpTemp;
-                if (tri.intersect(ray, &hpTemp)) {
-                    if (hitpoint->distance() > hpTemp.distance()) {
-                        *hitpoint = hpTemp;
-                        triID = node->triangles[i].second;
+            if (node->isLeaf) {
+                Hitpoint hptemp;
+                if (node->triangle.first.intersect(ray, &hptemp)) {
+                    if (hitpoint->distance() > hptemp.distance()) {
+                        *hitpoint = hptemp;
+                        tid = node->triangle.second;
                     }
                 }
-            }
-            return triID;
-        }
-
-        // Check which child is nearer
-        double lMin = INFTY, lMax = INFTY, rMin = INFTY, rMax = INFTY;
-        bool isectL = node->left->bbox.intersect(ray, &lMin, &lMax);
-        bool isectR = node->right->bbox.intersect(ray, &rMin, &rMax);
-
-        // Intesecting NO children
-        if (!isectL && !isectR) {
-            return -1;
-        }
-
-        // Intersecting only one child
-        if (isectL && !isectR) {
-            return intersectRec(node->left, ray, hitpoint, lMin, lMax);
-        }
-
-        if (isectR && !isectL) {
-            return intersectRec(node->right, ray, hitpoint, rMin, rMax);
-        }
-
-        // Intersecting two children
-        Hitpoint lefthp, righthp;
-        const int trileft = intersectRec(node->left, ray, &lefthp, lMin, lMax);
-        const int triright = intersectRec(node->right, ray, &righthp, rMin, rMax);
-        if (trileft != -1 && triright != -1) {
-            if (lefthp.distance() < righthp.distance()) {
-                *hitpoint = lefthp;
-                return trileft;
             } else {
-                *hitpoint = righthp;
-                return triright;
+                double tmin, tmax;
+
+                // Check which child is nearer
+                if (node->left != nullptr) {
+                    bool isectL = node->left->bbox.intersect(ray, &tmin, &tmax);
+                    if (isectL) todoNode.push(node->left);
+                }
+
+                if (node->right != nullptr) {
+                    bool isectR = node->right->bbox.intersect(ray, &tmin, &tmax);
+                    if (isectR) todoNode.push(node->right);
+                }
             }
         }
-
-        if (trileft != -1) {
-            *hitpoint = lefthp;
-            return trileft;
-        }
-
-        if (triright != -1) {
-            *hitpoint = righthp;
-            return triright;
-        }
-
-        return -1;
+        return tid;
     }
 
 }  // namespace spica

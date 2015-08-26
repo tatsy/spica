@@ -101,21 +101,19 @@ namespace spica {
             }
         };
 
-        struct Children { 
-            union {
-                struct Node {
-                    unsigned flag  : 1;
-                    unsigned index : 31;
-                } node;
+        union Children { 
+            struct Node {
+                unsigned flag  : 1;
+                unsigned index : 31;
+            } node;
 
-                struct Leaf {
-                    unsigned flag : 1;
-                    unsigned nPrimitives: 3;
-                    unsigned index : 28;
-                } leaf;
+            struct Leaf {
+                unsigned flag : 1;
+                unsigned nPrimitives: 3;
+                unsigned index : 28;
+            } leaf;
 
-                unsigned int raw;
-            };
+            unsigned int raw;
         };
 
         struct SIMDBVHNode {
@@ -125,27 +123,6 @@ namespace spica {
             int axis_left;
             int axis_right;
             int reserved;
-        };
-
-        struct QBVHNode : public Uncopyable {
-            __m128 childBoxes[2][3];  // [min-max][x-y-z]
-            QBVHNode* children[4];    // Child nodes
-            std::vector<TriangleWithID> triangles;
-            char sepAxes[3];          // top-left-right
-            bool isLeaf;
-
-            QBVHNode()
-                : childBoxes()
-                , children()
-                , triangles()
-                , sepAxes()
-                , isLeaf(false)
-            {
-            }
-
-            ~QBVHNode()
-            {
-            }
         };
 
         BVHBuildNode* _root;
@@ -170,8 +147,6 @@ namespace spica {
 
     private:
         void release();
-        void deleteNode(QBVHNode* node);
-        QBVHNode* copyNode(QBVHNode* node);
         
         BVHBuildNode* constructRec(std::vector<BVHPrimitiveInfo>& buildData,
                                    int start, int end, int* totalNodes,

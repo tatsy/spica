@@ -78,7 +78,7 @@ namespace spica {
     }
 
     int BBox::maximumExtent() const {
-        const Vector3D g = _posMin - _posMax;
+        const Vector3D g = _posMax - _posMin;
         const double gx = std::abs(g.x());
         const double gy = std::abs(g.y());
         const double gz = std::abs(g.z());

@@ -132,41 +132,6 @@ namespace spica {
         _simdTris.clear();
     }
 
-    void QBVHAccel::deleteNode(QBVHNode* node) {
-        std::cerr << "Hoge" << std::endl;
-        exit(1);
-
-
-        if (node != NULL) {
-            for (int i = 0; i < 4; i++) {
-                deleteNode(node->children[i]);
-            }
-            delete node;
-            node = NULL;
-        }
-    }
-
-    QBVHAccel::QBVHNode* QBVHAccel::copyNode(QBVHNode* node) {
-        std::cerr << "Hoge" << std::endl;
-        exit(1);
-
-
-        QBVHNode* ret = NULL;
-        if (node != NULL) {
-            ret = new QBVHNode();
-            memcpy((void*)ret->childBoxes, (void*)node->childBoxes, sizeof(__m128) * 6);
-            ret->triangles.resize(node->triangles.size());
-            std::copy(node->triangles.begin(), node->triangles.end(), ret->triangles.begin());
-            memcpy((void*)ret->sepAxes, (void*)node->sepAxes, sizeof(char) * 3);
-            ret->isLeaf = node->isLeaf;
-
-            for (int i = 0; i < 4; i++) {
-                ret->children[i] = copyNode(node->children[i]);
-            }
-        }
-        return ret;
-    }
-
     void QBVHAccel::construct(const std::vector<Triangle>& triangles) {
         // Destruct previos tree
         release();

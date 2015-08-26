@@ -24,14 +24,14 @@ namespace spica {
     private:
         struct KdTreeNode : public Uncopyable {
             BBox bbox;
-            std::vector<TriangleWithID> triangles;
+            TriangleWithID triangle;
             KdTreeNode* left;
             KdTreeNode* right;
             bool isLeaf;
 
             KdTreeNode()
                 : bbox()
-                , triangles()
+                , triangle()
                 , left(NULL)
                 , right(NULL)
                 , isLeaf(false)
@@ -43,7 +43,6 @@ namespace spica {
             }
         };
 
-        static const int _maxNodeSize = 2;
         KdTreeNode* _root;          // tree root
 
     public:
@@ -62,9 +61,7 @@ namespace spica {
         void release();
         void deleteNode(KdTreeNode* node);
         KdTreeNode* copyNode(KdTreeNode* node);
-        KdTreeNode* constructRec(std::vector<TriangleWithID>& triangles);
-
-        static int intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax);
+        KdTreeNode* constructRec(std::vector<TriangleWithID>& triangles, int start, int end);
     };
 
 }

@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_BRDF_H_
 #define _SPICA_BRDF_H_
 
@@ -12,90 +16,104 @@
 #endif
 
 #include "../utils/common.h"
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 
 namespace spica {
 
-    class BRDF;
+    class BSDF;
 
-    // Interface class for BRDF object
-    class SPICA_BRDF_DLL BRDFBase {
+    // --------------------------------------------------
+    // Interface class for BSDF object
+    // --------------------------------------------------
+    class SPICA_BRDF_DLL BSDFBase {
     protected:
-        BRDFBase() {}
-        explicit BRDFBase(const BRDFBase&) {}
+        BSDFBase() {}
+        explicit BSDFBase(const BSDFBase&) {}
 
     public:
-        virtual ~BRDFBase() {}
-        virtual Color reflectance() const = 0;
-        virtual void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const = 0;
+        virtual ~BSDFBase() {}
+        virtual const Color& reflectance() const = 0;
+        virtual void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const = 0;
+        virtual BSDFBase* clone() const = 0;
     };
 
-    class SPICA_BRDF_DLL LambertianBRDF : public BRDFBase {
+
+    // --------------------------------------------------
+    // Lambertian BRDF
+    // --------------------------------------------------
+
+    class SPICA_BRDF_DLL LambertianBRDF : public BSDFBase {
     private:
         Color _reflectance;
 
     public:
-        static BRDF factory(const Color& reflectance);
-        Color reflectance() const;
-        void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
+        static BSDF factory(const Color& reflectance);
+        const Color& reflectance() const override;
+        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        BSDFBase* clone() const override;
 
     private:
         explicit LambertianBRDF(const Color& reflectance);
     };
 
-    class SPICA_BRDF_DLL SpecularBRDF : public BRDFBase {
+
+    // --------------------------------------------------
+    // Specular BRDF
+    // --------------------------------------------------
+
+    class SPICA_BRDF_DLL SpecularBRDF : public BSDFBase {
     private:
         Color _reflectance;
 
     public:
-        static BRDF factory(const Color& reflectance);
-        Color reflectance() const;
-        void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
+        static BSDF factory(const Color& reflectance);
+        const Color& reflectance() const override;
+        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        BSDFBase* clone() const override;
 
     private:
         explicit SpecularBRDF(const Color& reflectance);
     };
 
-    class SPICA_BRDF_DLL PhongBRDF : public BRDFBase {
+
+    // --------------------------------------------------
+    // Phong BRDF
+    // --------------------------------------------------
+
+    class SPICA_BRDF_DLL PhongBRDF : public BSDFBase {
     private:
         Color _reflectance;
-        double _coeffN;
+        double _coeff;
 
     public:
-        static BRDF factory(const Color& reflectance, const double n);
-        Color reflectance() const;
-        void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
+        static BSDF factory(const Color& reflectance, const double n = 32);
+        const Color& reflectance() const override;
+        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        BSDFBase* clone() const override;
 
     private:
         PhongBRDF(const Color& reflectance, const double n);
     };
 
-    class SPICA_BRDF_DLL BRDF {
+    // --------------------------------------------------
+    // Refractive BSDF
+    // --------------------------------------------------
+
+    class SPICA_BRDF_DLL RefractiveBSDF : public BSDFBase {
     private:
-        int* _numCopies;
-        const BRDFBase* _ptr;
+        Color _reflectance;
 
     public:
-        BRDF();
-        BRDF(const BRDF& brdf);
-        ~BRDF();
-
-        BRDF& operator=(const BRDF& brdf);
-        Color reflectance() const;
-        void sample(const Vector3& in, const Vector3& normal, const double rand1, const double rand2, Vector3* out) const;
+        static BSDF factory(const Color& reflectance);
+        const Color& reflectance() const override;
+        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        BSDFBase* clone() const override;
 
     private:
-        explicit BRDF(const BRDFBase* ptr);
-        void release();
-
-    // Friend classes
-        friend class LambertianBRDF;
-        friend class SpecularBRDF;
-        friend class PhongBRDF;
+        RefractiveBSDF(const Color& reflectance);
     };
 
-
-}
+}  // namespace spica
 
 #endif  // _SPICA_BRDF_H_

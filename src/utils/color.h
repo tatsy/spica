@@ -11,11 +11,11 @@
     #define SPICA_COLOR_DLL
 #endif
 
-#include "vector3.h"
+#include "vector3d.h"
 
 namespace spica {
 
-    class SPICA_COLOR_DLL Color : public Vector3 {
+    class SPICA_COLOR_DLL Color : public Vector3D {
 
     public:
         static const Color BLACK;
@@ -31,12 +31,12 @@ namespace spica {
         Color();
         Color(double red, double green, double blue);
         Color(const Color& color);
-        explicit Color(const Vector3& v);
+        Color(const Vector3D& v);
 
         ~Color();
 
         Color& operator=(const Color& color);
-        Color& operator=(const Vector3& v);
+        Color& operator=(const Vector3D& v);
 
         double luminance() const;
 

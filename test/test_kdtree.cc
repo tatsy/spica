@@ -10,8 +10,8 @@ using namespace spica;
 
 struct Pair {
     double d;
-    Vector3 v;
-    Pair(double d_, Vector3 v_) 
+    Vector3D v;
+    Pair(double d_, Vector3D v_) 
         : d(d_)
         , v(v_)
     {
@@ -27,19 +27,19 @@ struct Pair {
 TEST(KdTreeTest, KNNTest) {
     const int numSample = 1000;
     Random rng = Random();
-    std::vector<Vector3> points;
+    std::vector<Vector3D> points;
     for (int i = 0; i < numSample; i++) {
         double x = rng.nextReal() * 10.0 - 5.0;
         double y = rng.nextReal() * 10.0 - 5.0;
         double z = rng.nextReal() * 10.0 - 5.0;
-        points.push_back(Vector3(x, y, z));
+        points.push_back(Vector3D(x, y, z));
     }
 
-    KdTree<Vector3> kdtree;
+    KdTree<Vector3D> kdtree;
     kdtree.construct(points);
 
-    Vector3 query;
-    std::vector<Vector3> results;
+    Vector3D query;
+    std::vector<Vector3D> results;
     const int K = 10;
     const int eps = 2.0;
     kdtree.knnSearch(query, KnnQuery(K_NEAREST | EPSILON_BALL, eps, K), &results);

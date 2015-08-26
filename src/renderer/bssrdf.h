@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 
 namespace spica {
@@ -35,10 +35,10 @@ namespace spica {
 
     public:
         virtual ~BSSRDFBase() {}
-        virtual double Ft(const Vector3& nornal, const Vector3& in) const;
+        virtual double Ft(const Vector3D& nornal, const Vector3D& in) const;
         virtual double Fdr() const;
         virtual Color operator()(const double d2) const = 0;
-        virtual BSSRDFBase* copy() const = 0;
+        virtual BSSRDFBase* clone() const = 0;
     };
 
 
@@ -49,22 +49,22 @@ namespace spica {
     class SPICA_BSSRDF_DLL DipoleBSSRDF : public BSSRDFBase {
     private:
         double _A;
-        double _sigmap_t;
-        double _sigma_tr;
-        double _alphap;
-        double _zpos;
-        double _zneg;
+        Color  _sigmap_t;
+        Color  _sigma_tr;
+        Color  _alphap;
+        Color  _zpos;
+        Color  _zneg;
 
     private:
         DipoleBSSRDF();
-        DipoleBSSRDF(double sigma_a, double sigmap_s, double eta = 1.3);
+        DipoleBSSRDF(const Color& sigma_a, const Color& sigmap_s, double eta = 1.3);
         DipoleBSSRDF(const DipoleBSSRDF& bssrdf);
         DipoleBSSRDF& operator=(const DipoleBSSRDF& bssrdf);
 
     public:
-        static BSSRDF factory(double sigma_a, double sigmap_s, double eta = 1.3);
+        static BSSRDF factory(const Color& sigma_a, const Color& sigmap_s, double eta = 1.3);
         Color operator()(const double d2) const override;
-        BSSRDFBase* copy() const override;
+        BSSRDFBase* clone() const override;
     };
 
     // ------------------------------------------------------------
@@ -87,7 +87,11 @@ namespace spica {
         static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
         BSSRDF factory() const;
         Color operator()(const double d2) const override;
-        BSSRDFBase* copy() const override;
+        BSSRDFBase* clone() const override;
+
+        int numIntervals() const;
+        const std::vector<double>& distances() const;
+        const std::vector<Color>& colors() const;
 
         DiffuseBSSRDF scaled(double sc) const;
         void load(const std::string& filename);
@@ -112,7 +116,7 @@ namespace spica {
         BSSRDF& operator=(const BSSRDF& bssrdf);
         BSSRDF& operator=(BSSRDF&& bssrdf);
 
-        double Ft(const Vector3& normal, const Vector3& in) const;
+        double Ft(const Vector3D& normal, const Vector3D& in) const;
         double Fdr() const;
         Color operator()(const double d2) const;
 

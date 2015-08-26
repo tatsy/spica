@@ -11,6 +11,8 @@
     #define SPICA_KDTREE_ACCEL_DLL 
 #endif
 
+#include <vector>
+
 #include "accel_base.h"
 #include "../utils/common.h"
 #include "../utils/uncopyable.h"
@@ -22,16 +24,14 @@ namespace spica {
     private:
         struct KdTreeNode : public Uncopyable {
             BBox bbox;
-            unsigned int numTriangles;
-            Triangle* triangles;
+            IndexedTriangle triangle;
             KdTreeNode* left;
             KdTreeNode* right;
             bool isLeaf;
 
             KdTreeNode()
                 : bbox()
-                , numTriangles(0)
-                , triangles(NULL)
+                , triangle()
                 , left(NULL)
                 , right(NULL)
                 , isLeaf(false)
@@ -40,32 +40,23 @@ namespace spica {
 
             ~KdTreeNode()
             {
-                delete[] triangles;
             }
         };
 
-        static const int _maxNodeSize = 2;
         KdTreeNode* _root;          // tree root
 
     public:
         KdTreeAccel();
-        KdTreeAccel(const KdTreeAccel& kdtree);     // Copy
-        KdTreeAccel(KdTreeAccel&& kdtree);          // Move
         ~KdTreeAccel();
-
-        KdTreeAccel& operator=(const KdTreeAccel& kdtree);  // Copy
-        KdTreeAccel& operator=(KdTreeAccel&& kdtree);       // Move
         
         void construct(const std::vector<Triangle>& triangles);
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        int  intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
     private:
         void release();
         void deleteNode(KdTreeNode* node);
         KdTreeNode* copyNode(KdTreeNode* node);
-        KdTreeNode* constructRec(std::vector<Triangle>& triangles, int dim);
-
-        static bool intersectRec(KdTreeNode* node, const Ray& ray, Hitpoint* hitpoint, double tMin, double tMax);
+        KdTreeNode* constructRec(std::vector<IndexedTriangle>& triangles, int start, int end);
     };
 
 }

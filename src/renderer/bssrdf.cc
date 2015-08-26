@@ -6,7 +6,7 @@
 #include <string>
 #include <algorithm>
 
-#include "material.h"
+#include "renderer_constants.h"
 
 namespace spica {
 
@@ -14,20 +14,20 @@ namespace spica {
     // BSSRDF base class
     // ------------------------------------------------------------
 
-    double BSSRDFBase::Ft(const Vector3& normal, const Vector3& in) const {
-        const double nnt = IOR_OBJECT / IOR_VACCUM;
+    double BSSRDFBase::Ft(const Vector3D& normal, const Vector3D& in) const {
+        const double nnt = kIorObject / kIorVaccum;
         const double ddn = in.dot(normal);
         const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
         if (cos2t < 0.0) return 0.0;
 
-        Vector3 refractDir = (in * nnt + normal * (ddn * nnt + sqrt(cos2t))).normalized();
+        Vector3D refractDir = (in * nnt + normal * (ddn * nnt + sqrt(cos2t))).normalized();
 
-        const double a = IOR_OBJECT - IOR_VACCUM;
-        const double b = IOR_OBJECT + IOR_VACCUM;
+        const double a = kIorObject - kIorVaccum;
+        const double b = kIorObject + kIorVaccum;
         const double R0 = (a * a) / (b * b);
 
-        const double c  = 1.0 - Vector3::dot(refractDir, -normal);
+        const double c  = 1.0 - Vector3D::dot(refractDir, -normal);
         const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
         return 1.0 - Re;
     }
@@ -37,38 +37,39 @@ namespace spica {
             return -1.4399 / (_eta * _eta) + 0.7099 / _eta + 0.6681 + 0.0636 * _eta;
         } else {
             return -0.4399 + 0.7099 / _eta - 0.3319 / (_eta * _eta) + 0.0636 / (_eta * _eta * _eta);
-        }    
+        }
     }
 
     // ------------------------------------------------------------
     // BSSRDF with dipole approximation
     // ------------------------------------------------------------
 
-    DipoleBSSRDF::DipoleBSSRDF(double sigma_a, double sigmap_s, double eta)
+    DipoleBSSRDF::DipoleBSSRDF(const Color& sigma_a,
+                               const Color& sigmap_s, double eta)
         : BSSRDFBase(eta)
         , _A(0.0)
-        , _sigmap_t(0.0)
-        , _sigma_tr(0.0)
-        , _alphap(0.0)
-        , _zpos(0.0)
-        , _zneg(0.0)
+        , _sigmap_t()
+        , _sigma_tr()
+        , _alphap()
+        , _zpos()
+        , _zneg()
     {
         _A = (1.0 + Fdr()) / (1.0 - Fdr());
         _sigmap_t = sigma_a + sigmap_s;
-        _sigma_tr = sqrt(3.0 * sigma_a * _sigmap_t);
+        _sigma_tr = Color::sqrt(3.0 * sigma_a * _sigmap_t);
         _alphap = sigmap_s / _sigmap_t;
-        _zpos = 1.0 / _sigmap_t;
+        _zpos = Color(1.0, 1.0, 1.0) / _sigmap_t;
         _zneg = _zpos * (1.0 + (4.0 / 3.0) * _A);
     }
 
     DipoleBSSRDF::DipoleBSSRDF(const DipoleBSSRDF& bssrdf)
         : BSSRDFBase()
         , _A(0.0)
-        , _sigmap_t(0.0)
-        , _sigma_tr(0.0)
-        , _alphap(0.0)
-        , _zpos(0.0)
-        , _zneg(0.0)
+        , _sigmap_t()
+        , _sigma_tr()
+        , _alphap()
+        , _zpos()
+        , _zneg()
     {
         this->operator=(bssrdf);
     }
@@ -84,22 +85,19 @@ namespace spica {
         return *this;
     }
 
-    BSSRDF DipoleBSSRDF::factory(double sigma_a, double sigmap_s, double eta) {
+    BSSRDF DipoleBSSRDF::factory(const Color& sigma_a, const Color& sigmap_s, double eta) {
         return BSSRDF(new DipoleBSSRDF(sigma_a, sigmap_s, eta));
     }
 
     Color DipoleBSSRDF::operator()(const double d2) const {
-        double dpos = sqrt(d2 + _zpos * _zpos);
-        double dneg = sqrt(d2 + _zneg * _zneg);
-        double posTerm = _zpos * (dpos * _sigma_tr + 1.0) * exp(-_sigma_tr * dpos) / (dpos * dpos * dpos);
-        double negTerm = _zneg * (dneg * _sigma_tr + 1.0) * exp(-_sigma_tr * dneg) / (dneg * dneg * dneg);
-        double ret = (_alphap / (4.0 * PI * _sigma_tr)) * (posTerm + negTerm);
-
-        // TODO: it should be revised for multi color channels
-        return Color(ret, ret, ret);    
+        const Color dpos = Color::sqrt(d2 + _zpos * _zpos);
+        const Color dneg = Color::sqrt(d2 + _zneg * _zneg);
+        const Color posTerm = _zpos * (dpos * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dpos) / (dpos * dpos * dpos);
+        const Color negTerm = _zneg * (dneg * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dneg) / (dneg * dneg * dneg);
+        return (_alphap / (4.0 * PI * _sigma_tr)) * (posTerm + negTerm);
     }
 
-    BSSRDFBase* DipoleBSSRDF::copy() const {
+    BSSRDFBase* DipoleBSSRDF::clone() const {
         return new DipoleBSSRDF(*this);
     }
 
@@ -119,7 +117,7 @@ namespace spica {
         , _distances(distances)
         , _colors(colors)
     {
-        msg_assert(distances.size() == colors.size(), "Arrays for distances and colors must have the same length!!");
+        Assertion(distances.size() == colors.size(), "Arrays for distances and colors must have the same length!!");
     }
 
     DiffuseBSSRDF::DiffuseBSSRDF(const DiffuseBSSRDF& bssrdf)
@@ -166,17 +164,29 @@ namespace spica {
         return _colors[idx];
     }
 
+    BSSRDFBase* DiffuseBSSRDF::clone() const {
+        return new DiffuseBSSRDF(*this);
+    }
+
+    int DiffuseBSSRDF::numIntervals() const {
+        return static_cast<int>(_distances.size());
+    }
+
+    const std::vector<double>& DiffuseBSSRDF::distances() const {
+        return _distances;
+    }
+
+    const std::vector<Color>& DiffuseBSSRDF::colors() const {
+        return _colors;
+    }
+
     DiffuseBSSRDF DiffuseBSSRDF::scaled(double sc) const {
         DiffuseBSSRDF ret(*this);
         for (size_t i = 0; i < ret._distances.size(); i++) {
-            ret._distances[i] /= (sc * sc);
-            ret._colors[i] /= sc;
+            ret._distances[i] /= sc;
+            ret._colors[i] /= (sc * sc);
         }
         return std::move(ret);
-    }
-
-    BSSRDFBase* DiffuseBSSRDF::copy() const {
-        return new DiffuseBSSRDF(*this);
     }
 
     void DiffuseBSSRDF::save(const std::string& filename) const {
@@ -198,7 +208,7 @@ namespace spica {
 
     void DiffuseBSSRDF::load(const std::string& filename) {
         std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
-        msg_assert(ifs.is_open(), "Faied to open file!!");
+        Assertion(ifs.is_open(), "Faied to open file!!");
 
         int intervals;
         ifs.read((char*)&intervals, sizeof(int));
@@ -247,17 +257,29 @@ namespace spica {
     }
 
     BSSRDF& BSSRDF::operator=(const BSSRDF& bssrdf) {
-        _ptr = bssrdf._ptr->copy();
+        if (this == &bssrdf) {
+            return *this;
+        }
+
+        delete _ptr;
+
+        if (bssrdf._ptr == NULL) {
+            _ptr = NULL;
+        } else {
+            _ptr = bssrdf._ptr->clone();
+        }
         return *this;
     }
 
     BSSRDF& BSSRDF::operator=(BSSRDF&& bssrdf) {
+        delete _ptr;
+
         this->_ptr = bssrdf._ptr;
         bssrdf._ptr = nullptr;
         return *this;
     }
 
-    double BSSRDF::Ft(const Vector3& normal, const Vector3& in) const {
+    double BSSRDF::Ft(const Vector3D& normal, const Vector3D& in) const {
         nullCheck();
         return _ptr->Ft(normal, in);
     }
@@ -272,7 +294,7 @@ namespace spica {
     }
 
     void BSSRDF::nullCheck() const {
-        msg_assert(_ptr != NULL, "BSSRDF does not have instance!!");
+        Assertion(_ptr != NULL, "BSSRDF does not have instance!!");
     }
 
 

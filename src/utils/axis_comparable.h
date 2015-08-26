@@ -12,7 +12,7 @@ namespace spica {
     // --------------------------------------------------
     // Interface class for sorting point along the specified axis
     // --------------------------------------------------
-    class AxisComparable {
+    class SPICA_AXIS_COMPARABLE_DLL AxisComparable {
     public:
         AxisComparable() {}
         ~AxisComparable() {}

@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_RENDERER_HELPER_H_
 #define _SPICA_RENDERER_HELPER_H_
 
@@ -11,39 +15,49 @@
     #define SPICA_RENDERER_HELPER_DLL
 #endif
 
-#include "material.h"
 #include "scene.h"
 #include "camera.h"
+#include "render_parameters.h"
+#include "bsdf.h"
 
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 
 namespace spica {
 
     namespace helper {
 
-        bool SPICA_RENDERER_HELPER_DLL isTotalRef(const bool isIncoming,
-                                                  const Vector3& position,
-                                                  const Vector3& in,
-                                                  const Vector3& normal,
-                                                  const Vector3& orientNormal,
-                                                  Vector3* reflectDir,
-                                                  Vector3* refractDir,
-                                                  double* fresnelRef,
-                                                  double* fresnelTransmit);
+        // Calculate u and v axes from w, which is the surface normal
+        void SPICA_RENDERER_HELPER_DLL calcLocalCoords(const Vector3D& w, Vector3D* u, Vector3D* v);
 
-        // Standard radiance simulator
-        // @param[in] scene: rendered scene
-        // @param[in] ray: ray casted from camera
-        // @param[in] rng: random number generator
-        // @param[in] depth: depth of recursion
-        // @param[in] depthLimit: maximum depth of recursion
-        // @param[in] depthMin: depth in which recursion begin to be terminated with Russian roulette
-        Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const Ray& ray, Random& rng, const int depth, const int depthLimit = 64, const int depthMin = 5);
+        bool SPICA_RENDERER_HELPER_DLL checkTotalReflection(const bool isIncoming,
+                                                            const Vector3D& in,
+                                                            const Vector3D& normal,
+                                                            const Vector3D& orientNormal,
+                                                            Vector3D* reflectDir,
+                                                            Vector3D* refractDir,
+                                                            double* fresnelRef,
+                                                            double* fresnelTransmit);
 
-        Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const Ray& ray, RandomSeq& rseq, const int depth, const int depthLimit = 64, const int depthMin = 6);    
-    }
+        /* ! Standard radiance simulator
+         * @param[in] scene: rendered scene
+         * @param[in] params: rendering parameters
+         * @param[in] ray: ray casted from camera
+         * @param[in] rseq: random number sequence
+         * @param[in] bounces: # of bounces
+         */
+        Color SPICA_RENDERER_HELPER_DLL radiance(const Scene& scene, const RenderParameters& params,
+                                                 const Ray& ray, Stack<double>& rands, int bounces);
 
-}
+        Color SPICA_RENDERER_HELPER_DLL directLight(const Scene& scene,
+                                                    const Vector3D& pos,
+                                                    const Vector3D& in,
+                                                    const Vector3D& normal, 
+                                                    const BSDF& bsdf,
+                                                    Stack<double>& rstk);
+
+    }  // namespace helper
+
+}  // namespace spica
 
 #endif  // _SPICA_RENDERER_HELPER_H_

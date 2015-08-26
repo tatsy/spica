@@ -2,6 +2,7 @@
 #include "plane.h"
 
 #include "../utils/common.h"
+#include "../renderer/ray.h"
 
 namespace spica {
     Plane::Plane()
@@ -10,7 +11,7 @@ namespace spica {
     {
     }
 
-    Plane::Plane(double distance, const Vector3& normal)
+    Plane::Plane(double distance, const Vector3D& normal)
         : _distance(distance)
         , _normal(normal)
     {
@@ -45,7 +46,11 @@ namespace spica {
     }
 
     double Plane::area() const {
-        msg_assert(false, "Area of Plane geometry is INFTY. It can make unexpected results.");
+        Assertion(false, "Area of Plane geometry is infinite. It can make unexpected results!!");
         return INFTY;
+    }
+
+    std::vector<Triangle> Plane::triangulate() const {
+        Assertion(false, "Plane geometry has infinite area. So this cannot be triangulated!!");
     }
 }

@@ -13,23 +13,23 @@ namespace spica {
     const Color Color::MAGENTA = Color(1.0, 0.0, 1.0);
 
     Color::Color()
-        : Vector3()
+        : Vector3D()
     {
     }
 
     Color::Color(double red, double green, double blue)
-        : Vector3(red, green, blue)
+        : Vector3D(red, green, blue)
     {
     }
 
     Color::Color(const Color& color)
-        : Vector3()
+        : Vector3D()
     {
         operator=(color);
     }
 
-    Color::Color(const Vector3& v)
-        : Vector3(v)
+    Color::Color(const Vector3D& v)
+        : Vector3D(v)
     {
     }
 
@@ -38,12 +38,12 @@ namespace spica {
     }
 
     Color& Color::operator=(const Color& color) {
-        Vector3::operator=(color);
+        Vector3D::operator=(color);
         return *this;
     }
 
-    Color& Color::operator=(const Vector3& v) {
-        Vector3::operator=(v);
+    Color& Color::operator=(const Vector3D& v) {
+        Vector3D::operator=(v);
         return *this;
     }
 

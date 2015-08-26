@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_DISK_H_
 #define _SPICA_DISK_H_
 
@@ -11,20 +15,20 @@
     #define SPICA_DISK_DLL
 #endif
 
-#include "../utils/vector3.h"
-#include "primitive.h"
+#include "../utils/vector3d.h"
+#include "geometry_interface.h"
 
 namespace spica {
 
-    class SPICA_DISK_DLL Disk : public Primitive {    
+    class SPICA_DISK_DLL Disk : public IGeometry {    
     private:
-        Vector3 _center;
-        Vector3 _normal;
+        Vector3D _center;
+        Vector3D _normal;
         double _radius;
 
     public:
         Disk();
-        Disk(const Vector3& center, const Vector3& normal, double radius);
+        Disk(const Vector3D& center, const Vector3D& normal, double radius);
         Disk(const Disk& disk);
         ~Disk();
 
@@ -34,8 +38,10 @@ namespace spica {
 
         double area() const;
 
-        inline Vector3 center() const { return _center; }
-        inline Vector3 normal() const { return _normal; }
+        std::vector<Triangle> triangulate() const;
+
+        inline Vector3D center() const { return _center; }
+        inline Vector3D normal() const { return _normal; }
         inline double  radius() const { return _radius; }
     
     };

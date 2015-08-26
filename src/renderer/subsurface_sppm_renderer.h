@@ -17,64 +17,69 @@
 
 namespace spica {
 
-    struct HitpointInfo : public Vector3 {
-        Vector3 normal;
+    struct HitpointInfo : public Vector3D {
+        Vector3D normal;
         Color flux;
         Color weight;
         Color emission;
-        int imageX, imageY;
         double coeff;
         double r2;
-        int n;
         double area;
+        int imageX;
+        int imageY;
+        int n;
         bool isPixel;
 
-        explicit HitpointInfo(const Vector3& pos = Vector3())
-            : Vector3(pos)
+        explicit HitpointInfo(const Vector3D& pos = Vector3D())
+            : Vector3D(pos)
             , normal()
             , flux()
             , weight()
             , emission()
-            , imageX(-1)
-            , imageY(-1)
             , coeff(0.0)
             , r2(0.0)
-            , n(0)
             , area(0.0)
+            , imageX(-1)
+            , imageY(-1)
+            , n(0)
             , isPixel(true)
         {
         }
 
         HitpointInfo(const HitpointInfo& hp)
-            : Vector3()
+            : Vector3D()
             , normal()
             , flux()
             , weight()
             , emission()
             , coeff(0.0)
+            , r2(0.0)
+            , area(0.0)
             , imageX(-1)
             , imageY(-1)
-            , r2(0.0)
             , n(0)
+            , isPixel(true)
         {
             operator=(hp);
         }
 
         HitpointInfo& operator=(const HitpointInfo& hp) {
-            Vector3::operator=(hp);
+            Vector3D::operator=(hp);
             this->normal = hp.normal;
             this->flux = hp.flux;
             this->weight = hp.weight;
             this->emission = hp.emission;
             this->coeff = hp.coeff;
+            this->r2 = hp.r2;
+            this->area = hp.area;
             this->imageX = hp.imageX;
             this->imageY = hp.imageY;
-            this->r2 = hp.r2;
             this->n = hp.n;
+            this->isPixel = hp.isPixel;
             return *this;
         }
 
-        void setPosition(const Vector3& p) {
+        void setPosition(const Vector3D& p) {
             this->x() = p.x();
             this->y() = p.y();
             this->z() = p.z();
@@ -101,7 +106,7 @@ namespace spica {
         // 2nd pass: Trace photons from lights
         void tracePhotons(const Scene& scene, RandomBase* rand, const int numPhotons, const int bounceLimit = 64);
 
-        void executePathTracing(const Scene& scene, const Camera& camera, RandomSeq& rseq, HitpointInfo* hp, const int bounceLimit = 64);
+        void executePathTracing(const Scene& scene, const Camera& camera, Stack<double>& rseq, HitpointInfo* hp, const int bounceLimit = 64);
 
         void constructHashGrid(std::vector<HitpointInfo>& hpoints, const int imageW, const int imageH);
 

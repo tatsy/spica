@@ -31,11 +31,13 @@ namespace spica {
         // @param[in] dim: dimension of halton sequence
         // @param[in] isPermute: whether or not use permuted Halton
         // @param[in] seed: if permuted Halton is used, it is a seed for random for the permutation
-        explicit Halton(int dim = 200, bool isPermute = true, int seed = -1);
+        explicit Halton(int dim = 200, bool isPermute = true, unsigned int seed = 0);
         ~Halton();
 
         // Request specified amount of random numbers
-        void requestSamples(RandomSeq& rseq, const int numRequested);
+        void request(Stack<double>* rstk, const int numRequested) override;
+
+        static RandomSampler factory(int dim = 200, bool isPermute = true, unsigned int seed = 0);
 
     private:
         double radicalInverse(int n, int base, const int* p) const;

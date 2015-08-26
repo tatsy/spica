@@ -8,15 +8,25 @@ namespace {
     const int width = 320;
     const int height = 240;
     Random rng = Random();
-    const std::string filepath = DATA_DIR + "test_image.bmp";
-    const std::string hdrpath = DATA_DIR + "test_hdr.hdr";
+    const std::string filepath = kTempDirectory + "test_image.bmp";
+    const std::string hdrpath  = kTempDirectory + "test_hdr.hdr";
 }
+
+class ImageTest : public ::testing::Test {
+protected:
+    ImageTest() {}
+    ~ImageTest() {}
+
+    void SetUp() {
+        path::createDirectory(kTempDirectory);
+    }
+};
 
 // --------------------------------------------------
 // Image 
 // --------------------------------------------------
 
-TEST(ImageTest, InstanceTest) {
+TEST_F(ImageTest, InstanceTest) {
     Image image;
     EXPECT_EQ(0, image.width());
     EXPECT_EQ(0, image.height());
@@ -53,22 +63,24 @@ TEST(ImageTest, InstanceTest) {
     }
 }
 
-TEST(ImageTest, InvalidPathToLoad) {
+TEST_F(ImageTest, InvalidPathToLoad) {
     Image image;
-    ASSERT_DEATH(image.loadBMP("dammy_path.bmp"), "");
+    ASSERT_DEATH(image.load("dammy_path.bmp"), "");
+
+    ASSERT_DEATH(image.load("image.jpg"), "");
 }
 
-TEST(ImageTest, SaveLoadTest) {
+TEST_F(ImageTest, SaveLoadTest) {
     Image image(width, height);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             image.pixel(x, y) = Color(rng.nextReal(), rng.nextReal(), rng.nextReal());
         }
     }
-    image.saveBMP(filepath);
+    image.save(filepath);
 
     Image loaded;
-    loaded.loadBMP(filepath);
+    loaded.load(filepath);
     EXPECT_EQ(image.width(), loaded.width());
     EXPECT_EQ(image.height(), loaded.height());
     for (int y = 0; y < height; y++) {
@@ -79,8 +91,8 @@ TEST(ImageTest, SaveLoadTest) {
         }
     }
 
-    image.saveHDR(hdrpath);
-    loaded.loadHDR(hdrpath);
+    image.save(hdrpath);
+    loaded.load(hdrpath);
     EXPECT_EQ(image.width(), loaded.width());
     EXPECT_EQ(image.height(), loaded.height());
     for (int y = 0; y < height; y++) {
@@ -92,10 +104,9 @@ TEST(ImageTest, SaveLoadTest) {
     }
 }
 
-TEST(ImageTest, TonemapTest) {
+TEST_F(ImageTest, TonemapTest) {
     Image image;
-    image.loadHDR(DATA_DIR + "gold_room.hdr");
-    image.tonemap();
-
-    image.saveBMP(DATA_DIR + "gold_room.bmp");
+    image.load(kDataDirectory + "gold_room.hdr");
+    EXPECT_NO_FATAL_FAILURE(image.tonemap());
+    image.save(kTempDirectory + "gold_room.bmp");
 }

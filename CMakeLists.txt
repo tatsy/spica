@@ -17,6 +17,9 @@ else()
   set(LIB_SUFFIX ".so")
 endif()
 
+# Turn on using solution folders
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # Set output path
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -31,9 +34,13 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 set(SPICA_ROOT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 
+# Create output directory
+file(MAKE_DIRECTORY output)
+
 # Use Intel AVX or not
 option(ENABLE_AVX "ENABLE_AVX" OFF)
 if (${ENABLE_AVX} STREQUAL "ON")
+  add_definitions(-DENABLE_AVX)
   if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX")
   else()

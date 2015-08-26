@@ -13,7 +13,7 @@ namespace {
             Triangle tri = trimesh.getTriangle(i);
             Hitpoint hpTemp;
             if (tri.intersect(ray, &hpTemp)) {
-                if (hitpoint->distance() > hpTemp.distance() && Vector3::dot(ray.direction(), tri.normal()) < 0.0) {
+                if (hitpoint->distance() > hpTemp.distance() && Vector3D::dot(ray.direction(), tri.normal()) < 0.0) {
                     *hitpoint = hpTemp;
                     ret = true;
                 }
@@ -29,21 +29,21 @@ namespace {
 // ------------------------------
 TEST(TrimeshTest, InvalidLoad) {
     Trimesh trimesh;
-    ASSERT_DEATH(trimesh.load(DATA_DIR + "box.obj"), "");
-    ASSERT_DEATH(trimesh.load(DATA_DIR + "bax.ply"), "");
+    ASSERT_DEATH(trimesh.load(kDataDirectory + "box.obj"), "");
+    ASSERT_DEATH(trimesh.load(kDataDirectory + "bax.ply"), "");
 }
 
 TEST(TrimeshTest, LoadTest) {
     Trimesh objmesh, plymesh;
-    EXPECT_NO_FATAL_FAILURE(objmesh.load(DATA_DIR + "bunny.obj"));
-    EXPECT_NO_FATAL_FAILURE(plymesh.load(DATA_DIR + "bunny.ply"));
+    EXPECT_NO_FATAL_FAILURE(objmesh.load(kDataDirectory + "bunny.obj"));
+    EXPECT_NO_FATAL_FAILURE(plymesh.load(kDataDirectory + "bunny.ply"));
 
     EXPECT_EQ(objmesh.numVerts(), plymesh.numVerts());
     EXPECT_EQ(objmesh.numFaces(), plymesh.numFaces());
 }
 
 TEST(TrimeshTest, CopyAndMove) {
-    Trimesh trimesh(DATA_DIR + "bunny.ply");
+    Trimesh trimesh(kDataDirectory + "bunny.ply");
     Trimesh trimesh2(trimesh);
 
     EXPECT_EQ(trimesh.numFaces(), trimesh2.numFaces());
@@ -65,22 +65,22 @@ TEST(TrimeshTest, CopyAndMove) {
 }
 
 TEST(TrimeshTest, BoxIntersection) {
-    Trimesh trimesh(DATA_DIR + "box.ply");
+    Trimesh trimesh(kDataDirectory + "box.ply");
     trimesh.setAccelType(KD_TREE_ACCEL, true);
 
-    Ray ray(Vector3(0.0, 0.0, 100.0), Vector3(0.0, 0.0, -1.0));
+    Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
     Hitpoint hitpoint;
     EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
     EXPECT_EQ(99.5, hitpoint.distance());
-    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 0.5), hitpoint.position());
-    EXPECT_EQ_VEC(Vector3(0.0, 0.0, 1.0), hitpoint.normal());
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.5), hitpoint.position());
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 1.0), hitpoint.normal());
 }
 
 TEST(TrimeshTest, BunnyIntersection) {
-    Trimesh trimesh(DATA_DIR + "bunny.ply");
+    Trimesh trimesh(kDataDirectory + "bunny.ply");
     trimesh.setAccelType(KD_TREE_ACCEL, true);
 
-    Ray ray(Vector3(0.0, 0.0, 100.0), Vector3(0.0, 0.0, -1.0));
+    Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
 
     Hitpoint hpGT;
     bool isHit = trimeshIsectGT(trimesh, ray, &hpGT);
@@ -97,7 +97,7 @@ TEST(TrimeshTest, BunnyIntersection) {
         Triangle t1 = trimesh.getTriangle(i);
         Triangle t2 = cp.getTriangle(i);
         for (int k = 0; k < 3; k++) {
-            EXPECT_EQ_VEC(t1.p(k), t2.p(k));
+            EXPECT_EQ_VEC(t1[k], t2[k]);
         }
         EXPECT_EQ_VEC(trimesh.getNormal(i), cp.getNormal(i));
     }
@@ -111,13 +111,13 @@ TEST(TrimeshTest, RandomKdTreeIntersection) {
     Random rng = Random();
 
     Trimesh trimesh;
-    trimesh.load(DATA_DIR + "bunny.ply");
+    trimesh.load(kDataDirectory + "bunny.ply");
     trimesh.setAccelType(KD_TREE_ACCEL, true);
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3 from  = Vector3(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3(10.0, 10.0, 0.0);
-        Vector3 to    = Vector3(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
-        Vector3 dir = (to - from).normalized();
+        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
+        Vector3D to    = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Vector3D dir = (to - from).normalized();
         Ray ray(from, dir);
 
         Hitpoint ans;
@@ -138,13 +138,13 @@ TEST(TrimeshTest, RandomQVBHIntersection) {
     Random rng = Random();
 
     Trimesh trimesh;
-    trimesh.load(DATA_DIR + "bunny.ply");
+    trimesh.load(kDataDirectory + "bunny.ply");
     trimesh.setAccelType(QBVH_ACCEL, true);
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3 from  = Vector3(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3(10.0, 10.0, 0.0);
-        Vector3 to    = Vector3(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3(10.0, 10.0, 10.0);
-        Vector3 dir = (to - from).normalized();
+        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
+        Vector3D to    = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Vector3D dir = (to - from).normalized();
         Ray ray(from, dir);
 
         Hitpoint ans;

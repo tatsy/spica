@@ -19,8 +19,12 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
 
-#ifndef SPICA_COMMON_H_
-#define SPICA_COMMON_H_
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#ifndef _SPICA_COMMON_H_
+#define _SPICA_COMMON_H_
 
 #include <cstdlib>
 #include <cmath>
@@ -40,27 +44,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Parameter constants
 // ----------------------------------------------------------------------------
 static const double PI = 4.0 * atan(1.0);
-static const double INFTY = 1.0e128;
+static const double INV_PI = 1.0 / PI;
+static const double INFTY = 1.0e32;
 static const double EPS = 1.0e-6;
-
-#define WITH_ENABLER
-#if defined(_WIN32) || defined(__WIN32__)
-    #if _MSC_VER <= 1600
-        #undef WITH_ENABLER
-    #endif
-#endif
-
-#ifdef WITH_ENABLER
-extern void* enabler;
-template <class Ty, typename std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
-#else
-template <class Ty>
-#endif
-inline Ty clamp(Ty v, Ty lo, Ty hi) {
-    if (v < lo) v = lo;
-    if (v > hi) v = hi;
-    return v;
-}
 
 // ----------------------------------------------------------------------------
 // Parallel for
@@ -74,12 +60,12 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
         #define ompfor _Pragma("omp parallel for") for
         #define omplock _Pragma("omp critical")
     #endif
-    const int OMP_NUM_CORE = omp_get_max_threads();
+    const int kNumCores = omp_get_max_threads();
     inline int omp_thread_id() { return omp_get_thread_num(); }
 #else  // _OPENMP
     #define ompfor for
     #define omplock
-    const int OMP_NUM_CORE = 1;
+    const int kNumCores = 1;
     inline int omp_thread_id() { return 0; }
 #endif  // _OPENMP
 
@@ -88,19 +74,18 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
 // ----------------------------------------------------------------------------
 #undef NDEBUG
 #ifndef NDEBUG
-#define msg_assert(PREDICATE, MSG) \
+#define Assertion(PREDICATE, MSG) \
 do { \
     if (!(PREDICATE)) { \
-        std::cerr << "Asssertion \"" << #PREDICATE << "\" failed in " << __FILE__ \
+        std::cerr << "Asssertion \"" \
+        << #PREDICATE << "\" failed in " << __FILE__ \
         << " line " << __LINE__ << " : " << MSG << std::endl; \
-        abort(); \
+        std::abort(); \
     } \
 } while (false)
 #else  // NDEBUG
-#define msg_assert(PREDICATE, MSG) do {} while (false)
+#define Assertion(PREDICATE, MSG) do {} while (false)
 #endif  // NDEBUG
-
-#endif  // SPICA_COMMON_H_
 
 // ----------------------------------------------------------------------------
 // Alignment
@@ -112,12 +97,67 @@ do { \
     #define align_attrib(typ, siz) typ __attribute__((aligned(siz)))
 #endif
 
+#if defined(_WIN32) || defined(__WIN32__)
+inline void* align_alloc(size_t size, size_t alignsize) {
+    return _aligned_malloc(size, alignsize);
+}
+inline void align_free(void* mem) { _aligned_free(mem); }
+#else
+inline void* align_alloc(size_t size, size_t alignsize) {
+    void* mem = nullptr;
+    int ret = posix_memalign((void**)&mem, alignsize, size);
+    return (ret == 0) ? mem : nullptr;
+}
+inline void align_free(void* mem) { free(mem); }
+#endif
+
 // ----------------------------------------------------------------------------
 // isnan / isinf
 // ----------------------------------------------------------------------------
 #if defined(_WIN32) || defined(__WIN32__)
-#if _MSC_VER <= 1600
-#define isnan(x) _isnan(x)
-#define isinf(x) (!_finite(x))
+    #if _MSC_VER <= 1600
+        #define isnan(x) _isnan(x)
+        #define isinf(x) (!_finite(x))
+    #endif
 #endif
+
+// ----------------------------------------------------------------------------
+// Utility functions
+// ----------------------------------------------------------------------------
+
+#define WITH_ENABLER
+#if defined(_WIN32) || defined(__WIN32__)
+    #if _MSC_VER <= 1600
+        #undef WITH_ENABLER
+    #endif
 #endif
+
+#ifdef WITH_ENABLER
+extern void* enabler;
+#endif
+
+#ifdef WITH_ENABLER
+template <class Ty, 
+          typename
+          std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
+#else
+template <class Ty>
+#endif
+inline Ty clamp(Ty v, Ty lo, Ty hi) {
+    if (v < lo) v = lo;
+    if (v > hi) v = hi;
+    return v;
+}
+
+#ifdef WITH_ENABLER
+template <class Ty, 
+          typename 
+          std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
+#else
+template <class Ty>
+#endif
+inline Ty max3(Ty a, Ty b, Ty c) {
+    return std::max(a, std::max(b, c));
+}
+
+#endif  // _SPICA_COMMON_H_

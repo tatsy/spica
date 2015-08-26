@@ -15,6 +15,10 @@
 #include <algorithm>
 
 #include "common.h"
+#include "path.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../../3rdparty/stb_image_write.h"
 
 namespace spica {
 
@@ -113,7 +117,7 @@ namespace spica {
         , _height(height)
         , _pixels(0)
     {
-        msg_assert(width >= 0 && height >= 0, "Image size must be positive");
+        Assertion(width >= 0 && height >= 0, "Image size must be positive");
         _pixels = new Color[_width * _height];
     }
 
@@ -171,12 +175,12 @@ namespace spica {
     }
 
     const Color& Image::operator()(int x, int y) const {
-        msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+        Assertion(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
     Color& Image::pixel(int x, int y) {
-        msg_assert(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+        Assertion(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
@@ -195,27 +199,55 @@ namespace spica {
         }
     }
 
-    void Image::gamma(const double gam, bool inv) {
-        const double gg = inv ? 1.0 / gam : gam;
+    void Image::gammaCorrect(double gamma) {
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color& c = _pixels[y * _width + x];
-                double r = pow(c.red(),   gg);
-                double g = pow(c.green(), gg);
-                double b = pow(c.blue(),  gg);
+                double r = pow(c.red(),   gamma);
+                double g = pow(c.green(), gamma);
+                double b = pow(c.blue(),  gamma);
                 c = Color(r, g, b);
             }
         }
     }
 
-    void Image::loadBMP(const std::string& filename) {
+    void Image::load(const std::string& filename) {
+        const std::string& ext = path::getExtension(filename);
+        if (ext == ".bmp") {
+            loadBmp(filename);
+        } else if (ext == ".hdr") {
+            loadHdr(filename);
+        } else {
+            fprintf(stderr, "[ERROR] unknown file extension: %s\n", ext.c_str());
+            std::abort();
+        }
+    }
+
+    void Image::save(const std::string& filename) const {
+        const std::string& ext = path::getExtension(filename);
+        if (ext == ".bmp") {
+            saveBmp(filename);
+        } else if (ext == ".hdr") {
+            saveHdr(filename);
+        } else if (ext == ".png") {
+            savePng(filename);
+        } else {
+            fprintf(stderr, "[ERROR] unknown file extension: %s\n", ext.c_str());
+            std::abort();
+        }
+    }
+
+    void Image::loadBmp(const std::string& filename) {
         release();
 
         BitmapFileHeader header;
         BitmapCoreHeader core;
 
         std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
-        msg_assert(ifs.is_open(), "Failed to open file!!");
+        if (!ifs.is_open()) {
+            std::cerr << "[ERROR] failed to load file \"" << filename << "\"" << std::endl;
+            std::abort();
+        }
 
         ifs.read((char*)&header, sizeof(BitmapFileHeader));
         ifs.read((char*)&core, sizeof(BitmapCoreHeader));
@@ -245,7 +277,7 @@ namespace spica {
         ifs.close();
     }
 
-    void Image::saveBMP(const std::string& filename) const {
+    void Image::saveBmp(const std::string& filename) const {
         const int lineSize = (sizeof(RGBTriple) * _width + 3) / 4 * 4;
         const int totalSize = lineSize * _height;
         const int offBits = sizeof(BitmapFileHeader) + sizeof(BitmapCoreHeader);
@@ -296,14 +328,14 @@ namespace spica {
         ofs.close();
     }
 
-    void Image::loadHDR(const std::string& filename) {
+    void Image::loadHdr(const std::string& filename) {
         release();
 
         // Open file
         FILE* fp = fopen(filename.c_str(), "rb");
         if (fp == NULL) {
-            std::cerr << "Failed to load file \"" << filename << "\"" << std::endl;
-            return;
+            std::cerr << "[ERROR] failed to load file \"" << filename << "\"" << std::endl;
+            std::abort();
         }
 
         const int bufSize = 4096;
@@ -436,7 +468,7 @@ namespace spica {
         delete[] buffer;
     }
 
-    void Image::saveHDR(const std::string& filename) const {
+    void Image::saveHdr(const std::string& filename) const {
         std::ofstream ofs(filename.c_str(), std::ios::out | std::ios::binary);
         if (!ofs.is_open()) {
             std::cerr << "Failed to open file \"" << filename << "\"" << std::endl;
@@ -484,35 +516,45 @@ namespace spica {
         ofs.close();
     }
 
+    void Image::savePng(const std::string& filename) const {
+        unsigned char* data = new unsigned char[_width * _height * 3];
+        for (int y = 0; y < _height; y++) {
+            for (int x = 0; x < _width; x++) {
+                int idx = y * _width + x;
+                data[idx * 3 + 0] = toByte(_pixels[idx].x());
+                data[idx * 3 + 1] = toByte(_pixels[idx].y());
+                data[idx * 3 + 2] = toByte(_pixels[idx].z());
+            }
+        }
+        stbi_write_png(filename.c_str(), _width, _height, 3, data, _width * 3);
+        delete[] data;
+    }
+
     void Image::tonemap(TMAlgorithm algo) {
-        msg_assert(algo == TM_REINHARD, "Tone mapping algorithm other than Reinhard '02 is not supported");
+        Assertion(algo == TM_REINHARD, "Tone mapping algorithm other than Reinhard '02 is not supported");
 
         const double delta = 1.0e-8;
         const double a = 0.18;
 
-        double Lw_bar = 0.0;
-        double L_white = 0.0;
+        double lw_bar = 0.0;
+        double l_white = 0.0;
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color c = this->operator()(x, y);
                 double l = c.luminance();
-                Lw_bar += log(l + delta);         
-                L_white = std::max(L_white, l);
+                lw_bar += log(l + delta);         
+                l_white = std::max(l_white, l);
             }
         }
-        Lw_bar = exp(Lw_bar / (_width * _height));
+        lw_bar = exp(lw_bar / (_width * _height));
 
-        const double L_white2 = L_white * L_white;
+        const double l_white2 = l_white * l_white;
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color c = this->operator()(x, y);
-                double r = c.red() * a / Lw_bar;
-                r = r * (1.0 + r / L_white2) / (1.0 + r);
-                double g = c.green() * a / Lw_bar;
-                g = g * (1.0 + g / L_white2) / (1.0 + g);
-                double b = c.blue() * a / Lw_bar;
-                b = b * (1.0 + b / L_white2) / (1.0 + b);
-                this->pixel(x, y) = Color(r, g, b);
+                Vector3D ret = c * a / lw_bar;
+                ret = ret * (1.0 + ret / l_white2) / (1.0 + ret);
+                this->pixel(x, y) = ret;
             }
         }
     }

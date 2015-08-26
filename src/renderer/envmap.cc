@@ -11,7 +11,7 @@
 namespace spica {
 
     namespace {
-        void directionToPolarCoord(const Vector3& dir, double* theta, double* phi) {
+        void directionToPolarCoord(const Vector3D& dir, double* theta, double* phi) {
             *theta = acos(dir.y());
             *phi = atan2(dir.z(), dir.x());
             if (*phi < 0.0) {
@@ -34,7 +34,7 @@ namespace spica {
         , _pdf()
         , _cdf()
     {
-        _image.loadHDR(filename);
+        _image.load(filename);
         createImportanceMap();
     }
 
@@ -47,7 +47,7 @@ namespace spica {
         _image.fill(color);
     }
 
-    Color Envmap::sampleFromDir(const Vector3& dir) const {
+    Color Envmap::sampleFromDir(const Vector3D& dir) const {
         double theta, phi;
         directionToPolarCoord(dir, &theta, &phi);
         
@@ -60,6 +60,7 @@ namespace spica {
         return _image(iblx, ibly);
     }
 
+    /*
     Photon Envmap::samplePhoton(RandomSeq& rseq, const int numPhotons) const {
         const double R = 20.0;
         const int width = IMPORTANCE_MAP_SIZE;
@@ -77,13 +78,14 @@ namespace spica {
 
         const double phi = u * 2.0 * PI;
         const double y = (1.0 - v) * 2.0 - 1.0;
-        const Vector3 dir = Vector3(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
+        const Vector3D dir = Vector3D(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
         const double area = (4.0 * PI * R * R) / (width * height);
         const double pdf = _pdf[index];
         const Color currentFlux = Color(sampleFromDir(dir) * (area * PI / (pdf * numPhotons)));
 
         return Photon(R * dir, currentFlux, -dir, -dir);                
     }
+    */
 
     void Envmap::createImportanceMap() {
         _importance.resize(IMPORTANCE_MAP_SIZE, IMPORTANCE_MAP_SIZE);
@@ -112,7 +114,7 @@ namespace spica {
                     }
                 }
 
-                _importance.pixel(ix, iy) = Color(Vector3(1.0, 1.0, 1.0) * accum.luminance() / area);
+                _importance.pixel(ix, iy) = Color(Vector3D(1.0, 1.0, 1.0) * accum.luminance() / area);
                 total += _importance(ix, iy).red();
             }
         }
@@ -140,7 +142,7 @@ namespace spica {
                         const double phi = u * 2.0 * PI;
                         const double y = (1.0 - v) * 2.0 - 1.0;
 
-                        const Vector3 dir = Vector3(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
+                        const Vector3D dir = Vector3D(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
                         accum += sampleFromDir(dir) / (superX * superY);
                     }
                 }

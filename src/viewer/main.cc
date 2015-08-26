@@ -11,10 +11,10 @@ int main(int argc, char** argv) {
 
     Scene scene;
     Camera camera;
-    cornellBoxDragon(&scene, &camera, 640, 480);
+    cornellBox(&scene, &camera, 640, 480);
 
     SceneViewer viewer;
-    viewer.show();
+    viewer.showMaximized();
 
     viewer.setScene(scene, camera);
 

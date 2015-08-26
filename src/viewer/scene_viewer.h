@@ -1,24 +1,54 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_SCENE_VIEWER_H_
 #define _SPICA_SCENE_VIEWER_H_
 
-#include <qmainwindow.h>
-#include <qboxlayout.h>
+#include <memory>
+
+#include <QtWidgets/qmainwindow.h>
+#include <QtWidgets/qwidget.h>
+#include <QtWidgets/qboxlayout.h>
 
 #include "qgl_render_widget.h"
-#include "../renderer/camera.h"
-#include "../renderer/scene.h"
+#include "render_param_widget.h"
+#include "render_thread.h"
+
+#include "../../include/spica.h"
 
 namespace spica {
 
     class SceneViewer : public QMainWindow {
+        Q_OBJECT
+
     public:
         explicit SceneViewer(QWidget *parent = 0);
         ~SceneViewer();
 
         void setScene(const Scene& scene, const Camera& camera);
 
+    private:
+        void setSignalSlots();
+        
+    private slots:
+        void onRenderButtonClicked();
+
     protected:
+        QWidget* mainContainer;
+        QHBoxLayout* mainLayout;
+        
+        QWidget* rightContainer;
+        QWidget* leftContainer;
+
+        QVBoxLayout* rightLayout;
+        QVBoxLayout* leftLayout;
+
         QGLRenderWidget* qglWidget;
+        RenderParamWidget* paramWidget;
+
+        std::unique_ptr<IRenderer> renderer;
+        RenderThread* renderThread;
     };
 
 }

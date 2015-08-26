@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_PHOTON_MAP_H_
 #define _SPICA_PHOTON_MAP_H_
 
@@ -11,38 +15,59 @@
     #define SPICA_PHOTON_MAP_DLL
 #endif
 
-#include "../utils/vector3.h"
+#include "bsdf.h"
+
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 #include "../utils/kdtree.h"
 #include "../utils/uncopyable.h"
+#include "../utils/stack.h"
 
 #include "../random/random.h"
 
 namespace spica {
 
+    // Forward declarations
+    class Ray;
     class Scene;
+    class Camera;
+    class RenderParameters;
 
-    class SPICA_PHOTON_MAP_DLL Photon : public Vector3 {
+    // ------------------------------------------------------------------------
+    // Photon
+    // ------------------------------------------------------------------------
+    class SPICA_PHOTON_MAP_DLL Photon  {
     private:
-        Color   _flux;
-        Vector3 _direction;
-        Vector3 _normal;
+        Vector3D _position;
+        Color    _flux;
+        Vector3D _direction;
+        Vector3D _normal;
 
     public:
         Photon();
-        Photon(const Vector3& position, const Color& flux, const Vector3& direction, const Vector3& normal);
+        Photon(const Vector3D& position, const Color& flux, 
+               const Vector3D& direction, const Vector3D& normal);
         Photon(const Photon& photon);
         ~Photon();
 
         Photon& operator=(const Photon& photon);
 
-        static Photon sample(const Scene& scene, RandomSeq& rseq, const int numPhotons);
+        inline double get(int id) const;
 
-        inline Color   flux()      const { return _flux; }
-        inline Vector3 direction() const { return _direction; }
-        inline Vector3 normal()    const { return _normal; }
+        static double distance(const Photon& p1, const Photon& p2);
+
+        static Photon sample(const Scene& scene, 
+                             Stack<double>& rstk, const int numPhotons);
+
+        inline Vector3D position()  const { return _position;  }
+        inline Color    flux()      const { return _flux;      }
+        inline Vector3D direction() const { return _direction; }
+        inline Vector3D normal()    const { return _normal;    }
     };
 
+    // ------------------------------------------------------------------------
+    // Photon map
+    // ------------------------------------------------------------------------
     class SPICA_PHOTON_MAP_DLL PhotonMap : public Uncopyable {
     private:
         KdTree<Photon> _kdtree;
@@ -52,9 +77,23 @@ namespace spica {
         ~PhotonMap();
 
         void clear();
-        void construct(const std::vector<Photon>& photons);
+        void construct(const Scene& scene,
+                       const RenderParameters& params,
+                       BsdfType absorbBsdf);
 
-        void findKNN(const Photon& photon, std::vector<Photon>* photons, const int numTargetPhotons, const double targetRadius) const;
+        Color evaluate(const Vector3D& position,
+                       const Vector3D& normal,
+                       int gatherPhotons, double gatherRadius) const;
+        
+    private:
+        void knnFind(const Photon& photon, std::vector<Photon>* photons, 
+                     int gatherPhotons, double gatherRadius) const;
+
+        void tracePhoton(const Scene& scene, const Ray& ray,
+                         const RenderParameters& params,
+                         const Color& flux, Stack<double>& rstk,
+                         int bounces, BsdfType absorbBsdf,
+                         std::vector<Photon>* photons);
     };
 
 }

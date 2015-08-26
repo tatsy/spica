@@ -36,16 +36,39 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
 
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
+  set(SOURCES main.cc
+              vbo.cc
+              render_thread.cc
+              scene_viewer.cc
+              scene_viewer_slots.cc
+              render_param_widget.cc
+              qgl_render_widget.cc)
 
-  add_executable(scene_viewer main.cc
-                 scene_viewer.cc
-                 scene_viewer.h
-                 qgl_render_widget.cc
-                 qgl_render_widget.h
-                 blinn_phong.vs
-                 blinn_phong.fs)
+  set(HEADERS vbo.h
+              scene_viewer.h
+              render_thread.h
+              render_param_widget.h
+              qgl_render_widget.h)
 
-  configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
+  set(SHADERS blinn_phong.vs blinn_phong.fs)
+
+  set(QT_GEN_FILES ${CMAKE_CURRENT_BINARY_DIR}/scene_viewer_automoc.cpp)
+
+  add_executable(scene_viewer ${SOURCES} ${HEADERS} ${SHADERS})
+
+  if (MSVC)
+    source_group(Sources FILES ${SOURCES} ${HEADERS})
+    source_group(Shaders FILES ${SHADERS})
+    source_group("Qt Files" FILES ${QT_GEN_FILES})
+  endif()
+
+
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+    set_property(TARGET scene_viewer APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
+    configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scene_viewer.vcxproj.user" @ONLY)
+  endif()
+
 
   qt5_use_modules(scene_viewer Widgets OpenGL)
 

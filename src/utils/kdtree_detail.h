@@ -104,13 +104,13 @@ namespace spica {
             return;
         }
 
-        const double dist = (node->point - point).norm();
+        const double dist = distance(node->point, point);
         if (dist < query.epsilon) {
             results->push(OrderedType(dist, node->point));
             if ((query.type & K_NEAREST) != 0 && results->size() > query.k) {
                 results->pop();
 
-                query.epsilon = (results->top().t - point).norm();
+                query.epsilon = distance(results->top().t, point);
             }
         }
 
@@ -127,6 +127,16 @@ namespace spica {
                 knnSearchRec(node->left, point, query, results);            
             }
         }
+    }
+
+    template <class Ty>
+    double KdTree<Ty>::distance(const Ty& p1, const Ty& p2) {
+        return Ty::distance(p1, p2);
+    }
+
+    template <>
+    inline double KdTree<Vector3D>::distance(const Vector3D& p1, const Vector3D& p2) {
+        return (p1 - p2).norm();    
     }
 
 }

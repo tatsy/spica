@@ -11,29 +11,32 @@
     #define SPICA_PLANE_DLL
 #endif
 
-#include "primitive.h"
+#include "geometry_interface.h"
+#include "../utils/vector3d.h"
 
 namespace spica {
 
-    class SPICA_PLANE_DLL Plane : public Primitive {
+    class SPICA_PLANE_DLL Plane : public IGeometry {
     protected:
         double _distance;
-        Vector3 _normal;
+        Vector3D _normal;
 
     public:
         Plane();
-        Plane(double distance, const Vector3& normal);
+        Plane(double distance, const Vector3D& normal);
         Plane(const Plane& plane);
         virtual ~Plane();
 
         Plane& operator=(const Plane& plane);
 
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
-        double area() const;
+        double area() const override;
+
+        std::vector<Triangle> triangulate() const override;
 
         inline double distance() const { return _distance; }
-        inline Vector3 normal() const { return _normal; }
+        inline Vector3D normal() const { return _normal; }
     };
 }
 

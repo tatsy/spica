@@ -7,17 +7,21 @@ in vec3 colors;
 uniform mat4 mMat;
 uniform mat4 vMat;
 uniform mat4 pMat;
+uniform mat4 normalMat;
 uniform vec3 light;
 
-out vec4 color_fs;
-out vec4 normal_fs;
-out vec3 VtoL;
+smooth out vec3 vertexCameraspace;
+smooth out vec3 normalCameraspace;
+smooth out vec3 lightCameraspace;
+smooth out vec4 vertexColor;
 
 void main(void) {
     gl_Position = pMat * vMat * mMat * vec4(vertices, 1.0);
 
-    color_fs = vec4(colors, 1.0);
-    normal_fs = vMat * mMat * vec4(normals, 0.0);
-    vec4 V = vMat * mMat * vec4(vertices, 1.0);
-    VtoL = light - V.xyz;
+    vertexCameraspace = (vMat * mMat * vec4(vertices, 1.0)).xyz;
+    normalCameraspace = (normalMat * vec4(normals, 0.0)).xyz;
+
+    lightCameraspace = (vMat * mMat * vec4(light, 0.0)).xyz;
+
+    vertexColor = vec4(colors, 1.0);
 }

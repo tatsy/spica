@@ -29,7 +29,8 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   set(TEST_NAME spica_tests)
   set(SOURCE_FILES
       all_tests.cc
-      test_macros.h
+#      test_macros.h
+      test_stack.cc
       test_geometry.cc
       test_vector.cc
       test_image.cc
@@ -48,6 +49,12 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARY})
   target_link_libraries(${TEST_NAME} ${GTEST_MAIN_LIBRARY})
   target_link_libraries(${TEST_NAME} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
+
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+    set_property(TARGET ${TEST_NAME} APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
+    configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TEST_NAME}.vcxproj.user" @ONLY)
+  endif()
 
   add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose DEPENDS ${TEST_NAME})

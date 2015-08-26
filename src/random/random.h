@@ -16,6 +16,8 @@
 
 namespace spica {
 
+    class RandomSampler;
+
     // --------------------------------------------------
     // Random number generator with Mersenne twister
     // --------------------------------------------------
@@ -31,7 +33,7 @@ namespace spica {
         int mti;
 
     public:
-        explicit Random(int seed = -1);
+        explicit Random(unsigned int seed = 0);
 
         // Generate a random integer from [0, n-1]
         int nextInt();
@@ -41,7 +43,10 @@ namespace spica {
         double nextReal();
 
         // Request specified amount of random numbers
-        void requestSamples(RandomSeq& rseq, const int numRequested);
+        void request(Stack<double>* rands, const int numRequested) override;
+
+        // Factory method for RandomSampler
+        static RandomSampler factory(unsigned int seed = 0);
 
     private:
         void init_genrand(unsigned int s);

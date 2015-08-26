@@ -14,12 +14,12 @@ namespace spica {
         calcInvdir();
     }
 
-    Ray::Ray(const Vector3& origin, const Vector3& direction)
+    Ray::Ray(const Vector3D& origin, const Vector3D& direction)
         : _origin(origin)
         , _direction(direction)
         , _invdir()
     {
-        msg_assert(std::abs(1.0 - direction.norm()) < EPS, "Direction must be unit vector");
+        Assertion(std::abs(1.0 - direction.norm()) < EPS, "Direction must be unit vector");
         calcInvdir();
     }
 

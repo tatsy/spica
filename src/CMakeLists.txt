@@ -6,15 +6,39 @@ if(MSVC)
   endif()
 endif()
 
-set(SOURCES ${SOURCES})
-set(HEADERS ${HEADERS} ../include/spica.h)
+set(ALL_SOURCES ${ALL_SOURCES})
+set(ALL_HEADERS ${ALL_HEADERS} ../include/spica.h)
 
-add_subdirectory(renderer)
-add_subdirectory(geometry)
-add_subdirectory(utils)
-add_subdirectory(random)
-add_subdirectory(scenes)
-add_subdirectory(accel)
+# Function to extract files from subdirectories
+# and make file filters for MSVC
+function (process_subdirectory dirname)
+  set(SOURCES ${SOURCES})
+  set(HEADERS ${HEADERS})
+  add_subdirectory(${dirname})
+  set(ALL_SOURCES ${ALL_SOURCES} ${SOURCES} PARENT_SCOPE)
+  set(ALL_HEADERS ${ALL_HEADERS} ${HEADERS} PARENT_SCOPE)
+
+  file(GLOB FILTER_FILES "${dirname}/*.cc" "${dirname}/*.h")
+  if (MSVC)
+    source_group(${dirname} FILES ${FILTER_FILES})
+  endif()
+endfunction()
+
+# Process subdirectories
+process_subdirectory(utils)
+process_subdirectory(renderer)
+process_subdirectory(geometry)
+process_subdirectory(random)
+process_subdirectory(scenes)
+process_subdirectory(accel)
+
+add_library(spica_renderer SHARED ${ALL_SOURCES} ${ALL_HEADERS})
+
+if (MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+  set_property(TARGET spica_renderer APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
+  configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/spica_renderer.vcxproj.user" @ONLY)
+endif()
+
+# Build viewer
 add_subdirectory(viewer)
-
-add_library(spica_renderer SHARED ${SOURCES} ${HEADERS})

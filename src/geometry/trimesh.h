@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_TRIMESH_H_
 #define _SPICA_TRIMESH_H_
 
@@ -16,10 +20,10 @@
 #include <vector>
 #include <tuple>
 
-#include "primitive.h"
+#include "geometry_interface.h"
 #include "triangle.h"
 #include "plane.h"
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 #include "../accel/accel.h"
 
@@ -59,16 +63,16 @@ namespace spica {
         }
 
         int operator[](int i) const {
-            msg_assert(0 <= i && i <= 2, "access index out of bounds!");
+            Assertion(0 <= i && i <= 2, "access index out of bounds!");
             return _data[i];
         }    
     };
     
-    class SPICA_TRIMESH_DLL Trimesh : public Primitive {
+    class SPICA_TRIMESH_DLL Trimesh : public IGeometry {
     private:
-        std::vector<Vector3> _vertices;
+        std::vector<Vector3D> _vertices;
         std::vector<Color>   _colors;
-        std::vector<Vector3> _normals;
+        std::vector<Vector3D> _normals;
         std::vector<Triplet> _faces;
         std::shared_ptr<AccelBase> _accel;
         AccelType _accelType;
@@ -84,7 +88,7 @@ namespace spica {
         // Constructor
         // @param[in] vertices: vertices to form trimesh
         // @param[in] faceIDs: face IDs (stating from 0)
-        Trimesh(const std::vector<Vector3>& vertices, const std::vector<Triplet>& faceIDs);
+        Trimesh(const std::vector<Vector3D>& vertices, const std::vector<Triplet>& faceIDs);
 
         // Copy constructor
         Trimesh(const Trimesh& trimesh);
@@ -100,10 +104,13 @@ namespace spica {
         // Check intersection
         // @param[in] ray: input to check intersect with
         // @param[out] hitpoint: hit point if intersected
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
         // Area of trimesh
-        double area() const;
+        double area() const override;
+
+        // Triangulate mesh
+        std::vector<Triangle> triangulate() const override;
 
         // Set an intersection accelerator type
         // @param[in] accelType: QBVH or k-d tree
@@ -119,7 +126,7 @@ namespace spica {
 
         // Translate the mesh
         // @param[in] transtion delta
-        void translate(const Vector3& move);
+        void translate(const Vector3D& move);
 
         // Scale the mesh
         // @param[in] scaleX: scaling along X-axis
@@ -148,7 +155,7 @@ namespace spica {
 
         // Get the vertex with specified ID
         // @param[in] vertexID: ID of the vertex
-        Vector3 getVertex(int vertexID) const;
+        Vector3D getVertex(int vertexID) const;
 
         // Set color to the specified vertex
         // @param[in] vertexID: ID of the vertex
@@ -160,7 +167,7 @@ namespace spica {
 
         // Get the normal of a face with specified ID
         // @param[in] faceID: ID of the triangle to get a normal
-        Vector3 getNormal(int faceID) const;
+        Vector3D getNormal(int faceID) const;
 
         // Get the number of vertices
         inline size_t numVerts() const { return _vertices.size(); }

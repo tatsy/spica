@@ -6,83 +6,157 @@
 namespace spica {
     
     Scene::Scene()
-        : _nPrimitives(0)
-        , _arraySize(0)
-        , _lightID(-1)
-        , _primitives(0)
-        , _materials(0)
+        : _triangles()
+        , _emittance()
+
+        , _bsdfIds()
+        , _lightIds()
+        , _lightPdfs()
+        , _totalLightArea(0.0)
+
+        , _bsdfs()
+        , _accel()
+        , _accelType(QBVH_ACCEL)
         , _envmap()
     {
-        init();
+        _envmap.resize(512, 512);
+        _envmap.clearColor(Color::BLACK);
     }
 
     Scene::~Scene()
     {
-        release();
     }
 
-    void Scene::checkArraySize() {
-        if (_nPrimitives == _arraySize) {
-            _arraySize *= 2;
-            const Primitive** primPtr = new const Primitive*[_arraySize];
-            Material* matPtr = new Material[_arraySize];
-            memcpy((void*)primPtr, (void*)_primitives, sizeof(Primitive*) * _nPrimitives);
-            memcpy((void*)matPtr, (void*)_materials, sizeof(Material) * _nPrimitives);
-            release();
-            _primitives = primPtr;
-            _materials = matPtr;
-        }
+    Scene::Scene(const Scene& scene)
+        : _triangles()
+        , _emittance()
+
+        , _bsdfIds()
+        , _lightIds()
+        , _lightPdfs()
+        , _totalLightArea(0.0)
+
+        , _bsdfs()
+        , _accel()
+        , _accelType(QBVH_ACCEL)
+        , _envmap()
+    {
+        this->operator=(scene);
     }
 
-    const Primitive* Scene::get(int id) const {
-        msg_assert(id >= 0 && id < _nPrimitives, "Object index out of bounds");
-        return _primitives[id];
+
+    Scene& Scene::operator=(const Scene& scene) {
+        this->_triangles = scene._triangles;
+        this->_emittance = scene._emittance;
+
+        this->_bsdfIds   = scene._bsdfIds;
+        this->_lightIds  = scene._lightIds;
+        
+        this->_totalLightArea = scene._totalLightArea;
+        this->_bsdfs = scene._bsdfs;
+        this->_accel = scene._accel;
+        this->_accelType = scene._accelType;
+        
+        this->_envmap = scene._envmap;
+        
+        return *this;
     }
 
-    const Material& Scene::getMaterial(int id) const {
-        msg_assert(id >= 0 && id < _nPrimitives, "Object index out of boudns");
-        return _materials[id];
+    const Triangle& Scene::getTriangle(int id) const {
+        Assertion(id >= 0 && id < _triangles.size(),
+                  "Object index out of bounds");
+        return _triangles[id];
     }
 
-    void Scene::init() {
-        this->_nPrimitives = 0;
-        this->_arraySize = 1024;
-        _primitives = new const Primitive*[_arraySize];
-        _materials = new Material[_arraySize];
-        _envmap.resize(512, 512);
-        _envmap.clearColor(Color(0.0, 0.0, 0.0));
+    const BSDF& Scene::getBsdf(int id) const {
+        Assertion(id >= 0 && id < _bsdfIds.size(),
+                  "Object index out of boudns");
+        return _bsdfs[_bsdfIds[id]];
+    }
+
+    const Color& Scene::getEmittance(int id) const {
+        Assertion(id >= 0 && id < _emittance.size(),
+                  "Object index out of boudns");
+        return _emittance[id];    
+    }
+
+    int Scene::sampleLight(double rand1) const {
+        Assertion(!_lightPdfs.empty(), 
+                  "Light PDFs are not computed yet, "
+                  "Scene::computeLightPdfs first!!");
+        
+        const int id = std::lower_bound(_lightPdfs.begin(), _lightPdfs.end(), rand1) - _lightPdfs.begin();
+        return _lightIds[id];
     }
 
     void Scene::clear() {
-        release();
-        init();
+        _triangles.clear();
+        _triangles.shrink_to_fit();
+        _bsdfIds.clear();
+        _bsdfIds.shrink_to_fit();
+        _bsdfs.clear();
+        _bsdfs.shrink_to_fit();
     }
 
-    void Scene::release() {
-        for (int i = 0; i < _nPrimitives; i++) {
-            delete _primitives[i];
+    void Scene::setAccelType(AccelType type) {
+        this->_accelType = type;
+    }
+
+    bool Scene::isLightCheck(int id) const {
+        auto it = std::lower_bound(_lightIds.begin(), _lightIds.end(), id);
+        return it != _lightIds.end() && (*it) == id;
+    }
+
+    void Scene::computeAccelerator() {
+        switch (this->_accelType) {
+        case QBVH_ACCEL:
+            _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
+            break;
+        
+        case KD_TREE_ACCEL:
+            _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
+            break;
+        
+        default:
+            std::cerr << "[ERROR] unknown accelerator type !!" << std::endl;
+            std::abort();
         }
-        delete[] _primitives;    
-        delete[] _materials;
+        _accel->construct(_triangles);    
+    }
+
+    void Scene::computeLightPdfs() {
+        if (_lightIds.empty()) return; 
+
+        _lightPdfs.resize(_lightIds.size());
+
+        _totalLightArea = 0.0;
+        for (int i = 0; i < _lightIds.size(); i++) {
+            const double A = _triangles[_lightIds[i]].area();
+            _lightPdfs[i] = A;
+            _totalLightArea += A;
+        }
+
+        _lightPdfs[0] /= _totalLightArea;
+        for (int i = 1; i < _lightIds.size(); i++) {
+            _lightPdfs[i] = _lightPdfs[i - 1] + 
+                            _lightPdfs[i] / _totalLightArea;
+        }
+    }
+
+    void Scene::finalize() {
+        this->computeAccelerator();
+        this->computeLightPdfs();
     }
 
     bool Scene::intersect(const Ray& ray, Intersection& isect) const {
-        // Linear search
-        int objID = -1;
-        Hitpoint hitpoint;
-        for (int i = 0; i < _nPrimitives; i++) {
-            Hitpoint hpTemp;
-            if (_primitives[i]->intersect(ray, &hpTemp)) {
-                if (hitpoint.distance() > hpTemp.distance()) {
-                    objID = i;
-                    hitpoint = hpTemp;
-                }
-            }
-        }
+        Assertion(_accel, "Accelerator is not prepared !!");
 
-        isect.setObjectId(objID);
+        Hitpoint hitpoint;
+        const int triID = _accel->intersect(ray, &hitpoint);
+
+        isect.setObjectId(triID);
         isect.setHitpoint(hitpoint);
-        return objID != -1;
+        return triID != -1;
     }
 
 }  // namespace spica

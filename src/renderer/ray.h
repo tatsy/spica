@@ -11,27 +11,27 @@
     #define SPICA_RAY_DLL
 #endif
 
-#include "../utils/vector3.h"
+#include "../utils/vector3d.h"
 
 namespace spica {
 
     class SPICA_RAY_DLL Ray {
     private:
-        Vector3 _origin;
-        Vector3 _direction;
-        Vector3 _invdir;
+        Vector3D _origin;
+        Vector3D _direction;
+        Vector3D _invdir;
 
     public:
         Ray();
-        Ray(const Vector3& origin, const Vector3& direction);
+        Ray(const Vector3D& origin, const Vector3D& direction);
         Ray(const Ray& ray);
         ~Ray();
 
         Ray& operator=(const Ray& ray);
 
-        inline Vector3 origin()    const { return _origin; }
-        inline Vector3 direction() const { return _direction; }
-        inline Vector3 invdir()    const { return _invdir; }
+        inline Vector3D origin()    const { return _origin; }
+        inline Vector3D direction() const { return _direction; }
+        inline Vector3D invdir()    const { return _invdir; }
 
     private:
         void calcInvdir();
@@ -40,8 +40,8 @@ namespace spica {
     class SPICA_RAY_DLL Hitpoint {
     private:
         double _distance;
-        Vector3 _normal;
-        Vector3 _position;
+        Vector3D _normal;
+        Vector3D _position;
 
     public:
         Hitpoint();
@@ -51,12 +51,12 @@ namespace spica {
         Hitpoint& operator=(const Hitpoint& hp);
 
         inline double distance() const { return _distance; }
-        inline Vector3 normal() const { return _normal; }
-        inline Vector3 position() const { return _position; }
+        inline Vector3D normal() const { return _normal; }
+        inline Vector3D position() const { return _position; }
 
         inline void setDistance(double distance) { _distance = distance; }
-        inline void setNormal(const Vector3& normal) { _normal = normal; }
-        inline void setPosition(const Vector3& position) { _position = position; }
+        inline void setNormal(const Vector3D& normal) { _normal = normal; }
+        inline void setPosition(const Vector3D& position) { _position = position; }
     };
 
     class SPICA_RAY_DLL Intersection {

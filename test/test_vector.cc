@@ -66,7 +66,44 @@ TEST(Vector3DTest, AlgebraTest) {
     EXPECT_EQ(u.x() / nrm, w.x());
     EXPECT_EQ(u.y() / nrm, w.y());
     EXPECT_EQ(u.z() / nrm, w.z());
+    EXPECT_FLOAT_EQ(w.norm(), 1.0);
+    EXPECT_NE(u.norm(), 1.0);
+
+    Vector3D z = Vector3D::normalize(u);
+    EXPECT_EQ(u.x() / nrm, z.x());
+    EXPECT_EQ(u.y() / nrm, z.y());
+    EXPECT_EQ(u.z() / nrm, z.z());
+    EXPECT_FLOAT_EQ(1.0, z.norm());
+    EXPECT_NE(u.norm(), 1.0);
 }
+
+TEST(Vector3DTest, NegateTest) {
+    Vector3D u(1.0, 2.0, 3.0);
+    Vector3D v = -u;
+    EXPECT_EQ(-u.x(), v.x());
+    EXPECT_EQ(-u.y(), v.y());
+    EXPECT_EQ(-u.z(), v.z());
+}
+
+TEST(Vector3DTest, SqrtTest) {
+    Vector3D u(1.0, 2.0, 3.0);
+    Vector3D v = Vector3D::sqrt(u);
+    EXPECT_EQ(sqrt(u.x()), v.x());
+    EXPECT_EQ(sqrt(u.y()), v.y());
+    EXPECT_EQ(sqrt(u.z()), v.z());
+
+    u = Vector3D(-1.0, 2.0, 3.0);
+    ASSERT_DEATH(Vector3D::sqrt(u), "");
+}
+
+TEST(Vector3DTest, ExpTest) {
+    Vector3D u(1.0, 2.0, 3.0);
+    Vector3D v = Vector3D::exp(u);
+    EXPECT_EQ(exp(u.x()), v.x());
+    EXPECT_EQ(exp(u.y()), v.y());
+    EXPECT_EQ(exp(u.z()), v.z());
+}
+
 
 TEST(Vector3DTest, DotCrossTest) {
     Vector3D u(1.0, 2.0, 3.0);

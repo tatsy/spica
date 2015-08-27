@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_RANDOM_H_
 #define _SPICA_RANDOM_H_
 
@@ -50,13 +54,9 @@ namespace spica {
 
     private:
         void init_genrand(unsigned int s);
-        void init_by_array(unsigned int init_key[], int key_length);
         unsigned int genrand_int32(void);
         int genrand_int31(void);
-        double genrand_real1(void);
         double genrand_real2(void);
-        double genrand_real3(void);
-        double genrand_res53(void);
     };
 
 }

@@ -117,6 +117,7 @@ namespace spica {
     }
 
     Vector3D Vector3D::sqrt(const Vector3D& v) {
+        Assertion(v.x() >= 0.0 && v.y() >= 0.0 && v.z() >= 0.0, "Specified vector has negative entries !!");
         return Vector3D(::sqrt(v.x()), ::sqrt(v.y()), ::sqrt(v.z()));
     }
 

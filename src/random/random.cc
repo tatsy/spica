@@ -108,34 +108,6 @@ namespace spica {
         }
     }
 
-    /* initialize by an array with array-length */
-    /* init_key is the array for initializing keys */
-    /* key_length is its length */
-    /* slight change for C++, 2004/2/26 */
-    void Random::init_by_array(unsigned int init_key[], int key_length) {
-        int i, j, k;
-        init_genrand(19650218U);
-        i = 1; j = 0;
-        k = (N > key_length ? N : key_length);
-        for (; k; k--) {
-            mt[i] = (mt[i] ^ ((mt[i - 1] ^ (mt[i - 1] >> 30)) * 1664525UL))
-                + init_key[j] + j; /* non linear */
-            mt[i] &= 0xffffffffULL; /* for WORDSIZE > 32 machines */
-            i++; j++;
-            if (i >= N) { mt[0] = mt[N - 1]; i = 1; }
-            if (j >= key_length) j = 0;
-        }
-        for (k = N - 1; k; k--) {
-            mt[i] = (mt[i] ^ ((mt[i - 1] ^ (mt[i - 1] >> 30)) * 1566083941UL))
-                - i; /* non linear */
-            mt[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
-            i++;
-            if (i >= N) { mt[0] = mt[N - 1]; i = 1; }
-        }
-
-        mt[0] = 0x80000000ULL; /* MSB is 1; assuring non-zero initial array */
-    }
-
     /* generates a random number on [0,0xffffffff]-interval */
     unsigned int Random::genrand_int32(void) {
         unsigned int y;
@@ -184,28 +156,10 @@ namespace spica {
         return static_cast<int>(genrand_int32() >> 1);
     }
 
-    /* generates a random number on [0,1]-real-interval */
-    double Random::genrand_real1(void) {
-        return genrand_int32()*(1.0 / 4294967295.0);
-        /* divided by 2^32-1 */
-    }
-
     /* generates a random number on [0,1)-real-interval */
     double Random::genrand_real2(void) {
         return genrand_int32()*(1.0 / 4294967296.0);
         /* divided by 2^32 */
-    }
-
-    /* generates a random number on (0,1)-real-interval */
-    double Random::genrand_real3(void) {
-        return ((static_cast<double>(genrand_int32())) + 0.5)*(1.0 / 4294967296.0);
-        /* divided by 2^32 */
-    }
-
-    /* generates a random number on [0,1) with 53-bit resolution*/
-    double Random::genrand_res53(void) {
-        unsigned int a = genrand_int32() >> 5, b = genrand_int32() >> 6;
-        return(a*67108864.0 + b)*(1.0 / 9007199254740992.0);
     }
 
 }  // namespace spica

@@ -79,6 +79,12 @@ namespace spica {
             (*normal) = tri.normal();
         }
 
+        void onTriangle(const Triangle& tri, Vector3D* position, Vector3D* normal) {
+            double r1 = rng.nextReal();
+            double r2 = rng.nextReal();
+            onTriangle(tri, position, normal, r1, r2);
+        }
+
         void onQuad(const Quad& quad, Vector3D* position, Vector3D* normal, double r1, double r2) {
             // TODO: this sampler can properly work only for rectangles and squares
             Vector3D e1 = quad[1] - quad[0];

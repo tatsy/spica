@@ -114,7 +114,7 @@ namespace spica {
                     }
                 }
 
-                _importance.pixel(ix, iy) = Color(Vector3D(1.0, 1.0, 1.0) * accum.luminance() / area);
+                _importance.pixel(ix, iy) = Color(1.0, 1.0, 1.0) * accum.luminance() / area;
                 total += _importance(ix, iy).red();
             }
         }

@@ -33,7 +33,7 @@ namespace spica {
         const int height = camera.imageH();
 
         // Preparation for accouting for BSSRDF
-        _integrator->initialize(scene, params);
+        _integrator->initialize(scene);
 
         // Prepare random number generators
         RandomSampler* samplers = new RandomSampler[kNumCores];
@@ -152,7 +152,7 @@ namespace spica {
         double pdf = 1.0;
 
         // Account for BSSRDF
-        if (bsdf.type() & BSDF_TYPE_BSSRDF) {
+        if (bsdf.type() & BsdfType::Bssrdf) {
             Assertion(_integrator != NULL,
                       "Subsurface intergrator is NULL !!");
             bssrdfRad = bsdf.sampleBssrdf(ray.direction(),

@@ -13,6 +13,7 @@
 
 #include <vector>
 
+#include "../utils/vector3d.h"
 #include "../utils/color.h"
 #include "../utils/image.h"
 #include "../random/random.h"

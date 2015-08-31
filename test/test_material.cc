@@ -32,11 +32,30 @@ TEST(ColorTest, OtherTest) {
     EXPECT_EQ(0.1, c.green());
     EXPECT_EQ(0.2, c.blue());
 
-    c = Vector3D(0.5, 0.6, 0.7);
+    c = Color(0.5, 0.6, 0.7);
     EXPECT_EQ(0.5, c.red());
     EXPECT_EQ(0.6, c.green());
     EXPECT_EQ(0.7, c.blue());
 
     double lum = c.red() * 0.2126 + c.green() * 0.7152 + c.blue() * 0.0722;
     EXPECT_DOUBLE_EQ(lum, c.luminance());
+}
+
+TEST(ColorTest, SqrtTest) {
+    Color u(1.0, 2.0, 3.0);
+    Color v = Color::sqrt(u);
+    EXPECT_EQ(sqrt(u.red()), v.red());
+    EXPECT_EQ(sqrt(u.green()), v.green());
+    EXPECT_EQ(sqrt(u.blue()), v.blue());
+
+    u = Color(-1.0, 2.0, 3.0);
+    ASSERT_DEATH(Color::sqrt(u), "");
+}
+
+TEST(ColorTest, ExpTest) {
+    Color u(1.0, 2.0, 3.0);
+    Color v = Color::exp(u);
+    EXPECT_EQ(exp(u.red()), v.red());
+    EXPECT_EQ(exp(u.green()), v.green());
+    EXPECT_EQ(exp(u.blue()), v.blue());
 }

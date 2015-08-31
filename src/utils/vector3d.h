@@ -66,9 +66,6 @@ namespace spica {
         Vector3D cross(const Vector3D& v) const;
         static Vector3D cross(const Vector3D& v1, const Vector3D& v2);
 
-        static Vector3D sqrt(const Vector3D& v);
-        static Vector3D exp(const Vector3D& v);
-
         double norm() const;
         double squaredNorm() const;
 

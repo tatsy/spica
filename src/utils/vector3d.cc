@@ -116,15 +116,6 @@ namespace spica {
         return v1.cross(v2);
     }
 
-    Vector3D Vector3D::sqrt(const Vector3D& v) {
-        Assertion(v.x() >= 0.0 && v.y() >= 0.0 && v.z() >= 0.0, "Specified vector has negative entries !!");
-        return Vector3D(::sqrt(v.x()), ::sqrt(v.y()), ::sqrt(v.z()));
-    }
-
-    Vector3D Vector3D::exp(const Vector3D& v) {
-        return Vector3D(::exp(v.x()), ::exp(v.y()), ::exp(v.z()));
-    }
-
     double Vector3D::norm() const {
         return ::sqrt(this->squaredNorm());
     }
@@ -160,7 +151,6 @@ namespace spica {
         double z = std::max(v1.z(), v2.z());
         return Vector3D(x, y, z);
     }
-
 
     Vector3D Vector3D::reflect(const Vector3D& v, const Vector3D& n) {
         return (v - n * 2.0 * n.dot(v));

@@ -521,9 +521,9 @@ namespace spica {
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 int idx = y * _width + x;
-                data[idx * 3 + 0] = toByte(_pixels[idx].x());
-                data[idx * 3 + 1] = toByte(_pixels[idx].y());
-                data[idx * 3 + 2] = toByte(_pixels[idx].z());
+                data[idx * 3 + 0] = toByte(_pixels[idx].red());
+                data[idx * 3 + 1] = toByte(_pixels[idx].green());
+                data[idx * 3 + 2] = toByte(_pixels[idx].blue());
             }
         }
         stbi_write_png(filename.c_str(), _width, _height, 3, data, _width * 3);
@@ -552,7 +552,7 @@ namespace spica {
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color c = this->operator()(x, y);
-                Vector3D ret = c * a / lw_bar;
+                Color ret = c * (a / lw_bar);
                 ret = ret * (1.0 + ret / l_white2) / (1.0 + ret);
                 this->pixel(x, y) = ret;
             }

@@ -66,7 +66,7 @@ TEST(TrimeshTest, CopyAndMove) {
 
 TEST(TrimeshTest, BoxIntersection) {
     Trimesh trimesh(kDataDirectory + "box.ply");
-    trimesh.setAccelType(KD_TREE_ACCEL, true);
+    trimesh.setAccelType(AccelType::qbvhAccel, true);
 
     Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
     Hitpoint hitpoint;
@@ -78,7 +78,7 @@ TEST(TrimeshTest, BoxIntersection) {
 
 TEST(TrimeshTest, BunnyIntersection) {
     Trimesh trimesh(kDataDirectory + "bunny.ply");
-    trimesh.setAccelType(KD_TREE_ACCEL, true);
+    trimesh.setAccelType(AccelType::kdtreeAccel, true);
 
     Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
 
@@ -112,7 +112,7 @@ TEST(TrimeshTest, RandomKdTreeIntersection) {
 
     Trimesh trimesh;
     trimesh.load(kDataDirectory + "bunny.ply");
-    trimesh.setAccelType(KD_TREE_ACCEL, true);
+    trimesh.setAccelType(AccelType::kdtreeAccel, true);
 
     for (int i = 0; i < nTrial; i++) {
         Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
@@ -139,7 +139,7 @@ TEST(TrimeshTest, RandomQVBHIntersection) {
 
     Trimesh trimesh;
     trimesh.load(kDataDirectory + "bunny.ply");
-    trimesh.setAccelType(QBVH_ACCEL, true);
+    trimesh.setAccelType(AccelType::qbvhAccel, true);
 
     for (int i = 0; i < nTrial; i++) {
         Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);

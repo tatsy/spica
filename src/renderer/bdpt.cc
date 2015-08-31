@@ -115,7 +115,7 @@ namespace spica {
                 return 0.0;
             } else if (fromVert.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
                 const BSDF& bsdf = scene.getBsdf(fromVert.objectId);
-                if (bsdf.type() == BSDF_TYPE_REFRACTION) {
+                if (bsdf.type() == BsdfType::Reflactive) {
                     if (prevFromVertex != NULL) {
                         const Vector3D intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalized();
                         const bool isIncoming = intoFromVertexDir.dot(fromVert.objectNormal) < 0.0;
@@ -159,7 +159,8 @@ namespace spica {
             // Russian roulette probability
             const BSDF& bsdf = scene.getBsdf(verts[0]->objectId);
             const Color& emittance = scene.getEmittance(verts[0]->objectId);
-            double roulette = emittance.norm() > 1.0 ? 1.0 : std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
+            const Color& refl = bsdf.reflectance();
+            double roulette = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
             pi1pi[0] = PAy0 / (calcPdfA(scene, camera, verts, 2, 1, 0) * roulette);
             for (int i = 1; i < k; i++) {
                 const double a = calcPdfA(scene, camera, verts, i - 2, i - 1, i);
@@ -260,11 +261,12 @@ namespace spica {
                 // Otherwise, trace next direction
                 const int triangleID = isect.objectId();
                 const BSDF& bsdf = scene.getBsdf(triangleID);
+                const Color& refl = bsdf.reflectance();
                 const Color& emittance = scene.getEmittance(triangleID);
                 const Hitpoint& hitpoint = isect.hitpoint();
 
                 const Vector3D orientNormal = hitpoint.normal().dot(currentRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
-                const double rouletteProb = emittance.norm() > 1.0 ? 1.0 : std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
+                const double rouletteProb = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
                 
                 if (rands[0] >= rouletteProb) {
                     break;
@@ -280,20 +282,20 @@ namespace spica {
                 throughput *= G;
 
                 vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(),
-                                          bsdf.type() == BSDF_TYPE_LAMBERTIAN_BRDF ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
+                                          bsdf.type() == BsdfType::Lambertian ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
                                           totalPdfA, throughput));
 
-                if (bsdf.type() == BSDF_TYPE_LAMBERTIAN_BRDF) {
+                if (bsdf.type() == BsdfType::Lambertian) {
                     sampler::onHemisphere(orientNormal, &nextDir, rands[1], rands[2]);
                     pdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    throughput = bsdf.reflectance().multiply(throughput) * INV_PI;
-                } else if (bsdf.type() == BSDF_TYPE_SPECULAR_BRDF) {
+                    throughput = bsdf.reflectance() * throughput * INV_PI;
+                } else if (bsdf.type() == BsdfType::Specular) {
                     pdfOmega = 1.0;
                     const Vector3D nextDir = Vector3D::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
                     throughput = bsdf.reflectance() * throughput / (toNextVertex.normalized().dot(orientNormal));
-                } else if (bsdf.type() == BSDF_TYPE_REFRACTION) {
+                } else if (bsdf.type() == BsdfType::Reflactive) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
                     Vector3D reflectdir, transdir;
@@ -353,11 +355,12 @@ namespace spica {
                 }
 
                 const BSDF& bsdf = scene.getBsdf(isect.objectId());
+                const Color& refl = bsdf.reflectance();
                 const Color& emittance = scene.getEmittance(isect.objectId());
                 const Hitpoint& hitpoint = isect.hitpoint();
 
                 const Vector3D orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
-                const double rouletteProb = emittance.norm() > 1.0 ? 1.0 : std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
+                const double rouletteProb = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
 
                 if (rands[0] > rouletteProb) {
                     break;
@@ -383,29 +386,29 @@ namespace spica {
                 const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.squaredNorm();
                 throughput *= G;
 
-                if (emittance.norm() > 0.0) {
+                if (min3(emittance.red(), emittance.green(), emittance.blue()) > 0.0) {
                     vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughput));
                     const Color result = Color(throughput * emittance / totalPdfA);
                     return TraceResult(result, x, y, HIT_ON_LIGHT);
                 }
 
                 vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(),
-                                           bsdf.type() == BSDF_TYPE_LAMBERTIAN_BRDF ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
+                                           bsdf.type() == BsdfType::Lambertian ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
                                            totalPdfA, throughput));
 
-                if (bsdf.type() == BSDF_TYPE_LAMBERTIAN_BRDF) {
+                if (bsdf.type() == BsdfType::Lambertian) {
                     Vector3D nextDir;
                     sampler::onHemisphere(orientNormal, &nextDir, rands[1], rands[2]);
                     nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughput = bsdf.reflectance() * throughput * INV_PI;
-                } else if (bsdf.type() == BSDF_TYPE_SPECULAR_BRDF) {
+                } else if (bsdf.type() == BsdfType::Specular) {
                     nowSampledPdfOmega = 1.0;
                     const Vector3D nextDir = Vector3D::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughput = bsdf.reflectance() * throughput / (toNextVertex.normalized().dot(orientNormal));
 
-                } else if (bsdf.type() == BSDF_TYPE_REFRACTION) {
+                } else if (bsdf.type() == BsdfType::Reflactive) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
                     Vector3D reflectdir, transdir;
@@ -567,10 +570,10 @@ namespace spica {
         }
 
         bool isInvalidValue(const Color& color) {
-            if (isnan(color.x()) || isnan(color.y()) || isnan(color.z())) return true;
-            if (color.x() < 0.0 || INFTY < color.x()) return true;
-            if (color.y() < 0.0 || INFTY < color.y()) return true;
-            if (color.z() < 0.0 || INFTY < color.z()) return true;
+            if (isnan(color.red()) || isnan(color.green()) || isnan(color.blue())) return true;
+            if (color.red() < 0.0 || INFTY < color.red()) return true;
+            if (color.green() < 0.0 || INFTY < color.green()) return true;
+            if (color.blue() < 0.0 || INFTY < color.blue()) return true;
             return false;
         }
 

@@ -33,7 +33,7 @@ namespace spica {
         const int samples = params.samplePerPixel();
 
         // Preparation for  accouting for BSSRDF
-        _integrator->initialize(scene, params);
+        _integrator->initialize(scene);
 
         // Random number generator
         RandomSampler* samplers = new RandomSampler[kNumCores];
@@ -60,8 +60,6 @@ namespace spica {
             bbox.merge(scene.getTriangle(i));
         }
         globalRadius = (bbox.posMax() - bbox.posMin()).norm() * 0.1;
-        RenderParameters globalParams = params;
-        globalParams.gatherRadius(globalRadius);
 
         // Distribute tasks
         const int tasksThread = (height + kNumCores - 1) / kNumCores;
@@ -75,8 +73,11 @@ namespace spica {
         buffer.fill(Color::BLACK);
         _result.resize(width, height);
         for (int i = 0; i < params.samplePerPixel(); i++) {
+            // Precomputation for subsurface scattering
+            _integrator->construct(scene, params);
+
             // 1th pass: Construct photon map
-            photonMap.construct(scene, params, BSDF_TYPE_LAMBERTIAN_BRDF);
+            photonMap.construct(scene, params, BsdfType::Lambertian);
 
             // 2nd pass: Path tracing
             for (int t = 0; t < tasksThread; t++) {
@@ -97,8 +98,7 @@ namespace spica {
             printf("\n");
 
             // Update gather radius
-            globalRadius = ((i + 1) + 1) / ((i + 1) + kAlpha) * globalRadius;
-            globalParams.gatherRadius(globalRadius);
+            globalRadius = ((i + 1) + 1.0) / ((i + 1) + kAlpha) * globalRadius;
 
             // Buffer accumulation
             for (int y = 0; y < height; y++) {
@@ -181,13 +181,13 @@ namespace spica {
 
         // Account for BSSRDF
         Color nextRad(0.0, 0.0, 0.0);
-        if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
+        if (bsdf.type() & BsdfType::Lambertian) {
             nextRad = photonMap.evaluate(hpoint.position(),
-                                            hpoint.normal(),
-                                            params.gatherPhotons(),
-                                            params.gatherRadius());
+                                         hpoint.normal(),
+                                         params.gatherPhotons(),
+                                         globalRadius);
         } else {
-            if (bsdf.type() & BSDF_TYPE_BSSRDF) {
+            if (bsdf.type() & BsdfType::Bssrdf) {
                 Assertion(_integrator != NULL,
                           "Subsurface intergrator is NULL !!");
                 bssrdfRad = bsdf.sampleBssrdf(ray.direction(),

@@ -117,20 +117,26 @@ namespace spica {
         PhotonMap _photonMap;
         Octree    _octree;
         double    _dA;
+        double    _radius;
         double    _maxError;
+        std::vector<Triangle> _triangles;
 
     public:
         SubsurfaceIntegrator();
         ~SubsurfaceIntegrator();
 
-        void initialize(const Scene& scene, const RenderParameters& params,
+        void initialize(const Scene& scene,
                         const double maxError = 0.05);
 
+        void construct(const Scene& scene,
+                       const RenderParameters& params);
+
+        Color irradiance(const Vector3D& p, const BSDF& bsdf) const;
+
+    private:
         void buildOctree(const std::vector<Vector3D>& points,
                          const std::vector<Vector3D>& normals,
                          const RenderParameters& params);
-
-        Color irradiance(const Vector3D& p, const BSDF& bsdf) const;
     };
 
 }  // namespace spica

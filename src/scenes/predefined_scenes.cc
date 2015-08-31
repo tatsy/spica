@@ -47,7 +47,6 @@ namespace spica {
         scene->add(Sphere(3.0,  Vector3D( 5.0, -7.0,  5.0)),
                    RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));
 
-        scene->setAccelType(KD_TREE_ACCEL);
         scene->finalize();
 
         (*camera) = Camera(width, height, 

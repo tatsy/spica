@@ -18,7 +18,7 @@ namespace spica {
         , _faces()
         , _normals()
         , _accel(NULL)
-        , _accelType(QBVH_ACCEL)
+        , _accelType(AccelType::qbvhAccel)
     {
     }
 
@@ -28,7 +28,7 @@ namespace spica {
         , _faces()
         , _normals()
         , _accel(NULL)
-        , _accelType(QBVH_ACCEL)
+        , _accelType(AccelType::qbvhAccel)
     {
         load(filename);
     }
@@ -39,7 +39,7 @@ namespace spica {
         , _faces(faceIDs)
         , _normals()
         , _accel(NULL)
-        , _accelType(QBVH_ACCEL)
+        , _accelType(AccelType::qbvhAccel)
     {
         _colors.resize(_vertices.size());
         _normals.resize(_vertices.size());
@@ -59,7 +59,7 @@ namespace spica {
         , _faces()
         , _normals()
         , _accel(NULL)
-        , _accelType(QBVH_ACCEL)
+        , _accelType(AccelType::qbvhAccel)
     {
         this->operator=(trimesh);
     }
@@ -70,7 +70,7 @@ namespace spica {
         , _faces()
         , _normals()
         , _accel(NULL)
-        , _accelType(QBVH_ACCEL)
+        , _accelType(AccelType::qbvhAccel)
     {
         this->operator=(std::move(trimesh));
     }
@@ -139,10 +139,10 @@ namespace spica {
         }
 
         switch(_accelType) {
-        case KD_TREE_ACCEL:
+        case AccelType::kdtreeAccel:
             _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
             break;
-        case QBVH_ACCEL:
+        case AccelType::qbvhAccel:
             _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
         default:

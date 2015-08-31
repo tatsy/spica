@@ -85,26 +85,6 @@ TEST(Vector3DTest, NegateTest) {
     EXPECT_EQ(-u.z(), v.z());
 }
 
-TEST(Vector3DTest, SqrtTest) {
-    Vector3D u(1.0, 2.0, 3.0);
-    Vector3D v = Vector3D::sqrt(u);
-    EXPECT_EQ(sqrt(u.x()), v.x());
-    EXPECT_EQ(sqrt(u.y()), v.y());
-    EXPECT_EQ(sqrt(u.z()), v.z());
-
-    u = Vector3D(-1.0, 2.0, 3.0);
-    ASSERT_DEATH(Vector3D::sqrt(u), "");
-}
-
-TEST(Vector3DTest, ExpTest) {
-    Vector3D u(1.0, 2.0, 3.0);
-    Vector3D v = Vector3D::exp(u);
-    EXPECT_EQ(exp(u.x()), v.x());
-    EXPECT_EQ(exp(u.y()), v.y());
-    EXPECT_EQ(exp(u.z()), v.z());
-}
-
-
 TEST(Vector3DTest, DotCrossTest) {
     Vector3D u(1.0, 2.0, 3.0);
     Vector3D v(4.0, 5.0, 6.0);

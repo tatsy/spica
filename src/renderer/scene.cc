@@ -16,7 +16,7 @@ namespace spica {
 
         , _bsdfs()
         , _accel()
-        , _accelType(QBVH_ACCEL)
+        , _accelType(AccelType::qbvhAccel)
         , _envmap()
     {
         _envmap.resize(512, 512);
@@ -38,7 +38,7 @@ namespace spica {
 
         , _bsdfs()
         , _accel()
-        , _accelType(QBVH_ACCEL)
+        , _accelType(AccelType::qbvhAccel)
         , _envmap()
     {
         this->operator=(scene);
@@ -109,11 +109,11 @@ namespace spica {
 
     void Scene::computeAccelerator() {
         switch (this->_accelType) {
-        case QBVH_ACCEL:
+        case AccelType::qbvhAccel:
             _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
         
-        case KD_TREE_ACCEL:
+        case AccelType::kdtreeAccel:
             _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
             break;
         

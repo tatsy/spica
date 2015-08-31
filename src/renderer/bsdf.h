@@ -28,17 +28,21 @@ namespace spica {
     class SubsurfaceIntegrator;
 
     // Types of BSDF
-    enum BsdfType {
-        BSDF_TYPE_NONE            = 0x00,
-        BSDF_TYPE_LAMBERTIAN_BRDF = 0x01,
-        BSDF_TYPE_SPECULAR_BRDF   = 0x02,
-        BSDF_TYPE_PHONG_BRDF      = 0x04,
-        BSDF_TYPE_REFRACTION      = 0x08,
-        BSDF_TYPE_BSSRDF          = 0x10
+    enum class BsdfType : int {
+        None        = 0x00,
+        Lambertian  = 0x01,
+        Specular    = 0x02,
+        PhongBrdf   = 0x04,
+        Reflactive  = 0x08,
+        Bssrdf      = 0x10
     };
 
     inline BsdfType operator|(BsdfType t1, BsdfType t2) {
         return static_cast<BsdfType>((static_cast<int>(t1) | static_cast<int>(t2)));
+    }
+
+    inline bool operator&(BsdfType t1, BsdfType t2) {
+        return (static_cast<int>(t1) & static_cast<int>(t2)) != 0;
     }
 
     // --------------------------------------------------

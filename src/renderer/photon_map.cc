@@ -264,7 +264,7 @@ namespace spica {
         const Vector3D orientNormal = (into ? 1.0 : -1.0) * hpoint.normal();
 
         double photonPdf = 1.0;
-        if ((bsdf.type() & absorbBsdf) != 0) {
+        if (bsdf.type() & absorbBsdf) {
             photons->push_back(Photon(hpoint.position(), flux, 
                                       ray.direction(), hpoint.normal()));
         

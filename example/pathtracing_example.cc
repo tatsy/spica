@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
     timer.start();
 
     RenderParameters params(samples);
+    params.castPhotons(500000);
     params.saveFilenameFormat(kOutputDirectory + "pathtrace_%03d.png");
 
     PathRenderer renderer;

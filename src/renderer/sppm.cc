@@ -35,7 +35,7 @@ namespace spica {
         const int numPoints = width * height;
 
         // Preparation for taking BSSRDF into account
-        _integrator->initialize(scene, params);
+        _integrator->initialize(scene);
 
         // Initialize hitpoints
         std::vector<SPPMPixel> hpoints(numPoints);
@@ -263,7 +263,7 @@ namespace spica {
                                             : -hpoint.normal();
 
         double photonPdf = 1.0;
-        if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
+        if (bsdf.type() & BsdfType::Lambertian) {
             // Gather hit points
             std::vector<SPPMPixel*> results;
             omplock{
@@ -343,7 +343,7 @@ namespace spica {
             const Vector3D orientNormal = into ?  hpoint.normal()
                                                : -hpoint.normal();
 
-            if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
+            if (bsdf.type() & BsdfType::Lambertian) {
                 // Ray hits diffuse object, return current weight
                 pixel->position = hpoint.position();
                 pixel->normal   = hpoint.normal();
@@ -354,7 +354,7 @@ namespace spica {
             } else {
                 double pdf = 1.0;
                 Vector3D nextdir;
-                if (bsdf.type() & BSDF_TYPE_BSSRDF) {
+                if (bsdf.type() & BsdfType::Bssrdf) {
                     Assertion(_integrator != NULL,
                               "Subsurface integrator is NULL !!");
                     Color bssrdfRad = bsdf.sampleBssrdf(ray.direction(),

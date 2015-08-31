@@ -113,7 +113,7 @@ namespace spica {
             const bool      into = Vector3D::dot(normal, in) < 0.0;
             const Vector3D  orientNormal = into ? normal : -normal;
 
-            if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
+            if (bsdf.type() & BsdfType::Lambertian) {
                 const int       lightID  = scene.sampleLight(rstk.pop());
                 const Triangle& light    = scene.getTriangle(lightID);
                 const Color&    lightEmt = scene.getEmittance(lightID);

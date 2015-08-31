@@ -6,9 +6,9 @@
 
 namespace spica {
 
-    enum AccelType {
-        KD_TREE_ACCEL,
-        QBVH_ACCEL
+    enum class AccelType : int {
+        kdtreeAccel,
+        qbvhAccel
     };
 
 }

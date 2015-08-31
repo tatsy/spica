@@ -16,20 +16,17 @@ namespace spica {
     SubsurfaceIntegrator::Octree::Octree()
         : _root(NULL)
         , _numCopies(NULL)
-        , _parent(NULL)
-    {
+        , _parent(NULL) {
     }
 
-    SubsurfaceIntegrator::Octree::~Octree()
-    {
+    SubsurfaceIntegrator::Octree::~Octree() {
         release();
     }
 
     SubsurfaceIntegrator::Octree::Octree(const Octree& octree)
         : _root(NULL)
         , _numCopies(NULL)
-        , _parent(NULL)
-    {
+        , _parent(NULL) {
         this->operator=(octree);
     }
 
@@ -71,6 +68,8 @@ namespace spica {
     void SubsurfaceIntegrator::
          Octree::construct(SubsurfaceIntegrator* parent,
                            std::vector<IrradiancePoint>& ipoints) {
+        release();
+
         this->_parent = parent;
         const int numHitpoints = static_cast<int>(ipoints.size());
         
@@ -183,6 +182,8 @@ namespace spica {
         : _octree()
         , _photonMap()
         , _dA(0.0)
+        , _radius()
+        , _triangles()
     {
     }
 
@@ -191,32 +192,37 @@ namespace spica {
     }
 
     void SubsurfaceIntegrator::initialize(const Scene& scene,
-                                          const RenderParameters& params,
                                           const double maxError) {
         // Extract triangles with BSSRDF
-        std::vector<Triangle> triangles;
         double avgArea = 0.0;
+        _triangles.clear();
         for (int i = 0; i < scene.numTriangles(); i++) {
-            if (scene.getBsdf(i).type() & BSDF_TYPE_BSSRDF) {
+            if (scene.getBsdf(i).type() & BsdfType::Bssrdf) {
                 const Triangle& tri = scene.getTriangle(i);
-                triangles.push_back(tri);
+                _triangles.push_back(tri);
                 avgArea += tri.area();
             }
         }
-        if (triangles.empty()) return;
+        if (_triangles.empty()) return;
 
         // Compute dA and copy maxError
-        const double areaRadius = avgArea / triangles.size();
-        _dA       = areaRadius * areaRadius * PI;
+        _radius   = avgArea / _triangles.size();
+        _dA       = (0.5 * _radius) * (0.5 * _radius) * PI;
         _maxError = maxError;
+    }
+
+    void SubsurfaceIntegrator::construct(const Scene& scene,
+                                         const RenderParameters& params) {
+        // If there are no scattering triangle, do nothing
+        if (_triangles.empty()) return;
 
         // Poisson disk sampling
         std::vector<Vector3D> points;
         std::vector<Vector3D> normals;
-        sampler::poissonDisk(triangles, areaRadius, &points, &normals);
+        sampler::poissonDisk(_triangles, _radius, &points, &normals);
 
         // Cast photons to compute irradiance at sample points
-        _photonMap.construct(scene, params, BSDF_TYPE_BSSRDF);
+        _photonMap.construct(scene, params, BsdfType::Bssrdf);
 
         // Compute irradiance at sample points
         buildOctree(points, normals, params);

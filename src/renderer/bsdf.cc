@@ -11,14 +11,14 @@ namespace spica {
     BSDF::BSDF()
         : _ptr()
         , _bssrdf()
-        , _type(BSDF_TYPE_NONE)
+        , _type(BsdfType::None)
     {
     }
 
     BSDF::BSDF(const BSDF& bsdf)
         : _ptr()
         , _bssrdf()
-        , _type(BSDF_TYPE_NONE)
+        , _type(BsdfType::None)
     {
         this->operator=(bsdf);
     }
@@ -26,7 +26,7 @@ namespace spica {
     BSDF::BSDF(BSDF&& bsdf)
         : _ptr()
         , _bssrdf()
-        , _type(BSDF_TYPE_NONE)
+        , _type(BsdfType::None)
     {
         this->operator=(std::move(bsdf));
     }
@@ -88,7 +88,7 @@ namespace spica {
         Color transRad(0.0, 0.0, 0.0);
 
         // Reflactive object should be considered differently
-        if (_type & BSDF_TYPE_REFRACTION) {
+        if (_type & BsdfType::Reflactive) {
             const bool into = in.dot(normal) < 0.0;
             const Vector3D orientN = into ? normal : -normal;
             Vector3D refdir, transdir;
@@ -120,7 +120,7 @@ namespace spica {
 
     void BSDF::setBssrdf(const BSSRDF& bssrdf) {
         _bssrdf.reset(new BSSRDF(bssrdf));
-        this->_type = this->_type | BSDF_TYPE_BSSRDF;
+        this->_type = this->_type | BsdfType::Bssrdf;
     }
 
 }  // namespace spica

@@ -29,7 +29,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   set(TEST_NAME spica_tests)
   set(SOURCE_FILES
       all_tests.cc
-#      test_macros.h
+      test_macros.h
       test_stack.cc
       test_geometry.cc
       test_vector.cc

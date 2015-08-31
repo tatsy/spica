@@ -111,13 +111,11 @@ namespace spica {
         *tMax = std::min(xMax, std::min(yMax, zMax));
 
         if (*tMin > *tMax || (*tMin < 0.0 && *tMax < 0.0)) {
+            (*tMin) = INFTY;
+            (*tMax) = INFTY;
             return false;
         }
          
-        if (*tMin < 0.0 && *tMax >= 0.0) {
-            *tMin = *tMax;
-            *tMax = INFTY;
-        }
         return true;
     }
 

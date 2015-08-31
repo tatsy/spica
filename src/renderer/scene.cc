@@ -109,6 +109,10 @@ namespace spica {
 
     void Scene::computeAccelerator() {
         switch (this->_accelType) {
+        case AccelType::bbvhAccel:
+            _accel = std::shared_ptr<AccelBase>(new BBVHAccel());
+            break;
+
         case AccelType::qbvhAccel:
             _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;

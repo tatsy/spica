@@ -42,7 +42,8 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_kdtree.cc
       test_scene.cc
       test_random.cc
-      test_renderer_helper.cc)
+      test_renderer_helper.cc
+      test_yaml.cc)
     # test_renderer.cc)
 
   add_executable(${TEST_NAME} ${SOURCE_FILES})

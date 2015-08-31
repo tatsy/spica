@@ -1,0 +1,14 @@
+scene:
+  mesh:
+    # This is a comment
+    path:
+      - ./bunny.ply
+    bsdf:
+      type:
+        - Lambertian
+      refl:
+        - 0.75 0.75 0.75
+      emit:
+        - 0.0 0.0 0.0
+    light:
+      - false

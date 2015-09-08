@@ -23,31 +23,29 @@
 
 namespace spica {
 
-    class SPICA_YAML_PARSER_DLL YamlNode {
-    private:
-        std::string val;
-        std::vector<int> children;
+    enum class TokenKind : int {
+        Key     = 0x01,
+        Value   = 0x02,
+        Comment = 0x03,
+        End     = 0xff
+    };
 
-        friend class YamlParser;
+    struct SPICA_YAML_PARSER_DLL YamlNode {
+        int indent;
+        std::string val;
+        TokenKind kind;
+        YamlNode* child;
+        YamlNode* sibling;
+        
+        YamlNode();
+        ~YamlNode();
     };
 
     class SPICA_YAML_PARSER_DLL YamlParser : private Uncopyable {
     private:
-        enum class TokenKind : int {
-            Key     = 0x01,
-            Value   = 0x02,
-            Comment = 0x03,
-            End     = 0xff
-        };
-
-        struct Token {
-            std::string value;
-            TokenKind kind;
-            Token(const std::string& v = "", TokenKind k = TokenKind::End)
-                : value(v)
-                , kind(k) {
-            }
-        };
+        int _lpos;
+        std::vector<std::string> _lines;
+        std::vector<YamlNode*> _nodes;
 
     public:
         YamlParser();
@@ -57,14 +55,11 @@ namespace spica {
         void load(const std::string& filename);
 
     private:
-        int countIndent(std::ifstream& ifs) const;
-        void skipSpace(std::ifstream& ifs) const;
-        void skipLine(std::ifstream& ifs) const;
-        Token getNextToken(std::ifstream& ifs) const;
-        std::string getNextKey(std::ifstream& ifs) const;
-        std::string getNextComment(std::ifstream& ifs) const;
-        std::string getNextValue(std::ifstream& ifs) const;
-        std::string getNextValueIfExist(std::ifstream& ifs) const;
+        void release();
+        YamlNode* recursiveLoad();
+        YamlNode* nextToken();
+
+        void print() const;
     };
 
 }  // namespace spica

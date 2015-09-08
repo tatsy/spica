@@ -3,243 +3,178 @@
 
 #include <iostream>
 #include <fstream>
+#include <stack>
+
+#include "../utils/common.h"
 
 namespace spica {
 
     namespace {
+
         const int kMaxValueLength   = 256;
         const int kMaxKeyLength     = 256;
         const int kMaxCommentLength = 256;
+
+    }  // anonymous namespace
+
+    YamlNode::YamlNode()
+        : indent()
+        , val()
+        , kind()
+        , child(nullptr)
+        , sibling(nullptr) {
     }
 
-    YamlParser::YamlParser() {
+    YamlNode::~YamlNode() {
+    }
+
+    YamlParser::YamlParser()
+        : _lpos(0)
+        , _lines()
+        , _nodes() {
     }
 
     YamlParser::~YamlParser() {
+        release();
     }
 
     void YamlParser::load(const std::string& filename) {
-        printf("%s\n", isspace('\n') ? "YES" : "NO");
-        printf("%s\n", isspace('\r') ? "YES" : "NO");
-
-        std::ifstream ifs(filename.c_str(), std::ios::in);
+        std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
+        if (!ifs.is_open()) {
+            std::cerr << "Failed to load file \"" << filename << "\"" << std::endl;
+            std::abort();
+        }
 
         std::string line;
-        while(!ifs.eof()) {
-            int indent = countIndent(ifs);
-            if (ifs.eof()) break;
-
-            Token tkn  = getNextToken(ifs);
-            fprintf(stdout, "%d: %d, <<%s>>\n", static_cast<int>(tkn.kind), indent, tkn.value.c_str());
-            if (tkn.kind == TokenKind::Key) {
-                std::string tkn2 = getNextValueIfExist(ifs);
-                std::cout << tkn2 << std::endl;
-            }
-
-            if (tkn.kind == TokenKind::End) break;
-        }
-    }
-
-    int YamlParser::countIndent(std::ifstream& ifs) const {
-        char c;
-        int indent = 0;
-        while(!ifs.eof()) {
-            c = ifs.get();
-            if (isspace(c)) {
-                indent++;
-                if (c == '\r' || c == '\n') return -1;
-            } else {
-                ifs.unget();
-                break;
-            }
-        }
-        return indent;
-    }
-
-    void YamlParser::skipSpace(std::ifstream& ifs) const {
-        char c;
+        _lines.clear();
         while (!ifs.eof()) {
-            c = ifs.get();
-            if (!isspace(c)) {
-                ifs.unget();
-                return;
-            }
+            std::getline(ifs, line);
+            _lines.push_back(line);
         }
-    }
+        release();
+        YamlNode* root = new YamlNode();
+        root->kind = TokenKind::Key;
+        root->indent = -1;
+        _nodes.push_back(root);
 
-    void YamlParser::skipLine(std::ifstream& ifs) const {
-        char c;
-        while (!ifs.eof()) {
-            c = ifs.get();
-            if (c == '\r') {
-                if (!ifs.eof()) {
-                    char cc = ifs.get();
-                    if (cc == '\n') {
-                        // Windows (CRLF)
-                        return;
-                    } else {
-                        // Mac (CR)
-                        ifs.unget();
-                        return;
-                    }
-                }
-            } else if (c == '\n') {
-                // Linux (LF)
-                return;
-            }
-        }
-    }
+        std::stack<YamlNode*> stk;
+        stk.push(root);
 
-    YamlParser::Token YamlParser::getNextToken(std::ifstream& ifs) const {
-        skipSpace(ifs);
-
-        char c;
-        while (!ifs.eof()) {
-            c = ifs.get();
-            if (!isspace(c)) break;
-        }
-
-        Token tkn;
-        if (c != EOF) {
-            if (c == '#') { 
+        while (_lpos < _lines.size()) {
+            YamlNode* node = nextToken();
+            if (node == nullptr) {
+                // Empty line
+                // std::cout << "Empty" << std::endl;
+            } else if (node->kind == TokenKind::Comment) {
                 // Comment
-                std::string comment = getNextComment(ifs);
-                tkn = Token(comment, TokenKind::Comment);
-            } else if (c == '-') {
-                // Value
-                std::string val = getNextValue(ifs);
-                tkn = Token(val, TokenKind::Value);
-                skipLine(ifs);
-            } else if (isalpha(c) || isdigit(c) || c == '-') {
-                // Key
-                ifs.unget();
-                std::string key = getNextKey(ifs);
-                tkn = Token(key, TokenKind::Key);
-            } else {
-                fprintf(stderr, "[ERROR] invalid charactor \"%c\" is detected !!\n", c);
-                fprintf(stderr, "%d\n", (int)c);
-                std::abort();
-            }
-        }
-
-        return tkn;
-    }
-
-    std::string YamlParser::getNextKey(std::ifstream& ifs) const {
-        skipSpace(ifs);
-
-        // Key
-        int cnt = 0;
-        char c;
-        char key[kMaxKeyLength];
-        while(!ifs.eof()) {
-            c = ifs.get();
-            if (c == ':') {
-                ifs.unget();
-                break;
-            } else if (isspace(c)) {
-                break;
-            }
-
-            key[cnt++] = c;
-
-            if (cnt == kMaxKeyLength) {
-                std::cerr << "[ERROR] too long key is found !!" << std::endl;
-                std::abort();
-            }
-        }
-
-        // Skip ':'
-        while(!ifs.eof()) {
-            c = ifs.get();
-            if (c == ':') break;
-            if (!isspace(c)) {
-                std::cerr << "[ERROR] key cannot contain white space !!" << std::endl;
-                std::abort();
-            }
-        }
-
-        // Cull backward white spaces
-        key[cnt] = '\0';
-        return std::string(key);
-    }
-
-    std::string YamlParser::getNextValue(std::ifstream& ifs) const {
-        skipSpace(ifs);
-
-        int cnt = 0;
-        char c;
-        char val[kMaxValueLength];
-        while (!ifs.eof()) {
-            c = ifs.get();
-            if (c == '\r') {
-                char cc = ifs.get();
-                if (cc == '\n') {
-                    // Windows (CRLF)
-                    break;
+                // std::cout << "Comment: " << node->val << std::endl;
+            } else if (stk.top()->kind == TokenKind::Key &&
+                       node->kind == TokenKind::Key) {
+                // Key-Key
+                if (stk.top()->indent < node->indent) {
+                    // Child
+                    stk.top()->child = node;
+                    stk.push(node);
+                } else if (stk.top()->indent == node->indent) {
+                    // Sibling
+                    stk.top()->sibling = node;
+                    stk.push(node);
                 } else {
-                    // Mac (CR)
-                    ifs.unget();
-                    break;
+                    std::cerr << "[ERROR] Key-key indentation is invalid!!" << std::endl;
+                    std::abort();
                 }
-            } else if (c == '\n') {
-                // Linux (LF)
-                break;
-            } else {
-                val[cnt++] = c;
-            }
-
-            if (cnt == kMaxValueLength) {
-                std::cerr << "[ERROR] too long value is detected !!" << std::endl;
-                std::abort();
+            } else if (stk.top()->kind == TokenKind::Key &&
+                       node->kind == TokenKind::Value) {
+                // Key-Value
+                Assertion(stk.top()->child == nullptr &&
+                          stk.top()->indent < node->indent,
+                          "Key-value relationship is invalid");
+                stk.top()->child = node;
+                stk.push(node);
+            } else if (stk.top()->kind == TokenKind::Value &&
+                       node->kind == TokenKind::Key) {
+                // Value-Key
+                Assertion(stk.top()->indent > node->indent,
+                          "Value-key indentation is invalid");
+                while (stk.top()->indent != node->indent) stk.pop();
+                stk.top()->sibling = node;
+                stk.push(node);
+            } else if (stk.top()->kind == TokenKind::Value &&
+                       node->kind == TokenKind::Value) {
+                // Value-Value
+                Assertion(stk.top()->indent == node->indent,
+                          "Value indentation is invalid");
+                stk.top()->sibling = node;
+                stk.push(node);
             }
         }
-        // Cull backward white spaces
-        while (isspace(val[--cnt])) ;
-        val[cnt + 1] = '\0';
-        return std::string(val);
+        print();
     }
 
-    std::string YamlParser::getNextValueIfExist(std::ifstream& ifs) const {
-        skipLine(ifs);
-        return "";
+    void YamlParser::release() {
+        for (int i = 0; i < _nodes.size(); i++) {
+            delete _nodes[i];
+        }
+        _nodes.clear();
     }
 
-    std::string YamlParser::getNextComment(std::ifstream& ifs) const {
-        skipSpace(ifs);
+    YamlNode* YamlParser::nextToken() {
+        if (_lpos >= _lines.size()) {
+            std::cerr << "EOF!!" << std::endl;
+            std::abort();
+        }
+
+        std::string line = _lines[_lpos++];
+        int pos = 0;
+        while (pos < line.size() && isspace(line[pos])) pos++;
+        if (pos == line.size()) return nullptr;
+
+        YamlNode* node = new YamlNode();
+        node->indent = pos;
+
+        char cc = line[pos++];
+        if (cc == '#') node->kind = TokenKind::Comment;
+        else if (cc == '-') node->kind = TokenKind::Value;
+        else {
+            pos--;
+            node->kind = TokenKind::Key;
+        }
+
+        while (pos < line.size() && isspace(line[pos])) pos++;
 
         int cnt = 0;
-        char c;
-        char cmt[kMaxCommentLength];
-        while (!ifs.eof()) {
-            c = ifs.get();
-            if (c == '\r') {
-                char cc = ifs.get();
-                if (cc == '\n') {
-                    // Windows (CRLF)
-                    break;
-                } else {
-                    // Mac (CR)
-                    ifs.unget();
-                    break;
-                }
-            } else if (c == '\n') {
-                // Linux (LF)
-                break;
-            } else {
-                cmt[cnt++] = c;         
-            }
-
-            if (cnt == kMaxCommentLength) {
-                std::cerr << "[ERROR] too long comment is detected !!" << std::endl;
-                std::abort();
-            }
+        char val[kMaxValueLength + 1];
+        while (pos < line.size()) {
+            val[cnt++] = line[pos++];
+            if (pos >= line.size()) break;
+            if (cnt >= kMaxValueLength) break;
         }
+        val[cnt] = '\0';
 
-        // Remove backward white spaces
-        while (isspace(cmt[cnt--])) ;
-        cmt[cnt + 1] = '\0';
-        return std::string(cmt);
+        node->val = std::string(val);
+        _nodes.push_back(node);
+        return node;
+    }
+
+    void YamlParser::print() const {
+        std::stack<YamlNode*> stk;
+        stk.push(_nodes[0]);
+        while (!stk.empty()) {
+            YamlNode* node = stk.top();
+            stk.pop();
+            
+            if (node->sibling != nullptr) {
+                stk.push(node->sibling);
+            }
+
+            if (node->child != nullptr) {
+                stk.push(node->child);
+            }
+            
+            
+            for (int i = 0; i < node->indent; i++) printf(" ");
+            printf("%s\n", node->val.c_str());
+        }
     }
 
 }  // namespace spica

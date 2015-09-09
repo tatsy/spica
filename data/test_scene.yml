@@ -1,14 +1,18 @@
 scene:
-  mesh:
-    # This is a comment
-    path:
-      - ./bunny.ply
-    bsdf:
-      type:
-        - Lambertian
-      refl:
-        - [0.75, 0.75, 0.75]
-      emit:
-        - [0.0, 0.0, 0.0]
-    light:
-      - false
+  # Screen
+  screen:
+    width: 800
+    height: 600
+  # Camera
+  camera:
+    eye: [0.0, 0.0, 0.0]
+    lookat: [0.0, 0.0, 0.0]
+  # Meshes
+  meshes:
+    bunny:
+      path: ./bunny.ply
+      bsdf:
+        type: Lambertian
+        refl: [0.75, 0.75, 0.75]
+        emit: [0.0, 0.0, 0.0]
+      light: false

@@ -26,11 +26,9 @@ namespace spica {
     enum class TokenKind : int {
         Key     = 0x01,
         Value   = 0x02,
-        Comment = 0x03,
-        End     = 0xff
     };
 
-    struct SPICA_YAML_PARSER_DLL YamlNode {
+    struct YamlNode {
         int indent;
         std::string val;
         TokenKind kind;
@@ -39,6 +37,32 @@ namespace spica {
         
         YamlNode();
         ~YamlNode();
+    };
+
+    class SPICA_YAML_PARSER_DLL YamlElement {
+    private:
+        YamlNode* _ptr;
+
+    private:
+        YamlElement(YamlNode* ptr = nullptr);
+
+    public:
+        bool isNull() const;
+        bool hasChild() const;
+        YamlElement firstChild() const;
+        YamlElement childByKey(const std::string& key) const;
+        bool hasSibling() const;
+        YamlElement nextSibling() const;
+
+        int asInteger() const;
+        bool asBool() const;
+        double asDouble() const;
+        std::string asString() const;
+        std::vector<int> asIntegerList() const;
+        std::vector<double> asDoubleList() const;
+        std::vector<std::string> asStringList() const;
+
+        friend class YamlParser;
     };
 
     class SPICA_YAML_PARSER_DLL YamlParser : private Uncopyable {
@@ -53,6 +77,7 @@ namespace spica {
         ~YamlParser();
 
         void load(const std::string& filename);
+        YamlElement documentElement() const;
 
     private:
         void release();

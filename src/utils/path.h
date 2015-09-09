@@ -15,6 +15,7 @@
 #endif
 
 #include <string>
+#include <vector>
 
 namespace spica {
 
@@ -29,6 +30,17 @@ namespace spica {
             return makedir(dirname.c_str()) == 0;   
         }
 
+        inline std::vector<std::string> split(const std::string& str, const std::string& delim) {
+            int prev = 0;
+            int pos  = 0;
+            std::vector<std::string> retval;
+            while ((pos = str.find_first_of(delim, pos)) != std::string::npos) {
+                retval.push_back(str.substr(prev, pos));
+                prev = pos + delim.size();
+            }
+            retval.push_back(str.substr(prev));
+            return retval;
+        }
     }
 
 }  // namespace spica

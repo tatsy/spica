@@ -80,7 +80,7 @@ namespace spica {
             } else if (shape == "sphere") {
                 std::vector<double> cent = shapeElem.valueByKey("center").asDoubleList();
                 double radius = shapeElem.valueByKey("radius").asDouble();
-                scene->add(Sphere(radius, Vector3D(cent[0], cent[2], cent[2])),
+                scene->add(Sphere(radius, Vector3D(cent[0], cent[1], cent[2])),
                                   bsdf, emission, isLight);
             }
             elem = elem.nextSibling();

@@ -15,6 +15,7 @@ namespace spica {
         , gatherRadiusEdit(new QLineEdit)
         , randomTypeCombo(new QComboBox)
         , filenameFormatEdit(new QLineEdit)
+        , loadButton(new QPushButton)
         , renderButton(new QPushButton)
     {
         setLayout(verticalLayout);
@@ -30,8 +31,10 @@ namespace spica {
         formLayout->addRow("Filename", filenameFormatEdit);
 
         verticalLayout->addWidget(formWidget);
+        verticalLayout->addWidget(loadButton);
         verticalLayout->addWidget(renderButton);
 
+        loadButton->setText("Load");
         renderButton->setText("Render");
     }
 

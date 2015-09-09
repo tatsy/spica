@@ -32,7 +32,7 @@ namespace spica {
     }
 
     void QGLRenderWidget::setScene(const Scene& scene, const Camera& camera_) {
-        this->camera = &camera_;
+        this->camera = camera_;
 
         this->resize(camera_.imageW(), camera_.imageH());
 
@@ -67,12 +67,16 @@ namespace spica {
     }
 
     void QGLRenderWidget::paintGL() {
-        const Vector3D eye = camera->lensCenter();
-        const Vector3D lookTo = eye + camera->direction();
-        const Vector3D up = camera->up();
-        const double verticalAngle = 360.0 / PI * atan(camera->sensorH() / (2.0 * camera->distSL()));
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        qglClearColor(Qt::black);
+
+        if (camera.imageW() == 0 || camera.imageH() == 0) return;
+
+        const Vector3D eye = camera.lensCenter();
+        const Vector3D lookTo = eye + camera.direction();
+        const Vector3D up = camera.up();
+        const double verticalAngle = 360.0 / PI * atan(camera.sensorH() / (2.0 * camera.distSL()));
+
 
         QMatrix4x4 projMat, viewMat, modelMat, normalMat;
         projMat.perspective(verticalAngle, (float)width() / (float)height(), 1.0f, 1000.0f);

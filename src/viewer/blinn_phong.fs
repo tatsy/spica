@@ -9,6 +9,8 @@ smooth in vec4 vertexColor;
 
 out vec4 color;
 
+vec4 ambient = vec4(0.1, 0.1, 0.1, 1.0);
+
 void main(void) {
     vec3 V = normalize(cameraPosition - vertexCameraspace);
     vec3 N = normalize(normalCameraspace);
@@ -21,5 +23,5 @@ void main(void) {
     float n_dot_h = dot(N, H);
     vec4 specular = vec4(pow(max(0.0, n_dot_h), 64.0));
 
-    color = vertexColor * (diffuse + specular);
+    color = ambient + vertexColor * (diffuse + specular);
 }

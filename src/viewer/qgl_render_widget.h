@@ -56,7 +56,7 @@ namespace spica {
         QOpenGLShaderProgram* shaderProgram;
         
         VBO vbo;
-        const Camera* camera;
+        Camera camera;
 
     };
 

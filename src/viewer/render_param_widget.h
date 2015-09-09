@@ -34,6 +34,7 @@ namespace spica {
         QComboBox* randomTypeCombo;
         QLineEdit* filenameFormatEdit;
 
+        QPushButton* loadButton;
         QPushButton* renderButton;
 
         friend class SceneViewer;

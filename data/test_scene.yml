@@ -5,14 +5,122 @@ scene:
     height: 600
   # Camera
   camera:
-    eye: [0.0, 0.0, 0.0]
-    lookat: [0.0, 0.0, 0.0]
+    center: [0.0, 0.0, 100.0]
+    lookat: [0.0, 0.0, -1.0]
+    up: [0.0, 1.0, 0.0]
+    sensor-size: 20.0
+    sensor-to-lens: 42.0
+    focal-length: 58.0
+    lens-radius: 1.0
+    sensitivity: 90.0
   # Meshes
   meshes:
-    bunny:
-      path: ./bunny.ply
+    # Cornell box
+    ceil:
+      shape:
+        type: quad
+        vertices:
+          - [-10.0,  10.0, -10.0]
+          - [ 10.0,  10.0, -10.0]
+          - [ 10.0,  10.0,  10.0]
+          - [-10.0,  10.0,  10.0]
       bsdf:
-        type: Lambertian
+        type: lambertian
         refl: [0.75, 0.75, 0.75]
+        emit: [0.0, 0.0, 0.0]
+      light: false
+    floor:
+      shape:
+        type: quad
+        vertices:
+          - [ 10.0,  10.0,  10.0]
+          - [ 10.0,  10.0, -10.0]
+          - [-10.0,  10.0, -10.0]
+          - [ 10.0, -10.0, -10.0]
+      bsdf:
+        type: lambertian
+        refl: [0.75, 0.75, 0.75]
+        emit: [0.0, 0.0, 0.0]
+      light: false
+    back:
+      shape:
+        type: quad
+        vertices:
+          - [ 10.0,  10.0,  10.0]
+          - [-10.0,  10.0,  10.0]
+          - [-10.0, -10.0,  10.0]
+          - [ 10.0, -10.0,  10.0]
+      bsdf:
+        type: lambertian
+        refl: [0.75, 0.75, 0.75]
+        emit: [0.0, 0.0, 0.0]
+      light: false
+    left:
+      shape:
+        type: quad
+        vertices:
+          - [ 10.0,  10.0,  10.0]
+          - [ 10.0, -10.0,  10.0]
+          - [ 10.0, -10.0, -10.0]
+          - [ 10.0,  10.0, -10.0]
+      bsdf:
+        type: lambertian
+        refl: [0.75, 0.25, 0.25]
+        emit: [0.0, 0.0, 0.0]
+      light: false
+    right:
+      shape:
+        type: quad
+        vertices:
+          - [-10.0,  10.0,  10.0]
+          - [-10.0,  10.0, -10.0]
+          - [-10.0, -10.0, -10.0]
+          - [-10.0,  10.0, -10.0]
+      bsdf:
+        type: lambertian
+        refl: [0.25, 0.25, 0.75]
+        emit: [0.0, 0.0, 0.0]
+      light: false
+    area-light:
+      shape:
+        type: quad
+        vertices:
+          - [-5.0, 9.99, -5.0]
+          - [ 5.0, 9.99, -5.0]
+          - [ 5.0, 9.99,  5.0]
+          - [-5.0, 9.99,  5.0]
+      bsdf:
+        type: lambertian
+        refl: [0.0, 0.0, 0.0]
+        emit: [32.0, 32.0, 32.0]
+      light: true
+    sphere1:
+      shape:
+        type: sphere
+        center: [0.0, -7.0, 0.0]
+        radius: 3.0
+      bsdf:
+        type: lambertian
+        refl: [0.25, 0.75, 0.25]
+        emit: [0.0, 0.0, 0.0]
+      light: false
+    sphere2:
+      shape:
+        type: sphere
+        center: [-5.0, -7.0, -5.0]
+        radius: 3.0
+      bsdf:
+        type: specular
+        refl: [0.99, 0.99, 0.99]
+        emit: [0.0, 0.0, 0.0]
+      light: false
+    sphere3:
+      shape:
+        type: sphere
+        center: [5.0, -7.0, 5.0]
+        radius: 3.0
+      bsdf:
+        type: refractive
+        refl: [0.99, 0.99, 0.99]
         emit: [0.0, 0.0, 0.0]
       light: false

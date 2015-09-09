@@ -44,13 +44,24 @@ namespace spica {
         YamlNode* _ptr;
 
     private:
-        YamlElement(YamlNode* ptr = nullptr);
+        YamlElement(YamlNode* ptr);
 
     public:
+        YamlElement();
+        YamlElement(const YamlElement& elem);
+        ~YamlElement();
+        YamlElement& operator=(const YamlElement& elem);
+
         bool isNull() const;
         bool hasChild() const;
         YamlElement firstChild() const;
+        
+        //! get the first child node with specified key
         YamlElement childByKey(const std::string& key) const;
+
+        //! get the value node whose parent has the specified key
+        YamlElement valueByKey(const std::string& key) const;
+
         bool hasSibling() const;
         YamlElement nextSibling() const;
 

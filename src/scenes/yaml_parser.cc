@@ -54,8 +54,24 @@ namespace spica {
     // YAML Element
     // -------------------------------------------------------------------------
 
+    YamlElement::YamlElement()
+        : _ptr(nullptr) {
+    }
+
     YamlElement::YamlElement(YamlNode* ptr)
         : _ptr(ptr) {
+    }
+
+    YamlElement::YamlElement(const YamlElement& elem)
+        : _ptr(elem._ptr) {
+    }
+
+    YamlElement::~YamlElement() {
+    }
+
+    YamlElement& YamlElement::operator=(const YamlElement& elem) {
+        this->_ptr = elem._ptr;
+        return *this;
     }
 
     bool YamlElement::isNull() const {
@@ -77,7 +93,21 @@ namespace spica {
             if (child->val == key) {
                 return YamlElement(child);
             }
-            std::cout << child->val << std::endl;
+            child = child->sibling;
+        }
+        return YamlElement();
+    }
+
+    YamlElement YamlElement::valueByKey(const std::string& key) const {
+        Assertion(_ptr != nullptr, "Element is null");
+        YamlNode* child = _ptr->child;
+        while (child != nullptr) {
+            if (child->val == key) {
+                if (child->child != nullptr && 
+                    child->child->kind == TokenKind::Value) {
+                    return YamlElement(child->child);
+                }
+            }
             child = child->sibling;
         }
         return YamlElement();
@@ -92,9 +122,9 @@ namespace spica {
     }
 
     bool YamlElement::asBool() const {
-        Assertion(_ptr->child != nullptr && _ptr->child->kind == TokenKind::Value,
+        Assertion(_ptr != nullptr && _ptr->kind == TokenKind::Value,
                   "Child of the node does not have value");
-        std::string& s = _ptr->child->val;
+        std::string& s = _ptr->val;
         if (s == "Yes" || s == "True" || s == "yes" || s == "true") {
             return true;
         }
@@ -102,29 +132,29 @@ namespace spica {
     }
 
     int YamlElement::asInteger() const {
-        Assertion(_ptr->child != nullptr && _ptr->child->kind == TokenKind::Value,
+        Assertion(_ptr != nullptr && _ptr->kind == TokenKind::Value,
                   "Child of the node does not have value");
-        std::string& s = _ptr->child->val;
+        std::string& s = _ptr->val;
         return atoi(s.c_str());
     }
 
     double YamlElement::asDouble() const {
-        Assertion(_ptr->child != nullptr && _ptr->child->kind == TokenKind::Value,
+        Assertion(_ptr != nullptr && _ptr->kind == TokenKind::Value,
                   "Child of the node does not have value");
-        std::string& s = _ptr->child->val;
+        std::string& s = _ptr->val;
         return atof(s.c_str());
     }
 
     std::string YamlElement::asString() const {
-        Assertion(_ptr->child != nullptr && _ptr->child->kind == TokenKind::Value,
+        Assertion(_ptr != nullptr && _ptr->kind == TokenKind::Value,
                   "Child of the node does not have value");
-        return _ptr->child->val;
+        return _ptr->val;
     }
 
     std::vector<int> YamlElement::asIntegerList() const {
-        Assertion(_ptr->child != nullptr && _ptr->child->kind == TokenKind::Value,
+        Assertion(_ptr != nullptr && _ptr->kind == TokenKind::Value,
                   "Child of the node does not have value");
-        std::string& s = _ptr->child->val;
+        std::string& s = _ptr->val;
         Assertion(s[0] == '[' && s[s.size() - 1] == ']', "List parse error");
 
         std::vector<std::string> vals = path::split(s.substr(1, s.size() - 2), ",");
@@ -136,9 +166,9 @@ namespace spica {
     }
 
     std::vector<double> YamlElement::asDoubleList() const {
-        Assertion(_ptr->child != nullptr && _ptr->child->kind == TokenKind::Value,
+        Assertion(_ptr != nullptr && _ptr->kind == TokenKind::Value,
                   "Child of the node does not have value");
-        std::string& s = _ptr->child->val;
+        std::string& s = _ptr->val;
         Assertion(s[0] == '[' && s[s.size() - 1] == ']', "List parse error");
 
         std::vector<std::string> vals = path::split(s.substr(1, s.size() - 2), ",");
@@ -150,9 +180,9 @@ namespace spica {
     }
 
     std::vector<std::string> YamlElement::asStringList() const {
-        Assertion(_ptr->child != nullptr && _ptr->child->kind == TokenKind::Value,
+        Assertion(_ptr != nullptr && _ptr->kind == TokenKind::Value,
                   "Child of the node does not have value");
-        std::string& s = _ptr->child->val;
+        std::string& s = _ptr->val;
         Assertion(s[0] == '[' && s[s.size() - 1] == ']', "List parse error");
 
         std::vector<std::string> vals = path::split(s.substr(1, s.size() - 2), ",");
@@ -263,7 +293,6 @@ namespace spica {
                 stk.push(node);
             }
         }
-        print();
     }
 
     void YamlParser::release() {
@@ -312,7 +341,7 @@ namespace spica {
             node->val = val.substr(0, cp);
 
             cp++;
-            while (cp < val.size() && isspace(cp)) cp++;
+            while (cp < val.size() && isspace(val[cp])) cp++;
 
             if (cp < val.size()) {
                 YamlNode* child = new YamlNode();
@@ -349,7 +378,6 @@ namespace spica {
             if (node->child != nullptr) {
                 stk.push(node->child);
             }
-            
             
             for (int i = 0; i < node->indent; i++) printf(" ");
             printf("%s\n", node->val.c_str());

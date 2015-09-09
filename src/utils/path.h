@@ -34,7 +34,7 @@ namespace spica {
             int prev = 0;
             int pos  = 0;
             std::vector<std::string> retval;
-            while ((pos = str.find_first_of(delim, pos)) != std::string::npos) {
+            while ((pos = str.find_first_of(delim, prev)) != std::string::npos) {
                 retval.push_back(str.substr(prev, pos));
                 prev = pos + delim.size();
             }

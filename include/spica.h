@@ -40,5 +40,6 @@
 
 #include "../src/scenes/predefined_scenes.h"
 #include "../src/scenes/yaml_parser.h"
+#include "../src/scenes/scene_loader.h"
 
 #endif  // _SPICA_H_

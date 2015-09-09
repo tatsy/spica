@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_SCENE_LOADER_H_
 #define _SPICA_SCENE_LOADER_H_
 
@@ -18,7 +22,7 @@ namespace spica {
     class Scene;
     class Camera;
 
-    class SceneLoader {
+    class SPICA_SCENE_LOADER_DLL SceneLoader {
     public:
         SceneLoader();
         ~SceneLoader();    

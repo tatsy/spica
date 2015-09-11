@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_VBO_H_
 #define _SPICA_VBO_H_
 

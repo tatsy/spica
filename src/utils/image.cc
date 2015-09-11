@@ -530,8 +530,8 @@ namespace spica {
         delete[] data;
     }
 
-    void Image::tonemap(TMAlgorithm algo) {
-        Assertion(algo == TM_REINHARD, "Tone mapping algorithm other than Reinhard '02 is not supported");
+    void Image::tonemap(Tonemap algo) {
+        Assertion(algo == Tonemap::Rainhard, "Tone mapping algorithm other than Reinhard '02 is not supported");
 
         const double delta = 1.0e-8;
         const double a = 0.18;

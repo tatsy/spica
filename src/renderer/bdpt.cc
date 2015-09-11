@@ -598,8 +598,8 @@ namespace spica {
         const int height = camera.imageH();
 
         // Prepare random samplers
-        RandomSampler* samplers = new RandomSampler[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory(i);
@@ -615,8 +615,8 @@ namespace spica {
             }
         }
         
-        Image* buffer = new Image[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        Image* buffer = new Image[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             buffer[i] = Image(width, height);
         }
 
@@ -629,16 +629,16 @@ namespace spica {
         }
 
         // Distribute tasks
-        const int taskPerThread = (height + kNumCores - 1) / kNumCores;
-        std::vector<std::vector<int> > tasks(kNumCores);
+        const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
+        std::vector<std::vector<int> > tasks(kNumThreads);
         for (int y = 0; y < height; y++) {
-            tasks[y % kNumCores].push_back(y);
+            tasks[y % kNumThreads].push_back(y);
         }
 
         // Rendering
         for (int s = 0; s < params.samplePerPixel(); s++) {
             for (int t = 0; t < taskPerThread; t++) {
-                ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+                ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                     Stack<double> rstk;
                     if (t < tasks[threadID].size()) {
                         const int y = tasks[threadID][t];
@@ -663,7 +663,7 @@ namespace spica {
             }
 
             _image->fill(Color(0.0, 0.0, 0.0));
-            for (int k = 0; k < kNumCores; k++) {
+            for (int k = 0; k < kNumThreads; k++) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         _image->pixel(width - x - 1, y) += buffer[k](x, y) / (s + 1);

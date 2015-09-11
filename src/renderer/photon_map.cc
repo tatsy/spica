@@ -101,8 +101,8 @@ namespace spica {
         std::cout << "Shooting photons..." << std::endl;
 
         // Random number generator
-        RandomSampler* samplers = new RandomSampler[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory((unsigned int)i);
@@ -121,13 +121,13 @@ namespace spica {
 
         // Distribute tasks
         const int np = params.castPhotons();
-        const int taskPerThread = (np + kNumCores - 1) / kNumCores;
-        std::vector<std::vector<Photon> > photons(kNumCores);
+        const int taskPerThread = (np + kNumThreads - 1) / kNumThreads;
+        std::vector<std::vector<Photon> > photons(kNumThreads);
 
         // Shooting photons
         int proc = 0;
         for (int t = 0; t < taskPerThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {                
+            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {                
                 // Request random numbers in each thread
                 Stack<double> rstk;
                 samplers[threadID].request(&rstk, 250);
@@ -154,7 +154,7 @@ namespace spica {
                             rstk, 0, absorbBsdf, &photons[threadID]);
             }
 
-            proc += kNumCores;
+            proc += kNumThreads;
             if (proc % 1000 == 0) {
                 printf("%6.2f %% processed...\r", 
                         100.0 * proc / params.castPhotons());
@@ -170,7 +170,7 @@ namespace spica {
         
         clear();
         std::vector<Photon> photonsAll;
-        for (int i = 0; i < kNumCores; i++) {
+        for (int i = 0; i < kNumThreads; i++) {
             photonsAll.insert(photonsAll.end(), 
                               photons[i].begin(), photons[i].end());
         }

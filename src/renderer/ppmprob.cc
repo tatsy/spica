@@ -36,8 +36,8 @@ namespace spica {
         _integrator->initialize(scene);
 
         // Random number generator
-        RandomSampler* samplers = new RandomSampler[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory((unsigned int)i);
@@ -62,10 +62,10 @@ namespace spica {
         globalRadius = (bbox.posMax() - bbox.posMin()).norm() * 0.1;
 
         // Distribute tasks
-        const int tasksThread = (height + kNumCores - 1) / kNumCores;
-        std::vector<std::vector<int> > tasks(kNumCores);
+        const int tasksThread = (height + kNumThreads - 1) / kNumThreads;
+        std::vector<std::vector<int> > tasks(kNumThreads);
         for (int y = 0; y < height; y++) {
-            tasks[y % kNumCores].push_back(y);
+            tasks[y % kNumThreads].push_back(y);
         }
 
         // Rendering
@@ -81,7 +81,7 @@ namespace spica {
 
             // 2nd pass: Path tracing
             for (int t = 0; t < tasksThread; t++) {
-                ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+                ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                     if (t < tasks[threadID].size()) {
                         Stack<double> rstk;            
                         const int y = tasks[threadID][t];

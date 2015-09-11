@@ -105,6 +105,18 @@ namespace spica {
         return Color(-this->_r, -this->_g, -this->_b);
     }
 
+    double Color::dot(const Color& color) const {
+        return _r * color._r + _g * color._g + _b * color._b;
+    }
+
+    double Color::norm() const {
+        return ::sqrt(this->squaredNorm());
+    }
+
+    double Color::squaredNorm() const {
+        return this->dot(*this);
+    }
+
     double Color::luminance() const {
         return 0.2126 * _r + 0.7152 * _g + 0.0722 * _b;
     }

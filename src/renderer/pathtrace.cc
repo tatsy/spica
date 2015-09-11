@@ -36,8 +36,8 @@ namespace spica {
         _integrator->initialize(scene);
 
         // Prepare random number generators
-        RandomSampler* samplers = new RandomSampler[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory(i);
@@ -58,10 +58,10 @@ namespace spica {
         Image buffer = Image(width, height);
 
         // Distribute rendering tasks
-        const int taskPerThread = (height + kNumCores - 1) / kNumCores;
-        std::vector<std::vector<int> > tasks(kNumCores);
+        const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
+        std::vector<std::vector<int> > tasks(kNumThreads);
         for (int y = 0; y < height; y++) {
-            tasks[y % kNumCores].push_back(y);
+            tasks[y % kNumThreads].push_back(y);
         }
 
         // Trace rays
@@ -70,7 +70,7 @@ namespace spica {
         buffer.fill(Color::BLACK);
         for (int i = 0; i < params.samplePerPixel(); i++) {
             for (int t = 0; t < taskPerThread; t++) {
-                ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+                ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                     if (t < tasks[threadID].size()) {
                         Stack<double> rstk;
                         const int y = tasks[threadID][t];

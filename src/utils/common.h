@@ -60,12 +60,12 @@ static const double EPS = 1.0e-6;
         #define ompfor _Pragma("omp parallel for") for
         #define omplock _Pragma("omp critical")
     #endif
-    const int kNumCores = omp_get_max_threads();
+    const int kNumThreads = omp_get_max_threads();
     inline int omp_thread_id() { return omp_get_thread_num(); }
 #else  // _OPENMP
     #define ompfor for
     #define omplock
-    const int kNumCores = 1;
+    const int kNumThreads = 1;
     inline int omp_thread_id() { return 0; }
 #endif  // _OPENMP
 

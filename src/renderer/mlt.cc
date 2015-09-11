@@ -225,18 +225,18 @@ namespace spica {
         const int numMLT = params.samplePerPixel();
         const int numMutate = width * height;
         
-        Image* buffer = new Image[kNumCores];
-        Random* rand = new Random[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        Image* buffer = new Image[kNumThreads];
+        Random* rand = new Random[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             buffer[i] = Image(width, height);
             rand[i] = Random(i);
         }
 
-        const int taskPerThread = (numMLT + kNumCores- 1) / kNumCores;
+        const int taskPerThread = (numMLT + kNumThreads- 1) / kNumThreads;
 
         _result.resize(width, height);
         for (int t = 0; t < taskPerThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 Stack<double> rstk;
                 rand[threadID].request(&rstk, 2);
 
@@ -320,11 +320,11 @@ namespace spica {
                 }
             }
 
-            const int usedSamples = kNumCores * (t + 1);
+            const int usedSamples = kNumThreads * (t + 1);
             _result.fill(Color::BLACK);
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    for (int k = 0; k < kNumCores; k++) {
+                    for (int k = 0; k < kNumThreads; k++) {
                         _result.pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
                     }
                 }

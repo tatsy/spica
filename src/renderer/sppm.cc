@@ -49,8 +49,8 @@ namespace spica {
         }
 
         // Initialize random number samplers
-        RandomSampler* samplers = new RandomSampler[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory((unsigned int)i);
@@ -153,15 +153,15 @@ namespace spica {
         std::cout << "Tracing rays from camera ..." << std::endl;
 
         // Distribute Hitpoints to each thread
-        std::vector<std::vector<int> > pixelIDs(kNumCores);
+        std::vector<std::vector<int> > pixelIDs(kNumThreads);
         for (int i = 0; i < numPixels; i++) {
-            pixelIDs[i % kNumCores].push_back(i);
+            pixelIDs[i % kNumThreads].push_back(i);
         }
 
         int proc = 0;
-        const int tasksThread = (numPixels + kNumCores - 1) / kNumCores;
+        const int tasksThread = (numPixels + kNumThreads - 1) / kNumThreads;
         for (int t = 0; t < tasksThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 if (t < pixelIDs[threadID].size()) {
                     Stack<double> rstk;
                     samplers[threadID].request(&rstk, 250);
@@ -171,7 +171,7 @@ namespace spica {
                 }
             }
 
-            proc += kNumCores;
+            proc += kNumThreads;
             if (proc % width == 0) {
                 printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
             }
@@ -190,12 +190,12 @@ namespace spica {
         std::cout << "Shooting photons ..." << std::endl;
 
         // Distribute tasks
-        const int tasksThread = (numPhotons + kNumCores - 1) / kNumCores;
+        const int tasksThread = (numPhotons + kNumThreads - 1) / kNumThreads;
 
         // Trace photons
         int proc = 0;
         for (int t = 0; t < tasksThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 Stack<double> rstk;
                 omplock {
                     samplers[threadID].request(&rstk, 250);
@@ -222,7 +222,7 @@ namespace spica {
                 tracePhotonsRec(scene, ray, params, flux, 0, rstk);
             }
 
-            proc += kNumCores;
+            proc += kNumThreads;
             if (proc % 100 == 0) {
                 printf("%6.2f %% processed ...\r", 100.0 * proc / numPhotons);
             }

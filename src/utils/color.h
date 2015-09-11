@@ -61,6 +61,9 @@ namespace spica {
         Color clamp(const Color& lo = Color(0.0, 0.0, 0.0),
                     const Color& hi = Color(INFTY, INFTY, INFTY)) const;
 
+        double dot(const Color& color) const;
+        double norm() const;
+        double squaredNorm() const;
         double luminance() const;
 
         inline double red()   const { return _r; }

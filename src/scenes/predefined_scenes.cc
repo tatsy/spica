@@ -266,8 +266,8 @@ namespace spica {
         kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
         kitten.buildAccel();
 
-        const Color sigmap_s = Color(2.19, 2.62, 3.00);
-        const Color sigma_a  = Color(0.0021, 0.0041, 0.0071);
+        const Color sigmap_s = Color(2.19, 2.62, 3.00) * 0.1;
+        const Color sigma_a  = Color(0.0021, 0.0041, 0.0071) * 10.0;
         const BSSRDF bssrdf = DipoleBSSRDF::factory(sigma_a, sigmap_s, 1.5);
 
         BSDF kittenBsdf = RefractiveBSDF::factory(Color(0.999, 0.999, 0.999));

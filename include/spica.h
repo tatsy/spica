@@ -6,6 +6,7 @@
 #define _SPICA_H_
 
 #include "../src/utils/common.h"
+#include "../src/utils/vbo.h"
 #include "../src/utils/path.h"
 #include "../src/utils/timer.h"
 #include "../src/utils/vector3d.h"

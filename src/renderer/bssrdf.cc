@@ -300,5 +300,4 @@ namespace spica {
         Assertion(_ptr != NULL, "BSSRDF does not have instance!!");
     }
 
-
 }  // namespace spica

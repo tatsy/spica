@@ -37,7 +37,7 @@ namespace spica {
         virtual ~BSSRDFBase() {}
         virtual double Ft(const Vector3D& nornal, const Vector3D& in) const;
         virtual double Fdr() const;
-        virtual Color operator()(const double d2) const = 0;
+        virtual Color operator()(const Vector3D& v1, const Vector3D& v2) const = 0;
         virtual BSSRDFBase* clone() const = 0;
     };
 
@@ -63,7 +63,7 @@ namespace spica {
 
     public:
         static BSSRDF factory(const Color& sigma_a, const Color& sigmap_s, double eta = 1.3);
-        Color operator()(const double d2) const override;
+        Color operator()(const Vector3D& v1, const Vector3D& v2) const override;
         BSSRDFBase* clone() const override;
     };
 
@@ -86,7 +86,7 @@ namespace spica {
 
         static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
         BSSRDF factory() const;
-        Color operator()(const double d2) const override;
+        Color operator()(const Vector3D& v1, const Vector3D& v2) const override;
         BSSRDFBase* clone() const override;
 
         int numIntervals() const;
@@ -98,7 +98,22 @@ namespace spica {
         void save(const std::string& filename) const;
     };
 
+    // ------------------------------------------------------------
+    // Custom BSSRDF interface
+    // ------------------------------------------------------------
 
+    class SPICA_BSSRDF_DLL CustomBSSRDF : public BSSRDFBase {
+    protected:
+        CustomBSSRDF* _ptr;
+
+    public:
+        CustomBSSRDF();
+        virtual ~CustomBSSRDF();
+        virtual BSSRDF factory() const;
+        virtual Color operator()(const Vector3D& v1, const Vector3D& v2) const override = 0;
+        virtual BSSRDFBase* clone() const override = 0;
+    };
+ 
     // ------------------------------------------------------------
     // Abstract BSSRDF class
     // ------------------------------------------------------------
@@ -118,15 +133,16 @@ namespace spica {
 
         double Ft(const Vector3D& normal, const Vector3D& in) const;
         double Fdr() const;
-        Color operator()(const double d2) const;
+        Color operator()(const Vector3D& v1, const Vector3D& v2) const;
 
     private:
         explicit BSSRDF(const BSSRDFBase* ptr);
         void nullCheck() const;
 
-    // Friend classes
+        // Friend classes
         friend class DipoleBSSRDF;
         friend class DiffuseBSSRDF;
+        friend class CustomBSSRDF;
     };
 
 }

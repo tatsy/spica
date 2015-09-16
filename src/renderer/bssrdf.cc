@@ -89,7 +89,8 @@ namespace spica {
         return BSSRDF(new DipoleBSSRDF(sigma_a, sigmap_s, eta));
     }
 
-    Color DipoleBSSRDF::operator()(const double d2) const {
+    Color DipoleBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+        const double d2 = (v1 - v2).squaredNorm();
         const Color dpos = Color::sqrt(d2 + _zpos * _zpos);
         const Color dneg = Color::sqrt(d2 + _zneg * _zneg);
         const Color dpos3 = dpos * dpos * dpos;
@@ -161,7 +162,8 @@ namespace spica {
         return std::move(BSSRDF(new DiffuseBSSRDF(*this)));
     }
 
-    Color DiffuseBSSRDF::operator()(const double d2) const {
+    Color DiffuseBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+        const double d2 = (v1 - v2).squaredNorm();
         if (d2 < 0.0 || d2 > _distances[_distances.size() - 1]) return Color(0.0, 0.0, 0.0);
         const int idx = std::lower_bound(_distances.begin(), _distances.end(), d2) - _distances.begin();
         return _colors[idx];
@@ -230,6 +232,23 @@ namespace spica {
     }
 
     // ------------------------------------------------------------
+    // Custom BSSRDF interface
+    // ------------------------------------------------------------
+
+    CustomBSSRDF::CustomBSSRDF()
+        : _ptr(nullptr) {
+    }
+
+    CustomBSSRDF::~CustomBSSRDF() {
+        delete _ptr;
+    }
+
+    BSSRDF CustomBSSRDF::factory() const {
+        Assertion(_ptr != nullptr, "BSSRDF pointer is null!!");
+        return BSSRDF(_ptr->clone());                      
+    }
+
+    // ------------------------------------------------------------
     // Abstract BSSRDF class
     // ------------------------------------------------------------
 
@@ -292,8 +311,8 @@ namespace spica {
         return _ptr->Fdr();
     }
 
-    Color BSSRDF::operator()(const double dr) const {
-        return _ptr->operator()(dr);
+    Color BSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+        return _ptr->operator()(v1, v2);
     }
 
     void BSSRDF::nullCheck() const {

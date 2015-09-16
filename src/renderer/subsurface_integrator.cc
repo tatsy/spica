@@ -166,7 +166,7 @@ namespace spica {
         double dw = node->pt.area / distSquared;
         if (node->isLeaf ||
             (dw < _parent->_maxError && !node->bbox.inside(pos))) {
-            return bssrdf(distSquared) * (node->pt.irad) * node->pt.area;
+            return bssrdf(pos, node->pt.pos) * (node->pt.irad) * node->pt.area;
         } else {
             Color ret(0.0, 0.0, 0.0);
             for (int i = 0; i < 8; i++) {

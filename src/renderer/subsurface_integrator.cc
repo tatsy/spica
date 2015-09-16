@@ -128,7 +128,7 @@ namespace spica {
         int childCount = 0;
         for (int i = 0; i < 8; i++) {
             if (node->children[i] != NULL) {
-                double w = node->children[i]->pt.irad.luminance();
+                const double w = node->children[i]->pt.irad.luminance();
                 node->pt.pos += w * node->children[i]->pt.pos;
                 node->pt.normal += w * node->children[i]->pt.normal;
                 node->pt.area += node->children[i]->pt.area;
@@ -166,7 +166,7 @@ namespace spica {
         double dw = node->pt.area / distSquared;
         if (node->isLeaf ||
             (dw < _parent->_maxError && !node->bbox.inside(pos))) {
-            return Color(bssrdf(distSquared) * (node->pt.irad) * node->pt.area);
+            return bssrdf(distSquared) * (node->pt.irad) * node->pt.area;
         } else {
             Color ret(0.0, 0.0, 0.0);
             for (int i = 0; i < 8; i++) {
@@ -203,10 +203,9 @@ namespace spica {
                 avgArea += tri.area();
             }
         }
-        if (_triangles.empty()) return;
 
         // Compute dA and copy maxError
-        _radius   = avgArea / _triangles.size();
+        _radius   = sqrt(avgArea / _triangles.size());
         _dA       = (0.5 * _radius) * (0.5 * _radius) * PI;
         _maxError = maxError;
     }

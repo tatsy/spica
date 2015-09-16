@@ -94,8 +94,8 @@ namespace spica {
         const Color dneg = Color::sqrt(d2 + _zneg * _zneg);
         const Color dpos3 = dpos * dpos * dpos;
         const Color dneg3 = dneg * dneg * dneg;
-        const Color posTerm = _zpos * (dpos * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dpos) / (dpos * dpos * dpos);
-        const Color negTerm = _zneg * (dneg * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dneg) / (dneg * dneg * dneg);
+        const Color posTerm = _zpos * (dpos * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dpos);
+        const Color negTerm = _zneg * (dneg * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dneg);
         const Color Rd = ((_alphap * posTerm * dneg3 - negTerm * dpos3) / (4.0 * PI * _sigma_tr * dpos3 * dneg3));
         return Rd.clamp();
     }

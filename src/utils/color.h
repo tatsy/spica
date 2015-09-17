@@ -69,6 +69,8 @@ namespace spica {
         inline double red()   const { return _r; }
         inline double green() const { return _g; }
         inline double blue()  const { return _b; }
+    
+        std::string toString() const;
     };
 
 }  // namespace spica
@@ -84,5 +86,6 @@ SPICA_COLOR_DLL spica::Color operator*(const spica::Color& c1, double s);
 SPICA_COLOR_DLL spica::Color operator*(double s, const spica::Color& c2);
 SPICA_COLOR_DLL spica::Color operator/(const spica::Color& c1, const spica::Color& c2);
 SPICA_COLOR_DLL spica::Color operator/(const spica::Color& c1, double s);
+SPICA_COLOR_DLL std::ostream& operator<<(std::ostream& os, const spica::Color& c);
 
 #endif  // SPICA_COLOR_H_

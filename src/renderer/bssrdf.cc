@@ -119,24 +119,21 @@ namespace spica {
     DiffuseBSSRDF::DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors)
         : BSSRDFBase(eta)
         , _distances(distances)
-        , _colors(colors)
-    {
+        , _colors(colors) {
         Assertion(distances.size() == colors.size(), "Arrays for distances and colors must have the same length!!");
     }
 
     DiffuseBSSRDF::DiffuseBSSRDF(const DiffuseBSSRDF& bssrdf)
         : BSSRDFBase()
         , _distances()
-        , _colors()
-    {
+        , _colors() {
         this->operator=(bssrdf);
     }
 
     DiffuseBSSRDF::DiffuseBSSRDF(DiffuseBSSRDF&& bssrdf)
         : BSSRDFBase()
         , _distances()
-        , _colors()
-    {
+        , _colors() {
         this->operator=(std::move(bssrdf));
     }
 
@@ -163,9 +160,9 @@ namespace spica {
     }
 
     Color DiffuseBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
-        const double d2 = (v1 - v2).squaredNorm();
-        if (d2 < 0.0 || d2 > _distances[_distances.size() - 1]) return Color(0.0, 0.0, 0.0);
-        const int idx = std::lower_bound(_distances.begin(), _distances.end(), d2) - _distances.begin();
+        const double d = (v1 - v2).norm();
+        if (d < 0.0 || d > _distances[_distances.size() - 1]) return Color(0.0, 0.0, 0.0);
+        const int idx = std::lower_bound(_distances.begin(), _distances.end(), d) - _distances.begin();
         return _colors[idx];
     }
 
@@ -243,7 +240,7 @@ namespace spica {
         delete _ptr;
     }
 
-    BSSRDF CustomBSSRDF::factory() const {
+    BSSRDF CustomBSSRDF::factory() {
         Assertion(_ptr != nullptr, "BSSRDF pointer is null!!");
         return BSSRDF(_ptr->clone());                      
     }
@@ -253,25 +250,22 @@ namespace spica {
     // ------------------------------------------------------------
 
     BSSRDF::BSSRDF()
-        : _ptr(NULL)
-    {
+        : _ptr(nullptr) {
     }
 
     BSSRDF::BSSRDF(const BSSRDF& bssrdf)
-        : _ptr(NULL)
-    {
+        : _ptr(nullptr) {
         this->operator=(bssrdf);
     }
 
     BSSRDF::BSSRDF(BSSRDF&& bssrdf)
-        : _ptr(NULL)
-    {
+        : _ptr(nullptr) {
         this->operator=(std::move(bssrdf));
     }
 
     BSSRDF::BSSRDF(const BSSRDFBase* ptr)
-        : _ptr(ptr)
-    {
+        : _ptr(ptr) {
+        Assertion(_ptr != nullptr, "Pointer is null!!");
     }
 
     BSSRDF::~BSSRDF() {
@@ -285,8 +279,8 @@ namespace spica {
 
         delete _ptr;
 
-        if (bssrdf._ptr == NULL) {
-            _ptr = NULL;
+        if (bssrdf._ptr == nullptr) {
+            _ptr = nullptr;
         } else {
             _ptr = bssrdf._ptr->clone();
         }
@@ -312,6 +306,7 @@ namespace spica {
     }
 
     Color BSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+        nullCheck();
         return _ptr->operator()(v1, v2);
     }
 

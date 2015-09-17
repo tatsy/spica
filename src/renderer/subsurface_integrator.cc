@@ -127,7 +127,7 @@ namespace spica {
         double weight = 0.0;
         int childCount = 0;
         for (int i = 0; i < 8; i++) {
-            if (node->children[i] != NULL) {
+            if (node->children[i] != nullptr) {
                 const double w = node->children[i]->pt.irad.luminance();
                 node->pt.pos += w * node->children[i]->pt.pos;
                 node->pt.normal += w * node->children[i]->pt.normal;
@@ -183,12 +183,10 @@ namespace spica {
         , _photonMap()
         , _dA(0.0)
         , _radius()
-        , _triangles()
-    {
+        , _triangles() {
     }
 
-    SubsurfaceIntegrator::~SubsurfaceIntegrator()
-    {
+    SubsurfaceIntegrator::~SubsurfaceIntegrator() {
     }
 
     void SubsurfaceIntegrator::initialize(const Scene& scene,

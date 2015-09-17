@@ -1,6 +1,8 @@
 #define SPICA_COLOR_EXPORT
 #include "color.h"
 
+#include <sstream>
+#include <iomanip>
 #include <algorithm>
 
 namespace spica {
@@ -151,6 +153,14 @@ namespace spica {
         return Color::maximum(lo, Color::minimum(*this, hi));
     }
 
+    std::string Color::toString() const {
+        std::stringstream ss;
+        ss << std::fixed;
+        ss << std::setprecision(8);
+        ss << "(" << _r << ", " << _g << ", " << _b << ")";
+        return ss.str();
+    }
+
 }  // namespace spica
 
 spica::Color operator+(const spica::Color& c1, const spica::Color& c2) {
@@ -218,4 +228,9 @@ spica::Color operator/(const spica::Color& c, double s) {
     spica::Color ret = c;
     ret /= s;
     return ret;
+}
+
+std::ostream& operator<<(std::ostream& os, const spica::Color& c) {
+    os << c.toString();
+    return os;
 }

@@ -98,7 +98,7 @@ namespace spica {
             printf("\n");
 
             // Update gather radius
-            globalRadius = ((i + 1) + 1.0) / ((i + 1) + kAlpha) * globalRadius;
+            globalRadius = ((i + 1) + kAlpha) / ((i + 1) + 1.0) * globalRadius;
 
             // Buffer accumulation
             for (int y = 0; y < height; y++) {
@@ -113,7 +113,7 @@ namespace spica {
             _result.gammaCorrect(1.0 / 2.2);
             _result.save(filename);
 
-            printf("save: %s\n (%d / %d)", filename, i + 1, samples);
+            printf("save: %s\n (%d / %d)\n", filename, i + 1, samples);
         }
         printf("\nFinish!!\n");
 

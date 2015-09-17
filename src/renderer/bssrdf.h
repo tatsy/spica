@@ -109,7 +109,7 @@ namespace spica {
     public:
         CustomBSSRDF();
         virtual ~CustomBSSRDF();
-        virtual BSSRDF factory() const;
+        virtual BSSRDF factory();
         virtual Color operator()(const Vector3D& v1, const Vector3D& v2) const override = 0;
         virtual BSSRDFBase* clone() const override = 0;
     };

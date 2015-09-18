@@ -29,12 +29,15 @@ namespace spica {
 
     // Types of BSDF
     enum class BsdfType : int {
-        None        = 0x00,
-        Lambertian  = 0x01,
-        Specular    = 0x02,
-        PhongBrdf   = 0x04,
-        Reflactive  = 0x08,
-        Bssrdf      = 0x10
+        Bssrdf      = 0x0100,
+        Scatter     = 0x0200,
+        Dielectric  = 0x0400,
+
+        None        = 0x0000,
+        Lambertian  = 0x0001 | Scatter,
+        Specular    = 0x0002 | Dielectric,
+        PhongBrdf   = 0x0004 | Scatter,
+        Reflactive  = 0x0008 | Dielectric,
     };
 
     inline BsdfType operator|(BsdfType t1, BsdfType t2) {

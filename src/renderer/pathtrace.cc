@@ -69,6 +69,10 @@ namespace spica {
         _result.resize(width, height);
         buffer.fill(Color::BLACK);
         for (int i = 0; i < params.samplePerPixel(); i++) {
+            if (i % kNumThreads == 0) {
+                _integrator->construct(scene, params);
+            }
+
             for (int t = 0; t < taskPerThread; t++) {
                 ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                     if (t < tasks[threadID].size()) {
@@ -165,16 +169,81 @@ namespace spica {
             // Sample next direction
             bsdf.sample(ray.direction(), hpoint.normal(), 
                         randnums[1], randnums[2], &nextdir, &pdf);
-            
         }
 
         // Compute next bounce
         const Ray nextray(hpoint.position(), nextdir);
         const Color nextrad = radiance(scene, params, nextray,
-                                       rstack, bounces + 1);
+                                        rstack, bounces + 1);            
+
+        Color directrad = directSample(scene, objectID, ray.direction(),
+                                       hpoint.position(), hpoint.normal(),
+                                       bounces, rstack);
+
+        return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
+    }
+
+    Color PathRenderer::directSample(const Scene& scene, const int triID,
+                                     const Vector3D& in, const Vector3D& v,
+                                     const Vector3D& n, int bounces,
+                                     Stack<double>& rstk) const {
+        // Acquire random numbers
+        const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
+
+        const BSDF&  bsdf = scene.getBsdf(triID);
+        const Color& refl = bsdf.reflectance();
+
+        if (bsdf.type() & BsdfType::Scatter) {
+            if (!scene.isLightCheck(triID)) {
+                // Multiple importance sampling for scattering surface
+                const int lightID = scene.sampleLight(rands[0]);
+                const Triangle& tri = scene.getTriangle(lightID);
+                const Color& emission = scene.getEmittance(lightID);
+
+                Vector3D lightPos, lightNormal;
+                sampler::onTriangle(tri, &lightPos, &lightNormal, rands[1], rands[2]);
+
+                double pdf;
+                Vector3D nextdir;
+                bsdf.sample(in, n, rands[3], rands[4], &nextdir, &pdf);
+        
+                const Vector3D lightDir = (lightPos - v).normalized();
+                const double dist2 = (lightPos - v).squaredNorm();
+                const double dot0  = Vector3D::dot(n, lightDir);
+                const double dot1  = Vector3D::dot(lightNormal, -lightDir);
+
+                if (dot0 > 0.0 && dot1 > 0.0) {
+                    const double G = dot0 * dot1 / dist2;
+                    Intersection isect;
+                    if (scene.intersect(Ray(v, lightDir), isect)) {
+                        const double tHit = isect.hitpoint().distance(); 
+                        if (std::abs(tHit - sqrt(dist2)) < EPS) {
+                            return (refl * emission) * (INV_PI * G * scene.totalLightArea()); 
+                        }
+                    }
+                }
+            } else if (bounces == 0) {
+                return scene.getEmittance(triID);
+            }
+        } else if (bsdf.type() & BsdfType::Dielectric) {
+            // Dielectric surface
+            double pdf;
+            Vector3D nextdir;
+            bsdf.sample(in, n, rands[0], rands[1], &nextdir, &pdf);
             
-        // Return result
-        return Color(emittance + (bssrdfRad + refl * nextrad / pdf) / roulette);
+            Intersection isect;
+            if (scene.intersect(Ray(v, nextdir), isect)) {
+                const int objID = isect.objectId();
+                if (scene.isLightCheck(objID)) {
+                    return (refl * scene.getEmittance(objID));
+                }
+            }
+        } else {
+            std::cerr << "Invalid BSDF detected: this is "
+                         "neigher scattering nor dielectric!!" << std::endl;
+            std::abort();
+        }
+        return Color(0.0, 0.0, 0.0);
     }
 
 }  // namespace spica

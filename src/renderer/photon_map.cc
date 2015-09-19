@@ -102,15 +102,16 @@ namespace spica {
 
         // Random number generator
         RandomSampler* samplers = new RandomSampler[kNumThreads];
+
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
-                samplers[i] = Random::factory((unsigned int)i);
+                samplers[i] = Random::factory((unsigned int)(time(0) + i));
                 break;
 
             case QUASI_MONTE_CARLO:
                 samplers[i] = Halton::factory(250, true, 
-                                              (unsigned int)i);
+                                              (unsigned int)(time(0) + i));
                 break;
 
             default:

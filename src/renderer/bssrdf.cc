@@ -185,7 +185,7 @@ namespace spica {
     DiffuseBSSRDF DiffuseBSSRDF::scaled(double sc) const {
         DiffuseBSSRDF ret(*this);
         for (size_t i = 0; i < ret._distances.size(); i++) {
-            ret._distances[i] /= sc;
+            ret._distances[i] *= sc;
             ret._colors[i] /= (sc * sc);
         }
         return std::move(ret);

@@ -24,7 +24,6 @@
 #include "../geometry/geometry.h"
 
 #include "bsdf.h"
-#include "envmap.h"
 #include "ray.h"
 
 namespace spica {
@@ -42,8 +41,6 @@ namespace spica {
         std::vector<BSDF> _bsdfs;
         std::shared_ptr<AccelBase> _accel;
         AccelType _accelType;
-
-        Envmap _envmap;
 
     public:
         Scene();
@@ -111,9 +108,6 @@ namespace spica {
         bool intersect(const Ray& ray, Intersection& isect) const;
 
         inline size_t numTriangles() const { return _triangles.size(); }
-
-        inline const Envmap& envmap() const { return _envmap; }
-        inline void setEnvmap(const Envmap& envmap) { _envmap = envmap; }
         inline double totalLightArea() const { return _totalLightArea; }
     };
 }

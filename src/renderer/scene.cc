@@ -17,10 +17,7 @@ namespace spica {
         , _bsdfs()
         , _accel()
         , _accelType(AccelType::qbvhAccel)
-        , _envmap()
     {
-        _envmap.resize(512, 512);
-        _envmap.clearColor(Color::BLACK);
     }
 
     Scene::~Scene()
@@ -39,7 +36,6 @@ namespace spica {
         , _bsdfs()
         , _accel()
         , _accelType(AccelType::qbvhAccel)
-        , _envmap()
     {
         this->operator=(scene);
     }
@@ -56,9 +52,7 @@ namespace spica {
         this->_bsdfs = scene._bsdfs;
         this->_accel = scene._accel;
         this->_accelType = scene._accelType;
-        
-        this->_envmap = scene._envmap;
-        
+                
         return *this;
     }
 

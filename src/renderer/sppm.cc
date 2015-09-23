@@ -327,7 +327,7 @@ namespace spica {
             const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
             if (!scene.intersect(ray, isect) || bounce > params.bounceLimit()) {
-                weight = weight * scene.envmap().sampleFromDir(ray.direction());
+                weight = Color::BLACK;
                 pixel->weight = weight;
                 pixel->coeff = coeff;
                 pixel->emission += throughput;

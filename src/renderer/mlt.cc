@@ -120,7 +120,7 @@ namespace spica {
         Color radiance(const Scene& scene, const Ray& ray, const RenderParameters& params, int bounces, KelemenMLT& mlt) {
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
-                return scene.envmap().sampleFromDir(ray.direction());
+                return Color::BLACK;
             }
 
             const int    objectID = isect.objectId();
@@ -235,14 +235,13 @@ namespace spica {
         const int taskPerThread = (numMLT + kNumThreads- 1) / kNumThreads;
 
         _result.resize(width, height);
+        const int seed_path_max = std::max(width, height);
         for (int t = 0; t < taskPerThread; t++) {
             ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 Stack<double> rstk;
                 rand[threadID].request(&rstk, 2);
 
                 KelemenMLT kelemenMlt(threadID);
-
-                const int seed_path_max = std::max(width, height);
 
                 std::vector<PathSample> seed_paths(seed_path_max);
                 double sumI = 0.0;
@@ -286,8 +285,8 @@ namespace spica {
 
                     rand[threadID].request(&rstk, 2);
 
-                    kelemenMlt.large_step = rstk.pop() < p_large ? 1 : 0;
-                    kelemenMlt.initUsedRandCoords();
+					kelemenMlt.large_step = rstk.pop() < p_large ? 1 : 0;
+					kelemenMlt.initUsedRandCoords();
                     PathSample new_path = generateNewPath(scene, camera, params, kelemenMlt, -1, -1, params.bounceLimit());
 
                     double a = std::min(1.0, new_path.F.luminance() / old_path.F.luminance());
@@ -302,19 +301,19 @@ namespace spica {
                         accept++;
                         old_path = new_path;
                         if (kelemenMlt.large_step) {
-                            kelemenMlt.large_step_time = kelemenMlt.global_time;
+							kelemenMlt.large_step_time = kelemenMlt.global_time;
                         }
                         kelemenMlt.global_time++;
                         while (!kelemenMlt.primary_samples_stack.empty()) {
-                            kelemenMlt.primary_samples_stack.pop();
-                        }
+							kelemenMlt.primary_samples_stack.pop();
+						}
                     } else {
                         // Reject
                         reject++;
                         int idx = kelemenMlt.used_rand_coords - 1;
                         while (!kelemenMlt.primary_samples_stack.empty()) {
-                            kelemenMlt.primary_samples[idx--] = kelemenMlt.primary_samples_stack.top();
-                            kelemenMlt.primary_samples_stack.pop();
+							kelemenMlt.primary_samples[idx--] = kelemenMlt.primary_samples_stack.top();
+							kelemenMlt.primary_samples_stack.pop();
                         }
                     }
                 }

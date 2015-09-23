@@ -6,9 +6,9 @@
 #define _SPICA_LIGHT_INTERFACE_
 
 #if defined(_WIN32) || defined(__WIN32__)
-#define SPICA_LIGHT_INTERFACE __declspec(dllexport)
+    #define SPICA_LIGHT_INTERFACE __declspec(dllexport)
 #else
-#define SPICA_LIGHT_INTERFACE
+    #define SPICA_LIGHT_INTERFACE
 #endif
 
 #include "../utils/vector3d.h"

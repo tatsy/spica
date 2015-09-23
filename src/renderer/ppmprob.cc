@@ -149,7 +149,7 @@ namespace spica {
         // Intersection test
         Intersection isect;
         if (!scene.intersect(ray, isect)) {
-            return scene.envmap().sampleFromDir(ray.direction());
+            return Color::BLACK;
         }
 
         // Request random numbers

@@ -66,7 +66,7 @@ namespace spica {
 
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
-                return scene.envmap().sampleFromDir(ray.direction());
+                return Color::BLACK;
             }
 
             // Require random numbers

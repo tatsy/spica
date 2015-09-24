@@ -18,11 +18,16 @@
 #include "../src/renderer/brdf.h"
 #include "../src/renderer/bssrdf.h"
 #include "../src/renderer/scene.h"
-#include "../src/renderer/camera.h"
 #include "../src/renderer/render_parameters.h"
 
 #include "../src/random/random.h"
 #include "../src/random/halton.h"
+
+// --------------------------------------------
+// Renderers
+// --------------------------------------------
+
+#include "../src/camera/camera.h"
 
 // --------------------------------------------
 // Renderers

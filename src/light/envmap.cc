@@ -21,15 +21,16 @@ namespace spica {
     }
 
     Envmap::Envmap()
-        : _image()
+        : _sphere()
+        , _image()
         , _importance()
         , _pdf()
-        , _cdf()
-    {
+        , _cdf() {
     }
 
-    Envmap::Envmap(const std::string& filename)
-        : _image()
+    Envmap::Envmap(const Sphere& boundSphere, const std::string& filename)
+        : _sphere(boundSphere)
+        , _image()
         , _importance()
         , _pdf()
         , _cdf()
@@ -60,25 +61,42 @@ namespace spica {
         return _image(iblx, ibly);
     }
 
-    /*
-    Photon Envmap::samplePhoton(RandomSeq& rseq, const int numPhotons) const {
-        const double R = 20.0;
+    Color Envmap::directLight(const Vector3D& dir) const {
+        return sampleFromDir(dir);
+    }
+
+    double Envmap::area() const {
+        return _sphere.area();
+    }
+
+    LightSample Envmap::sample(double r1, double r2, double r3) const {
         const int width = IMPORTANCE_MAP_SIZE;
         const int height = IMPORTANCE_MAP_SIZE;
 
-        const double r = rseq.next();
-        std::vector<double>::const_iterator it = std::lower_bound(_cdf.begin(), _cdf.end(), r);
-        const int index = it - _cdf.begin();
+        const int index = std::lower_bound(_cdf.begin(), _cdf.end(), r1) - _cdf.begin();
 
         // Direction
         const int ix = index % width;
         const int iy = index / width;
-        const double u = static_cast<double>(ix + rseq.next()) / width;
-        const double v = static_cast<double>(iy + rseq.next()) / height;
+        const double u = static_cast<double>(ix + r2) / width;
+        const double v = static_cast<double>(iy + r3) / height;
 
         const double phi = u * 2.0 * PI;
         const double y = (1.0 - v) * 2.0 - 1.0;
         const Vector3D dir = Vector3D(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
+    
+        Vector3D pos = _sphere.center() + dir * _sphere.radius();
+        Vector3D normal = -dir;
+
+        const double A = _sphere.area();
+        Color Le = sampleFromDir(dir) * PI / (A * _pdf[index]);
+        return LightSample(pos, normal, Le);
+    }
+
+    /*
+    Photon Envmap::samplePhoton(RandomSeq& rseq, const int numPhotons) const {
+        const double R = 20.0;
+        qrt(1.0 - y * y) * sin(phi));
         const double area = (4.0 * PI * R * R) / (width * height);
         const double pdf = _pdf[index];
         const Color currentFlux = Color(sampleFromDir(dir) * (area * PI / (pdf * numPhotons)));
@@ -160,6 +178,10 @@ namespace spica {
             _pdf[i] /= (total + EPS);
             _cdf[i] = _pdf[i] + _cdf[i - 1];
         }
+    }
+
+    ILight* Envmap::clone() const {
+        return new Envmap(*this);
     }
 
     const Image& Envmap::getImage() const {

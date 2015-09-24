@@ -22,6 +22,8 @@
 
 namespace spica {
 
+    class RandomSampler;
+
     class SPICA_SPPM_DLL SPPMRenderer : private IRenderer {
     private:
 

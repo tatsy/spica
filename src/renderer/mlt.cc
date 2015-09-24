@@ -151,7 +151,7 @@ namespace spica {
                 Color nextrad = radiance(scene, nextRay, params, bounces + 1, mlt);
                 return Color(refl * (dlight + nextrad / pdf) / roulette);
             } else if (bounces == 0) {
-                return scene.getEmittance(objectID);
+                return scene.directLight(ray.direction());
             }
             return Color::BLACK;
         }
@@ -193,15 +193,16 @@ namespace spica {
             }
 
             // Position on object plane
-            double randnums[4];
+            Stack<double> stk;
             for (int i = 0; i < 4; i++) {
-                randnums[i] = mlt.nextSample();
+                stk.push(mlt.nextSample());
             }
-            CameraSample camSample = camera.sample(x, y, randnums);
 
-            const Ray ray = camSample.generateRay();
+            CameraSample camSample = camera.sample(x, y, stk);
+
+            const Ray ray = camSample.ray();
             Color c = radiance(scene, ray, params, 0, mlt);
-            weight *= camera.sensitivity() / camSample.totalPdf();
+            weight *= camera.sensitivity() / camSample.pdf();
 
             return PathSample(x, y, c, weight);
         }
@@ -209,12 +210,10 @@ namespace spica {
     }  // anonymous namespace
 
     MLTRenderer::MLTRenderer(spica::Image* image)
-        : IRenderer()
-    {
+        : IRenderer() {
     }
 
-    MLTRenderer::~MLTRenderer()
-    {
+    MLTRenderer::~MLTRenderer() {
     }
 
     void MLTRenderer::render(const Scene& scene, const Camera& camera, 

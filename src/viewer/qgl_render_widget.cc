@@ -4,6 +4,10 @@
 #include <algorithm>
 #include <typeinfo>
 
+#include "../camera/orthogonal_camera.h"
+#include "../camera/perspective_camera.h"
+#include "../camera/dof_camera.h"
+
 namespace spica {
 
     QGLRenderWidget::QGLRenderWidget(QWidget *parent)
@@ -18,15 +22,13 @@ namespace spica {
         , _newY(0.0)
         , _oldX(0.0)
         , _oldY(0.0)
-        , rotationMat()
-    {
+        , rotationMat() {
         timer = new QTimer(this);
         timer->start(10);
         connect(timer, SIGNAL(timeout()), this, SLOT(animate()));
     }
 
-    QGLRenderWidget::~QGLRenderWidget()
-    {
+    QGLRenderWidget::~QGLRenderWidget() {
         delete timer;
         delete shaderProgram;
     }
@@ -72,14 +74,12 @@ namespace spica {
 
         if (camera.imageW() == 0 || camera.imageH() == 0) return;
 
-        const Vector3D eye = camera.lensCenter();
+        const Vector3D eye = camera.center();
         const Vector3D lookTo = eye + camera.direction();
         const Vector3D up = camera.up();
-        const double verticalAngle = 360.0 / PI * atan(camera.sensorH() / (2.0 * camera.distSL()));
-
 
         QMatrix4x4 projMat, viewMat, modelMat, normalMat;
-        projMat.perspective(verticalAngle, (float)width() / (float)height(), 1.0f, 1000.0f);
+        cameraToProj(&projMat);
         
         viewMat.lookAt(QVector3D(eye.x(), eye.y(), eye.z()),
                        QVector3D(lookTo.x(), lookTo.y(), lookTo.z()),
@@ -148,6 +148,27 @@ namespace spica {
         }
 
         return pt;
+    }
+
+    void QGLRenderWidget::cameraToProj(QMatrix4x4* mat) const {
+        ICamera* ptr = camera._ptr;    
+        if (typeid(*ptr) == typeid(OrthogonalCamera)) {
+            OrthogonalCamera* cam = reinterpret_cast<OrthogonalCamera*>(ptr);
+            const Rect& rect = cam->rect();
+            QRect qrect(rect.x(), rect.y(), rect.width(), rect.height());
+            mat->ortho(qrect);
+        } else if (typeid(*ptr) == typeid(PerspectiveCamera)) {
+            PerspectiveCamera* cam = reinterpret_cast<PerspectiveCamera*>(ptr);
+            const double verticalAngle = 180.0 * cam->fov() / PI;
+            mat->perspective(verticalAngle, (float)width() / (float)height(), 1.0f, 1000.0f);
+        } else if (typeid(*ptr) == typeid(DoFCamera)) {
+            DoFCamera* cam = reinterpret_cast<DoFCamera*>(ptr);
+            const double verticalAngle = 360.0 / PI * atan(cam->sensorH() / (2.0 * cam->distSL()));
+            mat->perspective(verticalAngle, (float)width() / (float)height(), 1.0f, 1000.0f);
+        } else {
+            std::cerr << "[ERROR] unknown camera projection type detected: " << (typeid(*ptr).name()) << std::endl;
+            std::abort();
+        }
     }
 
     void QGLRenderWidget::wheelEvent(QWheelEvent* e) {

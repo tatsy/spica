@@ -11,7 +11,7 @@
 
 #include "../utils/vbo.h"
 #include "../renderer/scene.h"
-#include "../renderer/camera.h"
+#include "../camera/camera.h"
 
 namespace spica {
 
@@ -36,6 +36,8 @@ namespace spica {
 
         void updateMouse();
         QVector3D getArcBallVector(int x, int y);
+
+        void cameraToProj(QMatrix4x4* mat) const;
 
     protected slots:
         void animate();

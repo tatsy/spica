@@ -79,7 +79,7 @@ namespace spica {
                         Stack<double> rstk;
                         const int y = tasks[threadID][t];
                         for (int x = 0; x < width; x++) {
-                            samplers[threadID].request(&rstk, 200);
+                            samplers[threadID].request(&rstk, 300);
                             buffer.pixel(width - x - 1, y) +=
                                 tracePath(scene, camera, params, x, y, rstk);
                         }
@@ -111,10 +111,9 @@ namespace spica {
                                   const double pixelX, const double pixelY,
                                   Stack<double>& rands) {
         CameraSample camSample = camera.sample(pixelX, pixelY, rands);
-        const Ray ray = camSample.generateRay();
+        const Ray ray = camSample.ray();
 
-        return Color(radiance(scene, params, ray, rands, 0) * 
-                        (camera.sensitivity() / camSample.totalPdf()));
+        return radiance(scene, params, ray, rands, 0) * (camera.sensitivity() / camSample.pdf());
     }
 
     Color PathRenderer::radiance(const Scene& scene,
@@ -137,7 +136,6 @@ namespace spica {
         const int objectID     = isect.objectId();
         const BSDF& bsdf       = scene.getBsdf(objectID);
         const Color& refl      = bsdf.reflectance();
-        const Color& emittance = scene.getEmittance(objectID);
         const Hitpoint& hpoint = isect.hitpoint();
 
         // Russian roulette
@@ -146,7 +144,7 @@ namespace spica {
             roulette = 1.0;
         } else {
             if (roulette <= randnums[0]) {
-                return emittance;
+                return Color::BLACK;
             }
         }
 
@@ -195,35 +193,27 @@ namespace spica {
 
         if (bsdf.type() & BsdfType::Scatter) {
             if (!scene.isLightCheck(triID)) {
-                // Multiple importance sampling for scattering surface
-                const int lightID = scene.sampleLight(rands[0]);
-                const Triangle& tri = scene.getTriangle(lightID);
-                const Color& emission = scene.getEmittance(lightID);
-
-                Vector3D lightPos, lightNormal;
-                sampler::onTriangle(tri, &lightPos, &lightNormal, rands[1], rands[2]);
-
+                const LightSample ls = scene.sampleLight(rstk);
                 double pdf;
                 Vector3D nextdir;
-                bsdf.sample(in, n, rands[3], rands[4], &nextdir, &pdf);
+                bsdf.sample(in, n, rands[0], rands[1], &nextdir, &pdf);
         
-                const Vector3D lightDir = (lightPos - v).normalized();
-                const double dist2 = (lightPos - v).squaredNorm();
+                const Vector3D lightDir = (ls.position() - v).normalized();
+                const double dist2 = (ls.position() - v).squaredNorm();
                 const double dot0  = Vector3D::dot(n, lightDir);
-                const double dot1  = Vector3D::dot(lightNormal, -lightDir);
+                const double dot1  = Vector3D::dot(ls.normal(), -lightDir);
 
                 if (dot0 > 0.0 && dot1 > 0.0) {
                     const double G = dot0 * dot1 / dist2;
                     Intersection isect;
                     if (scene.intersect(Ray(v, lightDir), isect)) {
-                        const double tHit = isect.hitpoint().distance(); 
-                        if (std::abs(tHit - sqrt(dist2)) < EPS) {
-                            return (refl * emission) * (INV_PI * G * scene.totalLightArea()); 
+                        if (scene.isLightCheck(isect.objectId())) {
+                            return (refl * ls.Le()) * (INV_PI * G * scene.lightArea()); 
                         }
                     }
                 }
             } else if (bounces == 0) {
-                return scene.getEmittance(triID);
+                return scene.directLight(in);
             }
         } else if (bsdf.type() & BsdfType::Dielectric) {
             // Dielectric surface
@@ -235,7 +225,7 @@ namespace spica {
             if (scene.intersect(Ray(v, nextdir), isect)) {
                 const int objID = isect.objectId();
                 if (scene.isLightCheck(objID)) {
-                    return (refl * scene.getEmittance(objID));
+                    return (refl * scene.directLight(in)) / pdf;
                 }
             }
         } else {

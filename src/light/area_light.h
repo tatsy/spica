@@ -15,6 +15,8 @@
     #define SPICA_AREA_LIGHT_DLL
 #endif
 
+#include <vector>
+
 #include "light_interface.h"
 
 #include "../utils/image.h"
@@ -22,36 +24,31 @@
 
 namespace spica {
 
-    class AreaLight : public ILight {
-    public:
-        virtual Color L(const Vector3D& pos, const Vector3D& normal, const Vector3D& w) const = 0;
-    };
-
-    class DiffuseAreaLight : public AreaLight {
+    class SPICA_AREA_LIGHT_DLL AreaLight : public ILight {
     private:
         Color _emittance;
-        Triangle _triangle;
+        std::vector<Triangle> _triangles;
+        std::vector<double>   _samplePdf;
+        double _totalArea;
 
     public:
-        DiffuseAreaLight(const Triangle& tri, const Color& emittance);
-        ~DiffuseAreaLight();
+        AreaLight();
+        AreaLight(const std::vector<Triangle>& triangles, const Color& emittance);
+        AreaLight(const AreaLight& l);
+        AreaLight(AreaLight&& l);
 
-        Color L(const Vector3D& pos, const Vector3D& normal, const Vector3D& w) const override;
-    };
+        ~AreaLight();
 
-    class InfiniteAreaLight : public AreaLight {
-    private:
-        const Color& _lightness;
-        const Image& _envmap;
+        AreaLight& operator=(const AreaLight& l);
+        AreaLight& operator=(AreaLight&& l);
 
-    public:
-        InfiniteAreaLight(const Color& lightness, const Image& envmap);
-        ~InfiniteAreaLight();
-
-        Color L(const Vector3D& pos, const Vector3D& normal, const Vector3D& w) const override;
+        LightSample sample(double r1, double r2, double r3) const override;
+        Color directLight(const Vector3D& dir) const override;
+        double area() const override;
+        ILight* clone() const override;
 
     private:
-        void computeSamplePdf();
+        void calcSamplePdf();
     };
 
 }  // namespace spica

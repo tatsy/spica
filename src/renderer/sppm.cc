@@ -7,12 +7,15 @@
 #include <algorithm>
 
 #include "scene.h"
-#include "camera.h"
 #include "renderer_helper.h"
 
 #include "../utils/sampler.h"
+#include "../camera/camera.h"
 
 #include "../random/random_sampler.h"
+#include "../random/random.h"
+#include "../random/halton.h"
+
 #include "subsurface_integrator.h"
 
 namespace spica {
@@ -202,22 +205,16 @@ namespace spica {
                 }
 
                 // Sample point on light
-                const int       lightID  = scene.sampleLight(rstk.pop());
-                const Triangle& light    = scene.getTriangle(lightID);
-                const Color     emission = scene.getEmittance(lightID);
-
-                Vector3D posOnLight, normalOnLight;
-                sampler::onTriangle(light, &posOnLight, &normalOnLight, 
-                                    rstk.pop(), rstk.pop());
+                const LightSample ls = scene.sampleLight(rstk);
 
                 // Compute flux
-                Color flux = Color(scene.totalLightArea() * emission * PI / numPhotons);
+                Color flux = Color(scene.lightArea() * ls.Le() * PI / numPhotons);
 
                 // Prepare ray
                 Vector3D nextDir;
-                sampler::onHemisphere(normalOnLight, &nextDir);
-                Ray ray(posOnLight, nextDir);
-                Vector3D prevNormal = normalOnLight;
+                sampler::onHemisphere(ls.normal(), &nextDir);
+                Ray ray(ls.position(), nextDir);
+                Vector3D prevNormal = ls.normal();
 
                 tracePhotonsRec(scene, ray, params, flux, 0, rstk);
             }
@@ -317,8 +314,8 @@ namespace spica {
                   "Pixel index out of range");
 
         CameraSample camSample = camera.sample(pixel->x, pixel->y, rstk);
-        Ray ray = camSample.generateRay();
-        const double coeff = camera.sensitivity() / camSample.totalPdf();
+        Ray ray = camSample.ray();
+        const double coeff = camera.sensitivity() / camSample.pdf();
 
         Intersection isect;
         Color weight(1.0, 1.0, 1.0);
@@ -337,7 +334,7 @@ namespace spica {
             const int       objectID = isect.objectId();
             const Hitpoint& hpoint   = isect.hitpoint();
             const BSDF&     bsdf     = scene.getBsdf(objectID);
-            const Color&    emission = scene.getEmittance(objectID);
+            const Color&    emission = scene.isLightCheck(objectID) ? scene.directLight(ray.direction()) : Color::BLACK;
             const bool      into     = Vector3D::dot(hpoint.normal(),
                                                      ray.direction()) < 0.0;
             const Vector3D orientNormal = into ?  hpoint.normal()

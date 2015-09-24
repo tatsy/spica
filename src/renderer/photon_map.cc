@@ -4,11 +4,12 @@
 #include <ctime>
 
 #include "../utils/sampler.h"
-
+#include "../camera/camera.h"
 #include "../random/random_sampler.h"
+#include "../random/random.h"
+#include "../random/halton.h"
 
 #include "scene.h"
-#include "camera.h"
 #include "render_parameters.h"
 
 namespace spica {
@@ -134,23 +135,17 @@ namespace spica {
                 samplers[threadID].request(&rstk, 250);
 
                 // Generate sample on the light
-                const int       lightID  = scene.sampleLight(rstk.pop());
-                const Triangle& light    = scene.getTriangle(lightID);
-                const Color     lightEmt = scene.getEmittance(lightID);
-
-                Vector3D posLight, normalLight;
-                sampler::onTriangle(light, &posLight, &normalLight,
-                                    rstk.pop(), rstk.pop());
+                const LightSample ls = scene.sampleLight(rstk);
                 
-                Color flux = Color(scene.totalLightArea() * lightEmt * PI /
+                Color flux = Color(scene.lightArea() * ls.Le() * PI /
                                    params.castPhotons());
 
                 Vector3D dir;
-                sampler::onHemisphere(normalLight, &dir,
+                sampler::onHemisphere(ls.normal(), &dir,
                                       rstk.pop(), rstk.pop());
 
                 // Trace photon
-                Ray ray(posLight, dir);
+                Ray ray(ls.position(), dir);
                 tracePhoton(scene, ray, params, flux, 
                             rstk, 0, absorbBsdf, &photons[threadID]);
             }

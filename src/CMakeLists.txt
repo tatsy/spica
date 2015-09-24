@@ -30,6 +30,7 @@ process_subdirectory(renderer)
 process_subdirectory(geometry)
 process_subdirectory(random)
 process_subdirectory(light)
+process_subdirectory(camera)
 process_subdirectory(scenes)
 process_subdirectory(accel)
 

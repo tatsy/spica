@@ -1,8 +1,8 @@
 #define SPICA_PREDEFINED_SCENES_EXPORT
 #include "predefined_scenes.h"
 
+#include "../camera/camera.h"
 #include "../renderer/scene.h"
-#include "../renderer/camera.h"
 #include "../renderer/brdf.h"
 #include "../renderer/bssrdf.h"
 
@@ -15,9 +15,8 @@ namespace spica {
         Vector3D l01(-5.0, 9.99,  5.0);
         Vector3D l10( 5.0, 9.99, -5.0);
         Vector3D l11( 5.0, 9.99,  5.0);
-        scene->add(Quad(l00, l10, l11, l01), 
-                   LambertianBRDF::factory(Color(0.0, 0.0, 0.0)),
-                                           Color(32.0, 32.0, 32.0), true);
+        scene->setLight(Quad(l00, l10, l11, l01), 
+                        Color(32.0, 32.0, 32.0));
 
         Vector3D v000(-10.0, -10.0, -10.0);
         Vector3D v100( 10.0, -10.0, -10.0);
@@ -34,31 +33,31 @@ namespace spica {
         Quad leftWall(v000, v010, v011, v001);
         Quad rightWall(v100, v101, v111, v110);
 
-        scene->add(floorWall, LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
-        scene->add(ceilWall,  LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
-        scene->add(backWall,  LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
-        scene->add(leftWall,  LambertianBRDF::factory(Color(0.75, 0.25, 0.25)));
-        scene->add(rightWall, LambertianBRDF::factory(Color(0.25, 0.25, 0.75)));
+        scene->addShape(floorWall, LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
+        scene->addShape(ceilWall,  LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
+        scene->addShape(backWall,  LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
+        scene->addShape(leftWall,  LambertianBRDF::factory(Color(0.75, 0.25, 0.25)));
+        scene->addShape(rightWall, LambertianBRDF::factory(Color(0.25, 0.25, 0.75)));
 
-        scene->add(Sphere(3.0,  Vector3D( 0.0, -7.0,  0.0)),
-                   LambertianBRDF::factory(Color(0.25, 0.75, 0.25)));
-        scene->add(Sphere(3.0,  Vector3D(-5.0, -7.0, -5.0)),
-                   SpecularBRDF::factory(Color(0.99, 0.99, 0.99)));
-        scene->add(Sphere(3.0,  Vector3D( 5.0, -7.0,  5.0)),
-                   RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));
+        scene->addShape(Sphere(3.0,  Vector3D( 0.0, -7.0,  0.0)),
+                        LambertianBRDF::factory(Color(0.25, 0.75, 0.25)));
+        scene->addShape(Sphere(3.0,  Vector3D(-5.0, -7.0, -5.0)),
+                        SpecularBRDF::factory(Color(0.99, 0.99, 0.99)));
+        scene->addShape(Sphere(3.0,  Vector3D( 5.0, -7.0,  5.0)),
+                        RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));
 
         scene->setAccelType(AccelType::bbvhAccel);
         scene->finalize();
 
-        (*camera) = Camera(width, height, 
-                           Vector3D(0.0, 0.0, 100.0),
-                           Vector3D(0.0, 0.0, -1.0),
-                           Vector3D(0.0, 1.0, 0.0),
-                           20.0,
-                           42.0,
-                           58.0,
-                           1.0,
-                           90.0);
+        (*camera) = Camera::asDoF(width, height, 
+                                  Vector3D(0.0, 0.0, 100.0),
+                                  Vector3D(0.0, 0.0, -1.0),
+                                  Vector3D(0.0, 1.0, 0.0),
+                                  20.0,
+                                  42.0,
+                                  58.0,
+                                  1.0,
+                                  90.0);
     }
 
     /*
@@ -234,9 +233,8 @@ namespace spica {
         //scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), Color(32.0, 32.0, 32.0), true);
 
         // Back light
-        scene->add(Sphere(2.0, Vector3D(-5.0, 5.0, -5.0)),
-                   LambertianBRDF::factory(Color(0.0, 0.0, 0.0)),
-                                           Color(32.0, 32.0, 32.0), true);
+        scene->setLight(Sphere(2.0, Vector3D(-5.0, 5.0, -5.0)),
+                        Color(32.0, 32.0, 32.0));
 
         // Walls
         Vector3D v000(-10.0, -10.0, -10.0);
@@ -254,17 +252,16 @@ namespace spica {
         Quad leftWall(v000, v010, v011, v001);
         Quad rightWall(v100, v101, v111, v110);
 
-        scene->add(ceilWall,  LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
-        scene->add(floorWall, LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
-        scene->add(backWall,  LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
-        scene->add(leftWall,  LambertianBRDF::factory(Color(0.75, 0.25, 0.25)));
-        scene->add(rightWall, LambertianBRDF::factory(Color(0.25, 0.25, 0.75)));
+        scene->addShape(ceilWall,  LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
+        scene->addShape(floorWall, LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
+        scene->addShape(backWall,  LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
+        scene->addShape(leftWall,  LambertianBRDF::factory(Color(0.75, 0.25, 0.25)));
+        scene->addShape(rightWall, LambertianBRDF::factory(Color(0.25, 0.25, 0.75)));
 
         // Objects
         Trimesh kitten(kDataDirectory + "kitten.ply");
         kitten.scale(0.15, 0.15, 0.15);
         kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
-        kitten.buildAccel();
 
         const Color sigmap_s = Color(2.19, 2.62, 3.00) * 0.1;
         const Color sigma_a  = Color(0.0021, 0.0041, 0.0071) * 10.0;
@@ -272,51 +269,55 @@ namespace spica {
 
         BSDF kittenBsdf = RefractiveBSDF::factory(Color(0.999, 0.999, 0.999));
         kittenBsdf.setBssrdf(bssrdf);
-        scene->add(kitten, kittenBsdf);
+        scene->addShape(kitten, kittenBsdf);
 
         scene->setAccelType(AccelType::bbvhAccel);
         scene->finalize();
 
-        (*camera) = Camera(width, height, 
-                           Vector3D(0.0, 0.0, 100.0),
-                           Vector3D(0.0, 0.0, -1.0),
-                           Vector3D(0.0, 1.0, 0.0),
-                           20.0,
-                           42.0,
-                           58.0,
-                           1.0,
-                           90.0);
+        (*camera) = Camera::asDoF(width, height, 
+                                  Vector3D(0.0, 0.0, 100.0),
+                                  Vector3D(0.0, 0.0, -1.0),
+                                  Vector3D(0.0, 1.0, 0.0),
+                                  20.0,
+                                  42.0,
+                                  58.0,
+                                  1.0,
+                                  90.0);
     }
 
-    /*
     void kittenEnvmap(Scene* scene, Camera* camera, const int width, const int height) {
         scene->clear(); 
-
-        // Envmap
-        Envmap envmap(kDataDirectory + "cave_room.hdr");
-        scene->setEnvmap(envmap);
 
         // Objects
         Trimesh kitten(kDataDirectory + "kitten.ply");
         kitten.scale(0.15, 0.15, 0.15);
         kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
-        kitten.buildAccel();
 
-        scene->add(kitten, Material(Color(), Color(0.99, 0.99, 0.99), REFLECTION_SUBSURFACE));                         
+        const Color sigmap_s = Color(2.19, 2.62, 3.00) * 0.1;
+        const Color sigma_a  = Color(0.0021, 0.0041, 0.0071) * 10.0;
+        const BSSRDF bssrdf = DipoleBSSRDF::factory(sigma_a, sigmap_s, 1.5);
+
+        BSDF kittenBsdf = RefractiveBSDF::factory(Color(0.999, 0.999, 0.999));
+        kittenBsdf.setBssrdf(bssrdf);
+        scene->addShape(kitten, kittenBsdf);
         
         Disk disk(Vector3D(0.0, -10.0, 0.0), Vector3D(0.0, 1.0, 0.0), 20.0);
-        scene->add(disk, Material(Color(), Color(0.95, 0.95, 0.95), REFLECTION_DIFFUSE));
+        scene->addShape(disk, LambertianBRDF::factory(Color(0.95, 0.95, 0.95)));
 
-        (*camera) = Camera(width, height, 
-                           Vector3D(0.0, 5.0, 100.0),
-                           Vector3D(0.0, -5.0, -100.0).normalized(),
-                           Vector3D(0.0, 1.0, 0.0),
-                           20.0,
-                           42.0,
-                           58.0,
-                           1.0,
-                           90.0);
+        (*camera) = Camera::asDoF(width, height, 
+                                  Vector3D(0.0, 5.0, 100.0),
+                                  Vector3D(0.0, -5.0, -100.0).normalized(),
+                                  Vector3D(0.0, 1.0, 0.0),
+                                  20.0,
+                                  42.0,
+                                  58.0,
+                                  1.0,
+                                  90.0);
+
+        // Envmap
+        scene->setEnvmap(kDataDirectory + "cave_room.hdr", *camera);
+
+        scene->finalize();
     }
-    */
 
-}
+}  // namespace spica

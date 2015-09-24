@@ -9,7 +9,10 @@
 #include "renderer_helper.h"
 #include "subsurface_integrator.h"
 #include "../utils/sampler.h"
+
 #include "../random/random_sampler.h"
+#include "../random/random.h"
+#include "../random/halton.h"
 
 namespace spica {
 
@@ -129,8 +132,8 @@ namespace spica {
                                   const int pixelX,
                                   const int pixelY) const {
         CameraSample camSample = camera.sample(pixelX, pixelY, rstk);
-        const Ray    ray       = camSample.generateRay();
-        const double invpdf    = (camera.sensitivity() / camSample.totalPdf());
+        const Ray    ray       = camSample.ray();
+        const double invpdf    = (camera.sensitivity() / camSample.pdf());
 
         return Color(radiance(scene, params, ray, rstk, 0) * invpdf);
     }    
@@ -158,8 +161,8 @@ namespace spica {
         // Intersected object
         const int objID = isect.objectId();
         const BSDF& bsdf = scene.getBsdf(objID);
-        const Color& emission = scene.getEmittance(objID);
         const Hitpoint hpoint = isect.hitpoint();
+        const Color emission = scene.isLightCheck(objID) ? scene.directLight(ray.direction()) : Color::BLACK;
         const bool into = Vector3D::dot(ray.direction(), hpoint.normal()) < 0.0;
         const Vector3D orientNormal = into ?  hpoint.normal() 
                                            : -hpoint.normal();

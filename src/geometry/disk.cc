@@ -8,8 +8,10 @@
 namespace spica {
 
     namespace {
-        const int kSubdivDisk = 128;
-    }
+
+        const int kSubdivDisk = 64;
+
+    }  // anonymous namespace
 
     Disk::Disk()
         : _center()
@@ -68,9 +70,9 @@ namespace spica {
             const int j = (i + 1) % kSubdivDisk;
             double t1 = (2.0 * PI * i) / kSubdivDisk;
             double t2 = (2.0 * PI * j) / kSubdivDisk;
-            Vector3D p0 = _center + (u * cos(t1)) + (v * sin(t1));
-            Vector3D p1 = _center + (u * cos(t2)) + (v * sin(t2));
-            retval.emplace_back(_center, p1, p0);
+            Vector3D p0 = _center + _radius * ((u * cos(t1)) + (v * sin(t1)));
+            Vector3D p1 = _center + _radius * ((u * cos(t2)) + (v * sin(t2)));
+            retval.emplace_back(_center, p0, p1);
         }
         return std::move(retval);
     }

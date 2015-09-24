@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
     Camera camera;
     // cornellBox(&scene, &camera, width, height);
     kittenBox(&scene, &camera, width, height);
+    // kittenEnvmap(&scene, &camera, width, height);
 
     Timer timer;
     timer.start();

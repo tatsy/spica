@@ -16,12 +16,12 @@
 #endif
 
 #include "scene.h"
-#include "camera.h"
 #include "render_parameters.h"
 #include "bsdf.h"
 
 #include "../utils/vector3d.h"
 #include "../utils/color.h"
+#include "../camera/camera.h"
 
 namespace spica {
 

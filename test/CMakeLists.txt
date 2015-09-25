@@ -46,6 +46,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_yaml.cc)
     # test_renderer.cc)
 
+  add_definitions(-DGTEST_LANG_CXX11)
   add_executable(${TEST_NAME} ${SOURCE_FILES})
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARY})
   target_link_libraries(${TEST_NAME} ${GTEST_MAIN_LIBRARY})

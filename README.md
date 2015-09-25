@@ -38,7 +38,7 @@ spica
 
 ```shell
 $ git clone https://github.com/tatsy.spica.git
-$ cmake -DSPICA_BUILD_TEST=OFF .
+$ cmake -DENABLE_AVX=OFF -DSPICA_BUILD_TEST=OFF .
 $ cmake --build .
 ```
 

@@ -165,9 +165,15 @@ namespace spica {
             }
 
             // Russian roulette probability
-            const BSDF& bsdf = scene.getBsdf(verts[0]->objectId);
-            const Color& refl = bsdf.reflectance();
-            double roulette = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
+            double roulette = 0.0;
+            if (verts[0]->emission.norm() > 0.0) {
+                roulette = 1.0;
+            } else if (verts[0]->objectId >= 0) {
+                const BSDF& bsdf = scene.getBsdf(verts[0]->objectId);
+                const Color& refl = bsdf.reflectance();
+                roulette = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
+            }
+
             pi1pi[0] = PAy0 / (calcPdfA(scene, camera, verts, 2, 1, 0) * roulette);
             for (int i = 1; i < k; i++) {
                 const double a = calcPdfA(scene, camera, verts, i - 2, i - 1, i);
@@ -268,7 +274,7 @@ namespace spica {
                 const Hitpoint& hitpoint = isect.hitpoint();
 
                 const Vector3D orientNormal = hitpoint.normal().dot(currentRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
-                const double rouletteProb = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
+                const double rouletteProb = scene.isLightCheck(triangleID) ? 1.0 : std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
                 
                 if (rands[0] >= rouletteProb) {
                     break;
@@ -283,7 +289,11 @@ namespace spica {
                 const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.dot(toNextVertex);
                 throughput *= G;
 
-                vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), Color(),
+                Color emission = Color(0.0, 0.0, 0.0);
+                if (scene.isLightCheck(triangleID)) {
+                    emission = scene.directLight(currentRay.direction());
+                }
+                vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), emission,
                                           bsdf.type() == BsdfType::Lambertian ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
                                           totalPdfA, throughput));
 
@@ -341,7 +351,7 @@ namespace spica {
 
             Color throughput = Color(1.0, 1.0, 1.0);
 
-            vertices->push_back(Vertex(camera.lensCenter(), camera.lensNormal(), camera.lensNormal(), -1, Color(), Vertex::OBJECT_TYPE_LENS, totalPdfA, throughput));
+            vertices->push_back(Vertex(camSample.posLens(), camera.lensNormal(), camera.lensNormal(), -1, Color(), Vertex::OBJECT_TYPE_LENS, totalPdfA, throughput));
         
             Ray nowRay = camSample.ray();
             double nowSampledPdfOmega = 1.0;
@@ -361,7 +371,7 @@ namespace spica {
                 const Hitpoint& hitpoint = isect.hitpoint();
 
                 const Vector3D orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
-                const double rouletteProb = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
+                const double rouletteProb = scene.isLightCheck(isect.objectId()) ? 1.0 : std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
 
                 if (rands[0] > rouletteProb) {
                     break;
@@ -371,9 +381,9 @@ namespace spica {
 
                 const Vector3D toNextVertex = nowRay.origin() - hitpoint.position();
                 if (bounce == 0) {
-                    const Vector3D x0xI = camera.center() - camera.lensCenter();
-                    const Vector3D x0xV = camera.objplaneCenter() - camera.lensCenter();
-                    const Vector3D x0x1 = hitpoint.position() - camera.lensCenter();
+                    const Vector3D x0xI = camSample.posSensor() - camSample.posLens();
+                    const Vector3D x0xV = camSample.posObjplane() - camSample.posLens();
+                    const Vector3D x0x1 = hitpoint.position() - camSample.posLens();
                     const double pdfImage = 1.0 / (camera.cellW() * camera.cellH());
                     const double PAx1 = camera.PImageToPAx1(pdfImage, x0xV, x0x1, orientNormal);
                     totalPdfA *= PAx1;
@@ -389,9 +399,9 @@ namespace spica {
                 throughput *= G;
 
                 if (scene.isLightCheck(isect.objectId())) {
-                    vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), Color(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughput));
                     const Color emittance = scene.directLight(nowRay.direction());
                     const Color result = Color(throughput * emittance / totalPdfA);
+                    vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), emittance, Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughput));
                     return TraceResult(result, x, y, HIT_ON_LIGHT);
                 }
 

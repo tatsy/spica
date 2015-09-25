@@ -23,21 +23,36 @@ namespace spica {
     private:
         Ray    _ray;
         double _pdf;
+        Vector3D _posSensor;
+        Vector3D _posObjplene;
+        Vector3D _posLens;
 
     public:
         CameraSample()
             : _ray()
-            , _pdf(0.0) {
+            , _pdf(0.0)
+            , _posSensor()
+            , _posObjplene() 
+            , _posLens() {
         }
 
-        CameraSample(const Ray& ray, double pdf)
+        CameraSample(const Ray& ray, double pdf,
+                     const Vector3D& posSensor = Vector3D(0.0, 0.0, 0.0),
+                     const Vector3D& posObjplane = Vector3D(0.0, 0.0, 0.0),
+                     const Vector3D& posLens = Vector3D(0.0, 0.0, 0.0))
             : _ray(ray)
-            , _pdf(pdf) {
+            , _pdf(pdf)
+            , _posSensor(posSensor)
+            , _posObjplene(posObjplane)
+            , _posLens(posLens) {
         }
 
         CameraSample(const CameraSample& cs)
             : _ray(cs._ray)
-            , _pdf(cs._pdf) {
+            , _pdf(cs._pdf)
+            , _posSensor(cs._posSensor)
+            , _posObjplene(cs._posObjplene)
+            , _posLens(cs._posLens) {
         }
 
         ~CameraSample() {
@@ -46,11 +61,17 @@ namespace spica {
         CameraSample& operator=(const CameraSample& cs) {
             this->_ray = cs._ray;
             this->_pdf = cs._pdf;
+            this->_posSensor = cs._posSensor;
+            this->_posObjplene = cs._posObjplene;
+            this->_posLens = cs._posLens;
             return *this;
         }
         
         inline const Ray& ray() const { return _ray; }
         inline double     pdf() const { return _pdf; }
+        inline const Vector3D& posSensor() const { return _posSensor; }
+        inline const Vector3D& posObjplane() const { return _posObjplene; }
+        inline const Vector3D& posLens() const { return _posLens; }
     };
 
     //! Interface class for cameras

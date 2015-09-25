@@ -25,7 +25,7 @@ namespace spica {
         const int numTriangles = static_cast<int>(_bsdfIds.size());
         _bsdfIds.resize(_bsdfIds.size() + tris.size());
         std::fill(_bsdfIds.begin() + numTriangles,
-                    _bsdfIds.end(), newBsdfId);
+                  _bsdfIds.end(), newBsdfId);
         _bsdfs.push_back(bsdf);    
     }
 

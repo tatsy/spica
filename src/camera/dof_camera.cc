@@ -185,7 +185,8 @@ namespace spica {
         const double weight = cosine * cosine / lensToSensor.squaredNorm();
         const double samplePdf = pdfLens * pdfImage / weight;
 
-        return CameraSample(Ray(posLens, (posObjectPlane - posLens).normalized()), samplePdf);
+        return CameraSample(Ray(posLens, (posObjectPlane - posLens).normalized()),
+                            samplePdf, posSensor, posObjectPlane, posLens);
     }
 
     ICamera* DoFCamera::clone() const {

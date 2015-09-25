@@ -203,7 +203,7 @@ namespace spica {
                 const double dot0  = Vector3D::dot(n, lightDir);
                 const double dot1  = Vector3D::dot(ls.normal(), -lightDir);
 
-                if (dot0 > 0.0 && dot1 > 0.0) {
+                if (dot0 > EPS && dot1 > EPS) {
                     const double G = dot0 * dot1 / dist2;
                     Intersection isect;
                     if (scene.intersect(Ray(v, lightDir), isect)) {

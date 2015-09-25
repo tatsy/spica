@@ -9,8 +9,7 @@ namespace spica {
     // ------------------------------------------------------------
 
     DoFCamera::DoFCamera()
-        : width_(0)
-        , height_(0)
+        : ICamera()
         , distSensorToLens_(0.0)
         , sensor_()
         , lens_()
@@ -27,8 +26,7 @@ namespace spica {
                          double focalLength,
                          double lensRadius,
                          double sensorSensitivity)
-        : width_(imageW)
-        , height_(imageH)
+        : ICamera(sensorCenter, sensorDir, sensorUp, imageW, imageH, sensorSensitivity)
         , distSensorToLens_(distSensorToLens)
         , sensor_()
         , lens_()
@@ -65,8 +63,7 @@ namespace spica {
     }
 
     DoFCamera::DoFCamera(const DoFCamera& camera)
-        : width_(camera.width_)
-        , height_(camera.height_)
+        : ICamera(camera)
         , distSensorToLens_(camera.distSensorToLens_)
         , sensor_(camera.sensor_)
         , lens_(camera.lens_)
@@ -77,8 +74,7 @@ namespace spica {
     }
 
     DoFCamera& DoFCamera::operator=(const DoFCamera& camera) {
-        this->width_            = camera.width_;
-        this->height_           = camera.height_;
+        ICamera::operator=(camera);
         this->distSensorToLens_ = camera.distSensorToLens_;
         this->sensor_           = camera.sensor_;
         this->lens_             = camera.lens_;
@@ -121,8 +117,8 @@ namespace spica {
                 positionOnSensor = sensor_.center + (uOnSensor * sensor_.width) * sensor_.unitU + (vOnSensor * sensor_.height) * sensor_.unitV;
 
                 if (-0.5 <= uOnSensor && uOnSensor < 0.5 && -0.5 <= vOnSensor && vOnSensor < 0.5) {
-                    uvOnSensor.x() = (uOnSensor + 0.5) * width_;
-                    uvOnSensor.y() = (vOnSensor + 0.5) * height_;
+                    uvOnSensor.x() = (uOnSensor + 0.5) * _imageW;
+                    uvOnSensor.y() = (vOnSensor + 0.5) * _imageH;
                     return distToLens;
                 }
             }
@@ -143,8 +139,8 @@ namespace spica {
         const double uOnPixel = rng.nextReal();
         const double vOnPixel = rng.nextReal();
 
-        const double uOnSensor = ((imageX + uOnPixel) / this->width_  - 0.5);
-        const double vOnSensor = ((imageY + vOnPixel) / this->height_ - 0.5);
+        const double uOnSensor = ((imageX + uOnPixel) / _imageW - 0.5);
+        const double vOnSensor = ((imageY + vOnPixel) / _imageH - 0.5);
         positionOnSensor = sensor_.center + (uOnSensor * sensor_.width) * sensor_.unitU + (vOnSensor * sensor_.height) * sensor_.unitV;
 
         const double ratio = lens_.focalLength / distSensorToLens_;
@@ -166,8 +162,8 @@ namespace spica {
         const double uOnPixel = rstk.pop();
         const double vOnPixel = rstk.pop();
 
-        const double uOnSensor = ((imageX + uOnPixel) / this->width_  - 0.5);
-        const double vOnSensor = ((imageY + vOnPixel) / this->height_ - 0.5);
+        const double uOnSensor = ((imageX + uOnPixel) / _imageW - 0.5);
+        const double vOnSensor = ((imageY + vOnPixel) / _imageH - 0.5);
         const Vector3D posSensor = sensor_.center + (uOnSensor * sensor_.width) * sensor_.unitU + (vOnSensor * sensor_.height) * sensor_.unitV;
 
         const double ratio = lens_.focalLength / distSensorToLens_;

@@ -109,12 +109,12 @@ namespace spica {
         virtual ICamera* clone() const = 0;
         virtual CameraSample sample(double px, double py, Stack<double>& rstack) const = 0;
 
-        inline Vector3D center()    const { return _center; }
-        inline Vector3D direction() const { return _direction; }
-        inline Vector3D up() const { return _up; }
+        inline virtual Vector3D center()    const { return _center; }
+        inline virtual Vector3D direction() const { return _direction; }
+        inline virtual Vector3D up() const { return _up; }
         inline int imageW() const { return _imageW; }
         inline int imageH() const { return _imageH; }
-        inline double sensitivity() const { return _sensitivity; }
+        inline virtual double sensitivity() const { return _sensitivity; }
     };
 
 }  // namespace spica

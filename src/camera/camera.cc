@@ -29,11 +29,14 @@ namespace spica {
 
     Camera& Camera::operator=(const Camera& camera) {
         this->_ptr = camera._ptr->clone();
+        this->_type = camera._type;
         return *this;
     }
 
     Camera& Camera::operator=(Camera&& camera) {
-        this->_ptr = camera._ptr;
+        this->_ptr  = camera._ptr;
+        this->_type = camera._type;
+
         camera._ptr = nullptr;
         return *this;
     }

@@ -43,11 +43,11 @@ namespace spica {
             double height;          // # of sensors along y-axis
             double cellW;           // Width of one sensor cell
             double cellH;           // Height of one sensor cell
-            Vector3D center;         // Center position of the sensor
-            Vector3D direction;      // Direction of the sensor
-            Vector3D up;             // Up direction of the sensor
-            Vector3D unitU;          // Unit vector of u-axis
-            Vector3D unitV;          // Unit vector of v-axis
+            Vector3D center;        // Center position of the sensor
+            Vector3D direction;     // Direction of the sensor
+            Vector3D up;            // Up direction of the sensor
+            Vector3D unitU;         // Unit vector of u-axis
+            Vector3D unitV;         // Unit vector of v-axis
             double sensitivity;     // Sensor sensitivity
         };
 
@@ -90,8 +90,6 @@ namespace spica {
 
     private:
         // Image size
-        unsigned int width_;                // size of image
-        unsigned int height_;               // size of height
         double       distSensorToLens_;
 
         ImageSensor sensor_;
@@ -138,15 +136,11 @@ namespace spica {
 
         CameraSample sample(const double imageX, const double imageY, Stack<double>& rseq) const;
 
-        inline unsigned int imageW() const { return width_; }
-        inline unsigned int imageH() const { return height_; }
-        inline void imageW(int width) { width_ = width; }
-        inline void imageH(int height) { height_ = height; }
         inline double distSL() const { return distSensorToLens_; }
         
-        inline Vector3D center()    const { return sensor_.center; }
-        inline Vector3D direction() const { return sensor_.direction; }
-        inline Vector3D up()        const { return sensor_.up; }
+        inline Vector3D center()    const override { return sensor_.center; }
+        inline Vector3D direction() const override { return sensor_.direction; }
+        inline Vector3D up()        const override { return sensor_.up; }
 
         inline double  sensorW()   const { return sensor_.width; }
         inline double  sensorH()   const { return sensor_.height; }
@@ -154,7 +148,7 @@ namespace spica {
         inline Vector3D sensorV()   const { return sensor_.unitV; }
         inline double  cellW() const { return sensor_.cellW; }
         inline double  cellH() const { return sensor_.cellH; }
-        inline double  sensitivity() const { return sensor_.sensitivity; }
+        inline double  sensitivity() const override { return sensor_.sensitivity; }
 
         inline Vector3D lensU() const { return lens_.unitU; }
         inline Vector3D lensV() const { return lens_.unitV; }

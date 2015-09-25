@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef SPICA_IMAGE_H_
 #define SPICA_IMAGE_H_
 

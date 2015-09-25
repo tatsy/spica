@@ -24,10 +24,13 @@
 #include "../src/random/halton.h"
 
 // --------------------------------------------
-// Renderers
+// Cameras
 // --------------------------------------------
 
 #include "../src/camera/camera.h"
+#include "../src/camera/orthogonal_camera.h"
+#include "../src/camera/perspective_camera.h"
+#include "../src/camera/dof_camera.h"
 
 // --------------------------------------------
 // Renderers

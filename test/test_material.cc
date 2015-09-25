@@ -3,10 +3,20 @@
 #include "../include/spica.h"
 using namespace spica;
 
-// ------------------------------
+// -----------------------------------------------------------------------------
 // Color class test
-// ------------------------------
-TEST(ColorTest, InstanceTest) {
+// -----------------------------------------------------------------------------
+
+class ColorTest : public ::testing::TestWithParam<double> {
+protected:
+    ColorTest() {
+    }
+
+    ~ColorTest() {
+    }
+};
+
+TEST_F(ColorTest, InstanceTest) {
     Color c0;
     EXPECT_EQ(0.0, c0.red());
     EXPECT_EQ(0.0, c0.green());
@@ -18,7 +28,7 @@ TEST(ColorTest, InstanceTest) {
     EXPECT_EQ(0.25, c1.blue());
 }
 
-TEST(ColorTest, CopyConstructor) {
+TEST_F(ColorTest, CopyConstructor) {
     Color c0(0.5, 0.75, 0.25);
     Color c1(c0);
     EXPECT_EQ(0.5, c1.red());
@@ -26,7 +36,7 @@ TEST(ColorTest, CopyConstructor) {
     EXPECT_EQ(0.25, c1.blue());
 }
 
-TEST(ColorTest, OtherTest) {
+TEST_F(ColorTest, OtherTest) {
     Color c(0.0, 0.1, 0.2);
     EXPECT_EQ(0.0, c.red());
     EXPECT_EQ(0.1, c.green());
@@ -41,7 +51,7 @@ TEST(ColorTest, OtherTest) {
     EXPECT_DOUBLE_EQ(lum, c.luminance());
 }
 
-TEST(ColorTest, SqrtTest) {
+TEST_F(ColorTest, SqrtTest) {
     Color u(1.0, 2.0, 3.0);
     Color v = Color::sqrt(u);
     EXPECT_EQ(sqrt(u.red()), v.red());
@@ -52,7 +62,7 @@ TEST(ColorTest, SqrtTest) {
     ASSERT_DEATH(Color::sqrt(u), "");
 }
 
-TEST(ColorTest, ExpTest) {
+TEST_F(ColorTest, ExpTest) {
     Color u(1.0, 2.0, 3.0);
     Color v = Color::exp(u);
     EXPECT_EQ(exp(u.red()), v.red());

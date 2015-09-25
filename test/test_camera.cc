@@ -29,7 +29,7 @@ protected:
     }
 
     virtual void SetUp() {
-        camera = Camera(imageW, imageH,
+        camera = DoFCamera(imageW, imageH,
                         center,
                         direction,
                         up,
@@ -44,7 +44,7 @@ protected:
     }
 
 protected:
-    Camera camera;
+    DoFCamera camera;
 
     int imageW;
     int imageH;
@@ -61,7 +61,7 @@ protected:
 
 
 TEST_F(CameraTest, DefaultConstructor) {
-    Camera c;
+    DoFCamera c;
     EXPECT_EQ(0.0, c.imageW());
     EXPECT_EQ(0.0, c.imageH());
 }
@@ -74,7 +74,7 @@ TEST_F(CameraTest, InstanceTest) {
     EXPECT_EQ(distSensorToLens, camera.distSL());
     EXPECT_EQ(focalLength, camera.focalLength());
 
-    Camera cp(camera);
+    DoFCamera cp(camera);
     EXPECT_EQ(imageW, cp.imageW());
     EXPECT_EQ(imageH, cp.imageH());
     EXPECT_EQ_VEC(center, cp.center());

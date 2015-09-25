@@ -34,8 +34,8 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_geometry.cc
       test_vector.cc
       test_image.cc
-      test_material.cc
-      # test_camera.cc
+      test_color.cc
+      test_camera.cc
       test_ray.cc
       test_sampler.cc
       test_trimesh.cc

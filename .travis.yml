@@ -44,8 +44,13 @@ install:
   - sudo apt-get -qq install libxmu-dev libxi-dev
 
   # install GTest
-  - git clone --depth=1 -b release-1.7.0 https://github.com/google/googletest.git /usr/src/gtest
-  - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib; cd -"
+  - sudo git clone --depth=1 -b release-1.7.0 https://github.com/google/googletest.git /usr/src/gtest
+  - pushd /usr/src/gtest
+  - sudo cmake .
+  - sudo cmake --build .
+  - sudo mv libg* /usr/local/lib;
+  - sudo mv include/* /usr/include
+  - popd
   - export GTEST_LIBRARY=/usr/local/lib/libgtest.a
   - export GTEST_MAIN_LIBRARY=/usr/local/lib/libgtest_main.a
   - export GTEST_INCLUDE_DIRS=/usr/include

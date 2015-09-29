@@ -204,7 +204,7 @@ spica::Vector3D operator-(const spica::Vector3D& v, double x) {
 }
 
 spica::Vector3D operator-(double x, const spica::Vector3D& v) {
-    return v + (-x);
+    return x + (-v);
 }
 
 spica::Vector3D operator*(const spica::Vector3D& u, const spica::Vector3D& v) {

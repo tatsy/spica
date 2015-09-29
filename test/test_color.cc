@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 
+#include <cstdio>
+#include <sstream>
 #include <tuple>
 
 #include "../include/spica.h"

@@ -72,21 +72,58 @@ TEST_P(ColorTestWithParam, PlusOperator) {
     EXPECT_EQ(c1.red() + c2.red(), c3.red());
     EXPECT_EQ(c1.green() + c2.green(), c3.green());
     EXPECT_EQ(c1.blue() + c2.blue(), c3.blue());
+
+    const double x = c2.red();
+    Color c4 = c1 + x;
+    EXPECT_EQ(c1.red() + x, c4.red());
+    EXPECT_EQ(c1.green() + x, c4.green());
+    EXPECT_EQ(c1.blue() + x, c4.blue());
+
+    const double y = c2.green();
+    Color c5 = y + c1;
+    EXPECT_EQ(y + c1.red(), c5.red());
+    EXPECT_EQ(y + c1.green(), c5.green());
+    EXPECT_EQ(y + c1.blue(), c5.blue());
 }
 
 TEST_P(ColorTestWithParam, MinusOperator) {
-    Color c3 = c1 + c2;
-    EXPECT_EQ(c1.red() + c2.red(), c3.red());
-    EXPECT_EQ(c1.green() + c2.green(), c3.green());
-    EXPECT_EQ(c1.blue() + c2.blue(), c3.blue());
+    Color c3 = c1 - c2;
+    EXPECT_EQ(c1.red() - c2.red(), c3.red());
+    EXPECT_EQ(c1.green() - c2.green(), c3.green());
+    EXPECT_EQ(c1.blue() - c2.blue(), c3.blue());
+
+    const double x = c2.red();
+    Color c4 = c1 - x;
+    EXPECT_EQ(c1.red() - x, c4.red());
+    EXPECT_EQ(c1.green() - x, c4.green());
+    EXPECT_EQ(c1.blue() - x, c4.blue());
+
+    const double y = c2.green();
+    Color c5 = y - c1;
+    EXPECT_EQ(y - c1.red(), c5.red());
+    EXPECT_EQ(y - c1.green(), c5.green());
+    EXPECT_EQ(y - c1.blue(), c5.blue());
+}
+
+TEST_P(ColorTestWithParam, Negation) {
+    Color c = -c1;
+    EXPECT_EQ(-c1.red(), c.red());
+    EXPECT_EQ(-c1.green(), c.green());
+    EXPECT_EQ(-c1.blue(), c.blue());
 }
 
 TEST_P(ColorTestWithParam, ScalarMultiplication) {
     const double d = c2.red();
-    const Color c = c1 * d;
-    EXPECT_EQ(c1.red() * d, c.red());
-    EXPECT_EQ(c1.green() * d, c.green());
-    EXPECT_EQ(c1.blue() * d, c.blue());
+    const Color c3 = c1 * d;
+    EXPECT_EQ(c1.red()   * d, c3.red());
+    EXPECT_EQ(c1.green() * d, c3.green());
+    EXPECT_EQ(c1.blue()  * d, c3.blue());
+
+    const double e = c2.green();
+    const Color c4 = e * c1;
+    EXPECT_EQ(e * c1.red(), c4.red());
+    EXPECT_EQ(e * c1.green(), c4.green());
+    EXPECT_EQ(e * c1.blue(), c4.blue());
 }
 
 TEST_P(ColorTestWithParam, ComponentWiseMultiplication) {
@@ -128,6 +165,13 @@ TEST_P(ColorTestWithParam, MinimumAndMaximum) {
     EXPECT_EQ(std::max(c1.blue(), c2.blue()), c4.blue());
 }
 
+TEST_P(ColorTestWithParam, Clamp) {
+    Color c3 = c1.clamp();
+    EXPECT_EQ(std::max(0.0, std::min(c1.red(),   INFTY)), c3.red());
+    EXPECT_EQ(std::max(0.0, std::min(c1.green(), INFTY)), c3.green());
+    EXPECT_EQ(std::max(0.0, std::min(c1.blue(),  INFTY)), c3.blue());
+}
+
 TEST_P(ColorTestWithParam, ComponentWiseSqrt) {
     if (c1.red() >= 0.0 && c1.green() >= 0.0 && c1.blue() >= 0.0) {
         Color v = Color::sqrt(c1);
@@ -144,6 +188,16 @@ TEST_P(ColorTestWithParam, ExpTest) {
     EXPECT_EQ(exp(c1.red()), v.red());
     EXPECT_EQ(exp(c1.green()), v.green());
     EXPECT_EQ(exp(c1.blue()), v.blue());
+}
+
+TEST_P(ColorTestWithParam, ToStringAndCout) {
+    char str[1024];
+    sprintf(str, "(%.8f, %.8f, %.8f)", c1.red(), c1.green(), c1.blue());
+    EXPECT_EQ(std::string(str), c1.toString());
+
+    std::stringstream ss;
+    ss << c1;
+    EXPECT_EQ(ss.str(), c1.toString());
 }
 
 std::vector<Color> colors = {

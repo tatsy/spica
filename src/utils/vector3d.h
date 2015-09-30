@@ -29,7 +29,7 @@ namespace spica {
     protected:
 
 #ifndef __AVX__
-        std::array<double, 3> _xyz;
+        double _x, _y, _z;
 #else
         union m256d {
             __m256d m;
@@ -41,6 +41,7 @@ namespace spica {
     public:
         Vector3D();
         Vector3D(double x, double y, double z);
+        Vector3D(const std::array<double, 3>& xyz);
         Vector3D(const Vector3D& v);
         ~Vector3D();
 

@@ -52,7 +52,11 @@ static const double EPS = 1.0e-6;
 // Parallel for
 // ----------------------------------------------------------------------------
 #ifdef _OPENMP
-    #include <omp.h>
+    #if defined(__clang__) || defined(__llvm__)
+        #include <libiomp/omp.h>
+    #else
+        #include <omp.h>
+    #endif
     #if defined(_WIN32) || defined(__WIN32__)
         #define ompfor __pragma(omp parallel for) for
         #define omplock __pragma(omp critical)
@@ -155,7 +159,7 @@ extern void* enabler;
 #endif
 
 #ifdef WITH_ENABLER
-template <class Ty, 
+template <class Ty,
           typename
           std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
 #else
@@ -168,8 +172,8 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
 }
 
 #ifdef WITH_ENABLER
-template <class Ty, 
-          typename 
+template <class Ty,
+          typename
           std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
 #else
 template <class Ty>
@@ -179,8 +183,8 @@ inline Ty max3(Ty a, Ty b, Ty c) {
 }
 
 #ifdef WITH_ENABLER
-template <class Ty, 
-          typename 
+template <class Ty,
+          typename
           std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
 #else
 template <class Ty>

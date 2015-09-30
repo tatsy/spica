@@ -4,6 +4,8 @@ compiler:
   - gcc
   - clang
 
+bundler_args: --retry 5
+
 before_install:
   # update g++
   - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -20,6 +22,9 @@ before_install:
   - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq clang-${LLVM_VER} llvm-${LLVM_VER}; fi
   - if [ "$CXX" = "clang++" ]; then export CC=clang-${LLVM_VER}; fi
   - if [ "$CXX" = "clang++" ]; then export CXX=clang++-${LLVM_VER}; fi
+  - if [ "$CXX" = "clang++" ]; then svn co http://llvm.org/svn/llvm-project/openmp/trunk openmp; fi
+  - ls -l
+  - if [ "$CXX" = "clang++" ]; then "cd openmp && mkdir build && cd build && cmake . $$ make omp && cd -"; fi
 
   # install Qt5
   - sudo add-apt-repository -y ppa:beineri/opt-qt541
@@ -96,4 +101,4 @@ notifications:
 
 env:
   global:
-    - LLVM_VER='3.5'
+    - LLVM_VER='3.7'

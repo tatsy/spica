@@ -20,6 +20,15 @@ before_install:
   - if [ "$CXX" = "clang++" ]; then wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -; fi
   - if [ "$CXX" = "clang++" ]; then sudo apt-get update -qq; fi
   - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq clang-${LLVM_VER} llvm-${LLVM_VER}; fi
+  - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq subversion; fi
+  - if [ "$CXX" = "clang++" ]; then svn co http://llvm.org/svn/llvm-project/openmp/trunk openmp; fi
+  - if [ "$CXX" = "clang++" ]; then cd openmp; fi
+  - if [ "$CXX" = "clang++" ]; then mkdir build; fi
+  - if [ "$CXX" = "clang++" ]; then cd build; fi
+  - if [ "$CXX" = "clang++" ]; then cmake ..; fi
+  - if [ "$CXX" = "clang++" ]; then make omp; fi
+  - if [ "$CXX" = "clang++" ]; then sudo make install; fi
+  - if [ "$CXX" = "clang++" ]; then cd ../..; fi
   - if [ "$CXX" = "clang++" ]; then export CC=clang-${LLVM_VER}; fi
   - if [ "$CXX" = "clang++" ]; then export CXX=clang++-${LLVM_VER}; fi
   - if [ "$CXX" = "clang++" ]; then svn co http://llvm.org/svn/llvm-project/openmp/trunk openmp; fi

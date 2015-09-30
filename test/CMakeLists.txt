@@ -59,7 +59,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   endif()
 
   add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose DEPENDS ${TEST_NAME})
+  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --verbose --gtest_shuffle DEPENDS ${TEST_NAME})
 
   include_directories(${CMAKE_CURRENT_LIST_DIR})
   include_directories(${GTEST_INCLUDE_DIRS})

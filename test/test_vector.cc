@@ -16,7 +16,8 @@ protected:
     virtual ~Vector3DTest() {}
 };
 
-class Vector3DUnaryTest : public Vector3DTest, public ::testing::WithParamInterface<Vector3D> {
+class Vector3DUnaryTest : public Vector3DTest,
+                          public ::testing::WithParamInterface<Vector3D> {
 protected:
     Vector3D v1;
 
@@ -29,7 +30,8 @@ protected:
     }
 };
 
-class Vector3DPairwiseTest : public Vector3DTest, public ::testing::WithParamInterface<Vector3DPair> {
+class Vector3DPairwiseTest : public Vector3DTest,
+                             public ::testing::WithParamInterface<Vector3DPair> {
 protected:
     Vector3D v1, v2;
 
@@ -55,6 +57,11 @@ TEST_P(Vector3DUnaryTest, Instance) {
     EXPECT_EQ(v1.x(), u.x());
     EXPECT_EQ(v1.y(), u.y());
     EXPECT_EQ(v1.z(), u.z());
+
+    Vector3D v = { v1.x(), v1.y(), v1.z() };
+    EXPECT_EQ(v1.x(), v.x());
+    EXPECT_EQ(v1.y(), v.y());
+    EXPECT_EQ(v1.z(), v.z());
 }
 
 TEST_P(Vector3DUnaryTest, Copy) {

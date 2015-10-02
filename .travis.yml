@@ -14,12 +14,10 @@ install:
 
 script:
   # Run test on Docker container
-  - docker run --env="CC=$CC" --env="CXX=$CXX" spica-env /bin/bash -c "lcov --directory . --zerocounters && CTEST_OUTOUT_ON_FAILURE=TRUE make check && cat coverage.info" > coverage.info
+  - docker run --env="CC=$CC" --env="CXX=$CXX" spica-env /bin/bash -c "lcov --directory . --zerocounters && CTEST_OUTOUT_ON_FAILURE=TRUE make check && if [ $CXX = \"g++\"     ]; then lcov --directory . --capture --output-file coverage.info; fi && if [ $CXX = \"clang++\" ]; then lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov; fi && cat coverage.info" > coverage.info"
 
 after_success:
   # Send coverage report to Coveralls
-  - if [ "$CXX" = "g++"     ]; then lcov --directory . --capture --output-file coverage.info; fi
-  - if [ "$CXX" = "clang++" ]; then lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov-${LLVM_VER}; fi
   - lcov --remove coverage.info '3rdparty/*' 'src/renderer/*' 'src/viewer/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
   - lcov --list coverage.info
   - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info

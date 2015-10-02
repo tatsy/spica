@@ -14,7 +14,7 @@ install:
 
 script:
   # Run test on Docker container
-  - docker run --env="CC=$CC" --env="CXX=$CXX" --tty=true spica-env /bin/bash -c "lcov --directory . --zerocounters && CTEST_OUTOUT_ON_FAILURE=TRUE make check && cat coverage.info" > coverage.info
+  - docker run --env="CC=$CC" --env="CXX=$CXX" spica-env /bin/bash -c "lcov --directory . --zerocounters && CTEST_OUTOUT_ON_FAILURE=TRUE make check && cat coverage.info" > coverage.info
 
 after_success:
   # Send coverage report to Coveralls

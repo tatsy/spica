@@ -15,6 +15,8 @@
     #define SPICA_CAMERA_DLL
 #endif
 
+#include <memory>
+
 #include "camera_interface.h"
 #include "../utils/vector3d.h"
 #include "../renderer/ray.h"
@@ -68,6 +70,7 @@ namespace spica {
                                  const Vector3D& up,
                                  int imageW, int imageH, double sensitivity);
 
+        std::unique_ptr<ICamera> ptr() const;
         inline CameraType type() const { return _type; }
         inline Vector3D center() const { return _ptr->center(); }
         inline Vector3D direction() const { return _ptr->direction(); }

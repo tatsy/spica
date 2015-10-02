@@ -14,15 +14,15 @@ install:
 
 script:
   # Run test on Docker container
-  - docker run --env="CC=$CC" --env="CXX=$CXX" tatsy/ubuntu-cxx /bin/bash -c "lcov --directory . --zerocounters && CTEST_OUTOUT_ON_FAILURE=TRUE make check"
+  - docker run --env="CC=$CC" --env="CXX=$CXX" --tty=true spica-env /bin/bash -c "lcov --directory . --zerocounters && CTEST_OUTOUT_ON_FAILURE=TRUE make check && cat coverage.info" > coverage.info
 
 after_success:
   # Send coverage report to Coveralls
-  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "if [ "$CXX" = "g++"     ]; then lcov --directory . --capture --output-file coverage.info; fi"
-  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "if [ "$CXX" = "clang++" ]; then lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov-${LLVM_VER}; fi"
-  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "lcov --remove coverage.info '3rdparty/*' 'src/renderer/*' 'src/viewer/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info"
-  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "lcov --list coverage.info"
-  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info"
+  - if [ "$CXX" = "g++"     ]; then lcov --directory . --capture --output-file coverage.info; fi
+  - if [ "$CXX" = "clang++" ]; then lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov-${LLVM_VER}; fi
+  - lcov --remove coverage.info '3rdparty/*' 'src/renderer/*' 'src/viewer/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
+  - lcov --list coverage.info
+  - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
 branches:
   only:

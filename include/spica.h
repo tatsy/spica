@@ -24,6 +24,14 @@
 #include "../src/random/halton.h"
 
 // --------------------------------------------
+// Lights
+// --------------------------------------------
+
+#include "../src/light/lighting.h"
+#include "../src/light/area_light.h"
+#include "../src/light/envmap.h"
+
+// --------------------------------------------
 // Cameras
 // --------------------------------------------
 

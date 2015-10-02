@@ -1,101 +1,28 @@
 language: cpp
-sudo: true
+sudo: required
 compiler:
   - gcc
   - clang
 
-bundler_args: --retry 5
-
-before_install:
-  # update g++
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq gcc-4.9 g++-4.9
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
-  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
-
-  # update clang
-  - if [ "$CXX" = "clang++" ]; then sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main"; fi
-  - if [ "$CXX" = "clang++" ]; then sudo add-apt-repository -y "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-${LLVM_VER} main"; fi
-  - if [ "$CXX" = "clang++" ]; then wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -; fi
-  - if [ "$CXX" = "clang++" ]; then sudo apt-get update -qq; fi
-  - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq clang-${LLVM_VER} llvm-${LLVM_VER}; fi
-  - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq subversion; fi
-  - if [ "$CXX" = "clang++" ]; then svn co http://llvm.org/svn/llvm-project/openmp/trunk openmp; fi
-  - if [ "$CXX" = "clang++" ]; then cd openmp; fi
-  - if [ "$CXX" = "clang++" ]; then mkdir build; fi
-  - if [ "$CXX" = "clang++" ]; then cd build; fi
-  - if [ "$CXX" = "clang++" ]; then cmake ..; fi
-  - if [ "$CXX" = "clang++" ]; then make omp; fi
-  - if [ "$CXX" = "clang++" ]; then sudo make install; fi
-  - if [ "$CXX" = "clang++" ]; then cd ../..; fi
-  - if [ "$CXX" = "clang++" ]; then export CC=clang-${LLVM_VER}; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX=clang++-${LLVM_VER}; fi
-  - if [ "$CXX" = "clang++" ]; then svn co http://llvm.org/svn/llvm-project/openmp/trunk openmp; fi
-  - ls -l
-  - if [ "$CXX" = "clang++" ]; then "cd openmp && mkdir build && cd build && cmake . $$ make omp && cd -"; fi
-
-  # install Qt5
-  - sudo add-apt-repository -y ppa:beineri/opt-qt541
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq qt54base qt54declarative qt54location qt54tools libsqlite3-dev
-
-  # update cmake
-  - wget http://www.cmake.org/files/v3.2/cmake-3.2.2.tar.gz
-  - tar xf cmake-3.2.2.tar.gz
-  - cd cmake-3.2.2
-  - mkdir build
-  - cd build
-  - cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
-  - make -j4
-  - sudo make install
-  - sudo ldconfig
-  - cd ../..
+services:
+  - docker
 
 install:
-  # install freeglut and glew
-  - sudo apt-get -qq install freeglut3 freeglut3-dev libglew-dev libglew1.5
-  - sudo apt-get -qq install libxmu-dev libxi-dev
-
-  # install GTest
-  - sudo git clone --depth=1 -b release-1.7.0 https://github.com/google/googletest.git /usr/src/gtest
-  - pushd /usr/src/gtest
-  - sudo cmake .
-  - sudo cmake --build .
-  - sudo mv libg* /usr/local/lib;
-  - sudo mv include/* /usr/include
-  - popd
-  - export GTEST_LIBRARY=/usr/local/lib/libgtest.a
-  - export GTEST_MAIN_LIBRARY=/usr/local/lib/libgtest_main.a
-  - export GTEST_INCLUDE_DIRS=/usr/include
-
-  # install lcov
-  - git clone https://github.com/linux-test-project/lcov.git
-  - sudo make -C lcov/ install
-  - gem install coveralls-lcov
-  - lcov --version
-  - g++ --version
-  - clang++ --version
-  - cmake --version
-  - qmake --version
-
-  # build spica
-  - cmake -DENABLE_AVX=OFF -DCMAKE_PREFIX_PATH=/opt/qt54/lib/cmake .
-  - cmake --build .
-
-before_script:
-  - lcov --directory . --zerocounters
-  - export OMP_NUM_THREADS=4
+  # Pull Docker image
+  - docker pull tatsy/ubuntu-cxx
+  - docker build --tag=spica-env --quiet=true .
 
 script:
-  - CTEST_OUTOUT_ON_FAILURE=TRUE make check
+  # Run test on Docker container
+  - docker run --env="CC=$CC" --env="CXX=$CXX" tatsy/ubuntu-cxx /bin/bash -c "lcov --directory . --zerocounters && CTEST_OUTOUT_ON_FAILURE=TRUE make check"
 
 after_success:
-  - if [ "$CXX" = "g++"                 ]; then lcov --directory . --capture --output-file coverage.info; fi
-  - if [ "$CXX" = "clang++-${LLVM_VER}" ]; then lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov-${LLVM_VER}; fi
-  - lcov --remove coverage.info '3rdparty/*' 'src/renderer/*' 'src/viewer/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
-  - lcov --list coverage.info
-  - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
+  # Send coverage report to Coveralls
+  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "if [ "$CXX" = "g++"     ]; then lcov --directory . --capture --output-file coverage.info; fi"
+  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "if [ "$CXX" = "clang++" ]; then lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov-${LLVM_VER}; fi"
+  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "lcov --remove coverage.info '3rdparty/*' 'src/renderer/*' 'src/viewer/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info"
+  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "lcov --list coverage.info"
+  - docker run -t tatsy/ubuntu-cxx /bin/bash -c "coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info"
 
 branches:
   only:

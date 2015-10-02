@@ -1,12 +1,12 @@
 #
 ## Load docker image
 #
-FROM ubuntu-clang
+FROM tatsy/ubuntu-cxx
 
 #
-## Install Qt5
-#
-RUN apt-get install -y qt5-default
+## Environment variables
+ENV CC gcc
+ENV CXX g++
 
 #
 ## Install freeglut and glew
@@ -41,6 +41,6 @@ RUN \
   cmake --build .
 
 #
-## Run test
+## # of threads used by OpenMP
 #
-RUN make check
+ENV OMP_NUM_THREADS 4

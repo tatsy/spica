@@ -5,8 +5,9 @@ FROM tatsy/ubuntu-cxx
 
 #
 ## Environment variables
-ENV CC gcc
-ENV CXX g++
+#
+ENV CC @TRAVIS_C_COMPILER@
+ENV CXX @TRAVIS_CXX_COMPILER@
 
 #
 ## Install freeglut and glew
@@ -49,3 +50,15 @@ ENV OMP_NUM_THREADS 4
 ## Define working direcotry
 #
 WORKDIR /root/spica
+
+#
+## Run unit tests
+#
+RUN lcov --directory . --zerocounters
+RUN CTEST_OUTOUT_ON_FAILURE=TRUE make check
+
+#
+## Collect coverage data
+#
+RUN if [ $CXX = "g++"     ]; then lcov --directory . --capture --output-file coverage.info; fi
+RUN if [ $CXX = "clang++" ]; then lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov; fi

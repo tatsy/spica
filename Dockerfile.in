@@ -10,6 +10,17 @@ ENV CC @TRAVIS_C_COMPILER@
 ENV CXX @TRAVIS_CXX_COMPILER@
 
 #
+## Install Gcovr
+#
+RUN apt-get -qq install python-pip
+RUN pip install gcovr
+
+#
+## Install cppcheck and cccc
+#
+RUN apt-get -qq install cppcheck cccc
+
+#
 ## Install freeglut and glew
 #
 RUN apt-get -qq install freeglut3 freeglut3-dev libglew-dev libglew1.5

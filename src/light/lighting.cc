@@ -50,6 +50,12 @@ namespace spica {
         return std::move(l);
     }
 
+    Lighting Lighting::asEnvmap(const Sphere& boundSphere, const Image& image) {
+        Lighting l;
+        l._ptr = new Envmap(boundSphere, image);
+        return std::move(l);
+    }
+
     LightSample Lighting::sample(Stack<double>& rstack) const {
         Assertion(_ptr != nullptr, "Light pointer is null!!");
         return _ptr->sample(rstack.pop(), rstack.pop(), rstack.pop());

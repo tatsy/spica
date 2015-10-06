@@ -42,6 +42,8 @@ namespace spica {
         Image& operator=(const Image& image);
         Image& operator=(Image&& image);
 
+        static Image fromFile(const std::string& filename);
+
         const Color& operator()(int x, int y) const;
         Color& pixel(int x, int y);
 

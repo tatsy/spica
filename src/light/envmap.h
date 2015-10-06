@@ -40,6 +40,7 @@ namespace spica {
     public:
         Envmap();
         Envmap(const Sphere& boundSphere, const std::string& filename);
+        Envmap(const Sphere& boundSphere, const Image& image);
 
         void resize(int width, int height);
         void clearColor(const Color& color);

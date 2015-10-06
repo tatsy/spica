@@ -49,8 +49,11 @@ namespace spica {
         Lighting& operator=(const Lighting& l);
         Lighting& operator=(Lighting&& l);
 
-        //! Initialize lighting as environment map
+        //! Initialize lighting as environment map (with image file name)
         static Lighting asEnvmap(const Sphere& boundSphere, const std::string& filename);
+
+        //! Initialize lighting as environment map (with image)
+        static Lighting asEnvmap(const Sphere& boundSphere, const Image& image);
 
         //! Initialize lighting as area light
         static Lighting asAreaLight(const std::vector<Triangle>& triangles, const Color& emittance);

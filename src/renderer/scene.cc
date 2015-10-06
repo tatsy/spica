@@ -69,11 +69,16 @@ namespace spica {
     }
 
     void Scene::setEnvmap(const std::string& filename, const Camera& camera) {
+        const Image image = Image::fromFile(filename);
+        setEnvmap(image, camera);
+    }
+
+    void Scene::setEnvmap(const Image& image, const Camera& camera) {
         const Sphere& shape = this->boundingSphere(camera);
         std::vector<Triangle> tris = shape.triangulate();
         const int newTris = static_cast<int>(tris.size());
         const int nowTris = static_cast<int>(_triangles.size());
-        _lighting = Lighting::asEnvmap(shape, filename);
+        _lighting = Lighting::asEnvmap(shape, image);
 
         // If new object is a light, store triangle indices
         for (int i = 0; i < newTris; i++) {
@@ -87,7 +92,7 @@ namespace spica {
         const int bsdfID = static_cast<int>(_bsdfs.size());
         _bsdfIds.resize(_bsdfIds.size() + tris.size());
         std::fill(_bsdfIds.begin() + nowTris, _bsdfIds.end(), bsdfID);
-        _bsdfs.push_back(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)));
+        _bsdfs.push_back(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)));        
     }
 
     const Triangle& Scene::getTriangle(int id) const {

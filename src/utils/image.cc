@@ -174,6 +174,12 @@ namespace spica {
         return *this;
     }
 
+    Image Image::fromFile(const std::string& filename) {
+        Image img;
+        img.load(filename);
+        return std::move(img);
+    }
+
     const Color& Image::operator()(int x, int y) const {
         Assertion(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
         return _pixels[y * _width + x];

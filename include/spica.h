@@ -59,4 +59,10 @@
 #include "../src/scenes/yaml_parser.h"
 #include "../src/scenes/scene_loader.h"
 
+// --------------------------------------------
+// Structures
+// --------------------------------------------
+
+#include "../src/structure/mesh.h"
+
 #endif  // _SPICA_H_

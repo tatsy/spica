@@ -32,6 +32,7 @@ process_subdirectory(random)
 process_subdirectory(light)
 process_subdirectory(camera)
 process_subdirectory(scenes)
+process_subdirectory(structure)
 process_subdirectory(accel)
 
 add_library(spica_renderer SHARED ${ALL_SOURCES} ${ALL_HEADERS})

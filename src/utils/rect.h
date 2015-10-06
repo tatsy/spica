@@ -14,13 +14,16 @@ extern void* enabler;
 namespace spica {
 
     #ifdef WITH_ENABLER
-    template <class T, 
-          typename
-          std::enable_if<std::is_arithmetic<T>::value>::type *& = enabler>
+    template <class T,
+              typename
+              std::enable_if<std::is_arithmetic<T>::value>::type *& = enabler>
     #else
     template <class T>
     #endif
-    class Rect_ {
+    class Rect_;
+
+    template <class T>
+    class Rect_<T> {
     private:
         T _x, _y, _width, _height;
 

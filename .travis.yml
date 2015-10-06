@@ -7,6 +7,13 @@ compiler:
 services:
   - docker
 
+before_install:
+  # Install coveralls
+  - git clone https://github.com/linux-test-project/lcov.git
+  - sudo make -C lcov install
+  - sudo apt-get install -y ruby
+  - gem install coveralls-lcov
+
 install:
   # Pull Docker image
   - docker pull tatsy/ubuntu-cxx
@@ -19,13 +26,7 @@ install:
 
 script:
   # Run test on Docker container
-  - docker cp spica-env:/root/spica/coverage.info .
-
-after_success:
-  # Send coverage report to Coveralls
-  - lcov --remove coverage.info '3rdparty/*' 'src/renderer/*' 'src/viewer/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
-  - lcov --list coverage.info
-  - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
+  - docker run -e CI=true -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID -it spica-env /bin/bash -c "coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info"
 
 branches:
   only:

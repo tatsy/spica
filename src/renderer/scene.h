@@ -62,7 +62,13 @@ namespace spica {
 
         //! Set environment map to the scene
         // @param[in] filename: name of the environment map image file
+        // @param[in] camera: it's necessary for computing environment sphere
         void setEnvmap(const std::string& filename, const Camera& camera);
+
+        //! Set enviroment map to the scene
+        // @param[in] image: the image for enviroment map
+        // @param[in] camera: it's necessary for computing environment sphere
+        void setEnvmap(const Image& image, const Camera& camera);
 
         //! Compute bounding sphere
         Sphere boundingSphere(const Camera& camera) const;

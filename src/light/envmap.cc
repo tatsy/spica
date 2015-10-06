@@ -33,9 +33,17 @@ namespace spica {
         , _image()
         , _importance()
         , _pdf()
-        , _cdf()
-    {
+        , _cdf() {
         _image.load(filename);
+        createImportanceMap();
+    }
+
+    Envmap::Envmap(const Sphere& boundSphere, const Image& image)
+        : _sphere(boundSphere)
+        , _image(image)
+        , _importance()
+        , _pdf()
+        , _cdf() {
         createImportanceMap();
     }
 

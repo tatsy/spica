@@ -188,7 +188,7 @@ namespace spica {
                     buckets[b].bounds.merge(buildData[i].bounds);
                 }
 
-                float cost[nBuckets - 1];
+                float cost[nBuckets - 1] = {0};
                 for (int i = 0; i < nBuckets - 1; i++) {
                     BBox b0, b1;
                     int count0 = 0, count1 = 0;

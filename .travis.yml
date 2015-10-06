@@ -7,13 +7,6 @@ compiler:
 services:
   - docker
 
-before_install:
-  # Install coveralls
-  - git clone https://github.com/linux-test-project/lcov.git
-  - sudo make -C lcov install
-  - sudo apt-get install -y ruby
-  - gem install coveralls-lcov
-
 install:
   # Pull Docker image
   - docker pull tatsy/ubuntu-cxx
@@ -38,7 +31,3 @@ notifications:
     recipients: tatsy.mail@gmail.com
     on_success: change
     on_failure: always
-
-env:
-  global:
-    - LLVM_VER='3.7'

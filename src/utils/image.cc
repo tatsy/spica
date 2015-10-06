@@ -294,7 +294,7 @@ namespace spica {
         BitmapCoreHeader core;
         core.biSize = 40;
         core.biWidth = _width;
-        core.biHeight = -_height;
+        core.biHeight = -static_cast<int>(_height);
         core.biPlanes = 1;
         core.biBitCount = 24;
         core.biCompression = 0;
@@ -354,7 +354,7 @@ namespace spica {
                 } 
             } else {
                 if (strstr(buf, "FORMAT=") == buf) {
-                    char temp[bufSize];
+                    char temp[bufSize] = {0};
                     sscanf(buf, "FORMAT=%s", temp);
                     if (strcmp(temp, "32-bit_rle_rgbe") == 0) {
                         fileType = HDR_RLE_RGBE_32;

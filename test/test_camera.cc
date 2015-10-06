@@ -8,6 +8,7 @@ using namespace spica;
 // ------------------------------
 // Camera class test
 // ------------------------------
+
 class CameraTest : public ::testing::Test {
 protected:
     CameraTest() 
@@ -21,8 +22,7 @@ protected:
         , distSensorToLens(20.0)
         , focalLength(80.0)
         , lensRadius(5.0)
-        , sensorSensitivity(20.0)
-    {
+        , sensorSensitivity(20.0) {
     }
 
     virtual ~CameraTest() {
@@ -57,8 +57,6 @@ protected:
     double lensRadius;
     double sensorSensitivity;
 };
-
-
 
 TEST_F(CameraTest, DefaultConstructor) {
     DoFCamera c;
@@ -111,4 +109,3 @@ TEST_F(CameraTest, SampleTest) {
         EXPECT_EQ(1.0 / camera.lensArea(), pLens);
     }
 }
-

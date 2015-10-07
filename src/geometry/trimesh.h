@@ -23,9 +23,7 @@
 #include "geometry_interface.h"
 #include "triangle.h"
 #include "plane.h"
-#include "../utils/vector2d.h"
-#include "../utils/vector3d.h"
-#include "../utils/color.h"
+#include "../utils/vertex_data.h"
 #include "../accel/accel.h"
 
 namespace spica {

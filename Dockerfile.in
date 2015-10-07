@@ -66,12 +66,3 @@ WORKDIR /root/spica
 ## Run unit tests
 #
 RUN lcov --directory . --zerocounters
-RUN CTEST_OUTOUT_ON_FAILURE=TRUE make check
-
-#
-## Collect coverage data
-#
-RUN if [ $CXX = "g++"     ]; then lcov --directory . --capture --output-file coverage.info; fi
-RUN if [ $CXX = "clang++" ]; then lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov-3.5; fi
-RUN lcov --remove coverage.info '3rdparty/*' 'src/renderer/*' 'src/viewer/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
-RUN lcov --list coverage.info

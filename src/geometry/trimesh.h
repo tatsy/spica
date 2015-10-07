@@ -35,26 +35,22 @@ namespace spica {
 
     public:
         Triplet()
-            : _data()
-        {
+            : _data() {
         }
 
         Triplet(int i, int j, int k)
-            : _data()
-        {
+            : _data() {
             _data[0] = i;
             _data[1] = j;
             _data[2] = k;
         }
 
         Triplet(const Triplet& triplet)
-            : _data()
-        {
+            : _data() {
             this->operator=(triplet);
         }
 
-        ~Triplet()
-        {
+        ~Triplet() {
         }
 
         Triplet& operator=(const Triplet& triplet) {

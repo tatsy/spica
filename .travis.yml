@@ -17,9 +17,20 @@ install:
   # Build Dockerfile
   - docker build --tag=spica-env .
 
+  # Run container
+  - docker run --name spica-env --env="CI=true" --env="TRAVIS_JOB_ID=$TRAVIS_JOB_ID" --env="CTEST_OUTPUT_ON_FAILURE=TRUE" -itd spica-env
+
 script:
   # Run test on Docker container
-  - docker run -e CI=true -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID -it spica-env /bin/bash -c "coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info"
+  - docker exec spica-env make check
+
+after_success:
+  ## Collect coverage data
+  - if [ $CXX = "g++"     ]; then docker exec spica-env lcov --directory . --capture --output-file coverage.info; fi
+  - if [ $CXX = "clang++" ]; then docker exec spica-env lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov-3.5; fi
+  - docker exec spica-env lcov --remove coverage.info '3rdparty/*' 'src/renderer/*' 'src/viewer/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
+  - docker exec spica-env lcov --list coverage.info
+  - docker exec spica-env coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
 branches:
   only:

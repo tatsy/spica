@@ -18,8 +18,7 @@ namespace spica {
         , _faces()
         , _normals()
         , _accel(NULL)
-        , _accelType(AccelType::qbvhAccel)
-    {
+        , _accelType(AccelType::qbvhAccel) {
     }
 
     Trimesh::Trimesh(const std::string& filename)
@@ -28,8 +27,7 @@ namespace spica {
         , _faces()
         , _normals()
         , _accel(NULL)
-        , _accelType(AccelType::qbvhAccel)
-    {
+        , _accelType(AccelType::qbvhAccel) {
         load(filename);
     }
 
@@ -39,8 +37,7 @@ namespace spica {
         , _faces(faceIDs)
         , _normals()
         , _accel(NULL)
-        , _accelType(AccelType::qbvhAccel)
-    {
+        , _accelType(AccelType::qbvhAccel) {
         _colors.resize(_vertices.size());
         _normals.resize(_vertices.size());
 
@@ -59,8 +56,7 @@ namespace spica {
         , _faces()
         , _normals()
         , _accel(NULL)
-        , _accelType(AccelType::qbvhAccel)
-    {
+        , _accelType(AccelType::qbvhAccel) {
         this->operator=(trimesh);
     }
 
@@ -70,13 +66,11 @@ namespace spica {
         , _faces()
         , _normals()
         , _accel(NULL)
-        , _accelType(AccelType::qbvhAccel)
-    {
+        , _accelType(AccelType::qbvhAccel) {
         this->operator=(std::move(trimesh));
     }
 
-    Trimesh::~Trimesh()
-    {
+    Trimesh::~Trimesh() {
     }
 
     Trimesh& Trimesh::operator=(const Trimesh& trimesh) {

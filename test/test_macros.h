@@ -13,8 +13,8 @@ do { \
     if (std::abs((expected).x() - (actual).x()) >= tol || \
         std::abs((expected).y() - (actual).y()) >= tol || \
         std::abs((expected).z() - (actual).z()) >= tol) { \
-        FAIL() << "expected: " << (expected).toString() << std::endl  \
-               << "  actual: " << (actual).toString()   << std::endl; \
+        ADD_FAILURE() << "expected: " << (expected).toString() << std::endl  \
+                      << "  actual: " << (actual).toString()   << std::endl; \
     } \
     SUCCEED(); \
 } while (false)

@@ -150,7 +150,7 @@ namespace spica {
         Triangle getTriangle(int faceID) const;
 
         // Get vertex indices
-        std::vector<Triplet> getIndices() const;
+        const std::vector<Triplet>& getIndices() const;
 
         // Get the vertex with specified ID
         // @param[in] vertexID: ID of the vertex

@@ -47,7 +47,7 @@ TEST_F(TrimeshTest, VertexFaceIdInstance) {
     vertices.push_back(Vector3D( 10.0, 0.0, -10.0));
     vertices.push_back(Vector3D( 10.0, 0.0,  10.0));
     std::vector<Triplet> indices = { Triplet(0, 1, 3), Triplet(3, 2, 0) };
-
+    
     Trimesh trimesh(vertices, indices);
     EXPECT_EQ(2, trimesh.numFaces());
     EXPECT_EQ(4, trimesh.numVerts());
@@ -61,6 +61,26 @@ TEST_F(TrimeshTest, LoadTest) {
 
     EXPECT_EQ(objmesh.numVerts(), plymesh.numVerts());
     EXPECT_EQ(objmesh.numFaces(), plymesh.numFaces());
+
+    const double tol = 0.01;
+
+    for (int i = 0; i < objmesh.numVerts(); i++) {
+        EXPECT_NEAR(objmesh.getVertex(i).x(), plymesh.getVertex(i).x(), tol);
+        EXPECT_NEAR(objmesh.getVertex(i).y(), plymesh.getVertex(i).y(), tol);
+        EXPECT_NEAR(objmesh.getVertex(i).z(), plymesh.getVertex(i).z(), tol);
+
+        EXPECT_NEAR(objmesh.getNormal(i).x(), plymesh.getNormal(i).x(), tol);
+        EXPECT_NEAR(objmesh.getNormal(i).y(), plymesh.getNormal(i).y(), tol);
+        EXPECT_NEAR(objmesh.getNormal(i).z(), plymesh.getNormal(i).z(), tol);
+    }
+
+    std::vector<Triplet> objids = objmesh.getIndices();
+    std::vector<Triplet> plyids = plymesh.getIndices();
+    for (int i = 0; i < objmesh.numFaces(); i++) {
+        EXPECT_EQ(objids[i][0], plyids[i][0]);
+        EXPECT_EQ(objids[i][1], plyids[i][1]);
+        EXPECT_EQ(objids[i][2], plyids[i][2]);
+    }
 }
 
 TEST_F(TrimeshTest, CopyAndMove) {

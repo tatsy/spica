@@ -278,7 +278,7 @@ namespace spica {
             } else if (typ == "f") {
                 int v0, v1, v2;
                 ss >> v0 >> v1 >> v2;
-                _faces.push_back(Triplet(v0, v1, v2));
+                _faces.push_back(Triplet(v0 - 1, v1 - 1, v2 - 1));
             } else {
                 char msg[256];
                 sprintf(msg, "Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
@@ -345,10 +345,8 @@ namespace spica {
         this->translate(toCenter - prevCenter);
     }
 
-    std::vector<Triplet> Trimesh::getIndices() const {
-        std::vector<Triplet> ret(_faces.size());
-        std::copy(_faces.begin(), _faces.end(), ret.begin());
-        return std::move(ret);
+    const std::vector<Triplet>& Trimesh::getIndices() const {
+        return _faces;
     }
 
     Vector3D Trimesh::getVertex(int id) const {

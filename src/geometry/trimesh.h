@@ -23,17 +23,14 @@
 #include "geometry_interface.h"
 #include "triangle.h"
 #include "plane.h"
+#include "../utils/vector2d.h"
 #include "../utils/vector3d.h"
 #include "../utils/color.h"
 #include "../accel/accel.h"
 
 namespace spica {
 
-    #ifdef WITH_ENABLER
-        template <class T, class Enable = void>
-    #else
-        template <class T>
-    #endif
+    template <class T, class Enable = void>
     class Triplet_;
 
     template <class T>
@@ -79,6 +76,7 @@ namespace spica {
         std::vector<Vector3D> _vertices;
         std::vector<Color>    _colors;
         std::vector<Vector3D> _normals;
+        std::vector<Vector2D> _texcoords;
         std::vector<Triplet>  _faces;
         std::shared_ptr<AccelBase> _accel;
         AccelType _accelType;

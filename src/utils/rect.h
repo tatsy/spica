@@ -13,11 +13,7 @@ extern void* enabler;
 
 namespace spica {
 
-    #ifdef WITH_ENABLER
     template <class T, class Enable = void>
-    #else
-    template <class T>
-    #endif
     class Rect_;
 
     template <class T>

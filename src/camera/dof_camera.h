@@ -117,9 +117,6 @@ namespace spica {
 
         ICamera* clone() const override;
 
-        //! Compute a ray from 
-        Ray rayToObjectPlane(double x, double y) const;
-
         double PImageToPAx1(const double PImage, const Vector3D& x0xV, const Vector3D& x0x1, const Vector3D& orientNormal) const;
 
         /* Return distance to the intersecting point on the lens
@@ -134,7 +131,7 @@ namespace spica {
 
         void samplePoints(const int imageX, const int imageY, Random& rng, Vector3D& positionOnSensor, Vector3D& positionOnObjplane, Vector3D& positionOnLens, double& PImage, double& PLens) const;
 
-        CameraSample sample(const double imageX, const double imageY, Stack<double>& rseq) const;
+        CameraSample sample(const double imageX, const double imageY, Stack<double>& rseq) const override;
 
         inline double distSL() const { return distSensorToLens_; }
         

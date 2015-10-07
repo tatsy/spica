@@ -49,7 +49,7 @@ namespace spica {
         KdTreeAccel();
         ~KdTreeAccel();
         
-        void construct(const std::vector<Triangle>& triangles);
+        void construct(const std::vector<Triangle>& triangles) override;
         int  intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
     private:

@@ -111,9 +111,9 @@ namespace spica {
     void Trimesh::buildAccel() {
         std::vector<Triangle> triangles(_faces.size());
         for (unsigned int i = 0; i < _faces.size(); i++) {
-            Vector3D& p0 = _vertices[_faces[i][0]].pos();
-            Vector3D& p1 = _vertices[_faces[i][1]].pos();
-            Vector3D& p2 = _vertices[_faces[i][2]].pos();
+            Vector3D p0 = _vertices[_faces[i][0]].pos();
+            Vector3D p1 = _vertices[_faces[i][1]].pos();
+            Vector3D p2 = _vertices[_faces[i][2]].pos();
             triangles[i] = Triangle(p0, p1, p2);
         }
 

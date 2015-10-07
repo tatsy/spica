@@ -120,7 +120,7 @@ protected:
     virtual ~PerspectiveCameraTest() {}
 };
 
-TEST_F(PerspectiveCameraTest, Instance) {
+TEST_F(PerspectiveCameraTest, DefaultInstance) {
     PerspectiveCamera camera;
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.center());
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.direction());
@@ -129,6 +129,22 @@ TEST_F(PerspectiveCameraTest, Instance) {
     EXPECT_EQ(0.0, camera.fov());
     EXPECT_EQ(0, camera.imageW());
     EXPECT_EQ(0, camera.imageH());
+}
+
+TEST_F(PerspectiveCameraTest, Instance) {
+    Vector3D center(0.0, 0.0, 0.0);
+    Vector3D direction(0.0, 0.0, 1.0);
+    Vector3D up(0.0, 1.0, 0.0);
+    const int width = 320;
+    const int height = 240;
+
+    Camera camera = Camera::perspective(center, direction, up, 45.0, width, height, 1.0);
+    EXPECT_EQ_VEC(center, camera.center());
+    EXPECT_EQ_VEC(direction, camera.direction());
+    EXPECT_EQ_VEC(up, camera.up());
+    EXPECT_EQ(width, camera.imageW());
+    EXPECT_EQ(height, camera.imageH());
+    EXPECT_EQ(1.0, camera.sensitivity());
 }
 
 // -----------------------------------------------------------------------------
@@ -141,11 +157,28 @@ protected:
     virtual ~OrthographicCameraTest() {}
 };
 
-TEST_F(OrthographicCameraTest, Instance) {
+TEST_F(OrthographicCameraTest, DefaultInstance) {
     OrthographicCamera camera;
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.center());
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.direction());
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.up());
     EXPECT_EQ(0, camera.imageW());
     EXPECT_EQ(0, camera.imageH());
+    EXPECT_EQ(0.0, camera.sensitivity());
+}
+
+TEST_F(OrthographicCameraTest, Instance) {
+    Vector3D center(0.0, 0.0, 0.0);
+    Vector3D direction(0.0, 0.0, 1.0);
+    Vector3D up(0.0, 1.0, 0.0);
+    const int width = 320;
+    const int height = 240;
+
+    Camera camera = Camera::orthogonal(center, direction, up, width, height, 1.0);
+    EXPECT_EQ_VEC(center, camera.center());
+    EXPECT_EQ_VEC(direction, camera.direction());
+    EXPECT_EQ_VEC(up, camera.up());
+    EXPECT_EQ(width, camera.imageW());
+    EXPECT_EQ(height, camera.imageH());
+    EXPECT_EQ(1.0, camera.sensitivity());
 }

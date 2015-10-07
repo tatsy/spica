@@ -1,7 +1,10 @@
 CC	   = clang
 CXX    = clang++
 
-all: build run test coverage cppcheck cccc
+all: info build run test coverage cppcheck cccc
+
+info:
+	docker info
 
 build:
 	docker pull tatsy/ubuntu-cxx; \

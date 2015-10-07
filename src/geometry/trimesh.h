@@ -77,9 +77,9 @@ namespace spica {
     class SPICA_TRIMESH_DLL Trimesh : public IGeometry {
     private:
         std::vector<Vector3D> _vertices;
-        std::vector<Color>   _colors;
+        std::vector<Color>    _colors;
         std::vector<Vector3D> _normals;
-        std::vector<Triplet> _faces;
+        std::vector<Triplet>  _faces;
         std::shared_ptr<AccelBase> _accel;
         AccelType _accelType;
 

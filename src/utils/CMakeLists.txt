@@ -18,6 +18,8 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/rect.h
      ${CMAKE_CURRENT_LIST_DIR}/stack.h
      ${CMAKE_CURRENT_LIST_DIR}/uncopyable.h
+     ${CMAKE_CURRENT_LIST_DIR}/vector2d.h
+     ${CMAKE_CURRENT_LIST_DIR}/vector2d_detail.h
      ${CMAKE_CURRENT_LIST_DIR}/vector3d.h
      ${CMAKE_CURRENT_LIST_DIR}/color.h
      ${CMAKE_CURRENT_LIST_DIR}/image.h

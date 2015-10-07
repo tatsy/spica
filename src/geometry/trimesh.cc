@@ -171,6 +171,7 @@ namespace spica {
         Assertion(format == "ply", "Invalid format identifier");
 
         bool isBody = false;
+        bool hasTex = false;
         while(!in.eof()) {
             if (!isBody) {
                 std::getline(in, line);
@@ -195,6 +196,12 @@ namespace spica {
                 } else if (key == "end_header") {
                     isBody = true;
                     continue;
+                } else if (key == "comment") {
+                    ss >> name >> val;
+                    if (name == "TextureFile") {
+                        hasTex = true;
+                        printf("Have texture!!\n");
+                    }
                 } else {
                     continue;
                 }

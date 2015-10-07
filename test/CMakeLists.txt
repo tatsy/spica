@@ -32,7 +32,8 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_macros.h
       test_stack.cc
       test_geometry.cc
-      test_vector.cc
+      test_vector2d.cc
+      test_vector3d.cc
       test_image.cc
       test_color.cc
       test_camera.cc

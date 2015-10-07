@@ -18,7 +18,7 @@ install:
   - docker build --tag=spica-env .
 
   # Run container
-  - docker run --name spica-env --env="CI=true" --env="TRAVIS_JOB_ID=$TRAVIS_JOB_ID" --env="CTEST_OUTPUT_ON_FAILURE=TRUE" -itd spica-env
+  - docker run --name spica-env --env="CI=true" --env="TRAVIS_JOB_ID=$TRAVIS_JOB_ID" --env="CTEST_OUTPUT_ON_FAILURE=TRUE" -c 2048 -m 2048m -itd spica-env
 
 script:
   # Run test on Docker container

@@ -68,6 +68,10 @@ namespace spica {
         inline Vector3D normal() const { return _normal; }
         inline Vector2D texcoord() const { return _texcoord; }
         inline bool isTextured() const { return _isTextured; }
+
+        inline void setPosition(const Vector3D& pos) { _pos = pos; }
+        inline void setColor(const Color& color) { _color = color; }
+        inline void setNormal(const Vector3D& nrm) { _normal = nrm; }
     };
 
 }  // namespace spica

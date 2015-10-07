@@ -56,6 +56,7 @@ namespace spica {
 
 
     public:
+        AccelBase() {}
         virtual ~AccelBase() {}
         virtual void construct(const std::vector<Triangle>& triangles) = 0;
         virtual int  intersect(const Ray& ray, Hitpoint* hitpoint) const = 0;

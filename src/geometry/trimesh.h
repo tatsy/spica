@@ -71,11 +71,8 @@ namespace spica {
     
     class SPICA_TRIMESH_DLL Trimesh : public IGeometry {
     private:
-        std::vector<Vector3D> _vertices;
-        std::vector<Color>    _colors;
-        std::vector<Vector3D> _normals;
-        std::vector<Vector2D> _texcoords;
-        std::vector<Triplet>  _faces;
+        std::vector<VertexData> _vertices;
+        std::vector<Triplet>    _faces;
         std::shared_ptr<AccelBase> _accel;
         AccelType _accelType;
 
@@ -180,6 +177,9 @@ namespace spica {
     private:
         void loadPly(const std::string& filename);
         void loadObj(const std::string& filename);
+
+        // Compute vertex normals
+        void calcVertexNormals();
     };
 
 }  // namespace spica

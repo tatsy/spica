@@ -120,6 +120,9 @@ TEST_F(TrimeshTest, BunnyIntersection) {
         for (int k = 0; k < 3; k++) {
             EXPECT_EQ_VEC(t1[k], t2[k]);
         }
+    }
+
+    for (int i = 0; i < cp.numVerts(); i++) {
         EXPECT_EQ_VEC(trimesh.getNormal(i), cp.getNormal(i));
     }
 

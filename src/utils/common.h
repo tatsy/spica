@@ -72,6 +72,15 @@ static const double EPS = 1.0e-6;
 // -----------------------------------------------------------------------------
 // Assertion with message
 // -----------------------------------------------------------------------------
+
+#ifndef __FUNCTION_NAME__
+    #if defined(_WIN32) || defined(__WIN32__)
+        #define __FUNCTION_NAME__ __FUNCTION__
+    #else
+        #define __FUNCTION_NAME__ __func__
+    #endif
+#endif
+
 #undef NDEBUG
 #ifndef NDEBUG
 #define Assertion(PREDICATE, MSG) \
@@ -79,7 +88,9 @@ do { \
     if (!(PREDICATE)) { \
         std::cerr << "Asssertion \"" \
         << #PREDICATE << "\" failed in " << __FILE__ \
-        << " line " << __LINE__ << " : " << MSG << std::endl; \
+        << " line " << __LINE__ \
+        << " in function \"" << (__FUNCTION_NAME__) << "\"" \
+        << " : " << (MSG) << std::endl; \
         std::abort(); \
     } \
 } while (false)

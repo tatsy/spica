@@ -29,31 +29,39 @@
 
 namespace spica {
 
-    class SPICA_TRIMESH_DLL Triplet {
+    #ifdef WITH_ENABLER
+        template <class T, class Enable = void>
+    #else
+        template <class T>
+    #endif
+    class Triplet_;
+
+    template <class T>
+    class Triplet_<T, typename std::enable_if<std::is_arithmetic<T>::value>::type> {
     private:
         std::array<int,3> _data;
 
     public:
-        Triplet()
+        Triplet_()
             : _data() {
         }
 
-        Triplet(int i, int j, int k)
+        Triplet_(int i, int j, int k)
             : _data() {
             _data[0] = i;
             _data[1] = j;
             _data[2] = k;
         }
 
-        Triplet(const Triplet& triplet)
+        Triplet_(const Triplet_<T>& triplet)
             : _data() {
             this->operator=(triplet);
         }
 
-        ~Triplet() {
+        ~Triplet_() {
         }
 
-        Triplet& operator=(const Triplet& triplet) {
+        Triplet_& operator=(const Triplet_<T>& triplet) {
             this->_data = triplet._data;
             return *this;
         }
@@ -63,6 +71,8 @@ namespace spica {
             return _data[i];
         }    
     };
+
+    using Triplet = Triplet_<int>;
     
     class SPICA_TRIMESH_DLL Trimesh : public IGeometry {
     private:

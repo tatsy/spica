@@ -6,6 +6,7 @@ FROM tatsy/ubuntu-cxx
 #
 ## Environment variables
 #
+ENV TERM xterm
 ENV CC @TRAVIS_C_COMPILER@
 ENV CXX @TRAVIS_CXX_COMPILER@
 

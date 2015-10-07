@@ -22,18 +22,39 @@ namespace {
         return ret;
     }
 
-}
+}  // anonymous namespace
+
+class TrimeshTest : public ::testing::Test {
+protected:
+    TrimeshTest() {}
+    virtual ~TrimeshTest() {}
+};
 
 // ------------------------------
 // Trimesh class test
 // ------------------------------
-TEST(TrimeshTest, InvalidLoad) {
+
+TEST_F(TrimeshTest, InvalidLoad) {
     Trimesh trimesh;
     ASSERT_DEATH(trimesh.load(kDataDirectory + "box.obj"), "");
     ASSERT_DEATH(trimesh.load(kDataDirectory + "bax.ply"), "");
 }
 
-TEST(TrimeshTest, LoadTest) {
+TEST_F(TrimeshTest, VertexFaceIdInstance) {
+    std::vector<Vector3D> vertices;
+    vertices.push_back(Vector3D(-10.0, 0.0, -10.0));
+    vertices.push_back(Vector3D(-10.0, 0.0,  10.0));
+    vertices.push_back(Vector3D( 10.0, 0.0, -10.0));
+    vertices.push_back(Vector3D( 10.0, 0.0,  10.0));
+    std::vector<Triplet> indices = { Triplet(0, 1, 3), Triplet(3, 2, 0) };
+
+    Trimesh trimesh(vertices, indices);
+    EXPECT_EQ(2, trimesh.numFaces());
+    EXPECT_EQ(4, trimesh.numVerts());
+    EXPECT_EQ(400.0, trimesh.area());
+}
+
+TEST_F(TrimeshTest, LoadTest) {
     Trimesh objmesh, plymesh;
     EXPECT_NO_FATAL_FAILURE(objmesh.load(kDataDirectory + "bunny.obj"));
     EXPECT_NO_FATAL_FAILURE(plymesh.load(kDataDirectory + "bunny.ply"));
@@ -42,7 +63,7 @@ TEST(TrimeshTest, LoadTest) {
     EXPECT_EQ(objmesh.numFaces(), plymesh.numFaces());
 }
 
-TEST(TrimeshTest, CopyAndMove) {
+TEST_F(TrimeshTest, CopyAndMove) {
     Trimesh trimesh(kDataDirectory + "bunny.ply");
     Trimesh trimesh2(trimesh);
 
@@ -64,7 +85,7 @@ TEST(TrimeshTest, CopyAndMove) {
     ASSERT_DEATH(trimesh2.getVertex(0), "");
 }
 
-TEST(TrimeshTest, BoxIntersection) {
+TEST_F(TrimeshTest, BoxIntersection) {
     Trimesh trimesh(kDataDirectory + "box.ply");
     trimesh.setAccelType(AccelType::qbvhAccel, true);
 
@@ -76,7 +97,7 @@ TEST(TrimeshTest, BoxIntersection) {
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 1.0), hitpoint.normal());
 }
 
-TEST(TrimeshTest, BunnyIntersection) {
+TEST_F(TrimeshTest, BunnyIntersection) {
     Trimesh trimesh(kDataDirectory + "bunny.ply");
     trimesh.setAccelType(AccelType::kdtreeAccel, true);
 
@@ -106,7 +127,7 @@ TEST(TrimeshTest, BunnyIntersection) {
     EXPECT_EQ(hpGT.distance(), hitpoint.distance());
 }
 
-TEST(TrimeshTest, RandomKdTreeIntersection) {
+TEST_F(TrimeshTest, RandomKdTreeIntersection) {
     const int nTrial = 100;
     Random rng = Random();
 
@@ -133,7 +154,7 @@ TEST(TrimeshTest, RandomKdTreeIntersection) {
     }
 }
 
-TEST(TrimeshTest, RandomQVBHIntersection) {
+TEST_F(TrimeshTest, RandomQVBHIntersection) {
     const int nTrial = 100;
     Random rng = Random();
 
@@ -159,3 +180,39 @@ TEST(TrimeshTest, RandomQVBHIntersection) {
         EXPECT_EQ(ans.distance(), hitpoint.distance());
     }
 }
+
+TEST_F(TrimeshTest, Translate) {
+    const int trials = 100;
+    Random rng((unsigned int)time(0));
+
+    for (int t = 0; t < trials; t++) {
+        Trimesh tmesh1(kDataDirectory + "bunny.ply");
+        Trimesh tmesh2 = tmesh1;
+
+        Vector3D delta(rng.nextReal() * 2.0 - 1.0,
+                       rng.nextReal() * 2.0 - 1.0,
+                       rng.nextReal() * 2.0 - 1.0);
+
+        tmesh2.translate(delta);
+        for (int i = 0; i < tmesh1.numVerts(); i++) {
+            EXPECT_EQ_VEC(tmesh1.getVertex(i) + delta, tmesh2.getVertex(i));
+        }
+    }
+}
+
+TEST_F(TrimeshTest, Scale) {
+    const int trials = 100;
+    Random rng((unsigned int)time(0));
+
+    for (int t = 0; t < trials; t++) {
+        Trimesh tmesh1(kDataDirectory + "bunny.ply");
+        Trimesh tmesh2 = tmesh1;
+
+        const double scale = rng.nextReal() * 2.0 - 1.0;
+        tmesh2.scale(scale);
+        for (int i = 0; i < tmesh1.numVerts(); i++) {
+            EXPECT_EQ_VEC(tmesh1.getVertex(i) * scale, tmesh2.getVertex(i));
+        }
+    }
+}
+

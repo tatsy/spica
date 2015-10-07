@@ -36,6 +36,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_image.cc
       test_color.cc
       test_camera.cc
+      test_light.cc
       test_ray.cc
       test_sampler.cc
       test_trimesh.cc

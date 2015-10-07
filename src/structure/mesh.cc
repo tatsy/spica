@@ -59,6 +59,7 @@ namespace spica {
                 Vertex v(trimesh.getVertex(i));
                 mesh._vertices.emplace_back(v);
             }
+            return std::move(mesh);
         }
 
     }  // namespace structure

@@ -153,15 +153,18 @@ namespace spica {
     }
 
     void Trimesh::load(const std::string& filename) {
+        std::string ext = "";
         int dotPos = filename.find_last_of(".");
-        std::string ext = filename.substr(dotPos);
-        
-        if (ext == ".ply") {
-            this->loadPly(filename);
-        } else if (ext == ".obj") {
-            this->loadObj(filename);
+        if (dotPos != std::string::npos) {
+            ext = filename.substr(dotPos);
+            if (ext == ".ply") {
+                this->loadPly(filename);
+                return;
+            } else if (ext == ".obj") {
+                this->loadObj(filename);
+                return;
+            } 
         }
-
         Assertion(ext == ".ply" || ext == ".obj", "Mesh loader only accepts .ply and .obj file format");
     }
 
@@ -221,7 +224,7 @@ namespace spica {
                 float ff[3];
                 for (size_t i = 0; i < numVerts; i++) {
                     ifs.read((char*)ff, sizeof(float) * 3);
-                    _vertices[i] = Vector3D(ff[0], ff[1], ff[2]);
+                    _vertices[i] = VertexData(Vector3D(ff[0], ff[1], ff[2]));
                 }
 
                 unsigned char vs;
@@ -271,7 +274,7 @@ namespace spica {
             if (typ == "v") {               
                 double x, y, z;
                 ss >> x >> y >> z;
-                _vertices.push_back(Vector3D(x, y, z));
+                _vertices.emplace_back(Vector3D(x, y, z));
             } else if (typ == "f") {
                 int v0, v1, v2;
                 ss >> v0 >> v1 >> v2;

@@ -28,10 +28,10 @@ namespace spica {
             , _isTextured(false) {
         }
 
-        VertexData(const Vector3D& pos,
-                   const Color& color = Color(0.0, 0.0, 0.0),
-                   const Vector3D& normal = Vector3D(0.0, 0.0, 0.0),
-                   const Vector2D& texcoord = Vector2D(INFTY, INFTY))
+        explicit VertexData(const Vector3D& pos,
+                            const Color& color = Color(0.0, 0.0, 0.0),
+                            const Vector3D& normal = Vector3D(0.0, 0.0, 0.0),
+                            const Vector2D& texcoord = Vector2D(INFTY, INFTY))
             : _pos(pos)
             , _color(color)
             , _normal(normal)

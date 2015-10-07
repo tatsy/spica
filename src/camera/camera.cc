@@ -5,7 +5,7 @@
 
 #include "dof_camera.h"
 #include "perspective_camera.h"
-#include "orthogonal_camera.h"
+#include "orthographic_camera.h"
 
 namespace spica {
 
@@ -92,7 +92,7 @@ namespace spica {
                               int imageW, int imageH, double sensitivity) {
         Camera camera;
         camera._type = CameraType::Orthogonal;
-        camera._ptr = new OrthogonalCamera(center, direction, up,
+        camera._ptr = new OrthographicCamera(center, direction, up,
                                            imageW, imageH, sensitivity);
         return std::move(camera);
     }

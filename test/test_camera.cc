@@ -5,13 +5,13 @@ using namespace spica;
 
 #include "test_macros.h"
 
-// ------------------------------
-// Camera class test
-// ------------------------------
+// -----------------------------------------------------------------------------
+// DoF Camera class test
+// -----------------------------------------------------------------------------
 
-class CameraTest : public ::testing::Test {
+class DoFCameraTest : public ::testing::Test {
 protected:
-    CameraTest() 
+    DoFCameraTest() 
         : camera()
         , imageW(320)
         , imageH(240)
@@ -25,19 +25,19 @@ protected:
         , sensorSensitivity(20.0) {
     }
 
-    virtual ~CameraTest() {
+    virtual ~DoFCameraTest() {
     }
 
     virtual void SetUp() {
         camera = DoFCamera(imageW, imageH,
-                        center,
-                        direction,
-                        up,
-                        sensorSize,
-                        distSensorToLens,
-                        focalLength,
-                        lensRadius,
-                        sensorSensitivity);
+                           center,
+                           direction,
+                           up,
+                           sensorSize,
+                           distSensorToLens,
+                           focalLength,
+                           lensRadius,
+                           sensorSensitivity);
     }
 
     virtual void TearDown() {
@@ -58,13 +58,13 @@ protected:
     double sensorSensitivity;
 };
 
-TEST_F(CameraTest, DefaultConstructor) {
+TEST_F(DoFCameraTest, DefaultConstructor) {
     DoFCamera c;
     EXPECT_EQ(0.0, c.imageW());
     EXPECT_EQ(0.0, c.imageH());
 }
 
-TEST_F(CameraTest, InstanceTest) {
+TEST_F(DoFCameraTest, InstanceTest) {
     EXPECT_EQ(imageW, camera.imageW());
     EXPECT_EQ(imageH, camera.imageH());
     EXPECT_EQ_VEC(center, camera.center());
@@ -81,7 +81,7 @@ TEST_F(CameraTest, InstanceTest) {
     EXPECT_EQ(focalLength, cp.focalLength());
 }
 
-TEST_F(CameraTest, LensIntersection) {
+TEST_F(DoFCameraTest, LensIntersection) {
     // Intersect
     Vector3D posOnLens, posOnObjplane, posOnSensor, uvOnSensor;
     Ray ray(Vector3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 1.0));
@@ -96,7 +96,7 @@ TEST_F(CameraTest, LensIntersection) {
     EXPECT_EQ(-INFTY, camera.intersectLens(ray, posOnLens, posOnObjplane, posOnSensor, uvOnSensor));
 }
 
-TEST_F(CameraTest, SampleTest) {
+TEST_F(DoFCameraTest, SampleTest) {
     const int numSample = 100;
     Random rng = Random();
 
@@ -108,4 +108,44 @@ TEST_F(CameraTest, SampleTest) {
         EXPECT_EQ(100.0, posOnSensor.z());
         EXPECT_EQ(1.0 / camera.lensArea(), pLens);
     }
+}
+
+// -----------------------------------------------------------------------------
+// Perspetcive Camera Test
+// -----------------------------------------------------------------------------
+
+class PerspectiveCameraTest : public ::testing::Test {
+protected:
+    PerspectiveCameraTest() {}
+    virtual ~PerspectiveCameraTest() {}
+};
+
+TEST_F(PerspectiveCameraTest, Instance) {
+    PerspectiveCamera camera;
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.center());
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.direction());
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.up());
+    EXPECT_EQ(0.0, camera.aspect());
+    EXPECT_EQ(0.0, camera.fov());
+    EXPECT_EQ(0, camera.imageW());
+    EXPECT_EQ(0, camera.imageH());
+}
+
+// -----------------------------------------------------------------------------
+// Orthogonal Camera Test
+// -----------------------------------------------------------------------------
+
+class OrthographicCameraTest : public ::testing::Test {
+protected:
+    OrthographicCameraTest() {}
+    virtual ~OrthographicCameraTest() {}
+};
+
+TEST_F(OrthographicCameraTest, Instance) {
+    OrthographicCamera camera;
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.center());
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.direction());
+    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), camera.up());
+    EXPECT_EQ(0, camera.imageW());
+    EXPECT_EQ(0, camera.imageH());
 }

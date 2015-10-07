@@ -6,6 +6,7 @@
 #define _SPICA_H_
 
 #include "../src/utils/common.h"
+#include "../src/utils/vbo.h"
 #include "../src/utils/path.h"
 #include "../src/utils/timer.h"
 #include "../src/utils/vector3d.h"
@@ -17,11 +18,27 @@
 #include "../src/renderer/brdf.h"
 #include "../src/renderer/bssrdf.h"
 #include "../src/renderer/scene.h"
-#include "../src/renderer/camera.h"
 #include "../src/renderer/render_parameters.h"
 
 #include "../src/random/random.h"
 #include "../src/random/halton.h"
+
+// --------------------------------------------
+// Lights
+// --------------------------------------------
+
+#include "../src/light/lighting.h"
+#include "../src/light/area_light.h"
+#include "../src/light/envmap.h"
+
+// --------------------------------------------
+// Cameras
+// --------------------------------------------
+
+#include "../src/camera/camera.h"
+#include "../src/camera/orthographic_camera.h"
+#include "../src/camera/perspective_camera.h"
+#include "../src/camera/dof_camera.h"
 
 // --------------------------------------------
 // Renderers
@@ -39,5 +56,13 @@
 // --------------------------------------------
 
 #include "../src/scenes/predefined_scenes.h"
+#include "../src/scenes/yaml_parser.h"
+#include "../src/scenes/scene_loader.h"
+
+// --------------------------------------------
+// Structures
+// --------------------------------------------
+
+#include "../src/structure/mesh.h"
 
 #endif  // _SPICA_H_

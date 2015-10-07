@@ -3,7 +3,8 @@
 
 #include "ray.h"
 #include "scene.h"
-#include "camera.h"
+
+#include "../camera/camera.h"
 
 namespace spica {
 

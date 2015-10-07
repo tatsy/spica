@@ -33,6 +33,7 @@ namespace spica {
         
     private slots:
         void onRenderButtonClicked();
+        void onLoadButtonClicked();
 
     protected:
         QWidget* mainContainer;

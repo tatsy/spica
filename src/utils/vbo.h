@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_VBO_H_
 #define _SPICA_VBO_H_
 
@@ -31,14 +35,10 @@ namespace spica {
 
         VBO& operator=(const VBO& vbo);
 
-        void add(const IGeometry* p, const Color& color);
         void add(const Vector3D& v, const Vector3D& normal, const Color& color);
-        void add(const Quad& quad, const Color& color);
-        void add(const Triangle& tri, const Color& color);
-        void add(const Trimesh& trimesh);
-        void add(const Trimesh& trimesh, const Color& color);
-        void add(const Sphere& sphere, const Color& color);
-        void add(const Disk& disk, const Color& color);
+
+        template <class T>
+        void add(const T& shape, const Color& color);
 
         inline int numIndices() const { return (int)_indices.size(); }
 
@@ -48,6 +48,19 @@ namespace spica {
         inline const unsigned int* indices() const { return &_indices[0]; }
     };
 
+    template <class T>
+    void VBO::add(const T& shape, const Color& color) {
+        static_assert(std::is_base_of<IGeometry, T>::value,
+                      "Added shape must derive IGeometry !!");
+        
+        const std::vector<Triangle> tris = shape.triangulate();
+        for (int i = 0; i < tris.size(); i++) {
+            const Vector3D& normal = tris[i].normal();
+            for (int j = 0; j < 3; j++) {
+                add(tris[i][j], normal, color);
+            }
+        }
+    }
 }
 
 #endif  // _SPICA_VBO_H_

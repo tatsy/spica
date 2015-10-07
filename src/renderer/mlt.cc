@@ -120,7 +120,7 @@ namespace spica {
         Color radiance(const Scene& scene, const Ray& ray, const RenderParameters& params, int bounces, KelemenMLT& mlt) {
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
-                return scene.envmap().sampleFromDir(ray.direction());
+                return Color::BLACK;
             }
 
             const int    objectID = isect.objectId();
@@ -151,7 +151,7 @@ namespace spica {
                 Color nextrad = radiance(scene, nextRay, params, bounces + 1, mlt);
                 return Color(refl * (dlight + nextrad / pdf) / roulette);
             } else if (bounces == 0) {
-                return scene.getEmittance(objectID);
+                return scene.directLight(ray.direction());
             }
             return Color::BLACK;
         }
@@ -193,15 +193,16 @@ namespace spica {
             }
 
             // Position on object plane
-            double randnums[4];
+            Stack<double> stk;
             for (int i = 0; i < 4; i++) {
-                randnums[i] = mlt.nextSample();
+                stk.push(mlt.nextSample());
             }
-            CameraSample camSample = camera.sample(x, y, randnums);
 
-            const Ray ray = camSample.generateRay();
+            CameraSample camSample = camera.sample(x, y, stk);
+
+            const Ray ray = camSample.ray();
             Color c = radiance(scene, ray, params, 0, mlt);
-            weight *= camera.sensitivity() / camSample.totalPdf();
+            weight *= camera.sensitivity() / camSample.pdf();
 
             return PathSample(x, y, c, weight);
         }
@@ -209,12 +210,10 @@ namespace spica {
     }  // anonymous namespace
 
     MLTRenderer::MLTRenderer(spica::Image* image)
-        : IRenderer()
-    {
+        : IRenderer() {
     }
 
-    MLTRenderer::~MLTRenderer()
-    {
+    MLTRenderer::~MLTRenderer() {
     }
 
     void MLTRenderer::render(const Scene& scene, const Camera& camera, 
@@ -225,24 +224,23 @@ namespace spica {
         const int numMLT = params.samplePerPixel();
         const int numMutate = width * height;
         
-        Image* buffer = new Image[kNumCores];
-        Random* rand = new Random[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        Image* buffer = new Image[kNumThreads];
+        Random* rand = new Random[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             buffer[i] = Image(width, height);
             rand[i] = Random(i);
         }
 
-        const int taskPerThread = (numMLT + kNumCores- 1) / kNumCores;
+        const int taskPerThread = (numMLT + kNumThreads- 1) / kNumThreads;
 
         _result.resize(width, height);
+        const int seed_path_max = std::max(width, height);
         for (int t = 0; t < taskPerThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 Stack<double> rstk;
                 rand[threadID].request(&rstk, 2);
 
                 KelemenMLT kelemenMlt(threadID);
-
-                const int seed_path_max = std::max(width, height);
 
                 std::vector<PathSample> seed_paths(seed_path_max);
                 double sumI = 0.0;
@@ -286,8 +284,8 @@ namespace spica {
 
                     rand[threadID].request(&rstk, 2);
 
-                    kelemenMlt.large_step = rstk.pop() < p_large ? 1 : 0;
-                    kelemenMlt.initUsedRandCoords();
+					kelemenMlt.large_step = rstk.pop() < p_large ? 1 : 0;
+					kelemenMlt.initUsedRandCoords();
                     PathSample new_path = generateNewPath(scene, camera, params, kelemenMlt, -1, -1, params.bounceLimit());
 
                     double a = std::min(1.0, new_path.F.luminance() / old_path.F.luminance());
@@ -302,29 +300,29 @@ namespace spica {
                         accept++;
                         old_path = new_path;
                         if (kelemenMlt.large_step) {
-                            kelemenMlt.large_step_time = kelemenMlt.global_time;
+							kelemenMlt.large_step_time = kelemenMlt.global_time;
                         }
                         kelemenMlt.global_time++;
                         while (!kelemenMlt.primary_samples_stack.empty()) {
-                            kelemenMlt.primary_samples_stack.pop();
-                        }
+							kelemenMlt.primary_samples_stack.pop();
+						}
                     } else {
                         // Reject
                         reject++;
                         int idx = kelemenMlt.used_rand_coords - 1;
                         while (!kelemenMlt.primary_samples_stack.empty()) {
-                            kelemenMlt.primary_samples[idx--] = kelemenMlt.primary_samples_stack.top();
-                            kelemenMlt.primary_samples_stack.pop();
+							kelemenMlt.primary_samples[idx--] = kelemenMlt.primary_samples_stack.top();
+							kelemenMlt.primary_samples_stack.pop();
                         }
                     }
                 }
             }
 
-            const int usedSamples = kNumCores * (t + 1);
+            const int usedSamples = kNumThreads * (t + 1);
             _result.fill(Color::BLACK);
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    for (int k = 0; k < kNumCores; k++) {
+                    for (int k = 0; k < kNumThreads; k++) {
                         _result.pixel(width - x - 1, y) += buffer[k](x, y) / usedSamples;
                     }
                 }

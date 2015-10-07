@@ -44,8 +44,7 @@ namespace spica {
         setSignalSlots();
     }
 
-    SceneViewer::~SceneViewer()
-    {
+    SceneViewer::~SceneViewer() {
         delete qglWidget;
         delete paramWidget;
         
@@ -67,6 +66,7 @@ namespace spica {
 
     void SceneViewer::setSignalSlots() {
         connect(paramWidget->renderButton, SIGNAL(clicked()), this, SLOT(onRenderButtonClicked()));
+        connect(paramWidget->loadButton, SIGNAL(clicked()), this, SLOT(onLoadButtonClicked()));
     }
 
 }  // namespace spica

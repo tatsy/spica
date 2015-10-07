@@ -13,42 +13,50 @@
 namespace spica {
 
     Vector3D::Vector3D()
-        : _xyz()
-    {
+        : _x(0.0)
+        , _y(0.0)
+        , _z(0.0) {
     }
 
     Vector3D::Vector3D(double x, double y, double z)
-        : _xyz()
-    {
-        _xyz[0] = x;
-        _xyz[1] = y;
-        _xyz[2] = z;
+        : _x(x)
+        , _y(y)
+        , _z(z) {
+    }
+
+    Vector3D::Vector3D(const std::array<double, 3>& xyz)
+        : _x(xyz[0])
+        , _y(xyz[1])
+        , _z(xyz[2]) {
     }
 
     Vector3D::Vector3D(const Vector3D& v)
-        : _xyz(v._xyz)
-    {
+        : _x(v._x)
+        , _y(v._y)
+        , _z(v._z) {
     }
 
     Vector3D::~Vector3D() {
     }
 
     Vector3D& Vector3D::operator=(const Vector3D& v) {
-        this->_xyz = v._xyz;
+        this->_x = v._x;
+        this->_y = v._y;
+        this->_z = v._z;
         return *this;
     }
 
     Vector3D& Vector3D::operator+=(const Vector3D& v) {
-        this->x() += v.x();
-        this->y() += v.y();
-        this->z() += v.z();
+        this->_x += v._x;
+        this->_y += v._y;
+        this->_z += v._z;
         return *this;
     }
 
     Vector3D& Vector3D::operator+=(double x) {
-        this->x() += x;
-        this->y() += x;
-        this->z() += x;
+        this->_x += x;
+        this->_y += x;
+        this->_z += x;
         return *this;
     }
 
@@ -67,9 +75,9 @@ namespace spica {
     }
 
     Vector3D& Vector3D::operator*=(const Vector3D& v) {
-        this->x() *= v.x();
-        this->y() *= v.y();
-        this->z() *= v.z();
+        this->_x *= v._x;
+        this->_y *= v._y;
+        this->_z *= v._z;
         return *this;
     }
 
@@ -116,15 +124,6 @@ namespace spica {
         return v1.cross(v2);
     }
 
-    Vector3D Vector3D::sqrt(const Vector3D& v) {
-        Assertion(v.x() >= 0.0 && v.y() >= 0.0 && v.z() >= 0.0, "Specified vector has negative entries !!");
-        return Vector3D(::sqrt(v.x()), ::sqrt(v.y()), ::sqrt(v.z()));
-    }
-
-    Vector3D Vector3D::exp(const Vector3D& v) {
-        return Vector3D(::exp(v.x()), ::exp(v.y()), ::exp(v.z()));
-    }
-
     double Vector3D::norm() const {
         return ::sqrt(this->squaredNorm());
     }
@@ -161,30 +160,32 @@ namespace spica {
         return Vector3D(x, y, z);
     }
 
-
     Vector3D Vector3D::reflect(const Vector3D& v, const Vector3D& n) {
         return (v - n * 2.0 * n.dot(v));
     }
 
     double Vector3D::get(int d) const {
         Assertion(0 <= d && d <= 2, "Dimension must be between 0 and 2");
-        return _xyz[d];
+        if (d == 0) return _x;
+        if (d == 1) return _y;
+        if (d == 2) return _z;
+        return 0.0;
     }
 
     std::string Vector3D::toString() const {
         std::stringstream ss;
         ss << std::fixed;
         ss << std::setprecision(8);
-        ss << "(" << _xyz[0] << ", " << _xyz[1] << ", " << _xyz[2] << ")";
+        ss << "(" << _x << ", " << _y << ", " << _z << ")";
         return ss.str();
     }
 
-    double Vector3D::x() const { return _xyz[0]; }
-    double Vector3D::y() const { return _xyz[1]; }
-    double Vector3D::z() const { return _xyz[2]; }
-    double& Vector3D::x() { return _xyz[0]; }
-    double& Vector3D::y() { return _xyz[1]; }
-    double& Vector3D::z() { return _xyz[2]; }
+    double Vector3D::x() const { return _x; }
+    double Vector3D::y() const { return _y; }
+    double Vector3D::z() const { return _z; }
+    double& Vector3D::x() { return _x; }
+    double& Vector3D::y() { return _y; }
+    double& Vector3D::z() { return _z; }
 }
 
 spica::Vector3D operator+(const spica::Vector3D& v1, const spica::Vector3D& v2) {
@@ -214,7 +215,7 @@ spica::Vector3D operator-(const spica::Vector3D& v, double x) {
 }
 
 spica::Vector3D operator-(double x, const spica::Vector3D& v) {
-    return v + (-x);
+    return x + (-v);
 }
 
 spica::Vector3D operator*(const spica::Vector3D& u, const spica::Vector3D& v) {

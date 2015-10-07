@@ -34,7 +34,7 @@ namespace spica {
             BVHPrimitiveInfo(int pn, const BBox& b) 
                 : primitiveNumber(pn)
                 , bounds(b) {
-                centroid = 0.5 * b.posMin() + 0.5 * b.posMax();
+                centroid = (b.posMin() + b.posMax()) * 0.5;
             }
         };
 
@@ -136,7 +136,7 @@ namespace spica {
         QBVHAccel();
         ~QBVHAccel();
 
-        void construct(const std::vector<Triangle>& triangles);
+        void construct(const std::vector<Triangle>& triangles) override;
 
         int intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 

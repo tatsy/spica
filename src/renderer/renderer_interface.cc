@@ -2,9 +2,10 @@
 #include "renderer_interface.h"
 
 #include "scene.h"
-#include "camera.h"
 #include "render_parameters.h"
 #include "subsurface_integrator.h"
+
+#include "../camera/camera.h"
 
 namespace spica {
 

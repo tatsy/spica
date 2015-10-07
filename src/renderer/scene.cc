@@ -1,6 +1,9 @@
 #define SPICA_SCENE_EXPORT
 #include "scene.h"
 
+#include "brdf.h"
+#include "../camera/camera.h"
+
 #include <cstring>
 
 namespace spica {
@@ -11,20 +14,13 @@ namespace spica {
 
         , _bsdfIds()
         , _lightIds()
-        , _lightPdfs()
-        , _totalLightArea(0.0)
 
         , _bsdfs()
         , _accel()
-        , _accelType(QBVH_ACCEL)
-        , _envmap()
-    {
-        _envmap.resize(512, 512);
-        _envmap.clearColor(Color::BLACK);
+        , _accelType(AccelType::qbvhAccel) {
     }
 
-    Scene::~Scene()
-    {
+    Scene::~Scene() {
     }
 
     Scene::Scene(const Scene& scene)
@@ -33,14 +29,10 @@ namespace spica {
 
         , _bsdfIds()
         , _lightIds()
-        , _lightPdfs()
-        , _totalLightArea(0.0)
 
         , _bsdfs()
         , _accel()
-        , _accelType(QBVH_ACCEL)
-        , _envmap()
-    {
+        , _accelType(AccelType::qbvhAccel) {
         this->operator=(scene);
     }
 
@@ -52,14 +44,55 @@ namespace spica {
         this->_bsdfIds   = scene._bsdfIds;
         this->_lightIds  = scene._lightIds;
         
-        this->_totalLightArea = scene._totalLightArea;
         this->_bsdfs = scene._bsdfs;
         this->_accel = scene._accel;
         this->_accelType = scene._accelType;
-        
-        this->_envmap = scene._envmap;
-        
+                
         return *this;
+    }
+
+    Sphere Scene::boundingSphere(const Camera& camera) const {
+        Vector3D center;
+        for (int i = 0; i < _triangles.size(); i++) {
+            center += _triangles[i].gravity();
+        }
+        center /= _triangles.size();
+
+        double radius = (center - camera.center()).norm();
+        for (int i = 0; i < _triangles.size(); i++) {
+            for (int k = 0; k < 3; k++) {
+                double d = (center - _triangles[i][k]).norm();
+                radius = std::max(radius, d);
+            }
+        }
+        return Sphere(radius, center);
+    }
+
+    void Scene::setEnvmap(const std::string& filename, const Camera& camera) {
+        const Image image = Image::fromFile(filename);
+        setEnvmap(image, camera);
+    }
+
+    void Scene::setEnvmap(const Image& image, const Camera& camera) {
+        const Sphere& shape = this->boundingSphere(camera);
+        std::vector<Triangle> tris = shape.triangulate();
+        const int newTris = static_cast<int>(tris.size());
+        const int nowTris = static_cast<int>(_triangles.size());
+        _lighting = Lighting::asEnvmap(shape, image);
+
+        // If new object is a light, store triangle indices
+        for (int i = 0; i < newTris; i++) {
+            _lightIds.push_back(nowTris + i);
+        }
+
+        // Both normal geoms and light geoms are set to triangles
+        _triangles.insert(_triangles.end(), tris.begin(), tris.end());
+
+        // Add empty BSDF
+        const int bsdfID = static_cast<int>(_bsdfs.size());
+        _bsdfIds.resize(_bsdfIds.size() + tris.size());
+        std::fill(_bsdfIds.begin() + nowTris, _bsdfIds.end(), bsdfID);
+        _bsdfs.push_back(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)));        
     }
 
     const Triangle& Scene::getTriangle(int id) const {
@@ -74,19 +107,16 @@ namespace spica {
         return _bsdfs[_bsdfIds[id]];
     }
 
-    const Color& Scene::getEmittance(int id) const {
-        Assertion(id >= 0 && id < _emittance.size(),
-                  "Object index out of boudns");
-        return _emittance[id];    
+    Color Scene::directLight(const Vector3D& dir) const {
+        return _lighting.directLight(dir);
     }
 
-    int Scene::sampleLight(double rand1) const {
-        Assertion(!_lightPdfs.empty(), 
-                  "Light PDFs are not computed yet, "
-                  "Scene::computeLightPdfs first!!");
-        
-        const int id = std::lower_bound(_lightPdfs.begin(), _lightPdfs.end(), rand1) - _lightPdfs.begin();
-        return _lightIds[id];
+    LightSample Scene::sampleLight(Stack<double>& rstack) const {
+        return _lighting.sample(rstack);
+    }
+
+    double Scene::lightArea() const {
+        return _lighting.area();
     }
 
     void Scene::clear() {
@@ -109,11 +139,15 @@ namespace spica {
 
     void Scene::computeAccelerator() {
         switch (this->_accelType) {
-        case QBVH_ACCEL:
+        case AccelType::bbvhAccel:
+            _accel = std::shared_ptr<AccelBase>(new BBVHAccel());
+            break;
+
+        case AccelType::qbvhAccel:
             _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
         
-        case KD_TREE_ACCEL:
+        case AccelType::kdtreeAccel:
             _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
             break;
         
@@ -124,28 +158,8 @@ namespace spica {
         _accel->construct(_triangles);    
     }
 
-    void Scene::computeLightPdfs() {
-        if (_lightIds.empty()) return; 
-
-        _lightPdfs.resize(_lightIds.size());
-
-        _totalLightArea = 0.0;
-        for (int i = 0; i < _lightIds.size(); i++) {
-            const double A = _triangles[_lightIds[i]].area();
-            _lightPdfs[i] = A;
-            _totalLightArea += A;
-        }
-
-        _lightPdfs[0] /= _totalLightArea;
-        for (int i = 1; i < _lightIds.size(); i++) {
-            _lightPdfs[i] = _lightPdfs[i - 1] + 
-                            _lightPdfs[i] / _totalLightArea;
-        }
-    }
-
     void Scene::finalize() {
         this->computeAccelerator();
-        this->computeLightPdfs();
     }
 
     bool Scene::intersect(const Ray& ray, Intersection& isect) const {

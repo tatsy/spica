@@ -66,7 +66,7 @@ namespace spica {
 
             Intersection isect;
             if (!scene.intersect(ray, isect)) {
-                return scene.envmap().sampleFromDir(ray.direction());
+                return Color::BLACK;
             }
 
             // Require random numbers
@@ -76,7 +76,6 @@ namespace spica {
             const int objectID     = isect.objectId();
             const BSDF& bsdf       = scene.getBsdf(objectID);
             const Color& refl      = bsdf.reflectance();
-            const Color& emittance = scene.getEmittance(objectID);
             const Hitpoint& hpoint = isect.hitpoint();
 
             // Russian roulette
@@ -85,7 +84,7 @@ namespace spica {
                 roulette = 1.0;
             } else {
                 if (roulette <= randnums[0]) {
-                    return emittance;
+                    return Color::BLACK;
                 }
             }
 
@@ -100,7 +99,7 @@ namespace spica {
                                            rands, bounces + 1);
             
             // Return result
-            return Color(emittance + refl * nextrad / (roulette * pdf));       
+            return Color(refl * nextrad / (roulette * pdf));       
         }
 
         Color directLight(const Scene& scene,
@@ -113,28 +112,22 @@ namespace spica {
             const bool      into = Vector3D::dot(normal, in) < 0.0;
             const Vector3D  orientNormal = into ? normal : -normal;
 
-            if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
-                const int       lightID  = scene.sampleLight(rstk.pop());
-                const Triangle& light    = scene.getTriangle(lightID);
-                const Color&    lightEmt = scene.getEmittance(lightID);
+            if (bsdf.type() & BsdfType::Lambertian) {
+                LightSample ls = scene.sampleLight(rstk);
 
-                const double r1Light = rstk.pop();
-                const double r2Light = rstk.pop();
-
-                Vector3D light_pos, light_normal;
-                sampler::onTriangle(light, &light_pos, &light_normal, r1Light, r2Light);
-
-                const Vector3D v_to_l = light_pos - pos;
+                const Vector3D v_to_l = ls.position() - pos;
                 const Vector3D light_dir = v_to_l.normalized();
                 const double dist2 = v_to_l.squaredNorm();
                 const double dot0 = orientNormal.dot(light_dir);
-                const double dot1 = light_normal.dot(-1.0 * light_dir);
+                const double dot1 = ls.normal().dot(-1.0 * light_dir);
 
                 if (dot0 >= 0.0 && dot1 >= 0.0) {
                     const double G = dot0 * dot1 / dist2;
                     Intersection isect;
-                    if (scene.intersect(Ray(pos, light_dir), isect) && isect.objectId() == lightID) {
-                        return Color(lightEmt * (INV_PI * G * light.area()));
+                    if (scene.intersect(Ray(pos, light_dir), isect)) {
+                        if ((isect.hitpoint().position() - ls.position()).norm() < EPS) {
+                            return Color(ls.Le() * (INV_PI * G * scene.lightArea()));
+                        }
                     }
                 }
             } else {
@@ -145,7 +138,7 @@ namespace spica {
 
                 Intersection isect;
                 if (scene.intersect(refRay, isect) && scene.isLightCheck(isect.objectId())) {
-                    return Color(scene.getEmittance(isect.objectId()) / pdf);
+                    return scene.directLight(nextdir) / pdf;
                 }
             }
             return Color(0.0, 0.0, 0.0);

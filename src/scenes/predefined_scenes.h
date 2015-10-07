@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_PREDEFINED_SCENES_H_
 #define _SPICA_PREDEFINED_SCENES_H_
 

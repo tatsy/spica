@@ -4,11 +4,12 @@
 #include <ctime>
 
 #include "../utils/sampler.h"
-
+#include "../camera/camera.h"
 #include "../random/random_sampler.h"
+#include "../random/random.h"
+#include "../random/halton.h"
 
 #include "scene.h"
-#include "camera.h"
 #include "render_parameters.h"
 
 namespace spica {
@@ -101,16 +102,17 @@ namespace spica {
         std::cout << "Shooting photons..." << std::endl;
 
         // Random number generator
-        RandomSampler* samplers = new RandomSampler[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumThreads];
+
+        for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
-                samplers[i] = Random::factory((unsigned int)i);
+                samplers[i] = Random::factory((unsigned int)(time(0) + i));
                 break;
 
             case QUASI_MONTE_CARLO:
                 samplers[i] = Halton::factory(250, true, 
-                                              (unsigned int)i);
+                                              (unsigned int)(time(0) + i));
                 break;
 
             default:
@@ -121,40 +123,34 @@ namespace spica {
 
         // Distribute tasks
         const int np = params.castPhotons();
-        const int taskPerThread = (np + kNumCores - 1) / kNumCores;
-        std::vector<std::vector<Photon> > photons(kNumCores);
+        const int taskPerThread = (np + kNumThreads - 1) / kNumThreads;
+        std::vector<std::vector<Photon> > photons(kNumThreads);
 
         // Shooting photons
         int proc = 0;
         for (int t = 0; t < taskPerThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {                
+            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {                
                 // Request random numbers in each thread
                 Stack<double> rstk;
                 samplers[threadID].request(&rstk, 250);
 
                 // Generate sample on the light
-                const int       lightID  = scene.sampleLight(rstk.pop());
-                const Triangle& light    = scene.getTriangle(lightID);
-                const Color     lightEmt = scene.getEmittance(lightID);
-
-                Vector3D posLight, normalLight;
-                sampler::onTriangle(light, &posLight, &normalLight,
-                                    rstk.pop(), rstk.pop());
+                const LightSample ls = scene.sampleLight(rstk);
                 
-                Color flux = Color(scene.totalLightArea() * lightEmt * PI /
+                Color flux = Color(scene.lightArea() * ls.Le() * PI /
                                    params.castPhotons());
 
                 Vector3D dir;
-                sampler::onHemisphere(normalLight, &dir,
+                sampler::onHemisphere(ls.normal(), &dir,
                                       rstk.pop(), rstk.pop());
 
                 // Trace photon
-                Ray ray(posLight, dir);
+                Ray ray(ls.position(), dir);
                 tracePhoton(scene, ray, params, flux, 
                             rstk, 0, absorbBsdf, &photons[threadID]);
             }
 
-            proc += kNumCores;
+            proc += kNumThreads;
             if (proc % 1000 == 0) {
                 printf("%6.2f %% processed...\r", 
                         100.0 * proc / params.castPhotons());
@@ -170,7 +166,7 @@ namespace spica {
         
         clear();
         std::vector<Photon> photonsAll;
-        for (int i = 0; i < kNumCores; i++) {
+        for (int i = 0; i < kNumThreads; i++) {
             photonsAll.insert(photonsAll.end(), 
                               photons[i].begin(), photons[i].end());
         }
@@ -264,7 +260,7 @@ namespace spica {
         const Vector3D orientNormal = (into ? 1.0 : -1.0) * hpoint.normal();
 
         double photonPdf = 1.0;
-        if ((bsdf.type() & absorbBsdf) != 0) {
+        if (bsdf.type() & absorbBsdf) {
             photons->push_back(Photon(hpoint.position(), flux, 
                                       ray.direction(), hpoint.normal()));
         

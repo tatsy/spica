@@ -1,0 +1,15 @@
+set(HEADERS
+    ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/face.h
+    ${CMAKE_CURRENT_LIST_DIR}/halfedge.h
+    ${CMAKE_CURRENT_LIST_DIR}/mesh.h
+    ${CMAKE_CURRENT_LIST_DIR}/vertex.h
+    PARENT_SCOPE)
+
+set(SOURCES
+    ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/face.cc
+    ${CMAKE_CURRENT_LIST_DIR}/halfedge.cc
+    ${CMAKE_CURRENT_LIST_DIR}/mesh.cc
+    ${CMAKE_CURRENT_LIST_DIR}/vertex.cc
+    PARENT_SCOPE)

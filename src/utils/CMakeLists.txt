@@ -3,6 +3,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
                @ONLY)
 
  set(SOURCES ${SOURCES}
+     ${CMAKE_CURRENT_LIST_DIR}/vbo.cc
      ${CMAKE_CURRENT_LIST_DIR}/vector3d.cc
      ${CMAKE_CURRENT_LIST_DIR}/vector3d_avx.cc
      ${CMAKE_CURRENT_LIST_DIR}/color.cc
@@ -12,7 +13,9 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
 
  set(HEADERS ${HEADERS}
      ${CMAKE_CURRENT_LIST_DIR}/common.h
+     ${CMAKE_CURRENT_LIST_DIR}/vbo.h
      ${CMAKE_CURRENT_LIST_DIR}/path.h
+     ${CMAKE_CURRENT_LIST_DIR}/rect.h
      ${CMAKE_CURRENT_LIST_DIR}/stack.h
      ${CMAKE_CURRENT_LIST_DIR}/uncopyable.h
      ${CMAKE_CURRENT_LIST_DIR}/vector3d.h

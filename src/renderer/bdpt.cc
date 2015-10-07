@@ -8,7 +8,13 @@
 #include "renderer_helper.h"
 #include "../utils/common.h"
 #include "../utils/sampler.h"
+
+#include "../camera/dof_camera.h"
+
 #include "../random/random_sampler.h"
+#include "../random/random.h"
+#include "../random/halton.h"
+
 
 namespace spica {
 
@@ -45,6 +51,7 @@ namespace spica {
             Color throughput;
             Vector3D position;
             int objectId;
+            Color emission;
             Vector3D orientNormal;
             Vector3D objectNormal;
 
@@ -58,11 +65,12 @@ namespace spica {
             ObjectType objtype;
 
             Vertex(const Vector3D& position_, const Vector3D & orientNormal_, const Vector3D& objectNormal_,
-                   const int objectId_, const ObjectType objtype_, const double totalPdfA_, const Color& throughput_)
+                   const int objectId_, const Color emission_, const ObjectType objtype_, const double totalPdfA_, const Color& throughput_)
                 : totalPdfA(totalPdfA_)
                 , throughput(throughput_)
                 , position(position_)
                 , objectId(objectId_)
+                , emission(emission_)
                 , orientNormal(orientNormal_)
                 , objectNormal(objectNormal_)
                 , objtype(objtype_)
@@ -83,7 +91,7 @@ namespace spica {
         // Multiple importance sampling
         // --------------------------------------------------
 
-        double calcPdfA(const Scene& scene, const Camera& camera, const std::vector<const Vertex*>& verts, const int prevFromIdx, const int fromIdx, const int nextIdx) {
+        double calcPdfA(const Scene& scene, const DoFCamera& camera, const std::vector<const Vertex*>& verts, const int prevFromIdx, const int fromIdx, const int nextIdx) {
             static const double reflectProb = 0.5;
 
             const Vertex& fromVert = *verts[fromIdx];
@@ -115,7 +123,7 @@ namespace spica {
                 return 0.0;
             } else if (fromVert.objtype == Vertex::OBJECT_TYPE_SPECULAR) {
                 const BSDF& bsdf = scene.getBsdf(fromVert.objectId);
-                if (bsdf.type() == BSDF_TYPE_REFRACTION) {
+                if (bsdf.type() == BsdfType::Reflactive) {
                     if (prevFromVertex != NULL) {
                         const Vector3D intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalized();
                         const bool isIncoming = intoFromVertexDir.dot(fromVert.objectNormal) < 0.0;
@@ -141,11 +149,11 @@ namespace spica {
             return pdf * (-1.0 * normalizedTo).dot(nextNewOrientNormal) / to.dot(to);
         }
 
-        double calcMISWeight(const Scene& scene, const Camera& camera, const double totalPdfA, const std::vector<Vertex>& eyeVerts, const std::vector<Vertex>& lightVerts, const int nEyeVerts, const int nLightVerts) {
+        double calcMISWeight(const Scene& scene, const DoFCamera& camera, const double totalPdfA, const std::vector<Vertex>& eyeVerts, const std::vector<Vertex>& lightVerts, const int nEyeVerts, const int nLightVerts) {
             std::vector<const Vertex*> verts(nEyeVerts + nLightVerts);
             std::vector<double> pi1pi(nEyeVerts + nLightVerts);
 
-            const double PAy0 = 1.0 / scene.totalLightArea();
+            const double PAy0 = 1.0 / scene.lightArea();
             const double PAx0 = 1.0 / camera.lensArea();
 
             const int k = nEyeVerts + nLightVerts - 1;
@@ -157,9 +165,15 @@ namespace spica {
             }
 
             // Russian roulette probability
-            const BSDF& bsdf = scene.getBsdf(verts[0]->objectId);
-            const Color& emittance = scene.getEmittance(verts[0]->objectId);
-            double roulette = emittance.norm() > 1.0 ? 1.0 : std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
+            double roulette = 0.0;
+            if (verts[0]->emission.norm() > 0.0) {
+                roulette = 1.0;
+            } else if (verts[0]->objectId >= 0) {
+                const BSDF& bsdf = scene.getBsdf(verts[0]->objectId);
+                const Color& refl = bsdf.reflectance();
+                roulette = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
+            }
+
             pi1pi[0] = PAy0 / (calcPdfA(scene, camera, verts, 2, 1, 0) * roulette);
             for (int i = 1; i < k; i++) {
                 const double a = calcPdfA(scene, camera, verts, i - 2, i - 1, i);
@@ -200,28 +214,24 @@ namespace spica {
         // Light and path tracer
         // --------------------------------------------------
 
-        TraceResult lightTrace(const Scene& scene, const Camera& camera, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
+        TraceResult lightTrace(const Scene& scene, const DoFCamera& camera, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
             // Generate sample on the light
-            const int lightID     = scene.sampleLight(rstk.pop());
-            const Triangle& light = scene.getTriangle(lightID);
-
-            Vector3D lightPosition, lightNormal;
-            sampler::onTriangle(light, &lightPosition, &lightNormal, rstk.pop(), rstk.pop());
+            const LightSample ls = scene.sampleLight(rstk);
 
             // Store vertex on light itself
-            double totalPdfA = 1.0 / light.area();
-            vertices->push_back(Vertex(lightPosition, lightNormal, lightNormal, lightID, Vertex::OBJECT_TYPE_LIGHT, totalPdfA, Color(0.0, 0.0, 0.0)));
+            double totalPdfA = 1.0 / scene.lightArea();
+            vertices->push_back(Vertex(ls.position(), ls.normal(), ls.normal(), -1, ls.Le(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, Color(0.0, 0.0, 0.0)));
 
             // Compute initial tracing direction
             Vector3D nextDir;
-            sampler::onHemisphere(lightNormal, &nextDir, rstk.pop(), rstk.pop());
-            double pdfOmega = sample_hemisphere_pdf_omega(lightNormal, nextDir);
+            sampler::onHemisphere(ls.normal(), &nextDir, rstk.pop(), rstk.pop());
+            double pdfOmega = sample_hemisphere_pdf_omega(ls.normal(), nextDir);
 
-            Ray currentRay(lightPosition, nextDir);
-            Vector3D prevNormal = lightNormal;
+            Ray currentRay(ls.position(), nextDir);
+            Vector3D prevNormal = ls.normal();
 
             // Trace light ray
-            Color throughput = scene.getEmittance(lightID);
+            Color throughput = ls.Le();
             for (int bounce = 0; bounce < bounceLimit; bounce++) {
                 const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
@@ -247,7 +257,7 @@ namespace spica {
                     // Geometry term
                     const double G = x0x1.normalized().dot(camera.direction().normalized()) * (-1.0) * (x0x1.normalized().dot(prevNormal) / x0x1.dot(x0x1));
                     throughput *= G;
-                    vertices->push_back(Vertex(positionOnLens, camera.direction().normalized(), camera.direction().normalized(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughput));
+                    vertices->push_back(Vertex(positionOnLens, camera.direction().normalized(), camera.direction().normalized(), -1, Color(), Vertex::OBJECT_TYPE_LENS, totalPdfA, throughput));
                 
                     const Color result = Color((camera.contribSensitivity(x0xV, x0xI, x0x1) * throughput) / totalPdfA);
                     return TraceResult(result, x, y, HIT_ON_LENS);
@@ -260,11 +270,11 @@ namespace spica {
                 // Otherwise, trace next direction
                 const int triangleID = isect.objectId();
                 const BSDF& bsdf = scene.getBsdf(triangleID);
-                const Color& emittance = scene.getEmittance(triangleID);
+                const Color& refl = bsdf.reflectance();
                 const Hitpoint& hitpoint = isect.hitpoint();
 
                 const Vector3D orientNormal = hitpoint.normal().dot(currentRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
-                const double rouletteProb = emittance.norm() > 1.0 ? 1.0 : std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
+                const double rouletteProb = scene.isLightCheck(triangleID) ? 1.0 : std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
                 
                 if (rands[0] >= rouletteProb) {
                     break;
@@ -279,21 +289,25 @@ namespace spica {
                 const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.dot(toNextVertex);
                 throughput *= G;
 
-                vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(),
-                                          bsdf.type() == BSDF_TYPE_LAMBERTIAN_BRDF ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
+                Color emission = Color(0.0, 0.0, 0.0);
+                if (scene.isLightCheck(triangleID)) {
+                    emission = scene.directLight(currentRay.direction());
+                }
+                vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), emission,
+                                          bsdf.type() == BsdfType::Lambertian ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
                                           totalPdfA, throughput));
 
-                if (bsdf.type() == BSDF_TYPE_LAMBERTIAN_BRDF) {
+                if (bsdf.type() == BsdfType::Lambertian) {
                     sampler::onHemisphere(orientNormal, &nextDir, rands[1], rands[2]);
                     pdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     currentRay = Ray(hitpoint.position(), nextDir);
-                    throughput = bsdf.reflectance().multiply(throughput) * INV_PI;
-                } else if (bsdf.type() == BSDF_TYPE_SPECULAR_BRDF) {
+                    throughput = bsdf.reflectance() * throughput * INV_PI;
+                } else if (bsdf.type() == BsdfType::Specular) {
                     pdfOmega = 1.0;
                     const Vector3D nextDir = Vector3D::reflect(currentRay.direction(), hitpoint.normal());
                     currentRay = Ray(hitpoint.position(), nextDir);
                     throughput = bsdf.reflectance() * throughput / (toNextVertex.normalized().dot(orientNormal));
-                } else if (bsdf.type() == BSDF_TYPE_REFRACTION) {
+                } else if (bsdf.type() == BsdfType::Reflactive) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
                     Vector3D reflectdir, transdir;
@@ -329,17 +343,17 @@ namespace spica {
             return TraceResult(Color(), 0, 0, HIT_ON_OBJECT);
         }
 
-        TraceResult pathTrace(const Scene& scene, const Camera& camera, int x, int y, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
+        TraceResult pathTrace(const Scene& scene, const DoFCamera& camera, int x, int y, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
             // Sample point on lens and object plane
             CameraSample camSample = camera.sample(x, y, rstk);
 
-            double totalPdfA = camSample.pdfLens;
+            double totalPdfA = 1.0 / camera.lensArea();
 
             Color throughput = Color(1.0, 1.0, 1.0);
 
-            vertices->push_back(Vertex(camSample.posLens, camera.lensNormal(), camera.lensNormal(), -1, Vertex::OBJECT_TYPE_LENS, totalPdfA, throughput));
+            vertices->push_back(Vertex(camSample.posLens(), camera.lensNormal(), camera.lensNormal(), -1, Color(), Vertex::OBJECT_TYPE_LENS, totalPdfA, throughput));
         
-            Ray nowRay = camSample.generateRay();
+            Ray nowRay = camSample.ray();
             double nowSampledPdfOmega = 1.0;
             Vector3D prevNormal = camera.lensNormal();
 
@@ -353,11 +367,11 @@ namespace spica {
                 }
 
                 const BSDF& bsdf = scene.getBsdf(isect.objectId());
-                const Color& emittance = scene.getEmittance(isect.objectId());
+                const Color& refl = bsdf.reflectance();
                 const Hitpoint& hitpoint = isect.hitpoint();
 
                 const Vector3D orientNormal = hitpoint.normal().dot(nowRay.direction()) < 0.0 ? hitpoint.normal() : -hitpoint.normal();
-                const double rouletteProb = emittance.norm() > 1.0 ? 1.0 : std::max(bsdf.reflectance().red(), std::max(bsdf.reflectance().green(), bsdf.reflectance().blue()));
+                const double rouletteProb = scene.isLightCheck(isect.objectId()) ? 1.0 : std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
 
                 if (rands[0] > rouletteProb) {
                     break;
@@ -367,10 +381,11 @@ namespace spica {
 
                 const Vector3D toNextVertex = nowRay.origin() - hitpoint.position();
                 if (bounce == 0) {
-                    const Vector3D x0xI = camSample.posSensor - camSample.posLens;
-                    const Vector3D x0xV = camSample.posObjectPlane - camSample.posLens;
-                    const Vector3D x0x1 = hitpoint.position() - camSample.posLens;
-                    const double PAx1 = camera.PImageToPAx1(camSample.pdfImage, x0xV, x0x1, orientNormal);
+                    const Vector3D x0xI = camSample.posSensor() - camSample.posLens();
+                    const Vector3D x0xV = camSample.posObjplane() - camSample.posLens();
+                    const Vector3D x0x1 = hitpoint.position() - camSample.posLens();
+                    const double pdfImage = 1.0 / (camera.cellW() * camera.cellH());
+                    const double PAx1 = camera.PImageToPAx1(pdfImage, x0xV, x0x1, orientNormal);
                     totalPdfA *= PAx1;
 
                     throughput = camera.contribSensitivity(x0xV, x0xI, x0x1) * throughput;
@@ -383,29 +398,30 @@ namespace spica {
                 const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.squaredNorm();
                 throughput *= G;
 
-                if (emittance.norm() > 0.0) {
-                    vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughput));
+                if (scene.isLightCheck(isect.objectId())) {
+                    const Color emittance = scene.directLight(nowRay.direction());
                     const Color result = Color(throughput * emittance / totalPdfA);
+                    vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), emittance, Vertex::OBJECT_TYPE_LIGHT, totalPdfA, throughput));
                     return TraceResult(result, x, y, HIT_ON_LIGHT);
                 }
 
-                vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(),
-                                           bsdf.type() == BSDF_TYPE_LAMBERTIAN_BRDF ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
+                vertices->push_back(Vertex(hitpoint.position(), orientNormal, hitpoint.normal(), isect.objectId(), Color(),
+                                           bsdf.type() == BsdfType::Lambertian ? Vertex::OBJECT_TYPE_DIFFUSE : Vertex::OBJECT_TYPE_SPECULAR,
                                            totalPdfA, throughput));
 
-                if (bsdf.type() == BSDF_TYPE_LAMBERTIAN_BRDF) {
+                if (bsdf.type() == BsdfType::Lambertian) {
                     Vector3D nextDir;
                     sampler::onHemisphere(orientNormal, &nextDir, rands[1], rands[2]);
                     nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughput = bsdf.reflectance() * throughput * INV_PI;
-                } else if (bsdf.type() == BSDF_TYPE_SPECULAR_BRDF) {
+                } else if (bsdf.type() == BsdfType::Specular) {
                     nowSampledPdfOmega = 1.0;
                     const Vector3D nextDir = Vector3D::reflect(nowRay.direction(), hitpoint.normal());
                     nowRay = Ray(hitpoint.position(), nextDir);
                     throughput = bsdf.reflectance() * throughput / (toNextVertex.normalized().dot(orientNormal));
 
-                } else if (bsdf.type() == BSDF_TYPE_REFRACTION) {
+                } else if (bsdf.type() == BsdfType::Reflactive) {
                     const bool isIncoming = hitpoint.normal().dot(orientNormal) > 0.0;
 
                     Vector3D reflectdir, transdir;
@@ -460,7 +476,7 @@ namespace spica {
             std::vector<Sample> samples;
         };
 
-        BPTResult executeBPT(const Scene& scene, const Camera& camera, Stack<double>& rstk, int x, int y, const int bounceLimit) {
+        BPTResult executeBPT(const Scene& scene, const DoFCamera& camera, Stack<double>& rstk, int x, int y, const int bounceLimit) {
             BPTResult bptResult;
 
             std::vector<Vertex> eyeVerts, lightVerts;
@@ -501,7 +517,7 @@ namespace spica {
                     Color connectedThroughput = Color(1.0, 1.0, 1.0);
 
                     if (lightVertId == 1) {
-                        lightThrouput = scene.getEmittance(lightVerts[0].objectId);
+                        lightThrouput = lightVerts[0].emission;
                     }
 
                     // Cast ray from light-end to path-end to check existance of occluders
@@ -567,10 +583,10 @@ namespace spica {
         }
 
         bool isInvalidValue(const Color& color) {
-            if (isnan(color.x()) || isnan(color.y()) || isnan(color.z())) return true;
-            if (color.x() < 0.0 || INFTY < color.x()) return true;
-            if (color.y() < 0.0 || INFTY < color.y()) return true;
-            if (color.z() < 0.0 || INFTY < color.z()) return true;
+            if (isnan(color.red()) || isnan(color.green()) || isnan(color.blue())) return true;
+            if (color.red() < 0.0 || INFTY < color.red()) return true;
+            if (color.green() < 0.0 || INFTY < color.green()) return true;
+            if (color.blue() < 0.0 || INFTY < color.blue()) return true;
             return false;
         }
 
@@ -591,12 +607,15 @@ namespace spica {
     }
 
     void BDPTRenderer::render(const Scene& scene, const Camera& camera, const RenderParameters& params) {
+        // Currently, BDPT renderer only supports DoF camera
+        Assertion(camera.type() == CameraType::DepthOfField, "camera for BDPT must be DoF type!!");
+
         const int width  = camera.imageW();
         const int height = camera.imageH();
 
         // Prepare random samplers
-        RandomSampler* samplers = new RandomSampler[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory(i);
@@ -612,8 +631,8 @@ namespace spica {
             }
         }
         
-        Image* buffer = new Image[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        Image* buffer = new Image[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             buffer[i] = Image(width, height);
         }
 
@@ -626,22 +645,23 @@ namespace spica {
         }
 
         // Distribute tasks
-        const int taskPerThread = (height + kNumCores - 1) / kNumCores;
-        std::vector<std::vector<int> > tasks(kNumCores);
+        const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
+        std::vector<std::vector<int> > tasks(kNumThreads);
         for (int y = 0; y < height; y++) {
-            tasks[y % kNumCores].push_back(y);
+            tasks[y % kNumThreads].push_back(y);
         }
 
         // Rendering
+        DoFCamera* dofCam = reinterpret_cast<DoFCamera*>(camera._ptr);
         for (int s = 0; s < params.samplePerPixel(); s++) {
             for (int t = 0; t < taskPerThread; t++) {
-                ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+                ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                     Stack<double> rstk;
                     if (t < tasks[threadID].size()) {
                         const int y = tasks[threadID][t];
                         for (int x = 0; x < width; x++) {
                             samplers[threadID].request(&rstk, 250);
-                            BPTResult bptResult = executeBPT(scene, camera, rstk, x, y, params.bounceLimit());
+                            BPTResult bptResult = executeBPT(scene, (*dofCam), rstk, x, y, params.bounceLimit());
                     
                             for (int i = 0; i < bptResult.samples.size(); i++) {
                                 const int ix = bptResult.samples[i].imageX;
@@ -660,7 +680,7 @@ namespace spica {
             }
 
             _image->fill(Color(0.0, 0.0, 0.0));
-            for (int k = 0; k < kNumCores; k++) {
+            for (int k = 0; k < kNumThreads; k++) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         _image->pixel(width - x - 1, y) += buffer[k](x, y) / (s + 1);
@@ -686,4 +706,4 @@ namespace spica {
         }
     }
 
-}
+}  // namespace spica

@@ -7,12 +7,15 @@
 #include <algorithm>
 
 #include "scene.h"
-#include "camera.h"
 #include "renderer_helper.h"
 
 #include "../utils/sampler.h"
+#include "../camera/camera.h"
 
 #include "../random/random_sampler.h"
+#include "../random/random.h"
+#include "../random/halton.h"
+
 #include "subsurface_integrator.h"
 
 namespace spica {
@@ -35,7 +38,7 @@ namespace spica {
         const int numPoints = width * height;
 
         // Preparation for taking BSSRDF into account
-        _integrator->initialize(scene, params);
+        _integrator->initialize(scene);
 
         // Initialize hitpoints
         std::vector<SPPMPixel> hpoints(numPoints);
@@ -49,8 +52,8 @@ namespace spica {
         }
 
         // Initialize random number samplers
-        RandomSampler* samplers = new RandomSampler[kNumCores];
-        for (int i = 0; i < kNumCores; i++) {
+        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
                 samplers[i] = Random::factory((unsigned int)i);
@@ -153,15 +156,15 @@ namespace spica {
         std::cout << "Tracing rays from camera ..." << std::endl;
 
         // Distribute Hitpoints to each thread
-        std::vector<std::vector<int> > pixelIDs(kNumCores);
+        std::vector<std::vector<int> > pixelIDs(kNumThreads);
         for (int i = 0; i < numPixels; i++) {
-            pixelIDs[i % kNumCores].push_back(i);
+            pixelIDs[i % kNumThreads].push_back(i);
         }
 
         int proc = 0;
-        const int tasksThread = (numPixels + kNumCores - 1) / kNumCores;
+        const int tasksThread = (numPixels + kNumThreads - 1) / kNumThreads;
         for (int t = 0; t < tasksThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 if (t < pixelIDs[threadID].size()) {
                     Stack<double> rstk;
                     samplers[threadID].request(&rstk, 250);
@@ -171,7 +174,7 @@ namespace spica {
                 }
             }
 
-            proc += kNumCores;
+            proc += kNumThreads;
             if (proc % width == 0) {
                 printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
             }
@@ -190,39 +193,33 @@ namespace spica {
         std::cout << "Shooting photons ..." << std::endl;
 
         // Distribute tasks
-        const int tasksThread = (numPhotons + kNumCores - 1) / kNumCores;
+        const int tasksThread = (numPhotons + kNumThreads - 1) / kNumThreads;
 
         // Trace photons
         int proc = 0;
         for (int t = 0; t < tasksThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumCores; threadID++) {
+            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 Stack<double> rstk;
                 omplock {
                     samplers[threadID].request(&rstk, 250);
                 }
 
                 // Sample point on light
-                const int       lightID  = scene.sampleLight(rstk.pop());
-                const Triangle& light    = scene.getTriangle(lightID);
-                const Color     emission = scene.getEmittance(lightID);
-
-                Vector3D posOnLight, normalOnLight;
-                sampler::onTriangle(light, &posOnLight, &normalOnLight, 
-                                    rstk.pop(), rstk.pop());
+                const LightSample ls = scene.sampleLight(rstk);
 
                 // Compute flux
-                Color flux = Color(scene.totalLightArea() * emission * PI / numPhotons);
+                Color flux = Color(scene.lightArea() * ls.Le() * PI / numPhotons);
 
                 // Prepare ray
                 Vector3D nextDir;
-                sampler::onHemisphere(normalOnLight, &nextDir);
-                Ray ray(posOnLight, nextDir);
-                Vector3D prevNormal = normalOnLight;
+                sampler::onHemisphere(ls.normal(), &nextDir);
+                Ray ray(ls.position(), nextDir);
+                Vector3D prevNormal = ls.normal();
 
                 tracePhotonsRec(scene, ray, params, flux, 0, rstk);
             }
 
-            proc += kNumCores;
+            proc += kNumThreads;
             if (proc % 100 == 0) {
                 printf("%6.2f %% processed ...\r", 100.0 * proc / numPhotons);
             }
@@ -263,7 +260,7 @@ namespace spica {
                                             : -hpoint.normal();
 
         double photonPdf = 1.0;
-        if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
+        if (bsdf.type() & BsdfType::Lambertian) {
             // Gather hit points
             std::vector<SPPMPixel*> results;
             omplock{
@@ -317,8 +314,8 @@ namespace spica {
                   "Pixel index out of range");
 
         CameraSample camSample = camera.sample(pixel->x, pixel->y, rstk);
-        Ray ray = camSample.generateRay();
-        const double coeff = camera.sensitivity() / camSample.totalPdf();
+        Ray ray = camSample.ray();
+        const double coeff = camera.sensitivity() / camSample.pdf();
 
         Intersection isect;
         Color weight(1.0, 1.0, 1.0);
@@ -327,7 +324,7 @@ namespace spica {
             const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
             if (!scene.intersect(ray, isect) || bounce > params.bounceLimit()) {
-                weight = weight * scene.envmap().sampleFromDir(ray.direction());
+                weight = Color::BLACK;
                 pixel->weight = weight;
                 pixel->coeff = coeff;
                 pixel->emission += throughput;
@@ -337,13 +334,13 @@ namespace spica {
             const int       objectID = isect.objectId();
             const Hitpoint& hpoint   = isect.hitpoint();
             const BSDF&     bsdf     = scene.getBsdf(objectID);
-            const Color&    emission = scene.getEmittance(objectID);
+            const Color&    emission = scene.isLightCheck(objectID) ? scene.directLight(ray.direction()) : Color::BLACK;
             const bool      into     = Vector3D::dot(hpoint.normal(),
                                                      ray.direction()) < 0.0;
             const Vector3D orientNormal = into ?  hpoint.normal()
                                                : -hpoint.normal();
 
-            if (bsdf.type() & BSDF_TYPE_LAMBERTIAN_BRDF) {
+            if (bsdf.type() & BsdfType::Lambertian) {
                 // Ray hits diffuse object, return current weight
                 pixel->position = hpoint.position();
                 pixel->normal   = hpoint.normal();
@@ -354,7 +351,7 @@ namespace spica {
             } else {
                 double pdf = 1.0;
                 Vector3D nextdir;
-                if (bsdf.type() & BSDF_TYPE_BSSRDF) {
+                if (bsdf.type() & BsdfType::Bssrdf) {
                     Assertion(_integrator != NULL,
                               "Subsurface integrator is NULL !!");
                     Color bssrdfRad = bsdf.sampleBssrdf(ray.direction(),

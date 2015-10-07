@@ -174,6 +174,12 @@ namespace spica {
         return *this;
     }
 
+    Image Image::fromFile(const std::string& filename) {
+        Image img;
+        img.load(filename);
+        return std::move(img);
+    }
+
     const Color& Image::operator()(int x, int y) const {
         Assertion(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
         return _pixels[y * _width + x];
@@ -294,7 +300,7 @@ namespace spica {
         BitmapCoreHeader core;
         core.biSize = 40;
         core.biWidth = _width;
-        core.biHeight = -_height;
+        core.biHeight = -static_cast<int>(_height);
         core.biPlanes = 1;
         core.biBitCount = 24;
         core.biCompression = 0;
@@ -354,7 +360,7 @@ namespace spica {
                 } 
             } else {
                 if (strstr(buf, "FORMAT=") == buf) {
-                    char temp[bufSize];
+                    char temp[bufSize] = {0};
                     sscanf(buf, "FORMAT=%s", temp);
                     if (strcmp(temp, "32-bit_rle_rgbe") == 0) {
                         fileType = HDR_RLE_RGBE_32;
@@ -521,17 +527,17 @@ namespace spica {
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 int idx = y * _width + x;
-                data[idx * 3 + 0] = toByte(_pixels[idx].x());
-                data[idx * 3 + 1] = toByte(_pixels[idx].y());
-                data[idx * 3 + 2] = toByte(_pixels[idx].z());
+                data[idx * 3 + 0] = toByte(_pixels[idx].red());
+                data[idx * 3 + 1] = toByte(_pixels[idx].green());
+                data[idx * 3 + 2] = toByte(_pixels[idx].blue());
             }
         }
         stbi_write_png(filename.c_str(), _width, _height, 3, data, _width * 3);
         delete[] data;
     }
 
-    void Image::tonemap(TMAlgorithm algo) {
-        Assertion(algo == TM_REINHARD, "Tone mapping algorithm other than Reinhard '02 is not supported");
+    void Image::tonemap(Tonemap algo) {
+        Assertion(algo == Tonemap::Rainhard, "Tone mapping algorithm other than Reinhard '02 is not supported");
 
         const double delta = 1.0e-8;
         const double a = 0.18;
@@ -552,7 +558,7 @@ namespace spica {
         for (int y = 0; y < _height; y++) {
             for (int x = 0; x < _width; x++) {
                 Color c = this->operator()(x, y);
-                Vector3D ret = c * a / lw_bar;
+                Color ret = c * (a / lw_bar);
                 ret = ret * (1.0 + ret / l_white2) / (1.0 + ret);
                 this->pixel(x, y) = ret;
             }

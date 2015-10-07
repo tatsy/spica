@@ -30,7 +30,7 @@ namespace spica {
     }
 
     BSDF LambertianBRDF::factory(const Color& reflectance) {
-        return std::move(BSDF(new LambertianBRDF(reflectance), BSDF_TYPE_LAMBERTIAN_BRDF));
+        return std::move(BSDF(new LambertianBRDF(reflectance), BsdfType::Lambertian));
     }
 
     BSDFBase* LambertianBRDF::clone() const {
@@ -58,7 +58,7 @@ namespace spica {
     }
 
     BSDF SpecularBRDF::factory(const Color& reflectance) {
-        return std::move(BSDF(new SpecularBRDF(reflectance), BSDF_TYPE_SPECULAR_BRDF));
+        return std::move(BSDF(new SpecularBRDF(reflectance), BsdfType::Specular));
     }
 
     BSDFBase* SpecularBRDF::clone() const {
@@ -96,7 +96,7 @@ namespace spica {
     }
 
     BSDF PhongBRDF::factory(const Color& reflectance, const double n) {
-        return std::move(BSDF(new PhongBRDF(reflectance, n), BSDF_TYPE_PHONG_BRDF));
+        return std::move(BSDF(new PhongBRDF(reflectance, n), BsdfType::PhongBrdf));
     }
 
     BSDFBase* PhongBRDF::clone() const {
@@ -140,7 +140,7 @@ namespace spica {
     }
 
     BSDF RefractiveBSDF::factory(const Color& reflectance) {
-        return std::move(BSDF(new RefractiveBSDF(reflectance), BSDF_TYPE_REFRACTION));
+        return std::move(BSDF(new RefractiveBSDF(reflectance), BsdfType::Reflactive));
     }
 
     BSDFBase* RefractiveBSDF::clone() const {

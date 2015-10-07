@@ -22,6 +22,8 @@
 
 namespace spica {
 
+    class RandomSampler;
+
     class SPICA_SPPM_DLL SPPMRenderer : private IRenderer {
     private:
 
@@ -80,7 +82,7 @@ namespace spica {
             }
 
             Color radiance() const {
-                const Color  rad = Color(flux / (PI * r2));
+                const Color  rad = flux / (PI * r2);
                 return Color((emission + rad) * coeff);
             }
         };

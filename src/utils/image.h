@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef SPICA_IMAGE_H_
 #define SPICA_IMAGE_H_
 
@@ -17,8 +21,8 @@
 
 namespace spica {
 
-    enum TMAlgorithm {
-        TM_REINHARD = 0x00
+    enum class Tonemap {
+        Rainhard = 0x00
     };
 
     class SPICA_IMAGE_DLL Image {
@@ -38,6 +42,8 @@ namespace spica {
         Image& operator=(const Image& image);
         Image& operator=(Image&& image);
 
+        static Image fromFile(const std::string& filename);
+
         const Color& operator()(int x, int y) const;
         Color& pixel(int x, int y);
 
@@ -48,10 +54,10 @@ namespace spica {
         // @param[in] gamma: gamma value
         void gammaCorrect(const double gamma);
 
-        void load(const std::string& filename);
-        void save(const std::string& filename) const;
+        virtual void load(const std::string& filename);
+        virtual void save(const std::string& filename) const;
 
-        void tonemap(TMAlgorithm algo = TM_REINHARD);
+        void tonemap(Tonemap algo = Tonemap::Rainhard);
 
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }
@@ -62,10 +68,10 @@ namespace spica {
         static unsigned char toByte(double d);
 
         void loadBmp(const std::string& filename);
-        virtual void saveBmp(const std::string& filename) const;
+        void saveBmp(const std::string& filename) const;
 
         void loadHdr(const std::string& filename);
-        virtual void saveHdr(const std::string& filename) const;
+        void saveHdr(const std::string& filename) const;
 
         void savePng(const std::string& filename) const;
     };

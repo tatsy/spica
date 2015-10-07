@@ -60,18 +60,18 @@ static const double EPS = 1.0e-6;
         #define ompfor _Pragma("omp parallel for") for
         #define omplock _Pragma("omp critical")
     #endif
-    const int kNumCores = omp_get_max_threads();
+    const int kNumThreads = omp_get_max_threads();
     inline int omp_thread_id() { return omp_get_thread_num(); }
 #else  // _OPENMP
     #define ompfor for
     #define omplock
-    const int kNumCores = 1;
+    const int kNumThreads = 1;
     inline int omp_thread_id() { return 0; }
 #endif  // _OPENMP
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Assertion with message
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 #undef NDEBUG
 #ifndef NDEBUG
 #define Assertion(PREDICATE, MSG) \
@@ -87,9 +87,27 @@ do { \
 #define Assertion(PREDICATE, MSG) do {} while (false)
 #endif  // NDEBUG
 
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// Message handlers
+// -----------------------------------------------------------------------------
+
+#ifndef NDEBUG
+#define SpicaInfo(MSG) \
+do { \
+    std::cout << "[INFO] " << (MSG) << std::endl; \
+} while (false)
+#define SpicaWarn(MSG) \
+do { \
+    std::cerr << "[WARNING] " << (MSG) << std::endl; \
+} while (false)
+#else
+#define SpicaInfo(MSG)
+#define SpicaWarn(MSG)
+#endif
+
+// -----------------------------------------------------------------------------
 // Alignment
-// ----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 #if defined(_WIN32) || defined(__WIN32__)
     #define align_attrib(typ, siz) __declspec(align(siz)) typ
@@ -137,7 +155,7 @@ extern void* enabler;
 #endif
 
 #ifdef WITH_ENABLER
-template <class Ty, 
+template <class Ty,
           typename
           std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
 #else
@@ -150,8 +168,8 @@ inline Ty clamp(Ty v, Ty lo, Ty hi) {
 }
 
 #ifdef WITH_ENABLER
-template <class Ty, 
-          typename 
+template <class Ty,
+          typename
           std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
 #else
 template <class Ty>
@@ -159,5 +177,17 @@ template <class Ty>
 inline Ty max3(Ty a, Ty b, Ty c) {
     return std::max(a, std::max(b, c));
 }
+
+#ifdef WITH_ENABLER
+template <class Ty,
+          typename
+          std::enable_if<std::is_arithmetic<Ty>::value>::type *& = enabler>
+#else
+template <class Ty>
+#endif
+inline Ty min3(Ty a, Ty b, Ty c) {
+    return std::min(a, std::min(b, c));
+}
+
 
 #endif  // _SPICA_COMMON_H_

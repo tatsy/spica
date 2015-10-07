@@ -14,7 +14,7 @@ namespace spica {
     }
 
     template <class T>
-    Vector2_<T, typename is_arith_t<T> >::Vector2_(T x, T y)
+    Vector2_<T, is_arith_t<T> >::Vector2_(T x, T y)
         : _x(x)
         , _y(y) {
     }

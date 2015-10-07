@@ -22,6 +22,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/vector2d_detail.h
      ${CMAKE_CURRENT_LIST_DIR}/vector3d.h
      ${CMAKE_CURRENT_LIST_DIR}/color.h
+     ${CMAKE_CURRENT_LIST_DIR}/vertex_data.h
      ${CMAKE_CURRENT_LIST_DIR}/image.h
      ${CMAKE_CURRENT_LIST_DIR}/sampler.h
      ${CMAKE_CURRENT_LIST_DIR}/timer.h

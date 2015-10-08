@@ -1,6 +1,7 @@
 #define SPICA_BPT_RENDERER_EXPORT
 #include "bdpt.h"
 
+#include <cmath>
 #include <cstdio>
 #include <vector>
 #include <algorithm>

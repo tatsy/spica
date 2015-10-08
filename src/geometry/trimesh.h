@@ -23,6 +23,7 @@
 #include "geometry_interface.h"
 #include "triangle.h"
 #include "plane.h"
+#include "../utils/image.h"
 #include "../utils/vertex_data.h"
 #include "../accel/accel.h"
 
@@ -75,6 +76,8 @@ namespace spica {
         std::vector<Triplet>    _faces;
         std::shared_ptr<AccelBase> _accel;
         AccelType _accelType;
+        std::shared_ptr<Image> _texture;
+        bool _isTextured;
 
     public:
         // Contructor

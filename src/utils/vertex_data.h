@@ -72,6 +72,7 @@ namespace spica {
         inline void setPosition(const Vector3D& pos) { _pos = pos; }
         inline void setColor(const Color& color) { _color = color; }
         inline void setNormal(const Vector3D& nrm) { _normal = nrm; }
+        inline void setTexcoord(const Vector2D& texcoord) { _texcoord = texcoord; }
     };
 
 }  // namespace spica

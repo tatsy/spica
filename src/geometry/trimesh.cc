@@ -16,14 +16,18 @@ namespace spica {
         : _vertices()
         , _faces()
         , _accel()
-        , _accelType(AccelType::qbvhAccel) {
+        , _accelType(AccelType::qbvhAccel)
+        , _texture()
+        , _isTextured(false) {
     }
 
     Trimesh::Trimesh(const std::string& filename)
         : _vertices()
         , _faces()
         , _accel()
-        , _accelType(AccelType::qbvhAccel) {
+        , _accelType(AccelType::qbvhAccel)
+        , _texture()
+        , _isTextured(false) {
         load(filename);
     }
 
@@ -31,7 +35,9 @@ namespace spica {
         : _vertices()
         , _faces(faceIDs)
         , _accel()
-        , _accelType(AccelType::qbvhAccel) {
+        , _accelType(AccelType::qbvhAccel)
+        , _texture()
+        , _isTextured(false) {
         // Set vertex positions
         _vertices.resize(vertices.size());
         const int nverts = static_cast<int>(vertices.size());
@@ -47,7 +53,9 @@ namespace spica {
         : _vertices()
         , _faces()
         , _accel()
-        , _accelType(AccelType::qbvhAccel) {
+        , _accelType(AccelType::qbvhAccel)
+        , _texture()
+        , _isTextured(false) {
         this->operator=(trimesh);
     }
 
@@ -55,7 +63,9 @@ namespace spica {
         : _vertices()
         , _faces()
         , _accel()
-        , _accelType(AccelType::qbvhAccel) {
+        , _accelType(AccelType::qbvhAccel)
+        , _texture()
+        , _isTextured(false) {
         this->operator=(std::move(trimesh));
     }
 
@@ -63,10 +73,12 @@ namespace spica {
     }
 
     Trimesh& Trimesh::operator=(const Trimesh& trimesh) {
-        _vertices = trimesh._vertices;
-        _faces    = trimesh._faces;
-        _accel    = trimesh._accel;
+        _vertices  = trimesh._vertices;
+        _faces     = trimesh._faces;
+        _accel     = trimesh._accel;
         _accelType = trimesh._accelType;
+        _texture   = trimesh._texture;
+        _isTextured = trimesh._isTextured;
         return *this;
     }
 
@@ -75,6 +87,8 @@ namespace spica {
         _faces     = std::move(trimesh._faces);
         _accel     = trimesh._accel;
         _accelType = trimesh._accelType;
+        _texture   = trimesh._texture;
+        _isTextured = trimesh._isTextured;
         return *this;    
     }
 
@@ -180,7 +194,6 @@ namespace spica {
         Assertion(format == "ply", "Invalid format identifier");
 
         bool isBody = false;
-        bool hasTex = false;
         while(!ifs.eof()) {
             if (!isBody) {
                 std::getline(ifs, line);
@@ -206,10 +219,11 @@ namespace spica {
                     isBody = true;
                     continue;
                 } else if (key == "comment") {
-                    ss >> name >> val;
+                    ss >> name;
                     if (name == "TextureFile") {
-                        hasTex = true;
-                        printf("Have texture!!\n");
+                        _isTextured = true;
+                        ss >> val;
+                        _texture = std::make_shared<Image>(Image::fromFile(val));
                     }
                 } else {
                     continue;
@@ -222,10 +236,17 @@ namespace spica {
 
                 int cnt = 0;
                 float ff[3];
+                float tt[2];
                 for (size_t i = 0; i < numVerts; i++) {
                     ifs.read((char*)ff, sizeof(float) * 3);
                     _vertices[i] = VertexData(Vector3D(ff[0], ff[1], ff[2]));
+                    
+                    if (_isTextured) {
+                        ifs.read((char*)tt, sizeof(float) * 2);
+                        _vertices[i].setTexcoord(Vector2D(tt[0], tt[1]));
+                    }
                 }
+
 
                 unsigned char vs;
                 int ii[3];
@@ -233,7 +254,6 @@ namespace spica {
                     ifs.read((char*)&vs, sizeof(unsigned char));
                     ifs.read((char*)ii, sizeof(int) * 3);
                     _faces[i] = Triplet(ii[0], ii[1], ii[2]);
-
                     if (vs > 3) {
                         printf("[WARNING] mesh contains non-triangle polygon (%d vertices) !!\n", (int)vs);
                         exit(1);

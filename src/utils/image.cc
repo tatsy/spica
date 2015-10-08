@@ -378,6 +378,7 @@ namespace spica {
         // If the file is invalid, then return
         if (!isValid) {
             std::cerr << "Invalid HDR file format: " << filename << std::endl;
+            fclose(fp);
             return;
         }
 
@@ -405,6 +406,9 @@ namespace spica {
         const size_t ret_size = fread(buffer, sizeof(unsigned char), rest_size, fp);
         if (ret_size < rest_size) {
             std::cerr << "Error: fread" << std::endl;
+            delete[] tmp_data;
+            delete[] buffer;
+            fclose(fp);
             return;
         }
 

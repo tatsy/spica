@@ -119,11 +119,12 @@ namespace spica {
         virtual ~ICamera() {}
 
         ICamera& operator=(const ICamera& camera) {
-            this->_center    = camera._center;
-            this->_direction = camera._direction;
-            this->_up        = camera._up;
-            this->_imageW    = camera._imageW;
-            this->_imageH    = camera._imageH;
+            this->_center      = camera._center;
+            this->_direction   = camera._direction;
+            this->_up          = camera._up;
+            this->_imageW      = camera._imageW;
+            this->_imageH      = camera._imageH;
+            this->_sensitivity = camera._sensitivity;
             return *this;
         }
 

@@ -98,7 +98,6 @@ namespace spica {
 
     int KdTreeAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
         int tid = -1;
-        bool hit = false;
 
         std::stack<KdTreeNode*> todoNode;
         todoNode.push(_root);

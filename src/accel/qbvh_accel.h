@@ -51,8 +51,14 @@ namespace spica {
             int splitAxis, firstPrimOffset, nPrimitives;
             int simdTrisIdx;
 
-            BVHBuildNode() {
-                children[0] = children[1] = NULL;
+            BVHBuildNode()
+                : bounds()
+                , children()
+                , splitAxis(-1)
+                , firstPrimOffset(-1)
+                , nPrimitives(0) 
+                , simdTrisIdx(-1) {
+                children[0] = children[1] = nullptr;
             }
 
             void InitLeaf(int first, int n, const BBox& b, const int asimdTrisIdx) {

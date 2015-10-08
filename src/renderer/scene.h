@@ -106,7 +106,8 @@ namespace spica {
 
         friend class Lighting;
     };
-}
+
+}  // namespace spica
 
 // Implementation for the template functions
 #include "scene_detail.h"

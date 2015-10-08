@@ -128,7 +128,7 @@ namespace spica {
             // This is leaf node
             int firstPrimOffset = orderedPrims.size();
             
-            SIMDTrianglePack* simdt = (SIMDTrianglePack*)align_alloc(sizeof(SIMDTrianglePack), 16);
+            SIMDTrianglePack* simdt = reinterpret_cast<SIMDTrianglePack*>(align_alloc(sizeof(SIMDTrianglePack), 16));
             Assertion(simdt != nullptr, "allocation failed !!");
 
             align_attrib(float, 16) x[4 * 3] = {0};
@@ -234,7 +234,7 @@ namespace spica {
         BVHBuildNode* c[4] = {0};
 
         SIMDBVHNode* n;
-        n = (SIMDBVHNode*)align_alloc(sizeof(SIMDBVHNode), 16);
+        n = reinterpret_cast<SIMDBVHNode*>(align_alloc(sizeof(SIMDBVHNode), 16));
         Assertion(n != nullptr, "allocation failed !!");
 
         _simdNodes.push_back(n);

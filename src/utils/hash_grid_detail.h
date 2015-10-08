@@ -70,7 +70,6 @@ namespace spica {
         const int ix = std::abs(static_cast<int>(b.x()));
         const int iy = std::abs(static_cast<int>(b.y()));
         const int iz = std::abs(static_cast<int>(b.z()));
-        unsigned int hashval = hash(ix, iy, iz);
         return _data[hash(ix, iy, iz)];
     }
 

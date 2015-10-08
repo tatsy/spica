@@ -41,7 +41,6 @@ namespace spica {
             buildData.emplace_back(i, b);
         }
 
-        int totalNodes = 0;
         _root = constructRec(buildData, 0, _tris.size());
     }
 

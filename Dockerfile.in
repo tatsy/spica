@@ -7,7 +7,7 @@ FROM tatsy/ubuntu-cxx
 ## Environment variables
 #
 ENV TERM xterm-color
-ENV TRAVIS_BRANCH @TRAVIS_BRANCH@
+ENV BRANCH_NAME @BRANCH_NAME@
 ENV CC @TRAVIS_C_COMPILER@
 ENV CXX @TRAVIS_CXX_COMPILER@
 
@@ -48,7 +48,7 @@ ENV GTEST_INCLUDE_DIRS /usr/include
 #
 ## Build spica
 #
-RUN git clone --depth 10 -b $TRAVIS_BRANCH https://github.com/tatsy/spica.git
+RUN git clone --depth 10 -b $BRANCH_NAME https://github.com/tatsy/spica.git
 RUN \
   cd spica && \
   cmake . && \

@@ -12,7 +12,7 @@ install:
   - docker pull tatsy/ubuntu-cxx
 
   # Dynamically generate Dockerfile
-  - sed -e "s/@TRAVIS_C_COMPILER@/$CC/;s/@TRAVIS_CXX_COMPILER@/$CXX/;s/@TRAVIS_BRANCH@/$TRAVIS_BRANCH/" Dockerfile.in > Dockerfile
+  - sed -e "s/@TRAVIS_C_COMPILER@/$CC/;s/@TRAVIS_CXX_COMPILER@/$CXX/;s/@BRANCH_NAME@/$TRAVIS_BRANCH/" Dockerfile.in > Dockerfile
 
   # Build Dockerfile
   - docker build --tag=spica-env .

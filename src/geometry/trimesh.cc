@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "../utils/common.h"
+#include "../utils/path.h"
 
 namespace spica {
 
@@ -223,7 +224,9 @@ namespace spica {
                     if (name == "TextureFile") {
                         _isTextured = true;
                         ss >> val;
-                        _texture = std::make_shared<Image>(Image::fromFile(val));
+                        std::string dir = path::getDirectory(filename);
+                        std::string imgfile = dir + val;
+                        _texture = std::make_shared<Image>(Image::fromFile(imgfile));
                     }
                 } else {
                     continue;

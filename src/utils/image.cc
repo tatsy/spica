@@ -17,6 +17,8 @@
 #include "common.h"
 #include "path.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "../../3rdparty/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../../3rdparty/stb_image_write.h"
 
@@ -223,6 +225,8 @@ namespace spica {
             loadBmp(filename);
         } else if (ext == ".hdr") {
             loadHdr(filename);
+        } else if (ext == ".png") {
+            loadPng(filename);
         } else {
             fprintf(stderr, "[ERROR] unknown file extension: %s\n", ext.c_str());
             std::abort();
@@ -524,6 +528,23 @@ namespace spica {
         ofs.write((char*)&pixbuf[0], pixbuf.size());
 
         ofs.close();
+    }
+
+    void Image::loadPng(const std::string& filename) {
+        int w, h, comp;
+        unsigned char* data = stbi_load(filename.c_str(), &w, &h, &comp, STBI_rgb_alpha);
+        
+        this->_width = w;
+        this->_height = h;
+        this->_pixels = new spica::Color[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                const double r = data[(y * w + x) * 4 + 0] / 255.0;             
+                const double g = data[(y * w + x) * 4 + 1] / 255.0;             
+                const double b = data[(y * w + x) * 4 + 2] / 255.0;             
+                this->_pixels[y * w + x] = Color(r, g, b);
+            }
+        }
     }
 
     void Image::savePng(const std::string& filename) const {

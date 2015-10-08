@@ -26,6 +26,11 @@ namespace spica {
             return filename.substr(pos);
         }
 
+        inline std::string getDirectory(const std::string& filename) {
+            const int pos = filename.find_last_of("/");
+            return filename.substr(0, pos + 1);
+        }
+
         inline bool createDirectory(const std::string& dirname) {
             return makedir(dirname.c_str()) == 0;   
         }

@@ -47,6 +47,9 @@ namespace spica {
                         RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));
 
         Trimesh texcube(kDataDirectory + "tex_cube.ply");
+        texcube.fitToBBox(BBox(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0));
+        texcube.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        texcube.translate(Vector3D(-5.0, 0.0, 5.0));
         scene->addShape(texcube, LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
 
         scene->setAccelType(AccelType::bbvhAccel);

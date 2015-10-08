@@ -73,6 +73,7 @@ namespace spica {
         void loadHdr(const std::string& filename);
         void saveHdr(const std::string& filename) const;
 
+        void loadPng(const std::string& filename);
         void savePng(const std::string& filename) const;
     };
 

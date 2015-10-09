@@ -28,6 +28,9 @@ namespace spica {
 
     class Photon;
 
+    /** Environment mapping
+     * @ingroup light_module
+     */
     class SPICA_ENVMAP_DLL Envmap : public ILight {
     private:
         Sphere _sphere;

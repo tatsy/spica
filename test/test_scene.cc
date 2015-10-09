@@ -45,7 +45,7 @@ TEST_F(SceneTest, AccelNotPrepared) {
 }
 
 TEST_F(SceneTest, BBVHIntersectionTest) {
-    scene.setAccelType(AccelType::bbvhAccel);
+    scene.setAccelType(AccelType::BBVH);
     scene.computeAccelerator();
 
     Intersection isect;
@@ -62,7 +62,7 @@ TEST_F(SceneTest, BBVHIntersectionTest) {
 }
 
 TEST_F(SceneTest, QBVHIntersectionTest) {
-    scene.setAccelType(AccelType::qbvhAccel);
+    scene.setAccelType(AccelType::QBVH);
     scene.computeAccelerator();
 
     Intersection isect;
@@ -79,7 +79,7 @@ TEST_F(SceneTest, QBVHIntersectionTest) {
 }
 
 TEST_F(SceneTest, KdTreeIntersectionTest) {
-    scene.setAccelType(AccelType::kdtreeAccel);
+    scene.setAccelType(AccelType::KdTree);
     scene.computeAccelerator();
 
     Intersection isect;
@@ -100,9 +100,9 @@ TEST_F(SceneTest, QBVHvsKdTree) {
     Camera cam1, cam2;
     cornellBox(&scene1, &cam1, 400, 300);
     cornellBox(&scene2, &cam2, 400, 300);
-    scene1.setAccelType(AccelType::qbvhAccel);
+    scene1.setAccelType(AccelType::QBVH);
     scene1.computeAccelerator();
-    scene2.setAccelType(AccelType::kdtreeAccel);
+    scene2.setAccelType(AccelType::KdTree);
     scene2.computeAccelerator();
 
     Random rng = Random((unsigned int)time(NULL));
@@ -125,9 +125,9 @@ TEST_F(SceneTest, BBVHvsQBVH) {
     Camera cam1, cam2;
     cornellBox(&scene1, &cam1, 400, 300);
     cornellBox(&scene2, &cam2, 400, 300);
-    scene1.setAccelType(AccelType::bbvhAccel);
+    scene1.setAccelType(AccelType::BBVH);
     scene1.computeAccelerator();
-    scene2.setAccelType(AccelType::qbvhAccel);
+    scene2.setAccelType(AccelType::QBVH);
     scene2.computeAccelerator();
 
     Random rng = Random();

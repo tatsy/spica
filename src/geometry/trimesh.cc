@@ -17,7 +17,7 @@ namespace spica {
         : _vertices()
         , _faces()
         , _accel()
-        , _accelType(AccelType::qbvhAccel)
+        , _accelType(AccelType::QBVH)
         , _texture()
         , _isTextured(false) {
     }
@@ -26,7 +26,7 @@ namespace spica {
         : _vertices()
         , _faces()
         , _accel()
-        , _accelType(AccelType::qbvhAccel)
+        , _accelType(AccelType::QBVH)
         , _texture()
         , _isTextured(false) {
         load(filename);
@@ -36,7 +36,7 @@ namespace spica {
         : _vertices()
         , _faces(faceIDs)
         , _accel()
-        , _accelType(AccelType::qbvhAccel)
+        , _accelType(AccelType::QBVH)
         , _texture()
         , _isTextured(false) {
         // Set vertex positions
@@ -54,7 +54,7 @@ namespace spica {
         : _vertices()
         , _faces()
         , _accel()
-        , _accelType(AccelType::qbvhAccel)
+        , _accelType(AccelType::QBVH)
         , _texture()
         , _isTextured(false) {
         this->operator=(trimesh);
@@ -64,7 +64,7 @@ namespace spica {
         : _vertices()
         , _faces()
         , _accel()
-        , _accelType(AccelType::qbvhAccel)
+        , _accelType(AccelType::QBVH)
         , _texture()
         , _isTextured(false) {
         this->operator=(std::move(trimesh));
@@ -133,10 +133,10 @@ namespace spica {
         }
 
         switch(_accelType) {
-        case AccelType::kdtreeAccel:
+        case AccelType::KdTree:
             _accel = std::make_shared<KdTreeAccel>();
             break;
-        case AccelType::qbvhAccel:
+        case AccelType::QBVH:
             _accel = std::make_shared<QBVHAccel>();
             break;
         default:

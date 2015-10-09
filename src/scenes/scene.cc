@@ -16,7 +16,7 @@ namespace spica {
 
         , _bsdfs()
         , _accel()
-        , _accelType(AccelType::qbvhAccel) {
+        , _accelType(AccelType::QBVH) {
     }
 
     Scene::~Scene() {
@@ -30,7 +30,7 @@ namespace spica {
 
         , _bsdfs()
         , _accel()
-        , _accelType(AccelType::qbvhAccel) {
+        , _accelType(AccelType::QBVH) {
         this->operator=(scene);
     }
 
@@ -153,15 +153,15 @@ namespace spica {
 
     void Scene::computeAccelerator() {
         switch (this->_accelType) {
-        case AccelType::bbvhAccel:
+        case AccelType::BBVH:
             _accel = std::shared_ptr<AccelBase>(new BBVHAccel());
             break;
 
-        case AccelType::qbvhAccel:
+        case AccelType::QBVH:
             _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
             break;
         
-        case AccelType::kdtreeAccel:
+        case AccelType::KdTree:
             _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
             break;
         

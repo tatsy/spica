@@ -19,6 +19,9 @@
 
 namespace spica {
 
+    /** Binary BVH accelerator class
+     * @ingroup accel_module
+     */
     class SPICA_BBVH_ACCEL_DLL BBVHAccel : public AccelBase {
     private:
         struct BVHPrimitiveInfo {

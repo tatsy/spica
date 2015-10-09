@@ -10,31 +10,30 @@
 namespace spica {
 
     Camera::Camera()
-        : _ptr(nullptr) {
+        : _ptr() {
     }
 
     Camera::~Camera() {
-        delete _ptr;
     }
 
     Camera::Camera(const Camera& camera)
-        : _ptr(nullptr) {
+        : _ptr() {
         this->operator=(camera);
     }
 
     Camera::Camera(Camera&& camera)
-        : _ptr(nullptr) {
+        : _ptr() {
         this->operator=(std::move(camera));
     }
 
     Camera& Camera::operator=(const Camera& camera) {
-        this->_ptr = camera._ptr->clone();
+        this->_ptr  = std::unique_ptr<ICamera>(camera._ptr->clone());
         this->_type = camera._type;
         return *this;
     }
 
     Camera& Camera::operator=(Camera&& camera) {
-        this->_ptr  = camera._ptr;
+        this->_ptr  = std::move(camera._ptr);
         this->_type = camera._type;
 
         camera._ptr = nullptr;
@@ -58,16 +57,16 @@ namespace spica {
 
         Camera camera;
         camera._type = CameraType::DepthOfField;
-        camera._ptr = new DoFCamera(imageWidth,
-                                    imageHeight,
-                                    sensorCenter,
-                                    sensorDir,
-                                    sensorUp,
-                                    sensorSize,
-                                    distSensorToLens,
-                                    focalLength,
-                                    lensRadius,
-                                    sensorSensitivity);
+        camera._ptr = std::make_unique<DoFCamera>(imageWidth,
+                                                  imageHeight,
+                                                  sensorCenter,
+                                                  sensorDir,
+                                                  sensorUp,
+                                                  sensorSize,
+                                                  distSensorToLens,
+                                                  focalLength,
+                                                  lensRadius,
+                                                  sensorSensitivity);
         return std::move(camera);
     }
 
@@ -78,22 +77,22 @@ namespace spica {
                                double sensitivity) {
         Camera camera;
         camera._type = CameraType::Perspective;
-        camera._ptr = new PerspectiveCamera(center,
-                                            direction,
-                                            up,
-                                            fov, imageW, imageH,
-                                            sensitivity);
+        camera._ptr = std::make_unique<PerspectiveCamera>(center,
+                                                          direction,
+                                                          up,
+                                                          fov, imageW, imageH,
+                                                          sensitivity);
         return std::move(camera);
     }
 
-    Camera Camera::orthogonal(const Vector3D& center,
-                              const Vector3D& direction,
-                              const Vector3D& up,
-                              int imageW, int imageH, double sensitivity) {
+    Camera Camera::ortho(const Vector3D& center,
+                         const Vector3D& direction,
+                         const Vector3D& up,
+                         int imageW, int imageH, double sensitivity) {
         Camera camera;
         camera._type = CameraType::Orthogonal;
-        camera._ptr = new OrthographicCamera(center, direction, up,
-                                           imageW, imageH, sensitivity);
+        camera._ptr = std::make_unique<OrthographicCamera>(center, direction, up,
+                                                           imageW, imageH, sensitivity);
         return std::move(camera);
     }
 

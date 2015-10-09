@@ -1,3 +1,8 @@
+/**
+ * @defgroup accel_module Accel
+ * @brief The class module for intersecting accelerating data structures
+ */
+
 #ifdef _MSC_VER
 #pragma once
 #endif
@@ -11,11 +16,14 @@
 
 namespace spica {
 
-    //! Accelerator types
+    /** Accelerator type enum
+     *  @ingroup accel_module
+     *  @brief Enumerator for acclerator types.
+     */
     enum class AccelType : int {
-        kdtreeAccel,   //! k-d tree acclerator
-        bbvhAccel,     //! binary BVH accelerator
-        qbvhAccel      //! SIMD-acclerated QBVH acclerator
+        KdTree,   /**< K-D tree acclerator */
+        BBVH,     /**< binary BVH accelerator */
+        QBVH      /**< SIMD-acclerated QBVH acclerator */
     };
 
 }  // namespace spica

@@ -24,6 +24,9 @@
 
 namespace spica {
 
+    /** Area light class
+     * @ingroup light_module
+     */
     class SPICA_AREA_LIGHT_DLL AreaLight : public ILight {
     private:
         Color _emittance;

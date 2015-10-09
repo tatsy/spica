@@ -23,7 +23,10 @@
 
 namespace spica {
 
-    class QBVHAccel : public AccelBase {
+    /** Quad BVH accelerator class
+     * @ingroup accel_module
+     */
+    class SPICA_QBVH_ACCEL_DLL QBVHAccel : public AccelBase {
     private:
 
         struct BVHPrimitiveInfo {

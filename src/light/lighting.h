@@ -1,3 +1,8 @@
+/** 
+ * @defgroup light_module Light
+ * @brief light
+ */
+
 #ifdef _MSC_VER
 #pragma once
 #endif
@@ -33,29 +38,43 @@ namespace spica {
         Envmap    = 0x02
     };
 
+    /** Lighting class
+     * @ingroup light_module
+     */
     class SPICA_LIGHTING_DLL Lighting {
     private:
-        ILight* _ptr;
+        std::unique_ptr<ILight> _ptr;
 
     public:
-        //! Constructor
+        /** The Lighting constructor.
+         */
         Lighting();
+
+        /** The Lighting constructor (copy).
+         */
         Lighting(const Lighting& l);
+
+        /** The Lighting constructor (move)
+         */
         Lighting(Lighting&& l);
 
-        //! Destructor
+        /** The lighting destructor.
+         */
         ~Lighting();
 
         Lighting& operator=(const Lighting& l);
         Lighting& operator=(Lighting&& l);
 
-        //! Initialize lighting as environment map (with image file name)
+        /** Initialize lighting as environment map (with image file name)
+         */
         static Lighting asEnvmap(const Sphere& boundSphere, const std::string& filename);
 
-        //! Initialize lighting as environment map (with image)
+        /** Initialize lighting as environment map (with image)
+         */
         static Lighting asEnvmap(const Sphere& boundSphere, const Image& image);
 
-        //! Initialize lighting as area light
+        /** Initialize lighting as area light
+         */
         static Lighting asAreaLight(const std::vector<Triangle>& triangles, const Color& emittance);
 
         LightSample sample(Stack<double>& rstack) const;

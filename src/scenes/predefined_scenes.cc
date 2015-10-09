@@ -52,7 +52,7 @@ namespace spica {
         texcube.translate(Vector3D(-5.0, 0.0, 5.0));
         scene->addShape(texcube, LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
 
-        scene->setAccelType(AccelType::bbvhAccel);
+        scene->setAccelType(AccelType::QBVH);
         scene->finalize();
 
         (*camera) = Camera::asDoF(width, height, 
@@ -277,7 +277,7 @@ namespace spica {
         kittenBsdf.setBssrdf(bssrdf);
         scene->addShape(kitten, kittenBsdf);
 
-        scene->setAccelType(AccelType::bbvhAccel);
+        scene->setAccelType(AccelType::QBVH);
         scene->finalize();
 
         (*camera) = Camera::asDoF(width, height, 

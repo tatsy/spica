@@ -20,6 +20,9 @@
 
 namespace spica {
 
+    /** K-D tree accelerator class
+     * @ingroup accel_module
+     */
     class SPICA_KDTREE_ACCEL_DLL KdTreeAccel : public AccelBase {
     private:
         struct KdTreeNode : public Uncopyable {

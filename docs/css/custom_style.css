@@ -18,16 +18,40 @@ body * {
  * Project name
  */
  #projectname {
- 	font: 300% Roboto sans-serif;
+ 	font: 300% Roboto, sans-serif;
  	margin: 0px;
  	padding: 2px 0px;
 }
+
 
 #titlearea {
 	padding: 5px;
 	margin: 0px;
 	width: 100%;
-	border-bottom: 1px solid #eeeeee;
+  border: none;
+}
+
+a.qindex {
+    font-weight: bold;
+}
+
+a.qindexHL {
+  font-weight: bold;
+  background-color: #9CAFD4;
+  color: #ffffff;
+  border: 1px double #869DCA;
+}
+
+.contents a.qindexHL:visited {
+  color: #ffffff;
+}
+
+a.code, a.code:visited, a.line, a.line:visited {
+  color: #4665A2;
+}
+
+a.codeRef, a.codeRef:visited, a.lineRef, a.lineRef:visited {
+  color: #4665A2;
 }
 
 div.header {
@@ -35,7 +59,7 @@ div.header {
   background-repeat: none;
 	background-color: #ffffff;
 	margin:  0px;
-	border-bottom: 1px solid #eeeeee;
+  border: 0px;
 }
 
 .navpath ul {
@@ -59,9 +83,13 @@ div.header {
 	padding-right:15px;
 	background-image: none;
 	background-repeat: no-repeat;
-	background-position:right;
+	background-position: middle;
 	color:#222222;
   border-right: 1px solid #eeeeee;
+}
+
+.navpath li.navelem a {
+  display: inline;
 }
 
 .memproto, dl.reflist dt {
@@ -123,24 +151,22 @@ hr.footer {
 /*
  * Tabs
  */
-.tabs, .tabs2, .tabs3 {
-    background-image: none;
-    width: 100%;
-    z-index: 101;
-    font-size: 12px;
-    font-family: Arial, sans-serif;
-}
 
-.tabs {
-  border-bottom: 1px solid #eeeeee;
+.tabs, .tabs2, .tabs3 {
+  background-image: none;
+  width: 100%;
+  z-index: 101;
+  font-size: 16px;
+  font-family: Roboto, sans-serif;
+  font-weight: 400;
 }
 
 .tabs2 {
-  font-size: 12px;
-  border-bottom: 1px solid #eeeeee;
+  font-size: 14px;
 }
+
 .tabs3 {
-    font-size: 10px;
+  font-size: 12px;
 }
 
 .tablist {
@@ -150,42 +176,55 @@ hr.footer {
 }
 
 .tablist li {
-    float: left;
-    display: table-cell;
-    background-image: none;
-    line-height: 36px;
-    list-style: none;
-    border-right: 1px solid #eeeeee;
+  background-image: none;
+  line-height: 36px;
+  list-style: none;
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .tablist a {
-    display: block;
-    padding: 0 20px;
-    font-weight: bold;
-    background-image: none;
-    background-repeat:no-repeat;
-    background-position:right;
-    color: #222222;
-    text-shadow: none;
-    text-decoration: none;
-    outline: none;
-}
-
-.tabs3 .tablist a {
-    padding: 0 10px;
+  display: block;
+  padding: 0 10px;
+  font-weight: bold;
+  background-image: none;
+  background-repeat: none;
+  background-position: middle;
+  background-color: #fff;
+  color: #222222;
+  border: 1px solid #eee;
+  text-shadow: none;
+  text-decoration: none;
+  outline: none;
 }
 
 .tablist a:hover {
-    background-image: none;
-    background-repeat:none;
-    color: #222222;
-    text-shadow: none;
-    text-decoration: none;
+  background-image: none;
+  background-repeat:none;
+  background-color: #eeeeee;
+  color: #222222;
+  text-shadow: none;
+  text-decoration: none;
 }
 
 .tablist li.current a {
-    background-image: none;
-    background-repeat: none;
-    color: #222222;
-    text-shadow: none;
+  background-image: none;
+  background-repeat: none;
+  background-color: #cccccc;
+  color: #ffffff;
+  text-shadow: none;
+}
+
+.tablist li.current a:hover {
+  background-color: #dddddd;
+}
+
+.nav > li > a {
+  display: block;
+  padding: 5px 15px;
+}
+
+.nav-justified > li {
+  list-style: outside none none;
+  width: auto;
 }

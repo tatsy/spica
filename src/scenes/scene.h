@@ -59,9 +59,6 @@ namespace spica {
 
         template <class T>
         void addShape(const T& shape, const BSDF& bsdf);
-
-        template <>
-        void addShape(const Trimesh& shape, const BSDF& bsdf);
         
         //! Set area light to the scene
         template <class T>

@@ -23,7 +23,7 @@ namespace spica {
     }
 
     template <>
-    void Scene::addShape(const Trimesh& shape, const BSDF& bsdf) {
+    inline void Scene::addShape(const Trimesh& shape, const BSDF& bsdf) {
         // Copy triangles
         std::vector<Triplet> trip = shape.getIndices();
         for (int i = 0; i < trip.size(); i++) {

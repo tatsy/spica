@@ -32,10 +32,22 @@ after_success:
   - docker exec spica-env lcov --list coverage.info
   - docker exec spica-env coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
+  ## Deploy GitHub Pages
+  - if [ $TRAVIS_BRANCH = "master" ]; then git config --global user.name "Travis CI"; fi
+  - if [ $TRAVIS_BRANCH = "master" ]; then git config --global user.email "travis@travis-ci.org"; fi
+  - if [ $TRAVIS_BRANCH = "master" ]; then "cd docs; doxygen doxyfile; cd html; fi
+  - if [ $TRAVIS_BRANCH = "master" ]; then git add --all; fi
+  - if [ $TRAVIS_BRANCH = "master" ]; then git commit -m "Travis build \#$TRAVIS_BUILD_NUMBER commit to GitHub Pages"; fi
+  - if [ $TRAVIS_BRANCH = "master" ]; then git push origin gh-pages; fi
+
 branches:
   only:
     - master
     - development
+
+env:
+  global:
+    secure: FvLmuzyUsyy8PN3u/RjsZUt4mUsuuAdG4O4FdSogAPFVeu1oathhntC8q4x1Qw7aQ+5Tper0yX7oJxKHjyuh3oCU+eNHMHGcpj1L21QzzEglUtzS/NW2/QhINt1WXB3onCxhcL9lq+NzWMOdCqPAfe/egbNX/ERCTrGZMtoFNgo=
 
 notifications:
   email:

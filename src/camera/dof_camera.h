@@ -31,6 +31,9 @@ namespace spica {
 
     struct CameraSample;
 
+    /** Depth of field camera.
+     * @ingroup camera_module
+     */
     class SPICA_DOF_CAMERA_DLL DoFCamera : public ICamera {
     private:
 

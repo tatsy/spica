@@ -22,6 +22,9 @@
 
 namespace spica {
 
+    /** Orthographic camera.
+     * @ingroup camera_module
+     */
     class SPICA_ORTHOGRAPHIC_CAMERA_DLL OrthographicCamera : public ICamera {
     private:
         Rect _rect;

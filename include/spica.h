@@ -1,3 +1,8 @@
+/*!
+  @mainpage  
+  The cross-platform rendering engine by modern C++
+ */
+
 #ifdef _MSC_VER
 #pragma once
 #endif

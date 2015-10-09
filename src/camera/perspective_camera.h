@@ -20,6 +20,9 @@
 
 namespace spica {
 
+    /** Perspective camera
+     * @ingroup camera_module
+     */
     class SPICA_PERSPECTIVE_CAMERA_DLL PerspectiveCamera : public ICamera {
     private:
         double _fov;

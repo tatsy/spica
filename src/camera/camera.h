@@ -1,3 +1,8 @@
+/**
+ * @defgroup camera_module Camera
+ * @brief camera
+ */
+
 #ifdef _MSC_VER
 #pragma once
 #endif
@@ -31,6 +36,9 @@ namespace spica {
         DepthOfField = 0x04
     };
 
+    /** Camera class
+     * @ingroup camera_module
+     */
     class SPICA_CAMERA_DLL Camera {
     private:
         ICamera*   _ptr;

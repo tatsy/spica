@@ -1,5 +1,5 @@
 build
 tmp
-docs
+docs/html
 output
 spica_dirs.h

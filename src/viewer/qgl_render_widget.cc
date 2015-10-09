@@ -151,7 +151,7 @@ namespace spica {
     }
 
     void QGLRenderWidget::cameraToProj(QMatrix4x4* mat) const {
-        ICamera* ptr = camera._ptr;    
+        ICamera* ptr = camera._ptr.get();    
         if (typeid(*ptr) == typeid(OrthographicCamera)) {
             OrthographicCamera* cam = reinterpret_cast<OrthographicCamera*>(ptr);
             const Rect& rect = cam->rect();

@@ -174,7 +174,7 @@ TEST_F(OrthographicCameraTest, Instance) {
     const int width = 320;
     const int height = 240;
 
-    Camera camera = Camera::orthogonal(center, direction, up, width, height, 1.0);
+    Camera camera = Camera::ortho(center, direction, up, width, height, 1.0);
     EXPECT_EQ_VEC(center, camera.center());
     EXPECT_EQ_VEC(direction, camera.direction());
     EXPECT_EQ_VEC(up, camera.up());

@@ -653,7 +653,7 @@ namespace spica {
         }
 
         // Rendering
-        DoFCamera* dofCam = reinterpret_cast<DoFCamera*>(camera._ptr);
+        DoFCamera* dofCam = reinterpret_cast<DoFCamera*>(camera.ptr().get());
         for (int s = 0; s < params.samplePerPixel(); s++) {
             for (int t = 0; t < taskPerThread; t++) {
                 ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {

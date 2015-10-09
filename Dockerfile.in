@@ -32,9 +32,9 @@ RUN apt-get -qq install libxmu-dev libxi-dev
 ## Build spica
 #
 RUN git clone --depth 10 -b $BRANCH_NAME https://github.com/tatsy/spica.git
-RUN git submodule update --init --recursive
 RUN \
   cd spica && \
+  git submodule update --init --recursive && \
   cmake . && \
   cmake --build .
 

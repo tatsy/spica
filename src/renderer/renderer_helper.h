@@ -15,10 +15,10 @@
     #define SPICA_RENDERER_HELPER_DLL
 #endif
 
-#include "scene.h"
 #include "render_parameters.h"
 #include "bsdf.h"
 
+#include "../scenes/scene.h"
 #include "../utils/vector3d.h"
 #include "../utils/color.h"
 #include "../camera/camera.h"

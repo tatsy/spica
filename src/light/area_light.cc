@@ -2,7 +2,6 @@
 #include "area_light.h"
 
 #include "../utils/sampler.h"
-#include "../renderer/scene.h"
 
 namespace spica {
 

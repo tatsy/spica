@@ -12,7 +12,7 @@
 
 #include "../random/random_sampler.h"
 
-#include "scene.h"
+#include "../scenes/scene.h"
 #include "renderer_helper.h"
 #include "subsurface_integrator.h"
 

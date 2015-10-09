@@ -11,6 +11,7 @@
     #define SPICA_RAY_DLL
 #endif
 
+#include "../utils/vector2d.h"
 #include "../utils/vector3d.h"
 
 namespace spica {
@@ -42,6 +43,7 @@ namespace spica {
         double _distance;
         Vector3D _normal;
         Vector3D _position;
+        Vector2D _texcoord;
 
     public:
         Hitpoint();
@@ -51,12 +53,14 @@ namespace spica {
         Hitpoint& operator=(const Hitpoint& hp);
 
         inline double distance() const { return _distance; }
-        inline Vector3D normal() const { return _normal; }
-        inline Vector3D position() const { return _position; }
+        inline const Vector3D& normal() const { return _normal; }
+        inline const Vector3D& position() const { return _position; }
+        inline const Vector2D& texcoord() const { return _texcoord; }
 
         inline void setDistance(double distance) { _distance = distance; }
         inline void setNormal(const Vector3D& normal) { _normal = normal; }
         inline void setPosition(const Vector3D& position) { _position = position; }
+        inline void setTexcoord(const Vector2D& texcoord) { _texcoord = texcoord; }
     };
 
     class SPICA_RAY_DLL Intersection {

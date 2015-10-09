@@ -372,9 +372,19 @@ namespace spica {
         return _faces;
     }
 
-    Vector3D Trimesh::getVertex(int id) const {
+    const Vector3D& Trimesh::getVertex(int id) const {
         Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _vertices[id].pos();
+    }
+
+    const VertexData& Trimesh::getVertexData(int id) const {
+        Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
+        return _vertices[id];    
+    }
+
+    const Vector2D& Trimesh::getTexcoord(int id) const {
+        Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
+        return _vertices[id].texcoord();
     }
 
     void Trimesh::setColor(int id, const Color& color) {

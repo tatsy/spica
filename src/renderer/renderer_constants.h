@@ -2,8 +2,7 @@
 #define _SPICA_RENDERER_CONSTANTS_H_
 
 #include "ray.h"
-#include "scene.h"
-
+#include "../scenes/scene.h"
 #include "../camera/camera.h"
 
 namespace spica {

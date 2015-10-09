@@ -8,8 +8,8 @@
 #include "../random/random_sampler.h"
 #include "../random/random.h"
 #include "../random/halton.h"
+#include "../scenes/scene.h"
 
-#include "scene.h"
 #include "render_parameters.h"
 
 namespace spica {

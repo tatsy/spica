@@ -9,16 +9,14 @@ namespace spica {
     Ray::Ray()
         : _origin()
         , _direction()
-        , _invdir()
-    {
+        , _invdir() {
         calcInvdir();
     }
 
     Ray::Ray(const Vector3D& origin, const Vector3D& direction)
         : _origin(origin)
         , _direction(direction)
-        , _invdir()
-    {
+        , _invdir() {
         Assertion(std::abs(1.0 - direction.norm()) < EPS, "Direction must be unit vector");
         calcInvdir();
     }
@@ -26,8 +24,7 @@ namespace spica {
     Ray::Ray(const Ray& ray)
         : _origin()
         , _direction()
-        , _invdir()
-    {
+        , _invdir() {
         operator=(ray);
     }
 
@@ -50,13 +47,15 @@ namespace spica {
     Hitpoint::Hitpoint()
         : _distance(INFTY)
         , _normal()
-        , _position() {
+        , _position()
+        , _texcoord(INFTY, INFTY) {
     }
 
     Hitpoint::Hitpoint(const Hitpoint& hp)
         : _distance(hp._distance)
         , _normal(hp._normal)
-        , _position(hp._position) {
+        , _position(hp._position)
+        , _texcoord(hp._texcoord) {
     }
 
     Hitpoint::~Hitpoint() {
@@ -64,8 +63,9 @@ namespace spica {
 
     Hitpoint& Hitpoint::operator=(const Hitpoint& hp) {
         this->_distance = hp._distance;
-        this->_normal = hp._normal;
+        this->_normal   = hp._normal;
         this->_position = hp._position;
+        this->_texcoord = hp._texcoord;
         return *this;
     }
 

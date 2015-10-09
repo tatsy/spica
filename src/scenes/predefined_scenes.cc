@@ -1,8 +1,8 @@
 #define SPICA_PREDEFINED_SCENES_EXPORT
 #include "predefined_scenes.h"
 
+#include "../scenes/scene.h"
 #include "../camera/camera.h"
-#include "../renderer/scene.h"
 #include "../renderer/brdf.h"
 #include "../renderer/bssrdf.h"
 

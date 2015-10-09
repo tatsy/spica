@@ -103,7 +103,7 @@ TEST_F(ImageTest, Move) {
 TEST_F(ImageTest, InvalidPathToLoad) {
     Image image;
     ASSERT_DEATH(image.load("dammy_path.bmp"), "");
-    ASSERT_DEATH(image.load("image.jpg"), "unknown file extension");
+    ASSERT_DEATH(image.load("image.jpg"), "");
 }
 
 TEST_F(ImageTest, Resize) {

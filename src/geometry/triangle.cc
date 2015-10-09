@@ -12,20 +12,17 @@ namespace spica {
     }
 
     Triangle::Triangle(const Vector3D& p0, const Vector3D& p1, const Vector3D& p2)
-        : _points()
-    {
+        : _points() {
         _points[0] = p0;
         _points[1] = p1;
         _points[2] = p2;
     }
 
     Triangle::Triangle(const Triangle& tri)
-        : _points(tri._points)
-    {
+        : _points(tri._points) {
     }
 
-    Triangle::~Triangle()
-    {
+    Triangle::~Triangle() {
     }
 
     Triangle& Triangle::operator=(const Triangle& tri) {
@@ -72,6 +69,7 @@ namespace spica {
             hitpoint->setDistance(t);
             hitpoint->setPosition(ray.origin() + t * ray.direction());
             hitpoint->setNormal(this->normal());
+            hitpoint->setTexcoord(Vector2D(u, v));
             return true;
         }
 

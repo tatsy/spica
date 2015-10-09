@@ -13,6 +13,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
 
  set(HEADERS ${HEADERS}
      ${CMAKE_CURRENT_LIST_DIR}/common.h
+     ${CMAKE_CURRENT_LIST_DIR}/triplet.h
      ${CMAKE_CURRENT_LIST_DIR}/vbo.h
      ${CMAKE_CURRENT_LIST_DIR}/path.h
      ${CMAKE_CURRENT_LIST_DIR}/rect.h

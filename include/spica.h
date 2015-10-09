@@ -18,7 +18,6 @@
 
 #include "../src/renderer/brdf.h"
 #include "../src/renderer/bssrdf.h"
-#include "../src/renderer/scene.h"
 #include "../src/renderer/render_parameters.h"
 
 #include "../src/random/random.h"
@@ -56,6 +55,7 @@
 // Scenes
 // --------------------------------------------
 
+#include "../src/scenes/scene.h"
 #include "../src/scenes/predefined_scenes.h"
 #include "../src/scenes/yaml_parser.h"
 #include "../src/scenes/scene_loader.h"

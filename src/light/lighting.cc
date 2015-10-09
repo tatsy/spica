@@ -4,7 +4,7 @@
 #include "envmap.h"
 #include "area_light.h"
 
-#include "../renderer/scene.h"
+#include "../scenes/scene.h"
 
 namespace spica {
 

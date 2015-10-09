@@ -6,9 +6,9 @@
 #include <iostream>
 #include <algorithm>
 
-#include "scene.h"
 #include "renderer_helper.h"
 
+#include "../scenes/scene.h"
 #include "../utils/sampler.h"
 #include "../camera/camera.h"
 

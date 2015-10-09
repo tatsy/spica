@@ -23,52 +23,13 @@
 #include "geometry_interface.h"
 #include "triangle.h"
 #include "plane.h"
+
+#include "../utils/triplet.h"
 #include "../utils/image.h"
 #include "../utils/vertex_data.h"
 #include "../accel/accel.h"
 
 namespace spica {
-
-    template <class T, class Enable = void>
-    class Triplet_;
-
-    template <class T>
-    class Triplet_<T, typename std::enable_if<std::is_arithmetic<T>::value>::type> {
-    private:
-        std::array<int,3> _data;
-
-    public:
-        Triplet_()
-            : _data() {
-        }
-
-        Triplet_(int i, int j, int k)
-            : _data() {
-            _data[0] = i;
-            _data[1] = j;
-            _data[2] = k;
-        }
-
-        Triplet_(const Triplet_<T>& triplet)
-            : _data() {
-            this->operator=(triplet);
-        }
-
-        ~Triplet_() {
-        }
-
-        Triplet_& operator=(const Triplet_<T>& triplet) {
-            this->_data = triplet._data;
-            return *this;
-        }
-
-        int operator[](int i) const {
-            Assertion(0 <= i && i <= 2, "access index out of bounds!");
-            return _data[i];
-        }    
-    };
-
-    using Triplet = Triplet_<int>;
     
     class SPICA_TRIMESH_DLL Trimesh : public IGeometry {
     private:
@@ -157,7 +118,11 @@ namespace spica {
 
         // Get the vertex with specified ID
         // @param[in] vertexID: ID of the vertex
-        Vector3D getVertex(int vertexID) const;
+        const Vector3D& getVertex(int vertexID) const;
+
+        const VertexData& getVertexData(int vertexID) const;
+
+        const Vector2D& getTexcoord(int vertexID) const;
 
         // Set color to the specified vertex
         // @param[in] vertexID: ID of the vertex
@@ -176,6 +141,9 @@ namespace spica {
 
         // Get the number of faces (triangles)
         inline size_t numFaces() const { return _faces.size(); }
+
+        // Trimesh has texture or not
+        inline bool isTextured() const { return _isTextured; }
 
     private:
         void loadPly(const std::string& filename);

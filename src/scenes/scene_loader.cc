@@ -2,7 +2,7 @@
 #include "scene_loader.h"
 
 #include "yaml_parser.h"
-#include "../renderer/scene.h"
+#include "scene.h"
 #include "../renderer/brdf.h"
 #include "../camera/camera.h"
 

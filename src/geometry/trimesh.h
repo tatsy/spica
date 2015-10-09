@@ -151,6 +151,8 @@ namespace spica {
 
         // Compute vertex normals
         void calcVertexNormals();
+
+        friend class Scene;
     };
 
 }  // namespace spica

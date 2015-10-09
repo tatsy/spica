@@ -135,7 +135,7 @@ namespace spica {
         // Get intersecting material
         const int objectID     = isect.objectId();
         const BSDF& bsdf       = scene.getBsdf(objectID);
-        const Color& refl      = bsdf.reflectance();
+        const Color& refl      = scene.getReflectance(isect);
         const Hitpoint& hpoint = isect.hitpoint();
 
         // Russian roulette
@@ -176,20 +176,19 @@ namespace spica {
 
         Color directrad = directSample(scene, objectID, ray.direction(),
                                        hpoint.position(), hpoint.normal(),
-                                       bounces, rstack);
+                                       refl, bounces, rstack);
 
         return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
     }
 
     Color PathRenderer::directSample(const Scene& scene, const int triID,
                                      const Vector3D& in, const Vector3D& v,
-                                     const Vector3D& n, int bounces,
-                                     Stack<double>& rstk) const {
+                                     const Vector3D& n, const Color& refl, 
+                                     int bounces, Stack<double>& rstk) const {
         // Acquire random numbers
         const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
         const BSDF&  bsdf = scene.getBsdf(triID);
-        const Color& refl = bsdf.reflectance();
 
         if (bsdf.type() & BsdfType::Scatter) {
             if (!scene.isLightCheck(triID)) {

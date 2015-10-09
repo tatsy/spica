@@ -33,6 +33,8 @@ namespace spica {
             }
             _triangles.emplace_back(vid, vid + 1, vid + 2, shape.isTextured());
         }
+
+        _texture = shape._texture;
                     
         // Update BSDF ids
         addBsdf(bsdf, trip.size());

@@ -109,6 +109,18 @@ namespace spica {
         return _bsdfs[_bsdfIds[id]];
     }
 
+    const Color& Scene::getReflectance(const Intersection& isect) const {
+        const int tid = isect.objectId();
+        if (_triangles[tid].isTextured() && _texture.get() != nullptr) {
+            const Vector2D& uv = isect.hitpoint().texcoord();
+            const int tx = static_cast<int>(uv.x() * _texture->width());
+            const int ty = static_cast<int>(uv.y() * _texture->height());
+            return _texture->pixel(tx, ty);
+        } else {
+            return getBsdf(tid).reflectance();
+        }
+    }
+
     Color Scene::directLight(const Vector3D& dir) const {
         return _lighting.directLight(dir);
     }

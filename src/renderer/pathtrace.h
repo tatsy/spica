@@ -50,8 +50,8 @@ namespace spica {
 
         Color directSample(const Scene& scene, const int triID,
                            const Vector3D& in, const Vector3D& v,
-                           const Vector3D& n, int bounces,
-                           Stack<double>& rands) const;
+                           const Vector3D& n, const Color& refl,
+                           int bounces, Stack<double>& rands) const;
     };
 }
 

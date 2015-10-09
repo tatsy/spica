@@ -48,6 +48,8 @@ namespace spica {
         Lighting  _lighting;
         AccelType _accelType;
 
+        std::shared_ptr<Image> _texture;
+
     public:
         Scene();
         Scene(const Scene& scene);
@@ -83,6 +85,8 @@ namespace spica {
         
         const BSDF& getBsdf(int id) const;
 
+        const Color& getReflectance(const Intersection& isect) const;
+
         // Get direct lightinf from specified direction
         Color directLight(const Vector3D& dir) const; 
 
@@ -108,6 +112,11 @@ namespace spica {
         void finalize();
 
         bool intersect(const Ray& ray, Intersection& isect) const;
+
+        inline bool isTextured(int triID) const {
+            Assertion(triID >= 0 && triID < _triangles.size(), "Triangle index out of bounds!!");
+            return _triangles[triID].isTextured();
+        }
 
         inline int numTriangles() const {
             return static_cast<int>(_triangles.size());

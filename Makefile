@@ -9,12 +9,12 @@ info:
 
 build:
 	docker pull tatsy/ubuntu-cxx; \
-	sed -e "s/@TRAVIS_C_COMPILER@/$(CC)/;s/@TRAVIS_CXX_COMPILER@/$(CXX)/;s/@BRANCH_NAME@/$(GIT_BRANCH)/" Dockerfile.in > Dockerfile; \
+	sed -e "s/@C_COMPILER@/$(CC)/;s/@CXX_COMPILER@/$(CXX)/;s/@BRANCH_NAME@/$(GIT_BRANCH)/" Dockerfile.in > Dockerfile; \
 	docker build --tag=spica-env .
 
 rebuild:
 	docker pull tatsy/ubuntu-cxx; \
-	sed -e "s/@TRAVIS_C_COMPILER@/$(CC)/;s/@TRAVIS_CXX_COMPILER@/$(CXX)/;s/@BRANCH_NAME@/$(GIT_BRANCH)/" Dockerfile.in > Dockerfile; \
+	sed -e "s/@C_COMPILER@/$(CC)/;s/@CXX_COMPILER@/$(CXX)/;s/@BRANCH_NAME@/$(GIT_BRANCH)/" Dockerfile.in > Dockerfile; \
 	docker build --no-cache --tag=spica-env .
 
 run:

@@ -9,10 +9,10 @@ services:
 
 install:
   # Pull Docker image
-  - docker pull tatsy/ubuntu-cxx
+  - docker pull tatsy/ubuntu-cxx:default
 
   # Dynamically generate Dockerfile
-  - sed -e "s/@TRAVIS_C_COMPILER@/$CC/;s/@TRAVIS_CXX_COMPILER@/$CXX/;s/@BRANCH_NAME@/$TRAVIS_BRANCH/" Dockerfile.in > Dockerfile
+  - sed -e "s/@C_COMPILER@/$CC/;s/@CXX_COMPILER@/$CXX/;s/@BRANCH_NAME@/$TRAVIS_BRANCH/" Dockerfile.in > Dockerfile
 
   # Build Dockerfile
   - docker build --tag=spica-env .

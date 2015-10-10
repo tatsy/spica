@@ -9,10 +9,10 @@ set(SOURCES ${SOURCES}
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
-    ${CMAKE_CURRENT_LIST_DIR}/geometry.h
+    ${CMAKE_CURRENT_LIST_DIR}/shape.h
     ${CMAKE_CURRENT_LIST_DIR}/bbox.h
     ${CMAKE_CURRENT_LIST_DIR}/plane.h
-    ${CMAKE_CURRENT_LIST_DIR}/geometry_interface.h
+    ${CMAKE_CURRENT_LIST_DIR}/shape_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/quad.h
     ${CMAKE_CURRENT_LIST_DIR}/disk.h
     ${CMAKE_CURRENT_LIST_DIR}/sphere.h

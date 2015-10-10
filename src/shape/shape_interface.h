@@ -1,5 +1,6 @@
 /**
  * @defgroup shape_module Shapes
+ * @brief Shape classes.
  */
 
 #ifdef _MSC_VER

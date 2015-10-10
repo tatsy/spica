@@ -7,19 +7,18 @@
 namespace spica {
 
     Triangle::Triangle()
-        : _points()
-    {
+        : IShape{ShapeType::Triangle}
+        , _points{} {
     }
 
     Triangle::Triangle(const Vector3D& p0, const Vector3D& p1, const Vector3D& p2)
-        : _points() {
-        _points[0] = p0;
-        _points[1] = p1;
-        _points[2] = p2;
+        : IShape{ShapeType::Triangle}
+        , _points{p0, p1, p2} {
     }
 
     Triangle::Triangle(const Triangle& tri)
-        : _points(tri._points) {
+        : Triangle{} {
+        this->operator=(tri);
     }
 
     Triangle::~Triangle() {
@@ -41,7 +40,9 @@ namespace spica {
     }
 
     Vector3D Triangle::normal() const {
-        return Vector3D::cross(_points[1] - _points[0], _points[2] - _points[0]).normalized();
+        const Vector3D e1 = _points[1] - _points[0];
+        const Vector3D e2 = _points[2] - _points[0];
+        return Vector3D::cross(e1, e2).normalized();
     }
 
     Vector3D Triangle::gravity() const {
@@ -83,8 +84,7 @@ namespace spica {
     }
 
     std::vector<Triangle> Triangle::triangulate() const {
-        Assertion(false, "[WARNING] triangle do not have to be triangulated !!");
-        return std::move(std::vector<Triangle>(1, *this));
+        return { 1, *this };
     }
 
 }  // namespace spica

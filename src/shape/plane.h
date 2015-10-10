@@ -11,15 +11,18 @@
     #define SPICA_PLANE_DLL
 #endif
 
-#include "geometry_interface.h"
+#include "shape_interface.h"
 #include "../math/vector3d.h"
 
 namespace spica {
 
-    class SPICA_PLANE_DLL Plane : public IGeometry {
+    /** Plane class
+     *  @ingroup shape_class
+     */
+    class SPICA_PLANE_DLL Plane : public IShape {
     protected:
-        double _distance;
-        Vector3D _normal;
+        double   _distance = 0.0;
+        Vector3D _normal   = { 0.0, 0.0, 0.0 };
 
     public:
         Plane();

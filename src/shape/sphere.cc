@@ -9,26 +9,21 @@
 namespace spica {
 
     Sphere::Sphere()
-        : _radius(0.0)
-        , _center()
-    {
+        : IShape{ShapeType::Sphere} {
     }
 
-    Sphere::Sphere(double radius, const Vector3D& center)
-        :  _radius(radius)
-        , _center(center)
-    {
+    Sphere::Sphere(const Vector3D& center, double radius)
+        : IShape{ShapeType::Sphere}
+        , _center{center}
+        , _radius{radius} {
     }
 
     Sphere::Sphere(const Sphere& sphere)
-        : _radius()
-        , _center()
-    {
-        operator=(sphere);
+        : Sphere{} {
+        this->operator=(sphere);
     }
 
-    Sphere::~Sphere()
-    {
+    Sphere::~Sphere() {
     }
 
     Sphere& Sphere::operator=(const Sphere& sphere) {

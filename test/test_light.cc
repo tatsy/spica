@@ -27,7 +27,7 @@ protected:
 };
 
 TEST_F(EnvmapTest, Instance) {
-    Sphere boundSphere(10.0, Vector3D(0.0, 0.0, 0.0));
+    Sphere boundSphere(Vector3D(0.0, 0.0, 0.0), 10.0);
     Image image = Image::fromFile(kDataDirectory + "cave_room.hdr");
     Lighting light = Lighting::asEnvmap(boundSphere, image);
     

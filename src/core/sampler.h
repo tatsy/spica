@@ -12,7 +12,7 @@
 #endif
 
 #include "../math/vector3d.h"
-#include "../geometry/geometry.h"
+#include "../shape/shape.h"
 #include "../random/random.h"
 
 namespace spica {
@@ -37,9 +37,9 @@ namespace spica {
 
         SPICA_SAMPLER_DLL void onQuad(const Quad& quad, Vector3D* position, Vector3D* normal, double r1, double r2);
 
-        SPICA_SAMPLER_DLL void on(const IGeometry* primitive, Vector3D* position, Vector3D* normal);
+        SPICA_SAMPLER_DLL void on(const IShape* shape, Vector3D* position, Vector3D* normal);
 
-        SPICA_SAMPLER_DLL void on(const IGeometry* primitive, Vector3D* position, Vector3D* normal, double r1, double r2);
+        SPICA_SAMPLER_DLL void on(const IShape* shape, Vector3D* position, Vector3D* normal, double r1, double r2);
 
         SPICA_SAMPLER_DLL
         void poissonDisk(const std::vector<Triangle>& triangles,

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "../geometry/bbox.h"
+#include "../shape/bbox.h"
 
 namespace spica {
 

@@ -36,14 +36,14 @@ TEST(SphereTest, InstanceTest) {
     EXPECT_EQ(0.0, sp0.center().z());
     EXPECT_EQ(0.0, sp0.radius());
 
-    Sphere sp(2.0, Vector3D(0.0, 0.0, 0.0));
+    Sphere sp(Vector3D(0.0, 0.0, 0.0), 2.0);
     EXPECT_EQ(0.0, sp.center().x());
     EXPECT_EQ(0.0, sp.center().y());
     EXPECT_EQ(0.0, sp.center().z());
 }
 
 TEST(SphereTest, CopyConstructor) {
-    Sphere sp(2.0, Vector3D(0.0, 0.0, 0.0));
+    Sphere sp(Vector3D(0.0, 0.0, 0.0), 2.0);
     Sphere sp0 = sp;
     EXPECT_EQ(0.0, sp0.center().x());
     EXPECT_EQ(0.0, sp0.center().y());
@@ -51,7 +51,7 @@ TEST(SphereTest, CopyConstructor) {
 }
 
 TEST(SphereTest, IntersectionTest) {
-    Sphere sp(2.0, Vector3D(0.0, 0.0, 0.0));
+    Sphere sp(Vector3D(0.0, 0.0, 0.0), 2.0);
     Hitpoint hitpoint;
     EXPECT_TRUE(sp.intersect(Ray(Vector3D(10.0, 0.0, 0.0), Vector3D(-1.0, 0.0, 0.0)), &hitpoint));
     EXPECT_EQ(2.0, hitpoint.position().x());
@@ -68,10 +68,10 @@ TEST(SphereTest, IntersectionTest) {
 TEST(SphereTest, AreaTest) {
     double rad = 2.0;
     double area = 4.0 * PI * rad * rad;
-    Sphere sp0(rad, Vector3D(0.0, 0.0, 0.0));
+    Sphere sp0(Vector3D(0.0, 0.0, 0.0), rad);
     EXPECT_EQ(area, sp0.area());
 
-    Sphere sp1(rad, Vector3D(5.0, 4.0, 3.0));
+    Sphere sp1(Vector3D(5.0, 4.0, 3.0), rad);
     EXPECT_EQ(area, sp1.area());
 }
 

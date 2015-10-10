@@ -24,7 +24,7 @@
 #include "../core/uncopyable.h"
 
 #include "../math/vector3d.h"
-#include "../geometry/geometry.h"
+#include "../shape/shape.h"
 #include "../light/lighting.h"
 
 #include "../bsdf/bsdf.h"
@@ -61,11 +61,11 @@ namespace spica {
 
         Scene& operator=(const Scene& scene);
 
-        template <class T, typename std::enable_if<std::is_base_of<IGeometry, T>::value>::type *& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *& = enabler>
         void addShape(const T& shape, const BSDF& bsdf);
         
         //! Set area light to the scene
-        template <class T, typename std::enable_if<std::is_base_of<IGeometry, T>::value>::type *& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *& = enabler>
         void setLight(const T& shape, const Color& emittance);
 
         //! Set environment map to the scene

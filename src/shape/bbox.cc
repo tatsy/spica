@@ -8,34 +8,33 @@
 namespace spica {
 
     BBox::BBox()
-        : _posMin(INFTY, INFTY, INFTY)
-        , _posMax(-INFTY, -INFTY, -INFTY)
-    {
+        : IShape{ShapeType::BBox}
+        , _posMin{ INFTY,  INFTY,  INFTY}
+        , _posMax{-INFTY, -INFTY, -INFTY} {
     }
 
     BBox::BBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
-        : _posMin(minX, minY, minZ)
-        , _posMax(maxX, maxY, maxZ)
-    {
+        : IShape{ShapeType::BBox}
+        , _posMin{minX, minY, minZ}
+        , _posMax{maxX, maxY, maxZ} {
     }
 
     BBox::BBox(const Vector3D& posMin, const Vector3D& posMax)
-        : _posMin(posMin)
-        , _posMax(posMax)
-    {
+        : IShape{ShapeType::BBox}
+        , _posMin{posMin}
+        , _posMax{posMax} {
     }
 
     BBox::BBox(const BBox& box) 
-        : _posMin(box._posMin)
-        , _posMax(box._posMax)
-    {
+        : BBox{} {
+        this->operator=(box);
     }
 
-    BBox::~BBox()
-    {
+    BBox::~BBox() {
     }
 
     BBox& BBox::operator=(const BBox& box) {
+        IShape::operator=(box);
         this->_posMin = box._posMin;
         this->_posMax = box._posMax;
         return *this;
@@ -114,9 +113,18 @@ namespace spica {
             (*tMin) = INFTY;
             (*tMax) = INFTY;
             return false;
-        }
-         
+        }         
         return true;
+    }
+
+    bool BBox::intersect(const Ray& ray, Hitpoint* hitpoint) const {
+        // TODO: this is STAB
+        return true;
+    }
+
+    std::vector<Triangle> BBox::triangulate() const {
+        // TODO: this is STAB
+        return std::vector<Triangle>{};
     }
 
 }  // namespace spica

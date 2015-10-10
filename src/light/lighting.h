@@ -28,8 +28,8 @@
 #include "../math/vector3d.h"
 #include "../core/stack.h"
 #include "../core/image.h"
-#include "../geometry/triangle.h"
-#include "../geometry/sphere.h"
+#include "../shape/triangle.h"
+#include "../shape/sphere.h"
 
 namespace spica {
 

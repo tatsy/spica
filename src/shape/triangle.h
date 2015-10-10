@@ -17,12 +17,15 @@
 
 #include <array>
 
-#include "geometry_interface.h"
+#include "shape_interface.h"
 #include "../math/vector3d.h"
 
 namespace spica {
 
-    class SPICA_TRIANGLE_DLL Triangle : public IGeometry {
+    /** Triangle class
+     *  @ingroup shape_module
+     */
+    class SPICA_TRIANGLE_DLL Triangle : public IShape {
     private:
         std::array<Vector3D, 3> _points;
 
@@ -36,15 +39,16 @@ namespace spica {
 
         Vector3D gravity() const;
 
-        // get a vertex with ID in [0, 1, 2]
+        /** Get a vertex with ID in [0, 1, 2]
+         */
         Vector3D get(int id) const;
 
-        // get a vertex with ID in [0, 1, 2]
+        /** Get a vertex with ID in [0, 1, 2]
+         */
         Vector3D operator[](int id) const;
 
         Vector3D normal() const;
 
-        // Compute ray-triangle intersection with Tomas Moller's algorithm
         bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
         double area() const override;

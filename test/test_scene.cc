@@ -18,8 +18,8 @@ protected:
 
     virtual void SetUp() {
         nTrial = 100;
-        s1 = Sphere(5.0, Vector3D(0.0, 0.0, 0.0));
-        s2 = Sphere(2.0, Vector3D(0.0, 10.0, 0.0));
+        s1 = Sphere(Vector3D(0.0, 0.0, 0.0), 5.0);
+        s2 = Sphere(Vector3D(0.0, 10.0, 0.0), 2.0);
         scene.addShape(s1, LambertianBRDF::factory(Color(0.3, 0.5, 0.7)));
         scene.setLight(s2, Color(32.0, 32.0, 32.0));
     }

@@ -15,7 +15,7 @@ namespace spica {
     template <class B, class T>
     using is_base_of_t = typename std::enable_if<std::is_base_of<B, T>::value>::type;
 
-    template <class T, is_base_of_t<IGeometry, T> *&>
+    template <class T, is_base_of_t<IShape, T> *&>
     void Scene::addShape(const T& shape, const BSDF& bsdf) {
         // Copy triangles
         std::vector<Triangle> tris = shape.triangulate();
@@ -43,7 +43,7 @@ namespace spica {
         addBsdf(bsdf, trip.size());
     }
 
-    template <class T, is_base_of_t<IGeometry, T> *&>
+    template <class T, is_base_of_t<IShape, T> *&>
     void Scene::setLight(const T& shape, const Color& emittance) {
         std::vector<Triangle> tris = shape.triangulate();
         addTriangles(tris);

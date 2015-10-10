@@ -13,12 +13,15 @@
 
 #include <array>
 
-#include "geometry_interface.h"
+#include "shape_interface.h"
 #include "../math/vector3d.h"
 
 namespace spica {
 
-    class SPICA_QUAD_DLL Quad : public IGeometry {
+    /** Quadrangle class
+     *  @ingroup shape_module
+     */
+    class SPICA_QUAD_DLL Quad : public IShape {
     private:
         std::array<Vector3D, 4> _points;
 

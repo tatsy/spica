@@ -16,7 +16,7 @@
 #include "accel_base.h"
 #include "../core/common.h"
 #include "../core/uncopyable.h"
-#include "../geometry/bbox.h"
+#include "../shape/bbox.h"
 
 namespace spica {
 

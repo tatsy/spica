@@ -15,29 +15,32 @@
     #define SPICA_SPHERE_DLL
 #endif
 
-#include "geometry_interface.h"
+#include "shape_interface.h"
 #include "../math/vector3d.h"
 #include "../renderer/ray.h"
 
 namespace spica {
 
-    class SPICA_SPHERE_DLL Sphere : public IGeometry {
+    /** Sphere class
+     *  @ingroup shape_module
+     */
+    class SPICA_SPHERE_DLL Sphere : public IShape {
     private:
-        double _radius;
-        Vector3D _center;
+        Vector3D _center = { 0.0, 0.0, 0.0 };
+        double   _radius = 0.0;
 
     public:
         Sphere();
-        Sphere(double radius, const Vector3D& center);
+        Sphere(const Vector3D& center, double radius);
         Sphere(const Sphere& sphere);
         ~Sphere();
 
         Sphere& operator=(const Sphere& sphere);
 
-        /* Compute intersection with ray
-         * @param[in] ray: a ray casted to the sphere
-         * @param[out] hitpoint: if ray hits to the sphere, intersecting point is inserted
-         * @param[return] boolean to represent if ray hits the sphere or not
+        /** Compute intersection with ray
+         *  @param[in] ray: a ray casted to the sphere
+         *  @param[out] hitpoint: if ray hits to the sphere, intersecting point is inserted
+         *  @return ray hits the sphere or not
          */
         bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
@@ -45,8 +48,8 @@ namespace spica {
 
         std::vector<Triangle> triangulate() const override;
 
-        inline double radius() const { return _radius; }
         inline Vector3D center() const { return _center; }
+        inline double   radius() const { return _radius; }
 
     };  // class Sphere
 

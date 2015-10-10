@@ -22,7 +22,7 @@
 #include "../core/color.h"
 #include "../core/image.h"
 #include "../math/vector3d.h"
-#include "../geometry/sphere.h"
+#include "../shape/sphere.h"
 
 namespace spica {
 

@@ -17,7 +17,7 @@
 
 #include <vector>
 
-#include "../geometry/trimesh.h"
+#include "../shape/trimesh.h"
 #include "vertex.h"
 #include "face.h"
 #include "halfedge.h"

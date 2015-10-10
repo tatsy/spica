@@ -99,7 +99,7 @@ namespace spica {
             onQuad(quad, position, normal, r1, r2);            
         }
 
-        void on(const IGeometry* primitive, Vector3D* position, Vector3D* normal, double r1, double r2) {
+        void on(const IShape* primitive, Vector3D* position, Vector3D* normal, double r1, double r2) {
             if (typeid(*primitive) == typeid(Quad)) {
                 const Quad* quad = reinterpret_cast<const Quad*>(primitive);
                 onQuad(*quad, position, normal, r1, r2);
@@ -112,7 +112,7 @@ namespace spica {
             }
         }
 
-        void on(const IGeometry* primitive, Vector3D* position, Vector3D* normal) {
+        void on(const IShape* primitive, Vector3D* position, Vector3D* normal) {
             if (typeid(*primitive) == typeid(Sphere)) {
                 const Sphere* sphere = reinterpret_cast<const Sphere*>(primitive);
                 onSphere(*sphere, position, normal);

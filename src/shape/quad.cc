@@ -9,27 +9,22 @@
 namespace spica {
     
     Quad::Quad()
-        : _points()
-    {
+        : IShape{ShapeType::Quad}
+        , _points{} {
     }
 
-    Quad::Quad(const Vector3D& v0, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3)
-        : _points()
-    {
-        _points[0] = v0;
-        _points[1] = v1;
-        _points[2] = v2;
-        _points[3] = v3;
+    Quad::Quad(const Vector3D& v0, const Vector3D& v1,
+               const Vector3D& v2, const Vector3D& v3)
+        : IShape{ShapeType::Quad}
+        , _points{v0, v1, v2, v3} {
     }
 
     Quad::Quad(const Quad& quad)
-        : _points()
-    {
-        operator=(quad);
+        : Quad{} {
+        this->operator=(quad);
     }
 
-    Quad::~Quad()
-    {
+    Quad::~Quad() {
     }
 
     Quad& Quad::operator=(const Quad& quad) {
@@ -54,12 +49,14 @@ namespace spica {
     }
 
     Vector3D Quad::get(int id) const {
-        Assertion(0 <= id && id <= 3, "Point ID must be in between 0 and 3 !!");
+        Assertion(0 <= id && id <= 3,
+                  "Point ID must be in between 0 and 3 !!");
         return _points[id];
     }
 
     Vector3D Quad::operator[](int id) const {
-        Assertion(0 <= id && id <= 3, "Point ID must be in between 0 and 3 !!");
+        Assertion(0 <= id && id <= 3,
+                  "Point ID must be in between 0 and 3 !!");
         return _points[id];        
     }
 

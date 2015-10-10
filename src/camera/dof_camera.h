@@ -17,7 +17,7 @@
 
 #include "camera_interface.h"
 
-#include "../geometry/plane.h"
+#include "../shape/plane.h"
 
 #include "../core/image.h"
 #include "../core/stack.h"

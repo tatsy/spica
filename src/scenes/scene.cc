@@ -66,7 +66,7 @@ namespace spica {
                 radius = std::max(radius, d);
             }
         }
-        return Sphere(radius, center);
+        return Sphere(center, radius);
     }
 
     void Scene::setEnvmap(const std::string& filename, const Camera& camera) {

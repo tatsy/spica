@@ -39,11 +39,11 @@ namespace spica {
         scene->addShape(leftWall,  LambertianBRDF::factory(Color(0.75, 0.25, 0.25)));
         scene->addShape(rightWall, LambertianBRDF::factory(Color(0.25, 0.25, 0.75)));
 
-        scene->addShape(Sphere(3.0,  Vector3D( 0.0, -7.0,  0.0)),
+        scene->addShape(Sphere(Vector3D( 0.0, -7.0,  0.0), 3.0),
                         LambertianBRDF::factory(Color(0.25, 0.75, 0.25)));
-        scene->addShape(Sphere(3.0,  Vector3D(-5.0, -7.0, -5.0)),
+        scene->addShape(Sphere(Vector3D(-5.0, -7.0, -5.0), 3.0),
                         SpecularBRDF::factory(Color(0.99, 0.99, 0.99)));
-        scene->addShape(Sphere(3.0,  Vector3D( 5.0, -7.0,  5.0)),
+        scene->addShape(Sphere(Vector3D( 5.0, -7.0,  5.0), 3.0),
                         RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));
 
         Trimesh texcube(kDataDirectory + "tex_cube.ply");
@@ -239,7 +239,7 @@ namespace spica {
         //scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), Color(32.0, 32.0, 32.0), true);
 
         // Back light
-        scene->setLight(Sphere(2.0, Vector3D(-5.0, 5.0, -5.0)),
+        scene->setLight(Sphere(Vector3D(-5.0, 5.0, -5.0), 3.0),
                         Color(32.0, 32.0, 32.0));
 
         // Walls

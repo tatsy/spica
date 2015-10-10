@@ -15,8 +15,7 @@
 #include "../src/math/vector2d.h"
 #include "../src/math/vector3d.h"
 
-#include "../src/geometry/geometry.h"
-
+#include "../src/shape/shape.h"
 
 #include "../src/renderer/render_parameters.h"
 

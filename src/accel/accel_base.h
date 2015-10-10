@@ -21,8 +21,8 @@
 #include "../core/common.h"
 #include "../core/uncopyable.h"
 #include "../renderer/ray.h"
-#include "../geometry/triangle.h"
-#include "../geometry/bbox.h"
+#include "../shape/triangle.h"
+#include "../shape/bbox.h"
 
 namespace spica {
 

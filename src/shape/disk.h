@@ -15,16 +15,19 @@
     #define SPICA_DISK_DLL
 #endif
 
+#include "shape_interface.h"
 #include "../math/vector3d.h"
-#include "geometry_interface.h"
 
 namespace spica {
 
-    class SPICA_DISK_DLL Disk : public IGeometry {    
+    /** Disk class
+     *  @ingroup shape_module
+     */
+    class SPICA_DISK_DLL Disk : public IShape {    
     private:
-        Vector3D _center;
-        Vector3D _normal;
-        double _radius;
+        Vector3D _center = { 0.0, 0.0, 0.0 };
+        Vector3D _normal = { 0.0, 0.0, 0.0 };
+        double   _radius = 0.0;
 
     public:
         Disk();
@@ -34,15 +37,15 @@ namespace spica {
 
         Disk& operator=(const Disk& disk);
 
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
-        double area() const;
+        double area() const override;
 
-        std::vector<Triangle> triangulate() const;
+        std::vector<Triangle> triangulate() const override;
 
         inline Vector3D center() const { return _center; }
         inline Vector3D normal() const { return _normal; }
-        inline double  radius() const { return _radius; }
+        inline double   radius() const { return _radius; }
     
     };
 

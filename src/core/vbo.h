@@ -51,7 +51,7 @@ namespace spica {
         inline const unsigned int* indices() const { return &_indices[0]; }
     };
 
-    template <class T, typename std::enable_if<std::is_base_of<IGeometry, T>::value>::type *& = enabler>
+    template <class T, typename std::enable_if<std::is_base_of<IGeometry, T>::value>::type *&>
     void VBO::add(const T& shape, const Color& color) {        
         const std::vector<Triangle> tris = shape.triangulate();
         for (int i = 0; i < tris.size(); i++) {

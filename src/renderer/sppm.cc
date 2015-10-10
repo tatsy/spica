@@ -9,7 +9,7 @@
 #include "renderer_helper.h"
 
 #include "../scenes/scene.h"
-#include "../utils/sampler.h"
+#include "../core/sampler.h"
 #include "../camera/camera.h"
 
 #include "../random/random_sampler.h"

@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include "../utils/common.h"
+#include "../core/common.h"
 #include "triangle.h"
 
 namespace spica {

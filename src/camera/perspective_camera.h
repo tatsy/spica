@@ -15,7 +15,7 @@
     #define SPICA_PERSPECTIVE_CAMERA_DLL
 #endif
 
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 #include "camera_interface.h"
 
 namespace spica {

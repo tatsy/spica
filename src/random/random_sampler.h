@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "random_base.h"
-#include "../utils/stack.h"
+#include "../core/stack.h"
 
 namespace spica {
 

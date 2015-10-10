@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-#include "../utils/uncopyable.h"
+#include "../core/uncopyable.h"
 
 namespace spica {
 

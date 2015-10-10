@@ -5,7 +5,7 @@
 #ifndef _SPICA_TRIANGLE_DATA_H_
 #define _SPICA_TRIANGLE_DATA_H_
 
-#include "../utils/triplet.h"
+#include "../core/triplet.h"
 
 namespace spica {
 

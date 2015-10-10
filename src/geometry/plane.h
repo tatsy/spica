@@ -12,7 +12,7 @@
 #endif
 
 #include "geometry_interface.h"
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 
 namespace spica {
 

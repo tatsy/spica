@@ -3,9 +3,6 @@ set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/renderer_interface.cc
     ${CMAKE_CURRENT_LIST_DIR}/ray.cc
-    ${CMAKE_CURRENT_LIST_DIR}/bsdf.cc
-    ${CMAKE_CURRENT_LIST_DIR}/brdf.cc
-    ${CMAKE_CURRENT_LIST_DIR}/bssrdf.cc
     ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.cc
     ${CMAKE_CURRENT_LIST_DIR}/pathtrace.cc
     ${CMAKE_CURRENT_LIST_DIR}/bdpt.cc
@@ -22,9 +19,6 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/renderer_constants.h
     ${CMAKE_CURRENT_LIST_DIR}/render_parameters.h
     ${CMAKE_CURRENT_LIST_DIR}/ray.h
-    ${CMAKE_CURRENT_LIST_DIR}/bsdf.h
-    ${CMAKE_CURRENT_LIST_DIR}/brdf.h
-    ${CMAKE_CURRENT_LIST_DIR}/bssrdf.h
     ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.h
     ${CMAKE_CURRENT_LIST_DIR}/pathtrace.h
     ${CMAKE_CURRENT_LIST_DIR}/bdpt.h

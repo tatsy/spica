@@ -1,7 +1,7 @@
 #define SPICA_QUAD_EXPORT
 #include "quad.h"
 
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 #include "../renderer/ray.h"
 
 #include "triangle.h"

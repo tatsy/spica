@@ -1,6 +1,6 @@
 #define SPICA_DOF_CAMERA_EXPORT
 #include "dof_camera.h"
-#include "../utils/common.h"
+#include "../core/common.h"
 
 namespace spica {
 
@@ -117,8 +117,8 @@ namespace spica {
                 positionOnSensor = sensor_.center + (uOnSensor * sensor_.width) * sensor_.unitU + (vOnSensor * sensor_.height) * sensor_.unitV;
 
                 if (-0.5 <= uOnSensor && uOnSensor < 0.5 && -0.5 <= vOnSensor && vOnSensor < 0.5) {
-                    uvOnSensor.x() = (uOnSensor + 0.5) * _imageW;
-                    uvOnSensor.y() = (vOnSensor + 0.5) * _imageH;
+                    uvOnSensor.xRef() = (uOnSensor + 0.5) * _imageW;
+                    uvOnSensor.yRef() = (vOnSensor + 0.5) * _imageH;
                     return distToLens;
                 }
             }

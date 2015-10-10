@@ -15,7 +15,7 @@
     #define SPICA_RANDOM_DLL
 #endif
 
-#include "../utils/common.h"
+#include "../core/common.h"
 #include "random_base.h"
 
 namespace spica {

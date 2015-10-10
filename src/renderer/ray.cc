@@ -1,6 +1,6 @@
 #define SPICA_RAY_EXPORT
 #include "ray.h"
-#include "../utils/common.h"
+#include "../core/common.h"
 
 #include <cmath>
 
@@ -39,9 +39,9 @@ namespace spica {
     }
 
     void Ray::calcInvdir() {
-        _invdir.x() = (_direction.x() == 0.0) ? INFTY : 1.0 / _direction.x();
-        _invdir.y() = (_direction.y() == 0.0) ? INFTY : 1.0 / _direction.y();
-        _invdir.z() = (_direction.z() == 0.0) ? INFTY : 1.0 / _direction.z();
+        _invdir.xRef() = (_direction.x() == 0.0) ? INFTY : 1.0 / _direction.x();
+        _invdir.yRef() = (_direction.y() == 0.0) ? INFTY : 1.0 / _direction.y();
+        _invdir.zRef() = (_direction.z() == 0.0) ? INFTY : 1.0 / _direction.z();
     }
 
     Hitpoint::Hitpoint()

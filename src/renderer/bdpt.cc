@@ -7,8 +7,8 @@
 #include <algorithm>
 
 #include "renderer_helper.h"
-#include "../utils/common.h"
-#include "../utils/sampler.h"
+#include "../core/common.h"
+#include "../core/sampler.h"
 
 #include "../camera/dof_camera.h"
 

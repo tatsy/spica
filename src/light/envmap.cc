@@ -5,7 +5,7 @@
 #include <cstring>
 #include <algorithm>
 
-#include "../utils/common.h"
+#include "../core/common.h"
 #include "../renderer/photon_map.h"
 
 namespace spica {

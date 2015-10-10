@@ -11,8 +11,8 @@
     #define SPICA_RAY_DLL
 #endif
 
-#include "../utils/vector2d.h"
-#include "../utils/vector3d.h"
+#include "../math/vector2d.h"
+#include "../math/vector3d.h"
 
 namespace spica {
 

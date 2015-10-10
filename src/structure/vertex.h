@@ -18,7 +18,7 @@
 #include <vector>
 #include <memory>
 
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 
 namespace spica {
 

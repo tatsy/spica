@@ -1,7 +1,7 @@
 #define SPICA_SCENE_EXPORT
 #include "scene.h"
 
-#include "../renderer/brdf.h"
+#include "../bsdf/brdf.h"
 #include "../camera/camera.h"
 
 #include <cstring>
@@ -93,7 +93,7 @@ namespace spica {
         addBsdf(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), newTris);
     }
 
-    const Triangle& Scene::getTriangle(int id) const {
+    Triangle Scene::getTriangle(int id) const {
         Assertion(id >= 0 && id < _triangles.size(),
                   "Object index out of bounds");
 
@@ -190,7 +190,7 @@ namespace spica {
         Hitpoint hitpoint;
         const int triID = _accel->intersect(ray, &hitpoint);
 
-        if (_triangles[triID].isTextured()) {
+        if (triID != -1 && _triangles[triID].isTextured()) {
             double u = hitpoint.texcoord().x();
             double v = hitpoint.texcoord().y();
             const Vector2D t0 = _vertices[_triangles[triID][0]].texcoord();

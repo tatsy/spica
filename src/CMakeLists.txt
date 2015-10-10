@@ -25,9 +25,11 @@ function (process_subdirectory dirname)
 endfunction()
 
 # Process subdirectories
-process_subdirectory(utils)
+process_subdirectory(core)
+process_subdirectory(math)
 process_subdirectory(renderer)
 process_subdirectory(geometry)
+process_subdirectory(bsdf)
 process_subdirectory(random)
 process_subdirectory(light)
 process_subdirectory(camera)

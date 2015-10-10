@@ -11,8 +11,8 @@
     #define SPICA_LIGHT_INTERFACE
 #endif
 
-#include "../utils/vector3d.h"
-#include "../utils/color.h"
+#include "../math/vector3d.h"
+#include "../core/color.h"
 #include "../renderer/ray.h"
 
 namespace spica {

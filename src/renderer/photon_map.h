@@ -15,14 +15,14 @@
     #define SPICA_PHOTON_MAP_DLL
 #endif
 
-#include "bsdf.h"
+#include "../bsdf/bsdf.h"
 
-#include "../utils/vector3d.h"
-#include "../utils/color.h"
-#include "../utils/kdtree.h"
-#include "../utils/uncopyable.h"
-#include "../utils/stack.h"
+#include "../core/color.h"
+#include "../core/kdtree.h"
+#include "../core/uncopyable.h"
+#include "../core/stack.h"
 
+#include "../math/vector3d.h"
 #include "../random/random.h"
 
 namespace spica {

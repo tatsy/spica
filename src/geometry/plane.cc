@@ -1,7 +1,7 @@
 #define SPICA_PLANE_EXPORT
 #include "plane.h"
 
-#include "../utils/common.h"
+#include "../core/common.h"
 #include "../renderer/ray.h"
 
 namespace spica {

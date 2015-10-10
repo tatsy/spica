@@ -1,3 +1,8 @@
+/**
+ * @defgroup bsdf_module BSDF
+ * @brief BSDF classes.
+ */
+
 #ifdef _MSC_VER
 #pragma once
 #endif
@@ -17,27 +22,29 @@
 
 #include <memory>
 
-#include "../utils/vector3d.h"
-#include "../utils/color.h"
+#include "../math/vector3d.h"
+#include "../core/color.h"
 
 namespace spica {
 
-    // Forward declarations
     class BSDFBase;
     class BSSRDF;
     class SubsurfaceIntegrator;
 
-    // Types of BSDF
+    /** The BSDF types.
+     *  @ingroup bsdf_module
+     *  @brief Enumerator to specify the BSDF types.
+     */
     enum class BsdfType : int {
-        Bssrdf      = 0x0100,
-        Scatter     = 0x0200,
-        Dielectric  = 0x0400,
+        Bssrdf      = 0x0100,  /**< BSSRDF */
+        Scatter     = 0x0200,  /**< Scattering surface */
+        Dielectric  = 0x0400,  /**< Dielectric surface */
 
-        None        = 0x0000,
-        Lambertian  = 0x0001 | Scatter,
-        Specular    = 0x0002 | Dielectric,
-        PhongBrdf   = 0x0004 | Scatter,
-        Reflactive  = 0x0008 | Dielectric,
+        None        = 0x0000,  /**< No type specified */
+        Lambertian  = 0x0001 | Scatter,  /**< Lambertian reflection */     
+        Specular    = 0x0002 | Dielectric,  /**< Specular reflection */
+        PhongBrdf   = 0x0004 | Scatter,  /**< Phong's BRDF */
+        Reflactive  = 0x0008 | Dielectric,  /**< Refractive object */
     };
 
     inline BsdfType operator|(BsdfType t1, BsdfType t2) {
@@ -48,9 +55,9 @@ namespace spica {
         return (static_cast<int>(t1) & static_cast<int>(t2)) != 0;
     }
 
-    // --------------------------------------------------
-    // BSDF (Bidirectional Scattering Distributioh Function)
-    // --------------------------------------------------
+    /** BSDF (Bidirectional Scattering Distributioh Function).
+     * @ingroup bsdf_module
+     */
     class SPICA_BSDF_DLL BSDF {
     private:
         std::unique_ptr<const BSDFBase> _ptr;

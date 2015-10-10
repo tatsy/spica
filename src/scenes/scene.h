@@ -17,18 +17,22 @@
 
 #include <vector>
 #include <memory>
+#include <type_traits>
 
-#include "../utils/common.h"
-#include "../utils/vector3d.h"
-#include "../utils/stack.h"
-#include "../utils/uncopyable.h"
+#include "../core/common.h"
+#include "../core/stack.h"
+#include "../core/uncopyable.h"
+
+#include "../math/vector3d.h"
 #include "../geometry/geometry.h"
 #include "../light/lighting.h"
 
-#include "../renderer/bsdf.h"
+#include "../bsdf/bsdf.h"
 #include "../renderer/ray.h"
 
 #include "triangle_data.h"
+
+extern void* enabler;
 
 namespace spica {
 
@@ -57,11 +61,11 @@ namespace spica {
 
         Scene& operator=(const Scene& scene);
 
-        template <class T>
+        template <class T, typename std::enable_if<std::is_base_of<IGeometry, T>::value>::type *& = enabler>
         void addShape(const T& shape, const BSDF& bsdf);
         
         //! Set area light to the scene
-        template <class T>
+        template <class T, typename std::enable_if<std::is_base_of<IGeometry, T>::value>::type *& = enabler>
         void setLight(const T& shape, const Color& emittance);
 
         //! Set environment map to the scene
@@ -78,7 +82,7 @@ namespace spica {
         Sphere boundingSphere(const Camera& camera) const;
 
         //! Return triangle (make new instance in the function)
-        const Triangle& getTriangle(int id) const;
+        Triangle getTriangle(int id) const;
         
         const BSDF& getBsdf(int id) const;
 

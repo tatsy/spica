@@ -13,8 +13,8 @@
 
 #include <cstdio>
 
-#include "../utils/vector3d.h"
-#include "../utils/stack.h"
+#include "../math/vector3d.h"
+#include "../core/stack.h"
 #include "../renderer/ray.h"
 
 namespace spica {

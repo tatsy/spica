@@ -15,8 +15,8 @@
     #define SPICA_RENDERER_INTERFACE_DLL
 #endif
 
-#include "../utils/image.h"
-#include "../utils/uncopyable.h"
+#include "../core/image.h"
+#include "../core/uncopyable.h"
 
 namespace spica {
 

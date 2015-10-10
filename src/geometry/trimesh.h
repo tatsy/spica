@@ -24,9 +24,9 @@
 #include "triangle.h"
 #include "plane.h"
 
-#include "../utils/triplet.h"
-#include "../utils/image.h"
-#include "../utils/vertex_data.h"
+#include "../core/triplet.h"
+#include "../core/image.h"
+#include "../core/vertex_data.h"
 #include "../accel/accel.h"
 
 namespace spica {

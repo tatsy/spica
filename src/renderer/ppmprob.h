@@ -15,9 +15,9 @@
     #define SPICA_PHOTON_MAPPING_DLL
 #endif
 
-#include "../utils/vector3d.h"
-#include "../utils/axis_comparable.h"
-#include "../utils/kdtree.h"
+#include "../math/vector3d.h"
+#include "../core/axis_comparable.h"
+#include "../core/kdtree.h"
 
 #include "renderer_interface.h"
 #include "renderer_constants.h"

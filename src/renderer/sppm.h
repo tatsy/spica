@@ -17,8 +17,8 @@
 
 #include "renderer_interface.h"
 #include "renderer_constants.h"
-#include "../utils/kdtree.h"
-#include "../utils/hash_grid.h"
+#include "../core/kdtree.h"
+#include "../core/hash_grid.h"
 
 namespace spica {
 

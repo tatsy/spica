@@ -13,7 +13,7 @@
 
 #include "subsurface_integrator.h"
 #include "renderer_constants.h"
-#include "../utils/hash_grid.h"
+#include "../core/hash_grid.h"
 
 namespace spica {
 
@@ -80,9 +80,9 @@ namespace spica {
         }
 
         void setPosition(const Vector3D& p) {
-            this->x() = p.x();
-            this->y() = p.y();
-            this->z() = p.z();
+            this->_x = p.x();
+            this->_y = p.y();
+            this->_z = p.z();
         }
     };
 

@@ -3,8 +3,8 @@
 
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
-#include "../renderer/brdf.h"
-#include "../renderer/bssrdf.h"
+#include "../bsdf/brdf.h"
+#include "../bsdf/bssrdf.h"
 
 namespace spica {
     void cornellBox(Scene* scene, Camera* camera, const int width, const int height) {

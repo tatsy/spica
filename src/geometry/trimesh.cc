@@ -8,8 +8,8 @@
 #include <sstream>
 #include <algorithm>
 
-#include "../utils/common.h"
-#include "../utils/path.h"
+#include "../core/common.h"
+#include "../core/path.h"
 
 namespace spica {
 

@@ -5,8 +5,8 @@
 #ifndef _SPICA_VERTEX_DATA_H_
 #define _SPICA_VERTEX_DATA_H_
 
-#include "vector2d.h"
-#include "vector3d.h"
+#include "../math/vector2d.h"
+#include "../math/vector3d.h"
 #include "color.h"
 
 namespace spica {

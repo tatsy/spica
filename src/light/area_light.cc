@@ -1,7 +1,7 @@
 #define SPICA_AREA_LIGHT_EXPORT
 #include "area_light.h"
 
-#include "../utils/sampler.h"
+#include "../core/sampler.h"
 
 namespace spica {
 

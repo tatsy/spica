@@ -13,7 +13,7 @@
 
 #include "triangle.h"
 #include "../renderer/ray.h"
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 
 namespace spica {
 

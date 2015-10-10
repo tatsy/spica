@@ -1,7 +1,7 @@
 #define SPICA_TRIANGLE_EXPORT
 #include "triangle.h"
 
-#include "../utils/common.h"
+#include "../core/common.h"
 #include "../renderer/ray.h"
 
 namespace spica {

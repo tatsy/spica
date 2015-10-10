@@ -23,7 +23,7 @@
 #include <memory>
 
 #include "camera_interface.h"
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 #include "../renderer/ray.h"
 
 namespace spica {

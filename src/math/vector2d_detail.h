@@ -9,8 +9,8 @@ namespace spica {
 
     template <class T>
     Vector2_<T, is_arith_t<T> >::Vector2_()
-        : _x(0)
-        , _y(0) {
+        : _x{0}
+        , _y{0} {
     }
 
     template <class T>

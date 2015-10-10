@@ -15,7 +15,7 @@
     #define SPICA_DISK_DLL
 #endif
 
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 #include "geometry_interface.h"
 
 namespace spica {

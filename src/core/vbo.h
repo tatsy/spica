@@ -16,8 +16,11 @@
 #endif
 
 #include <vector>
+#include <type_traits>
 
 #include "../geometry/geometry.h"
+
+extern void* enabler;
 
 namespace spica {
 
@@ -37,7 +40,7 @@ namespace spica {
 
         void add(const Vector3D& v, const Vector3D& normal, const Color& color);
 
-        template <class T>
+        template <class T, typename std::enable_if<std::is_base_of<IGeometry, T>::value>::type *& = enabler>
         void add(const T& shape, const Color& color);
 
         inline int numIndices() const { return (int)_indices.size(); }
@@ -48,11 +51,8 @@ namespace spica {
         inline const unsigned int* indices() const { return &_indices[0]; }
     };
 
-    template <class T>
-    void VBO::add(const T& shape, const Color& color) {
-        static_assert(std::is_base_of<IGeometry, T>::value,
-                      "Added shape must derive IGeometry !!");
-        
+    template <class T, typename std::enable_if<std::is_base_of<IGeometry, T>::value>::type *& = enabler>
+    void VBO::add(const T& shape, const Color& color) {        
         const std::vector<Triangle> tris = shape.triangulate();
         for (int i = 0; i < tris.size(); i++) {
             const Vector3D& normal = tris[i].normal();

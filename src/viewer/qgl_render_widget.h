@@ -9,7 +9,7 @@
 
 #include <qevent.h>
 
-#include "../utils/vbo.h"
+#include "../core/vbo.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
 

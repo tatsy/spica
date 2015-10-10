@@ -17,7 +17,8 @@
 
 #include "renderer_constants.h"
 #include "ppmprob.h"
-#include "bssrdf.h"
+
+#include "../bsdf/bssrdf.h"
 
 namespace spica {
 

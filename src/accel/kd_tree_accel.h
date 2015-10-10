@@ -14,8 +14,8 @@
 #include <vector>
 
 #include "accel_base.h"
-#include "../utils/common.h"
-#include "../utils/uncopyable.h"
+#include "../core/common.h"
+#include "../core/uncopyable.h"
 #include "../geometry/bbox.h"
 
 namespace spica {

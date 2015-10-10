@@ -25,9 +25,9 @@
 
 #include "light_interface.h"
 
-#include "../utils/vector3d.h"
-#include "../utils/stack.h"
-#include "../utils/image.h"
+#include "../math/vector3d.h"
+#include "../core/stack.h"
+#include "../core/image.h"
 #include "../geometry/triangle.h"
 #include "../geometry/sphere.h"
 

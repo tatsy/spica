@@ -3,7 +3,7 @@
 
 #include <ctime>
 
-#include "../utils/sampler.h"
+#include "../core/sampler.h"
 #include "../camera/camera.h"
 #include "../random/random_sampler.h"
 #include "../random/random.h"

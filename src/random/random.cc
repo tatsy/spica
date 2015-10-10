@@ -56,7 +56,7 @@ Thanks!
 #include <cmath>
 #include <ctime>
 
-#include "../utils/common.h"
+#include "../core/common.h"
 
 #include "random_sampler.h"
 

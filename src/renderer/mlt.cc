@@ -9,7 +9,7 @@
 
 #include "renderer_helper.h"
 
-#include "../utils/sampler.h"
+#include "../core/sampler.h"
 
 #include "../random/random_base.h"
 

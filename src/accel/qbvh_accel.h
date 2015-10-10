@@ -18,7 +18,7 @@
 #include <vector>
 #include <xmmintrin.h>
 
-#include "../utils/uncopyable.h"
+#include "../core/uncopyable.h"
 #include "accel_base.h"
 
 namespace spica {

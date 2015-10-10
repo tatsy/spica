@@ -19,8 +19,8 @@
 
 #include "../geometry/plane.h"
 
-#include "../utils/image.h"
-#include "../utils/stack.h"
+#include "../core/image.h"
+#include "../core/stack.h"
 
 #include "../random/random.h"
 #include "../random/halton.h"

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "../utils/sampler.h"
+#include "../core/sampler.h"
 
 #include "renderer_constants.h"
 

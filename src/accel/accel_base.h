@@ -18,8 +18,8 @@
 #include <vector>
 #include <map>
 
-#include "../utils/common.h"
-#include "../utils/uncopyable.h"
+#include "../core/common.h"
+#include "../core/uncopyable.h"
 #include "../renderer/ray.h"
 #include "../geometry/triangle.h"
 #include "../geometry/bbox.h"

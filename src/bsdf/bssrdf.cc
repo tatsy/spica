@@ -6,7 +6,7 @@
 #include <string>
 #include <algorithm>
 
-#include "renderer_constants.h"
+#include "../renderer/renderer_constants.h"
 
 namespace spica {
 

@@ -15,8 +15,8 @@
     #define SPICA_ORTHOGRAPHIC_CAMERA_DLL
 #endif
 
-#include "../utils/vector3d.h"
-#include "../utils/rect.h"
+#include "../math/vector3d.h"
+#include "../core/rect.h"
 
 #include "camera_interface.h"
 

@@ -19,9 +19,9 @@
 
 #include "light_interface.h"
 
-#include "../utils/vector3d.h"
-#include "../utils/color.h"
-#include "../utils/image.h"
+#include "../core/color.h"
+#include "../core/image.h"
+#include "../math/vector3d.h"
 #include "../geometry/sphere.h"
 
 namespace spica {

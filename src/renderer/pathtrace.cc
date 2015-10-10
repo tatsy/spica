@@ -5,10 +5,10 @@
 #include <fstream>
 #include <algorithm>
 
-#include "../utils/common.h"
-#include "../utils/vector3d.h"
-#include "../utils/sampler.h"
-#include "../utils/image.h"
+#include "../core/common.h"
+#include "../math/vector3d.h"
+#include "../core/sampler.h"
+#include "../core/image.h"
 
 #include "../random/random_sampler.h"
 

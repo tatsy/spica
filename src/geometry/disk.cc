@@ -1,7 +1,7 @@
 #define SPICA_DISK_EXPORT
 #include "disk.h"
 
-#include "../utils/common.h"
+#include "../core/common.h"
 #include "../renderer/ray.h"
 #include "../renderer/renderer_helper.h"
 

@@ -5,15 +5,18 @@
 #ifndef _SPICA_SCENE_DETAIL_H_
 #define _SPICA_SCENE_DETAIL_H_
 
-#include "../renderer/bsdf.h"
-#include "../renderer/brdf.h"
+#include "../bsdf/bsdf.h"
+#include "../bsdf/brdf.h"
+
+extern void* enabler;
 
 namespace spica {
 
-    template <class T>
+    template <class B, class T>
+    using is_base_of_t = typename std::enable_if<std::is_base_of<B, T>::value>::type;
+
+    template <class T, is_base_of_t<IGeometry, T> *& = enabler>
     void Scene::addShape(const T& shape, const BSDF& bsdf) {
-        static_assert(std::is_base_of<IGeometry, T>::value,
-                        "Added shape must derive IGeometry !!");
         // Copy triangles
         std::vector<Triangle> tris = shape.triangulate();
         addTriangles(tris);
@@ -40,10 +43,8 @@ namespace spica {
         addBsdf(bsdf, trip.size());
     }
 
-    template <class T>
+    template <class T, is_base_of_t<IGeometry, T> *& = enabler>
     void Scene::setLight(const T& shape, const Color& emittance) {
-        static_assert(std::is_base_of<IGeometry, T>::value,
-                      "Added shape must derive IGeometry !!");
         std::vector<Triangle> tris = shape.triangulate();
         addTriangles(tris);
 

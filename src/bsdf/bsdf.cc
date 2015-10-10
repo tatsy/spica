@@ -3,8 +3,8 @@
 
 #include "brdf.h"
 #include "bssrdf.h"
-#include "renderer_helper.h"
-#include "subsurface_integrator.h"
+#include "../renderer/renderer_helper.h"
+#include "../renderer/subsurface_integrator.h"
 
 namespace spica {
 

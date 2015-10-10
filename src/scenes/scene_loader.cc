@@ -3,7 +3,7 @@
 
 #include "yaml_parser.h"
 #include "scene.h"
-#include "../renderer/brdf.h"
+#include "../bsdf/brdf.h"
 #include "../camera/camera.h"
 
 namespace spica {

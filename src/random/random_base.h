@@ -13,8 +13,8 @@
 
 #include <vector>
 
-#include "../utils/uncopyable.h"
-#include "../utils/stack.h"
+#include "../core/uncopyable.h"
+#include "../core/stack.h"
 
 namespace spica {
 

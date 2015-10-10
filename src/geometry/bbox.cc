@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#include "../utils/common.h"
+#include "../core/common.h"
 
 namespace spica {
 

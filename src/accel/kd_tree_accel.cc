@@ -8,12 +8,11 @@
 namespace spica {
 
     KdTreeAccel::KdTreeAccel() 
-        : _root(NULL)
-    {
+        : IAccel{AccelType::KdTree}
+        , _root{nullptr} {
     }
 
-    KdTreeAccel::~KdTreeAccel() 
-    {
+    KdTreeAccel::~KdTreeAccel() {
         release();
     }
 
@@ -22,12 +21,12 @@ namespace spica {
     }
 
     void KdTreeAccel::deleteNode(KdTreeNode* node) {
-        if (node != NULL) {
-            if (node->left != NULL) {
+        if (node != nullptr) {
+            if (node->left != nullptr) {
                 deleteNode(node->left);
             }
 
-            if (node->right != NULL) {
+            if (node->right != nullptr) {
                 deleteNode(node->right);
             }
 
@@ -36,8 +35,8 @@ namespace spica {
     }
 
     KdTreeAccel::KdTreeNode* KdTreeAccel::copyNode(KdTreeNode* node) {
-        KdTreeNode* ret = NULL;
-        if (node != NULL) {
+        KdTreeNode* ret = nullptr;
+        if (node != nullptr) {
             ret = new KdTreeNode();
             ret->bbox = node->bbox;
             node->triangle = ret->triangle;

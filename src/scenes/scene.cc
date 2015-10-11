@@ -26,7 +26,7 @@ namespace spica {
         std::vector<unsigned int> _lightIds;
 
         std::vector<BSDF>          _bsdfs;
-        std::shared_ptr<AccelBase> _accel;
+        std::shared_ptr<IAccel> _accel;
 
         Lighting  _lighting;
         AccelType _accelType;
@@ -167,15 +167,15 @@ namespace spica {
         void computeAccelerator() {
             switch (this->_accelType) {
             case AccelType::BBVH:
-                _accel = std::shared_ptr<AccelBase>(new BBVHAccel());
+                _accel = std::make_shared<BBVHAccel>();
                 break;
 
             case AccelType::QBVH:
-                _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
+                _accel = std::make_shared<QBVHAccel>();
                 break;
 
             case AccelType::KdTree:
-                _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
+                _accel = std::make_shared<KdTreeAccel>();
                 break;
 
             default:

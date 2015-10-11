@@ -40,15 +40,13 @@ namespace spica {
 
         void initLeaf(const BBox& b, int tid) {
             this->bounds = bounds;
-            this->left = nullptr;
-            this->right = nullptr;
             this->splitAxis = -1;
             this->triIdx = tid;
         }
 
         void initFork(const BBox& b, BBvhNode* l, BBvhNode* r, int axis) {
             this->bounds = b;
-            this->left = l;
+            this->left  = l;
             this->right = r;
             this->splitAxis = axis;
             this->triIdx = -1;
@@ -93,7 +91,8 @@ namespace spica {
     };
 
     BBVHAccel::BBVHAccel()
-        : _root(nullptr)
+        : IAccel{AccelType::BBVH}
+        , _root(nullptr)
         , _tris()
         , _nodes() {
     }
@@ -103,7 +102,7 @@ namespace spica {
 
     void BBVHAccel::release() {
         for (int i = 0; i < _nodes.size(); i++) {
-            delete _nodes[i];
+            _nodes[i].reset();
         }
 
         _root = nullptr;
@@ -135,7 +134,7 @@ namespace spica {
         if (start == end) return nullptr;
 
         BBvhNode* node = new BBvhNode();
-        _nodes.push_back(node);
+        _nodes.emplace_back(node);
 
         BBox bounds;
         for (int i = start; i < end; i++) {
@@ -216,7 +215,7 @@ namespace spica {
             BBvhNode* right = constructRec(buildData, mid, end);
             node->initFork(bounds, left, right, splitAxis);
         }
-        return node;
+        return std::move(node);
     }
 
     int BBVHAccel::intersect(const Ray& ray, Hitpoint* hpoint) const {

@@ -110,9 +110,9 @@ namespace spica {
          */
         bool intersect(const Ray& ray, Intersection* isect) const;
 
-        inline bool isTextured(int triID) const;
+        bool isTextured(int triID) const;
 
-        inline int numTriangles() const;
+        int numTriangles() const;
 
         /** Add a new shape to the scene.
          *  @param shape The shape added. 

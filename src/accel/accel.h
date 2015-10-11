@@ -14,18 +14,4 @@
 #include "bbvh_accel.h"
 #include "qbvh_accel.h"
 
-namespace spica {
-
-    /** Accelerator type enum
-     *  @ingroup accel_module
-     *  @brief Enumerator for acclerator types.
-     */
-    enum class AccelType : int {
-        KdTree,   /**< K-D tree acclerator */
-        BBVH,     /**< binary BVH accelerator */
-        QBVH      /**< SIMD-acclerated QBVH acclerator */
-    };
-
-}  // namespace spica
-
 #endif  // _SPICA_ACCEL_H_

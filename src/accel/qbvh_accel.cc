@@ -167,16 +167,15 @@ namespace spica {
     };
 
     QBVHAccel::QBVHAccel()
-        : _root(NULL)
-        , _triangles()
-        , _ordered()
-        , _simdNodes()
-        , _simdTris()
-    {
+        : IAccel{AccelType::QBVH}
+        , _root{nullptr}
+        , _triangles{}
+        , _ordered{}
+        , _simdNodes{}
+        , _simdTris{} {
     }
 
-    QBVHAccel::~QBVHAccel()
-    {
+    QBVHAccel::~QBVHAccel() {
         release();
     }
 

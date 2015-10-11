@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#include "accel_base.h"
+#include "accel_interface.h"
 #include "../core/common.h"
 #include "../shape/bbox.h"
 
@@ -22,7 +22,7 @@ namespace spica {
     /** K-D tree accelerator class
      * @ingroup accel_module
      */
-    class SPICA_KDTREE_ACCEL_DLL KdTreeAccel : public AccelBase {
+    class SPICA_KDTREE_ACCEL_DLL KdTreeAccel : public IAccel {
     private:
         struct KdTreeNode : private spica::Uncopyable {
             BBox bbox;

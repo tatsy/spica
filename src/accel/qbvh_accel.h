@@ -18,14 +18,14 @@
 #include <vector>
 #include <xmmintrin.h>
 
-#include "accel_base.h"
+#include "accel_interface.h"
 
 namespace spica {
 
     /** Quad BVH accelerator class
      *  @ingroup accel_module
      */
-    class SPICA_QBVH_ACCEL_DLL QBVHAccel : public AccelBase {
+    class SPICA_QBVH_ACCEL_DLL QBVHAccel : public IAccel {
     private:
 
         struct BVHPrimitiveInfo;

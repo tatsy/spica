@@ -15,14 +15,16 @@
     #define SPICA_BBVH_ACCEL_DLL
 #endif
 
-#include "accel_base.h"
+#include <memory>
+
+#include "accel_interface.h"
 
 namespace spica {
 
     /** Binary BVH accelerator class
      *  @ingroup accel_module
      */
-    class SPICA_BBVH_ACCEL_DLL BBVHAccel : public AccelBase {
+    class SPICA_BBVH_ACCEL_DLL BBVHAccel : public IAccel {
     private:
         struct BVHPrimitiveInfo;
         struct BucketInfo;
@@ -32,15 +34,14 @@ namespace spica {
 
     private:
         BBvhNode* _root;
-        std::vector<Triangle> _tris;
-        std::vector<BBvhNode*> _nodes;
+        std::vector<Triangle>     _tris;
+        std::vector<std::unique_ptr<BBvhNode> > _nodes;
 
     public:
         BBVHAccel();
         ~BBVHAccel();
 
         void construct(const std::vector<Triangle>& triangles) override;
-
         int intersect(const Ray& ray, Hitpoint* hpoint) const override;
 
     private:

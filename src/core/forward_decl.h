@@ -41,7 +41,7 @@ namespace spica {
 
     // Accelerator module
     enum class AccelType;
-    class AccelBase;
+    class IAccel;
     class KdTreeAccel;
     class QBVHAccel;
     

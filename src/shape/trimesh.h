@@ -38,7 +38,7 @@ namespace spica {
     private:
         std::vector<VertexData>    _vertices;
         std::vector<Triplet>       _faces;
-        std::shared_ptr<AccelBase> _accel;
+        std::shared_ptr<IAccel> _accel;
         AccelType _accelType;
         std::shared_ptr<Image> _texture;
         bool _isTextured;

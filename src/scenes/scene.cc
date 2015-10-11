@@ -368,50 +368,74 @@ namespace spica {
         return _impl->numTriangles();
     }
 
+    template <>
+    SPICA_SCENE_DLL
     void Scene::addShape(const BBox& shape, const BSDF& bsdf) {
         _impl->addShape(shape.triangulate(), bsdf);
     }
 
-    void Scene::addShape(const Disk& shape, const BSDF& bsdf) {
+    template <>
+    SPICA_SCENE_DLL
+        void Scene::addShape(const Disk& shape, const BSDF& bsdf) {
         _impl->addShape(shape.triangulate(), bsdf);
     }
 
-    void Scene::addShape(const Quad& shape, const BSDF& bsdf) {
+    template <>
+    SPICA_SCENE_DLL
+        void Scene::addShape(const Quad& shape, const BSDF& bsdf) {
         _impl->addShape(shape.triangulate(), bsdf);
     }
 
+    template <>
+    SPICA_SCENE_DLL
     void Scene::addShape(const Sphere& shape, const BSDF& bsdf) {
         _impl->addShape(shape.triangulate(), bsdf);
     }
 
-    void Scene::addShape(const Triangle& shape, const BSDF& bsdf) {
+    template <>
+    SPICA_SCENE_DLL
+        void Scene::addShape(const Triangle& shape, const BSDF& bsdf) {
         _impl->addShape(shape.triangulate(), bsdf);
     }
 
-    void Scene::addShape(const Trimesh& shape, const BSDF& bsdf) {
+    template <>
+    SPICA_SCENE_DLL
+        void Scene::addShape(const Trimesh& shape, const BSDF& bsdf) {
         _impl->addShape(shape, bsdf);
     }
 
-    void Scene::setAreaLight(const BBox& shape, const Color& emission) {
+    template <>
+    SPICA_SCENE_DLL
+        void Scene::setAreaLight(const BBox& shape, const Color& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);    
     }
 
-    void Scene::setAreaLight(const Disk& shape, const Color& emission) {
+    template <>
+    SPICA_SCENE_DLL
+        void Scene::setAreaLight(const Disk& shape, const Color& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 
+    template <>
+    SPICA_SCENE_DLL
     void Scene::setAreaLight(const Quad& shape, const Color& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 
+    template <>
+    SPICA_SCENE_DLL
     void Scene::setAreaLight(const Sphere& shape, const Color& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 
+    template <>
+    SPICA_SCENE_DLL
     void Scene::setAreaLight(const Triangle& shape, const Color& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 
+    template <>
+    SPICA_SCENE_DLL
     void Scene::setAreaLight(const Trimesh& shape, const Color& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }

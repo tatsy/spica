@@ -23,10 +23,21 @@ namespace spica {
     class Vector3_;
     using Vector3D = Vector3_<double>;
 
+    // Scene
+    class Scene;
+
+    // Camera module
+    class Camera;
+    class DoFCamera;
+    class OrthographicCamera;
+    class PerspectiveCamera;
+
     // Renderer module
     class Ray;
     class Hitpoint;
     class Intersection;
+    class RenderParameters;
+    class SubsurfaceIntegrator;
 
     // Accelerator module
     enum class AccelType;

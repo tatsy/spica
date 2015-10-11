@@ -8,12 +8,10 @@ using namespace spica;
 class SceneTest : public ::testing::Test {
 protected:
     SceneTest()
-        : scene()
-    {
+        : scene() {
     }
 
-    ~SceneTest()
-    {
+    virtual ~SceneTest() {
     }
 
     virtual void SetUp() {

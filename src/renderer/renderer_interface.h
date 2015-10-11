@@ -17,15 +17,9 @@
 
 #include "../core/image.h"
 #include "../core/uncopyable.h"
+#include "../core/forward_decl.h"
 
 namespace spica {
-
-    // Forward declarations
-    class Scene;
-    class Camera;
-    class Image;
-    class RenderParameters;
-    class SubsurfaceIntegrator;
 
     class SPICA_RENDERER_INTERFACE_DLL IRenderer : private Uncopyable {
         

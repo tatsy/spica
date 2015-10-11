@@ -11,7 +11,7 @@
     #else
         #define SPICA_SCENE_DLL __declspec(dllimport)
     #endif
-#elif
+#else
     #define SPICA_SCENE_DLL
 #endif
 
@@ -26,8 +26,6 @@ extern void* enabler;
 
 namespace spica {
 
-    class Camera;
-
     /** Scene provides the interface for scene graph.
      */
     class SPICA_SCENE_DLL Scene : private Uncopyable {
@@ -36,72 +34,101 @@ namespace spica {
         std::unique_ptr<SceneImpl> _impl;
 
     public:
+        /** The Scene constructor.
+         */
         Scene();
+
+        /** The Scene constructor (move).
+         */
         Scene(Scene&& scene);
+
+        /** The Scene destructor.
+         */
         ~Scene();
 
+        /** Assignment operator.
+         */
         Scene& operator=(Scene&& scene);
 
+        /** Clear current scene.
+         */
         void clear();
 
-        /** Set enviroment map to the scene
-         *  @param image the image for enviroment map
-         *  @param camera it's necessary for computing environment sphere
+        /** Set enviroment map to the scene.
+         *  @param image The image for enviroment map.
+         *  @param camera This is necessary for computing environment sphere.
          */
         void setEnvmap(const Image& image, const Camera& camera);
 
-        //! Compute bounding sphere
+        /** Compute bounding sphere
+         *  @param camera Camera looking at the scene. This is necessary for
+         *                computing enviroment map.
+         */
         Sphere boundingSphere(const Camera& camera) const;
 
-        //! Return triangle (make new instance in the function)
+        /** Return triangle (make new instance in the function)
+         */
         Triangle getTriangle(int id) const;
         
         const BSDF& getBsdf(int id) const;
 
         Color getReflectance(const Intersection& isect) const;
 
-        // Get direct lightinf from specified direction
+        /** Get direct lighting from specified direction
+         */
         Color directLight(const Vector3D& dir) const; 
 
-        //! Sample vertex on the light. This method consumes three random numbers
+        /** Sample vertex on the light. This method consumes three random numbers
+         */
         LightSample sampleLight(Stack<double>& rstack) const;
 
-        //! area of light
+        /** Area of light
+         */
         double lightArea() const;
 
+        /** Set the type of intersection test accelerator.
+         */
         void setAccelType(AccelType accel);
 
-        // Check specified triangle is light or not
-        // This method is O(log N) implementation
+        /** Check specified triangle is light or not.
+         *  @details This method is O(log N) implementation
+         */
         bool isLightCheck(int id) const;
 
+        /** Compute intersection test accelerator.
+         */
         void computeAccelerator();
 
-        // Call both "computeAccelerator" and "computeLightPdfs" 
-        // to finalize the scene. If you update the scene, you should
-        // call this function again.
+        /** Finalize the scene.
+         *  @details Call both "computeAccelerator" and "computeLightPdfs" 
+         *           to finalize the scene. If you update the scene, you should
+         *           call this function again.
+         */
         void finalize();
 
+        /** Intersection test
+         */
         bool intersect(const Ray& ray, Intersection* isect) const;
 
         inline bool isTextured(int triID) const;
 
         inline int numTriangles() const;
 
-        void addShape(const BBox& shape, const BSDF& bsdf);
-        void addShape(const Disk& shape, const BSDF& bsdf);
-        void addShape(const Quad& shape, const BSDF& bsdf);
-        void addShape(const Sphere& shape, const BSDF& bsdf);
-        void addShape(const Triangle& shape, const BSDF& bsdf);
-        void addShape(const Trimesh& shape, const BSDF& bsdf);
-        
-        //! Set area light to the scene
-        void setAreaLight(const BBox& shape, const Color& emission);
-        void setAreaLight(const Disk& shape, const Color& emission);
-        void setAreaLight(const Quad& shape, const Color& emission);
-        void setAreaLight(const Sphere& shape, const Color& emission);
-        void setAreaLight(const Triangle& shape, const Color& emission);
-        void setAreaLight(const Trimesh& shape, const Color& emission);
+        /** Add a new shape to the scene.
+         *  @param shape The shape added. 
+         *  @param bsdf The BSDF for the added shape.
+         */
+        template <class T>
+        void addShape(const T& shape, const BSDF& bsdf);
+
+        /** Set area light to the scene
+         *  @param shape The shape added for the area light.
+         *  @param emission The light emission of the area light
+         *  @details If you call setEnvmap before call this function,
+         *           this fuction call overwrites the light setting.             
+         */
+        template <class T>
+        void setAreaLight(const T& shape, const Color& emission);
     };
 
 }  // namespace spica

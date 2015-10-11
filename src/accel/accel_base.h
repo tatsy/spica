@@ -20,14 +20,14 @@
 
 #include "../core/common.h"
 #include "../core/uncopyable.h"
-#include "../renderer/ray.h"
+#include "../core/forward_decl.h"
 #include "../shape/triangle.h"
-#include "../shape/bbox.h"
 
 namespace spica {
 
-    class AccelBase : public Uncopyable {
+    class AccelBase : private Uncopyable {
     protected:
+
         struct IndexedTriangle {
             int idx;
             Triangle tri;
@@ -62,7 +62,7 @@ namespace spica {
         virtual int  intersect(const Ray& ray, Hitpoint* hitpoint) const = 0;
 
     protected:
-        static BBox enclosingBox(const std::vector<IndexedTriangle>& triangles);
+        // static BBox enclosingBox(const std::vector<IndexedTriangle>& triangles);
     };
 
 }  // namespace spica

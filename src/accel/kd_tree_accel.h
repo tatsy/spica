@@ -15,7 +15,6 @@
 
 #include "accel_base.h"
 #include "../core/common.h"
-#include "../core/uncopyable.h"
 #include "../shape/bbox.h"
 
 namespace spica {
@@ -25,7 +24,7 @@ namespace spica {
      */
     class SPICA_KDTREE_ACCEL_DLL KdTreeAccel : public AccelBase {
     private:
-        struct KdTreeNode : public Uncopyable {
+        struct KdTreeNode : private spica::Uncopyable {
             BBox bbox;
             IndexedTriangle triangle;
             KdTreeNode* left;
@@ -35,14 +34,12 @@ namespace spica {
             KdTreeNode()
                 : bbox()
                 , triangle()
-                , left(NULL)
-                , right(NULL)
-                , isLeaf(false)
-            {
+                , left(nullptr)
+                , right(nullptr)
+                , isLeaf(false) {
             }
 
-            ~KdTreeNode()
-            {
+            ~KdTreeNode() {
             }
         };
 

@@ -15,13 +15,13 @@ namespace spica {
     class Stack;
 
     // Math module
-    template <class T, class Enable = void>
+    template <class T, class Enable>
     class Vector2_;
-    using Vector2D = Vector2_<double>;
+    using Vector2D = Vector2_<double, void>;
 
-    template <class T, class Enable = void>
+    template <class T, class Enable>
     class Vector3_;
-    using Vector3D = Vector3_<double>;
+    using Vector3D = Vector3_<double, void>;
 
     // Scene
     class Scene;

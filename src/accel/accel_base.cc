@@ -3,6 +3,7 @@
 
 namespace spica {
     
+    /*
     BBox AccelBase::enclosingBox(const std::vector<IndexedTriangle>& triangles) {
         Vector3D posMin(INFTY, INFTY, INFTY);
         Vector3D posMax(-INFTY, -INFTY, -INFTY);
@@ -15,6 +16,7 @@ namespace spica {
         }
         return BBox(posMin, posMax);
     }
+    */
 
 }  // namespace spica
 

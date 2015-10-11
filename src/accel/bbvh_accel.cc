@@ -5,7 +5,92 @@
 #include <functional>
 #include <algorithm>
 
+#include "../shape/bbox.h"
+
 namespace spica {
+
+    struct BBVHAccel::BVHPrimitiveInfo {
+        int primIdx;
+        Vector3D centroid;
+        BBox bounds;
+
+        BVHPrimitiveInfo(int pid, const BBox& b)
+            : primIdx(pid)
+            , centroid()
+            , bounds(b) {
+            centroid = (b.posMax() + b.posMin()) * 0.5;
+        }
+    };
+
+    struct BBVHAccel::BucketInfo {
+        int count;
+        BBox bounds;
+        BucketInfo()
+            : count(0)
+            , bounds() {
+        }
+    };
+
+    struct BBVHAccel::BBvhNode {
+        BBox bounds;
+        BBvhNode* left;
+        BBvhNode* right;
+        int splitAxis;
+        int triIdx;
+
+        void initLeaf(const BBox& b, int tid) {
+            this->bounds = bounds;
+            this->left = nullptr;
+            this->right = nullptr;
+            this->splitAxis = -1;
+            this->triIdx = tid;
+        }
+
+        void initFork(const BBox& b, BBvhNode* l, BBvhNode* r, int axis) {
+            this->bounds = b;
+            this->left = l;
+            this->right = r;
+            this->splitAxis = axis;
+            this->triIdx = -1;
+        }
+
+        bool isLeaf() const {
+            return triIdx >= 0;
+        }
+    };
+
+    struct BBVHAccel::ComparePoint {
+        int dim;
+        ComparePoint(int d) : dim(d) {}
+        bool operator()(const BVHPrimitiveInfo& a,
+            const BVHPrimitiveInfo& b) const {
+            return a.centroid.get(dim) < b.centroid.get(dim);
+        }
+    };
+
+    struct BBVHAccel::CompareToBucket {
+        int splitBucket, nBuckets, dim;
+        const BBox& centroidBounds;
+
+        CompareToBucket(int split, int num, int d, const BBox& b)
+            : splitBucket(split)
+            , nBuckets(num)
+            , dim(d)
+            , centroidBounds(b) {
+        }
+
+        bool operator()(const BVHPrimitiveInfo& p) const {
+            const double cmin = centroidBounds.posMin().get(dim);
+            const double cmax = centroidBounds.posMax().get(dim);
+            const double inv = (1.0) / (std::abs(cmax - cmin) + EPS);
+            const double diff = std::abs(p.centroid.get(dim) - cmin);
+            int b = static_cast<int>(nBuckets * diff * inv);
+            if (b >= nBuckets) {
+                b = nBuckets - 1;
+            }
+            return b <= splitBucket;
+        }
+    };
 
     BBVHAccel::BBVHAccel()
         : _root(nullptr)

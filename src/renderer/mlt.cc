@@ -119,7 +119,7 @@ namespace spica {
 
         Color radiance(const Scene& scene, const Ray& ray, const RenderParameters& params, int bounces, KelemenMLT& mlt) {
             Intersection isect;
-            if (!scene.intersect(ray, isect)) {
+            if (!scene.intersect(ray, &isect)) {
                 return Color::BLACK;
             }
 

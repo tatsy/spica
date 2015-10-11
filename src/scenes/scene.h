@@ -11,7 +11,7 @@
     #else
         #define SPICA_SCENE_DLL __declspec(dllimport)
     #endif
-#elif defined(linux) || defined(__linux)
+#elif
     #define SPICA_SCENE_DLL
 #endif
 
@@ -19,18 +19,8 @@
 #include <memory>
 #include <type_traits>
 
-#include "../core/common.h"
-#include "../core/stack.h"
 #include "../core/uncopyable.h"
-
-#include "../math/vector3d.h"
-#include "../shape/shape.h"
-#include "../light/lighting.h"
-
-#include "../bsdf/bsdf.h"
-#include "../renderer/ray.h"
-
-#include "triangle_data.h"
+#include "../core/forward_decl.h"
 
 extern void* enabler;
 
@@ -38,44 +28,26 @@ namespace spica {
 
     class Camera;
 
-    class SPICA_SCENE_DLL Scene {
+    /** Scene provides the interface for scene graph.
+     */
+    class SPICA_SCENE_DLL Scene : private Uncopyable {
     private:
-        std::vector<VertexData>   _vertices;
-        std::vector<TriangleData> _triangles;
-
-        std::vector<unsigned int> _bsdfIds;
-        std::vector<unsigned int> _lightIds;
-
-        std::vector<BSDF>          _bsdfs;
-        std::shared_ptr<AccelBase> _accel;
-
-        Lighting  _lighting;
-        AccelType _accelType;
-
-        std::shared_ptr<Image> _texture;
+        class SceneImpl;
+        std::unique_ptr<SceneImpl> _impl;
 
     public:
         Scene();
-        Scene(const Scene& scene);
+        Scene(Scene&& scene);
         ~Scene();
 
-        Scene& operator=(const Scene& scene);
+        Scene& operator=(Scene&& scene);
 
-        template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *& = enabler>
-        void addShape(const T& shape, const BSDF& bsdf);
-        
-        //! Set area light to the scene
-        template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *& = enabler>
-        void setLight(const T& shape, const Color& emittance);
+        void clear();
 
-        //! Set environment map to the scene
-        // @param[in] filename: name of the environment map image file
-        // @param[in] camera: it's necessary for computing environment sphere
-        void setEnvmap(const std::string& filename, const Camera& camera);
-
-        //! Set enviroment map to the scene
-        // @param[in] image: the image for enviroment map
-        // @param[in] camera: it's necessary for computing environment sphere
+        /** Set enviroment map to the scene
+         *  @param image the image for enviroment map
+         *  @param camera it's necessary for computing environment sphere
+         */
         void setEnvmap(const Image& image, const Camera& camera);
 
         //! Compute bounding sphere
@@ -86,7 +58,7 @@ namespace spica {
         
         const BSDF& getBsdf(int id) const;
 
-        const Color& getReflectance(const Intersection& isect) const;
+        Color getReflectance(const Intersection& isect) const;
 
         // Get direct lightinf from specified direction
         Color directLight(const Vector3D& dir) const; 
@@ -96,8 +68,6 @@ namespace spica {
 
         //! area of light
         double lightArea() const;
-
-        void clear();
 
         void setAccelType(AccelType accel);
 
@@ -112,30 +82,28 @@ namespace spica {
         // call this function again.
         void finalize();
 
-        bool intersect(const Ray& ray, Intersection& isect) const;
+        bool intersect(const Ray& ray, Intersection* isect) const;
 
-        inline bool isTextured(int triID) const {
-            Assertion(triID >= 0 && triID < _triangles.size(), "Triangle index out of bounds!!");
-            return _triangles[triID].isTextured();
-        }
+        inline bool isTextured(int triID) const;
 
-        inline int numTriangles() const {
-            return static_cast<int>(_triangles.size());
-        }
+        inline int numTriangles() const;
 
-    private:
-        //! Add triangles
-        void addTriangles(const std::vector<Triangle>& tris);
-
-        //! Add a BSDF
-        // @param[in] bsdf: new BSDF to be added
-        // @param[in] numTris: # of triangles added
-        void addBsdf(const BSDF& bsdf, int numTris);
+        void addShape(const BBox& shape, const BSDF& bsdf);
+        void addShape(const Disk& shape, const BSDF& bsdf);
+        void addShape(const Quad& shape, const BSDF& bsdf);
+        void addShape(const Sphere& shape, const BSDF& bsdf);
+        void addShape(const Triangle& shape, const BSDF& bsdf);
+        void addShape(const Trimesh& shape, const BSDF& bsdf);
+        
+        //! Set area light to the scene
+        void setAreaLight(const BBox& shape, const Color& emission);
+        void setAreaLight(const Disk& shape, const Color& emission);
+        void setAreaLight(const Quad& shape, const Color& emission);
+        void setAreaLight(const Sphere& shape, const Color& emission);
+        void setAreaLight(const Triangle& shape, const Color& emission);
+        void setAreaLight(const Trimesh& shape, const Color& emission);
     };
 
 }  // namespace spica
-
-// Implementation for the template functions
-#include "scene_detail.h"
 
 #endif  // _SPICA_SCENE_H_

@@ -1,10 +1,10 @@
 set(HEADERS
     ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/scene.h
-    ${CMAKE_CURRENT_LIST_DIR}/scene_detail.h
-    ${CMAKE_CURRENT_LIST_DIR}/triangle_data.h
     ${CMAKE_CURRENT_LIST_DIR}/predefined_scenes.h
     ${CMAKE_CURRENT_LIST_DIR}/scene_loader.h
+    ${CMAKE_CURRENT_LIST_DIR}/vertex_data.h
+    ${CMAKE_CURRENT_LIST_DIR}/triangle_data.h
     ${CMAKE_CURRENT_LIST_DIR}/yaml_parser.h
     PARENT_SCOPE)
 

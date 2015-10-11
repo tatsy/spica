@@ -11,6 +11,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
 
  set(HEADERS ${HEADERS}
      ${CMAKE_CURRENT_LIST_DIR}/common.h
+     ${CMAKE_CURRENT_LIST_DIR}/forward_decl.h
      ${CMAKE_CURRENT_LIST_DIR}/triplet.h
      ${CMAKE_CURRENT_LIST_DIR}/vbo.h
      ${CMAKE_CURRENT_LIST_DIR}/path.h
@@ -18,7 +19,6 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/stack.h
      ${CMAKE_CURRENT_LIST_DIR}/uncopyable.h
      ${CMAKE_CURRENT_LIST_DIR}/color.h
-     ${CMAKE_CURRENT_LIST_DIR}/vertex_data.h
      ${CMAKE_CURRENT_LIST_DIR}/image.h
      ${CMAKE_CURRENT_LIST_DIR}/sampler.h
      ${CMAKE_CURRENT_LIST_DIR}/timer.h

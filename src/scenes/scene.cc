@@ -1,227 +1,419 @@
 #define SPICA_SCENE_EXPORT
 #include "scene.h"
 
-#include "../bsdf/brdf.h"
-#include "../camera/camera.h"
-
 #include <cstring>
 
+#include "../core/color.h"
+#include "../math/vector3d.h"
+#include "../accel/accel.h"
+#include "../camera/camera.h"
+#include "../light/lighting.h"
+#include "../bsdf/bsdf.h"
+#include "../bsdf/brdf.h"
+#include "../shape/shape.h"
+
+#include "vertex_data.h"
+#include "triangle_data.h"
+
 namespace spica {
+
+    class Scene::SceneImpl : private Uncopyable {
+    private:
+        std::vector<VertexData>   _vertices;
+        std::vector<TriangleData> _triangles;
+
+        std::vector<unsigned int> _bsdfIds;
+        std::vector<unsigned int> _lightIds;
+
+        std::vector<BSDF>          _bsdfs;
+        std::shared_ptr<AccelBase> _accel;
+
+        Lighting  _lighting;
+        AccelType _accelType;
+
+        std::shared_ptr<Image> _texture;
+
+    public:
+        SceneImpl()
+            : _vertices{}
+            , _triangles{}
+            , _bsdfIds{}
+            , _lightIds{}
+            , _bsdfs{}
+            , _accel{}
+            , _lighting{}
+            , _accelType{AccelType::QBVH}
+            , _texture{} {
+        }
+
+        ~SceneImpl() {
+        }
+
+        SceneImpl(SceneImpl&& impl) 
+            : SceneImpl{} {
+            this->operator=(std::move(impl));
+        }
+
+        SceneImpl& operator=(SceneImpl&& impl) {
+            this->_vertices  = std::move(impl._vertices);
+            this->_triangles = std::move(impl._triangles);
+            this->_bsdfIds   = std::move(impl._bsdfIds);
+            this->_lightIds  = std::move(impl._lightIds);
+            this->_bsdfs     = std::move(impl._bsdfs);
+            this->_accel     = std::move(impl._accel);
+            this->_lighting  = std::move(impl._lighting);
+            this->_accelType = impl._accelType;
+            this->_texture   = impl._texture;
+            return *this;
+        }
+
+        void clear() {
+            _vertices.clear();
+            _triangles.clear();
+            _bsdfIds.clear();
+            _lightIds.clear();
+            _bsdfs.clear();
+        }
+
+        Sphere boundingSphere(const Camera& camera) {
+            Vector3D center;
+            for (int i = 0; i < _triangles.size(); i++) {
+                const Vector3D& v0 = _vertices[_triangles[i][0]].pos();
+                const Vector3D& v1 = _vertices[_triangles[i][1]].pos();
+                const Vector3D& v2 = _vertices[_triangles[i][2]].pos();
+                center += (v0 + v1 + v2) / 3.0;
+            }
+            center /= _triangles.size();
+
+            double radius = (center - camera.center()).norm();
+            for (int i = 0; i < _triangles.size(); i++) {
+                for (int k = 0; k < 3; k++) {
+                    const Vector3D& v = _vertices[_triangles[i][k]].pos();
+                    double d = (center - v).norm();
+                    radius = std::max(radius, d);
+                }
+            }
+            return Sphere(center, radius);
+        }
+
+        void setEnvmap(const Image& image, const Camera& camera) {
+            const Sphere& shape = this->boundingSphere(camera);
+            std::vector<Triangle> tris = shape.triangulate();
+            const int newTris = static_cast<int>(tris.size());
+            const int nowTris = static_cast<int>(_triangles.size());
+            _lighting = Lighting::asEnvmap(shape, image);
+
+            // If new object is a light, store triangle indices
+            for (int i = 0; i < newTris; i++) {
+                _lightIds.push_back(nowTris + i);
+            }
+
+            // Add triangles to the scene
+            addTriangles(tris);
+
+            // Add empty BSDF
+            addBsdf(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), newTris);
+        }
+
+        Triangle getTriangle(int id) const {
+            Assertion(id >= 0 && id < _triangles.size(),
+                      "Object index out of bounds");
+
+            const Vector3D& v0 = _vertices[_triangles[id][0]].pos();
+            const Vector3D& v1 = _vertices[_triangles[id][1]].pos();
+            const Vector3D& v2 = _vertices[_triangles[id][2]].pos();
+            return Triangle(v0, v1, v2);
+        }
+
+        const BSDF& getBsdf(int id) const {
+            Assertion(id >= 0 && id < _bsdfIds.size(),
+                      "Object index out of boudns");
+            return _bsdfs[_bsdfIds[id]];
+        }
+
+        Color getReflectance(const Intersection& isect) const {
+            const int tid = isect.objectId();
+            if (_triangles[tid].isTextured() && _texture.get() != nullptr) {
+                const Vector2D& uv = isect.hitpoint().texcoord();
+                const int tx = static_cast<int>(uv.x() * _texture->width());
+                const int ty = static_cast<int>(uv.y() * _texture->height());
+                return _texture->pixel(tx, ty);
+            } else {
+                return getBsdf(tid).reflectance();
+            }
+        }
+
+        Color directLight(const Vector3D& dir) const {
+            return _lighting.directLight(dir);
+        }
+
+        LightSample sampleLight(Stack<double>& rstack) const {
+            return _lighting.sample(rstack);
+        }
+
+        double lightArea() const {
+            return _lighting.area();
+        }
+
+        void setAccelType(AccelType type) {
+            this->_accelType = type;
+        }
+
+        bool isLightCheck(int id) const {
+            auto it = std::lower_bound(_lightIds.cbegin(), _lightIds.cend(), id);
+            return it != _lightIds.cend() && (*it) == id;
+        }
+
+        void computeAccelerator() {
+            switch (this->_accelType) {
+            case AccelType::BBVH:
+                _accel = std::shared_ptr<AccelBase>(new BBVHAccel());
+                break;
+
+            case AccelType::QBVH:
+                _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
+                break;
+
+            case AccelType::KdTree:
+                _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
+                break;
+
+            default:
+                std::cerr << "[ERROR] unknown accelerator type !!" << std::endl;
+                std::abort();
+            }
+
+            std::vector<Triangle> tris(_triangles.size());
+            for (int i = 0; i < _triangles.size(); i++) {
+                const Vector3D& v0 = _vertices[_triangles[i][0]].pos();
+                const Vector3D& v1 = _vertices[_triangles[i][1]].pos();
+                const Vector3D& v2 = _vertices[_triangles[i][2]].pos();
+                tris[i] = Triangle(v0, v1, v2);
+            }
+            _accel->construct(tris);
+        }
+
+        void finalize() {
+            this->computeAccelerator();
+        }
+
+        bool intersect(const Ray& ray, Intersection* isect) {
+            Assertion(_accel, "Accelerator is not prepared !!");
+
+            Hitpoint hitpoint;
+            const int triID = _accel->intersect(ray, &hitpoint);
+
+            if (triID != -1 && _triangles[triID].isTextured()) {
+                double u = hitpoint.texcoord().x();
+                double v = hitpoint.texcoord().y();
+                const Vector2D t0 = _vertices[_triangles[triID][0]].texcoord();
+                const Vector2D t1 = _vertices[_triangles[triID][1]].texcoord();
+                const Vector2D t2 = _vertices[_triangles[triID][2]].texcoord();
+                hitpoint.setTexcoord(t0 + u * (t1 - t0) + v * (t2 - t0));
+            }
+
+            isect->setObjectId(triID);
+            isect->setHitpoint(hitpoint);
+
+            return triID != -1;
+        }
+
+        bool isTextured(int triID) const {
+            Assertion(triID >= 0 && triID < _triangles.size(), "Triangle index out of bounds!!");
+            return _triangles[triID].isTextured();
+        }
+
+        int numTriangles() const {
+            return static_cast<int>(_triangles.size());
+        }
+
+        void addShape(const std::vector<Triangle>& tris, const BSDF& bsdf) {
+            addTriangles(tris);
+            addBsdf(bsdf, tris.size());
+        }
+
+        void addShape(const Trimesh& shape, const BSDF& bsdf) {
+            // Copy triangles
+            std::vector<Triplet> trip = shape.getIndices();
+            for (int i = 0; i < trip.size(); i++) {
+                const int vid = _vertices.size();
+                for (int k = 0; k < 3; k++) {
+                    _vertices.push_back(shape.getVertexData(trip[i][k]));
+                }
+                _triangles.emplace_back(vid, vid + 1, vid + 2, shape.isTextured());
+            }
+
+            _texture = shape._texture;
+
+            // Update BSDF ids
+            addBsdf(bsdf, trip.size());
+        }
+
+        void setAreaLight(const std::vector<Triangle>& tris, const Color& emission) {
+            addTriangles(tris);
+
+            // Set as area light
+            _lighting = Lighting::asAreaLight(tris, emission);
+
+            // If new object is a light, store triangle indices
+            const int newTris = static_cast<int>(tris.size());
+            const int nowTris = static_cast<int>(_triangles.size()) - newTris;
+            for (int i = 0; i < newTris; i++) {
+                _lightIds.push_back(nowTris + i);
+            }
+
+            // Add empty BSDF
+            addBsdf(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), newTris);
+        }
+
+    private:
+        void addTriangles(const std::vector<Triangle>& tris) {
+            const int newTris = static_cast<int>(tris.size());
+            for (int i = 0; i < newTris; i++) {
+                const int vid = static_cast<int>(_vertices.size());
+                for (int k = 0; k < 3; k++) {
+                    _vertices.emplace_back(tris[i][k]);
+                }
+                _triangles.emplace_back(vid, vid + 1, vid + 2);
+            }
+        }
+
+        void addBsdf(const BSDF& bsdf, int numTris) {
+            const int newBsdfId = static_cast<int>(_bsdfs.size());
+            const int curTris   = static_cast<int>(_bsdfIds.size());
+            _bsdfIds.resize(_bsdfIds.size() + numTris);
+            std::fill(_bsdfIds.begin() + curTris, _bsdfIds.end(), newBsdfId);
+            _bsdfs.push_back(bsdf);
+        }
+
+    };  // class SceneImpl
     
     Scene::Scene()
-        : _triangles()
+        :_impl{std::make_unique<SceneImpl>()} {
+    }
 
-        , _bsdfIds()
-        , _lightIds()
-
-        , _bsdfs()
-        , _accel()
-        , _accelType(AccelType::QBVH) {
+    Scene::Scene(Scene&& scene)
+        : _impl{std::move(scene._impl)} {
     }
 
     Scene::~Scene() {
     }
 
-    Scene::Scene(const Scene& scene)
-        : _triangles()
-
-        , _bsdfIds()
-        , _lightIds()
-
-        , _bsdfs()
-        , _accel()
-        , _accelType(AccelType::QBVH) {
-        this->operator=(scene);
-    }
-
-
-    Scene& Scene::operator=(const Scene& scene) {
-        this->_triangles = scene._triangles;
-
-        this->_bsdfIds   = scene._bsdfIds;
-        this->_lightIds  = scene._lightIds;
-        
-        this->_bsdfs = scene._bsdfs;
-        this->_accel = scene._accel;
-        this->_accelType = scene._accelType;
-                
+    Scene& Scene::operator=(Scene&& scene) {
+        this->_impl = std::move(scene._impl);
         return *this;
     }
 
-    Sphere Scene::boundingSphere(const Camera& camera) const {
-        Vector3D center;
-        for (int i = 0; i < _triangles.size(); i++) {
-            const Vector3D& v0 = _vertices[_triangles[i][0]].pos();
-            const Vector3D& v1 = _vertices[_triangles[i][1]].pos();
-            const Vector3D& v2 = _vertices[_triangles[i][2]].pos();
-            center += (v0 + v1 + v2) / 3.0;
-        }
-        center /= _triangles.size();
-
-        double radius = (center - camera.center()).norm();
-        for (int i = 0; i < _triangles.size(); i++) {
-            for (int k = 0; k < 3; k++) {
-                const Vector3D& v = _vertices[_triangles[i][k]].pos();
-                double d = (center - v).norm();
-                radius = std::max(radius, d);
-            }
-        }
-        return Sphere(center, radius);
+    void Scene::clear() {
+        _impl->clear();
     }
 
-    void Scene::setEnvmap(const std::string& filename, const Camera& camera) {
-        const Image image = Image::fromFile(filename);
-        setEnvmap(image, camera);
+    Sphere Scene::boundingSphere(const Camera& camera) const {
+        return _impl->boundingSphere(camera);
     }
 
     void Scene::setEnvmap(const Image& image, const Camera& camera) {
-        const Sphere& shape = this->boundingSphere(camera);
-        std::vector<Triangle> tris = shape.triangulate();
-        const int newTris = static_cast<int>(tris.size());
-        const int nowTris = static_cast<int>(_triangles.size());
-        _lighting = Lighting::asEnvmap(shape, image);
-
-        // If new object is a light, store triangle indices
-        for (int i = 0; i < newTris; i++) {
-            _lightIds.push_back(nowTris + i);
-        }
-
-        // Add triangles to the scene
-        addTriangles(tris);
-
-        // Add empty BSDF
-        addBsdf(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), newTris);
+        _impl->setEnvmap(image, camera);
     }
 
     Triangle Scene::getTriangle(int id) const {
-        Assertion(id >= 0 && id < _triangles.size(),
-                  "Object index out of bounds");
-
-        const Vector3D& v0 = _vertices[_triangles[id][0]].pos();
-        const Vector3D& v1 = _vertices[_triangles[id][1]].pos();
-        const Vector3D& v2 = _vertices[_triangles[id][2]].pos();
-        return Triangle(v0, v1, v2);
+        return _impl->getTriangle(id);
     }
 
     const BSDF& Scene::getBsdf(int id) const {
-        Assertion(id >= 0 && id < _bsdfIds.size(),
-                  "Object index out of boudns");
-        return _bsdfs[_bsdfIds[id]];
+        return _impl->getBsdf(id);
     }
 
-    const Color& Scene::getReflectance(const Intersection& isect) const {
-        const int tid = isect.objectId();
-        if (_triangles[tid].isTextured() && _texture.get() != nullptr) {
-            const Vector2D& uv = isect.hitpoint().texcoord();
-            const int tx = static_cast<int>(uv.x() * _texture->width());
-            const int ty = static_cast<int>(uv.y() * _texture->height());
-            return _texture->pixel(tx, ty);
-        } else {
-            return getBsdf(tid).reflectance();
-        }
+    Color Scene::getReflectance(const Intersection& isect) const {
+        return _impl->getReflectance(isect);
     }
 
     Color Scene::directLight(const Vector3D& dir) const {
-        return _lighting.directLight(dir);
+        return _impl->directLight(dir);
     }
 
     LightSample Scene::sampleLight(Stack<double>& rstack) const {
-        return _lighting.sample(rstack);
+        return _impl->sampleLight(rstack);
     }
 
     double Scene::lightArea() const {
-        return _lighting.area();
-    }
-
-    void Scene::clear() {
-        _triangles.clear();
-        _triangles.shrink_to_fit();
-        _bsdfIds.clear();
-        _bsdfIds.shrink_to_fit();
-        _bsdfs.clear();
-        _bsdfs.shrink_to_fit();
+        return _impl->lightArea();
     }
 
     void Scene::setAccelType(AccelType type) {
-        this->_accelType = type;
+        _impl->setAccelType(type);
     }
 
     bool Scene::isLightCheck(int id) const {
-        auto it = std::lower_bound(_lightIds.begin(), _lightIds.end(), id);
-        return it != _lightIds.end() && (*it) == id;
+        return _impl->isLightCheck(id);
     }
 
     void Scene::computeAccelerator() {
-        switch (this->_accelType) {
-        case AccelType::BBVH:
-            _accel = std::shared_ptr<AccelBase>(new BBVHAccel());
-            break;
-
-        case AccelType::QBVH:
-            _accel = std::shared_ptr<AccelBase>(new QBVHAccel());
-            break;
-        
-        case AccelType::KdTree:
-            _accel = std::shared_ptr<AccelBase>(new KdTreeAccel());
-            break;
-        
-        default:
-            std::cerr << "[ERROR] unknown accelerator type !!" << std::endl;
-            std::abort();
-        }
-
-        std::vector<Triangle> tris(_triangles.size());
-        for (int i = 0; i < _triangles.size(); i++) {
-            const Vector3D& v0 = _vertices[_triangles[i][0]].pos();
-            const Vector3D& v1 = _vertices[_triangles[i][1]].pos();
-            const Vector3D& v2 = _vertices[_triangles[i][2]].pos();
-            tris[i] = Triangle(v0, v1, v2);
-        }
-        _accel->construct(tris);    
+        _impl->computeAccelerator();
     }
 
     void Scene::finalize() {
-        this->computeAccelerator();
+        _impl->finalize();
     }
 
-    bool Scene::intersect(const Ray& ray, Intersection& isect) const {
-        Assertion(_accel, "Accelerator is not prepared !!");
-
-        Hitpoint hitpoint;
-        const int triID = _accel->intersect(ray, &hitpoint);
-
-        if (triID != -1 && _triangles[triID].isTextured()) {
-            double u = hitpoint.texcoord().x();
-            double v = hitpoint.texcoord().y();
-            const Vector2D t0 = _vertices[_triangles[triID][0]].texcoord();
-            const Vector2D t1 = _vertices[_triangles[triID][1]].texcoord();
-            const Vector2D t2 = _vertices[_triangles[triID][2]].texcoord();
-            hitpoint.setTexcoord(t0 + u * (t1 - t0) + v * (t2 - t0));
-        }
-
-        isect.setObjectId(triID);
-        isect.setHitpoint(hitpoint);
-
-        return triID != -1;
+    bool Scene::intersect(const Ray& ray, Intersection* isect) const {
+        return _impl->intersect(ray, isect);
     }
 
-    void Scene::addTriangles(const std::vector<Triangle>& tris) {
-        const int newTris = static_cast<int>(tris.size());
-        for (int i = 0; i < newTris; i++) {
-            const int vid = static_cast<int>(_vertices.size());
-            for (int k = 0; k < 3; k++) {
-                _vertices.emplace_back(tris[i][k]);
-            }
-            _triangles.emplace_back(vid, vid + 1, vid + 2);
-        }    
+    bool Scene::isTextured(int triID) const {
+        return _impl->isTextured(triID);
     }
 
-    void Scene::addBsdf(const BSDF& bsdf, int numTris) {
-        const int newBsdfId = static_cast<int>(_bsdfs.size());
-        const int curTris = static_cast<int>(_bsdfIds.size());
-        _bsdfIds.resize(_bsdfIds.size() + numTris);
-        std::fill(_bsdfIds.begin() + curTris, _bsdfIds.end(), newBsdfId);
-        _bsdfs.push_back(bsdf);
+    int Scene::numTriangles() const {
+        return _impl->numTriangles();
+    }
+
+    void Scene::addShape(const BBox& shape, const BSDF& bsdf) {
+        _impl->addShape(shape.triangulate(), bsdf);
+    }
+
+    void Scene::addShape(const Disk& shape, const BSDF& bsdf) {
+        _impl->addShape(shape.triangulate(), bsdf);
+    }
+
+    void Scene::addShape(const Quad& shape, const BSDF& bsdf) {
+        _impl->addShape(shape.triangulate(), bsdf);
+    }
+
+    void Scene::addShape(const Sphere& shape, const BSDF& bsdf) {
+        _impl->addShape(shape.triangulate(), bsdf);
+    }
+
+    void Scene::addShape(const Triangle& shape, const BSDF& bsdf) {
+        _impl->addShape(shape.triangulate(), bsdf);
+    }
+
+    void Scene::addShape(const Trimesh& shape, const BSDF& bsdf) {
+        _impl->addShape(shape, bsdf);
+    }
+
+    void Scene::setAreaLight(const BBox& shape, const Color& emission) {
+        _impl->setAreaLight(shape.triangulate(), emission);    
+    }
+
+    void Scene::setAreaLight(const Disk& shape, const Color& emission) {
+        _impl->setAreaLight(shape.triangulate(), emission);
+    }
+
+    void Scene::setAreaLight(const Quad& shape, const Color& emission) {
+        _impl->setAreaLight(shape.triangulate(), emission);
+    }
+
+    void Scene::setAreaLight(const Sphere& shape, const Color& emission) {
+        _impl->setAreaLight(shape.triangulate(), emission);
+    }
+
+    void Scene::setAreaLight(const Triangle& shape, const Color& emission) {
+        _impl->setAreaLight(shape.triangulate(), emission);
+    }
+
+    void Scene::setAreaLight(const Trimesh& shape, const Color& emission) {
+        _impl->setAreaLight(shape.triangulate(), emission);
     }
 
 }  // namespace spica

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <typeinfo>
 
+#include "../bsdf/bsdf.h"
 #include "../camera/orthographic_camera.h"
 #include "../camera/perspective_camera.h"
 #include "../camera/dof_camera.h"

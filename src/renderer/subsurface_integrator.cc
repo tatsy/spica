@@ -8,7 +8,7 @@
 #include "renderer_helper.h"
 
 #include "../core/sampler.h"
-
+#include "../bsdf/bssrdf.h"
 #include "../random/random_sampler.h"
 
 namespace spica {

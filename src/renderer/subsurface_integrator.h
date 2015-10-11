@@ -18,7 +18,8 @@
 #include "renderer_constants.h"
 #include "ppmprob.h"
 
-#include "../bsdf/bssrdf.h"
+#include "../core/forward_decl.h"
+#include "../shape/bbox.h"
 
 namespace spica {
 

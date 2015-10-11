@@ -7,7 +7,7 @@
 
 #include "../math/vector2d.h"
 #include "../math/vector3d.h"
-#include "color.h"
+#include "../core/color.h"
 
 namespace spica {
 

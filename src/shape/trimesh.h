@@ -26,7 +26,7 @@
 
 #include "../core/triplet.h"
 #include "../core/image.h"
-#include "../core/vertex_data.h"
+#include "../scenes/vertex_data.h"
 #include "../accel/accel.h"
 
 namespace spica {

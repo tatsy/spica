@@ -5,6 +5,8 @@
 #include "../renderer/ray.h"
 #include "../renderer/renderer_helper.h"
 
+#include "triangle.h"
+
 namespace spica {
 
     namespace {

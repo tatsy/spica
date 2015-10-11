@@ -4,11 +4,12 @@
 #include <ctime>
 
 #include "../core/sampler.h"
+#include "../scenes/scene.h"
 #include "../camera/camera.h"
+#include "../light/lighting.h"
 #include "../random/random_sampler.h"
 #include "../random/random.h"
 #include "../random/halton.h"
-#include "../scenes/scene.h"
 
 #include "render_parameters.h"
 
@@ -246,7 +247,7 @@ namespace spica {
 
         // If not hit the scene, then break
         Intersection isect;
-        if (!scene.intersect(ray, isect)) {
+        if (!scene.intersect(ray, &isect)) {
             return;
         }
 

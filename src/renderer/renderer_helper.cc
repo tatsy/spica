@@ -5,6 +5,8 @@
 #include <algorithm>
 
 #include "../core/sampler.h"
+#include "../light/lighting.h"
+#include "../renderer/ray.h"
 
 #include "renderer_constants.h"
 
@@ -65,7 +67,7 @@ namespace spica {
             }
 
             Intersection isect;
-            if (!scene.intersect(ray, isect)) {
+            if (!scene.intersect(ray, &isect)) {
                 return Color::BLACK;
             }
 
@@ -124,7 +126,7 @@ namespace spica {
                 if (dot0 >= 0.0 && dot1 >= 0.0) {
                     const double G = dot0 * dot1 / dist2;
                     Intersection isect;
-                    if (scene.intersect(Ray(pos, light_dir), isect)) {
+                    if (scene.intersect(Ray(pos, light_dir), &isect)) {
                         if ((isect.hitpoint().position() - ls.position()).norm() < EPS) {
                             return Color(ls.Le() * (INV_PI * G * scene.lightArea()));
                         }
@@ -137,7 +139,7 @@ namespace spica {
                 const Ray refRay(pos, nextdir);
 
                 Intersection isect;
-                if (scene.intersect(refRay, isect) && scene.isLightCheck(isect.objectId())) {
+                if (scene.intersect(refRay, &isect) && scene.isLightCheck(isect.objectId())) {
                     return scene.directLight(nextdir) / pdf;
                 }
             }

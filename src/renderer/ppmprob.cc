@@ -151,7 +151,7 @@ namespace spica {
 
         // Intersection test
         Intersection isect;
-        if (!scene.intersect(ray, isect)) {
+        if (!scene.intersect(ray, &isect)) {
             return Color::BLACK;
         }
 

@@ -21,7 +21,7 @@ protected:
         s1 = Sphere(Vector3D(0.0, 0.0, 0.0), 5.0);
         s2 = Sphere(Vector3D(0.0, 10.0, 0.0), 2.0);
         scene.addShape(s1, LambertianBRDF::factory(Color(0.3, 0.5, 0.7)));
-        scene.setLight(s2, Color(32.0, 32.0, 32.0));
+        scene.setAreaLight(s2, Color(32.0, 32.0, 32.0));
     }
 
     virtual void TearDown() {
@@ -41,7 +41,7 @@ TEST_F(SceneTest, InstanceTest) {
 TEST_F(SceneTest, AccelNotPrepared) {
     Intersection isect;
     Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
-    ASSERT_DEATH(scene.intersect(ray, isect), "");
+    ASSERT_DEATH(scene.intersect(ray, &isect), "");
 }
 
 TEST_F(SceneTest, BBVHIntersectionTest) {
@@ -50,14 +50,14 @@ TEST_F(SceneTest, BBVHIntersectionTest) {
 
     Intersection isect;
     Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0).normalized());
-    EXPECT_TRUE(scene.intersect(ray, isect));
+    EXPECT_TRUE(scene.intersect(ray, &isect));
 
     Hitpoint hitpoint = isect.hitpoint();
     EXPECT_NE(isect.objectId(), -1);
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), hitpoint.position());
 
     ray = Ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
-    EXPECT_FALSE(scene.intersect(ray, isect));
+    EXPECT_FALSE(scene.intersect(ray, &isect));
     EXPECT_EQ(isect.objectId(), -1);
 }
 
@@ -67,14 +67,14 @@ TEST_F(SceneTest, QBVHIntersectionTest) {
 
     Intersection isect;
     Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0).normalized());
-    EXPECT_TRUE(scene.intersect(ray, isect));
+    EXPECT_TRUE(scene.intersect(ray, &isect));
 
     Hitpoint hitpoint = isect.hitpoint();
     EXPECT_NE(isect.objectId(), -1);
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), hitpoint.position());
 
     ray = Ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
-    EXPECT_FALSE(scene.intersect(ray, isect));
+    EXPECT_FALSE(scene.intersect(ray, &isect));
     EXPECT_EQ(isect.objectId(), -1);
 }
 
@@ -84,14 +84,14 @@ TEST_F(SceneTest, KdTreeIntersectionTest) {
 
     Intersection isect;
     Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
-    EXPECT_TRUE(scene.intersect(ray, isect));
+    EXPECT_TRUE(scene.intersect(ray, &isect));
 
     Hitpoint hitpoint = isect.hitpoint();
     EXPECT_NE(isect.objectId(), -1);
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), hitpoint.position());
 
     ray = Ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
-    EXPECT_FALSE(scene.intersect(ray, isect));
+    EXPECT_FALSE(scene.intersect(ray, &isect));
     EXPECT_EQ(isect.objectId(), -1);
 }
 
@@ -114,7 +114,7 @@ TEST_F(SceneTest, QBVHvsKdTree) {
         Ray ray(from, dir);
 
         Intersection isect1, isect2;
-        EXPECT_EQ(scene1.intersect(ray, isect1), scene2.intersect(ray, isect2));
+        EXPECT_EQ(scene1.intersect(ray, &isect1), scene2.intersect(ray, &isect2));
         EXPECT_EQ(isect1.objectId(), isect2.objectId());
         EXPECT_NEAR(isect1.hitpoint().distance(), isect2.hitpoint().distance(), 1.0e-4);
     }
@@ -139,7 +139,7 @@ TEST_F(SceneTest, BBVHvsQBVH) {
         Ray ray(from, dir);
 
         Intersection isect1, isect2;
-        EXPECT_EQ(scene1.intersect(ray, isect1), scene2.intersect(ray, isect2));
+        EXPECT_EQ(scene1.intersect(ray, &isect1), scene2.intersect(ray, &isect2));
         EXPECT_EQ(isect1.objectId(), isect2.objectId());
         EXPECT_NEAR(isect1.hitpoint().distance(), isect2.hitpoint().distance(), 1.0e-4);
     }

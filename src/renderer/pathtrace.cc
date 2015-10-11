@@ -6,13 +6,15 @@
 #include <algorithm>
 
 #include "../core/common.h"
-#include "../math/vector3d.h"
 #include "../core/sampler.h"
 #include "../core/image.h"
+#include "../math/vector3d.h"
 
 #include "../random/random_sampler.h"
 
 #include "../scenes/scene.h"
+#include "../light/lighting.h"
+
 #include "renderer_helper.h"
 #include "subsurface_integrator.h"
 
@@ -125,7 +127,7 @@ namespace spica {
         }
 
         Intersection isect;
-        if (!scene.intersect(ray, isect)) {
+        if (!scene.intersect(ray, &isect)) {
             return Color::BLACK;
         }
 
@@ -205,7 +207,7 @@ namespace spica {
                 if (dot0 > EPS && dot1 > EPS) {
                     const double G = dot0 * dot1 / dist2;
                     Intersection isect;
-                    if (scene.intersect(Ray(v, lightDir), isect)) {
+                    if (scene.intersect(Ray(v, lightDir), &isect)) {
                         if (scene.isLightCheck(isect.objectId())) {
                             return (refl * ls.Le()) * (INV_PI * G * scene.lightArea()); 
                         }
@@ -221,7 +223,7 @@ namespace spica {
             bsdf.sample(in, n, rands[0], rands[1], &nextdir, &pdf);
             
             Intersection isect;
-            if (scene.intersect(Ray(v, nextdir), isect)) {
+            if (scene.intersect(Ray(v, nextdir), &isect)) {
                 const int objID = isect.objectId();
                 if (scene.isLightCheck(objID)) {
                     return (refl * scene.directLight(in)) / pdf;

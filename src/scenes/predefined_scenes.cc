@@ -1,10 +1,13 @@
 #define SPICA_PREDEFINED_SCENES_EXPORT
 #include "predefined_scenes.h"
 
+#include "../core/common.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
+#include "../bsdf/bsdf.h"
 #include "../bsdf/brdf.h"
 #include "../bsdf/bssrdf.h"
+#include "../shape/shape.h"
 
 namespace spica {
     void cornellBox(Scene* scene, Camera* camera, const int width, const int height) {
@@ -15,8 +18,8 @@ namespace spica {
         Vector3D l01(-5.0, 9.99,  5.0);
         Vector3D l10( 5.0, 9.99, -5.0);
         Vector3D l11( 5.0, 9.99,  5.0);
-        scene->setLight(Quad(l00, l10, l11, l01), 
-                        Color(32.0, 32.0, 32.0));
+        scene->setAreaLight(Quad(l00, l10, l11, l01), 
+                            Color(32.0, 32.0, 32.0));
 
         Vector3D v000(-10.0, -10.0, -10.0);
         Vector3D v100( 10.0, -10.0, -10.0);
@@ -239,8 +242,8 @@ namespace spica {
         //scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), Color(32.0, 32.0, 32.0), true);
 
         // Back light
-        scene->setLight(Sphere(Vector3D(-5.0, 5.0, -5.0), 3.0),
-                        Color(32.0, 32.0, 32.0));
+        scene->setAreaLight(Sphere(Vector3D(-5.0, 5.0, -5.0), 3.0),
+                            Color(32.0, 32.0, 32.0));
 
         // Walls
         Vector3D v000(-10.0, -10.0, -10.0);
@@ -321,7 +324,8 @@ namespace spica {
                                   90.0);
 
         // Envmap
-        scene->setEnvmap(kDataDirectory + "cave_room.hdr", *camera);
+        Image envmap = Image::fromFile(kDataDirectory + "cave_room.hdr");
+        scene->setEnvmap(envmap, *camera);
 
         scene->finalize();
     }

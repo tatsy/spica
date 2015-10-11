@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 
+#include "../math/vector3d.h"
 #include "../renderer/renderer_constants.h"
 
 namespace spica {

@@ -11,6 +11,7 @@
 #include "../core/sampler.h"
 
 #include "../camera/dof_camera.h"
+#include "../light/lighting.h"
 
 #include "../random/random_sampler.h"
 #include "../random/random.h"
@@ -237,7 +238,7 @@ namespace spica {
                 const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
                 Intersection isect;
-                const bool isHitScene = scene.intersect(currentRay, isect);
+                const bool isHitScene = scene.intersect(currentRay, &isect);
 
                 // If ray hits on the lens, return curent result
                 Vector3D positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor;
@@ -363,7 +364,7 @@ namespace spica {
                 const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
                 Intersection isect;
-                if (!scene.intersect(nowRay, isect)) {
+                if (!scene.intersect(nowRay, &isect)) {
                     break;
                 }
 
@@ -525,7 +526,7 @@ namespace spica {
                     Intersection isect;
                     const Vector3D lendToEend = eyeEnd.position - lightEnd.position;
                     const Ray testRay(lightEnd.position, lendToEend.normalized());
-                    scene.intersect(testRay, isect);
+                    scene.intersect(testRay, &isect);
 
                     if (eyeEnd.objtype == Vertex::OBJECT_TYPE_DIFFUSE) {
                         const double dist = (isect.hitpoint().position() - eyeEnd.position).norm();

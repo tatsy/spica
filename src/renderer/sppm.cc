@@ -11,6 +11,7 @@
 #include "../scenes/scene.h"
 #include "../core/sampler.h"
 #include "../camera/camera.h"
+#include "../light/lighting.h"
 
 #include "../random/random_sampler.h"
 #include "../random/random.h"
@@ -247,7 +248,7 @@ namespace spica {
 
         // Intersection check
         Intersection isect;
-        if (!scene.intersect(ray, isect)) {
+        if (!scene.intersect(ray, &isect)) {
             return;
         }
 
@@ -323,7 +324,7 @@ namespace spica {
         for (int bounce = 0; ; bounce++) {
             const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
-            if (!scene.intersect(ray, isect) || bounce > params.bounceLimit()) {
+            if (!scene.intersect(ray, &isect) || bounce > params.bounceLimit()) {
                 weight = Color::BLACK;
                 pixel->weight = weight;
                 pixel->coeff = coeff;

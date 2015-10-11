@@ -7,7 +7,9 @@
 #include <algorithm>
 
 #include "renderer_helper.h"
+#include "render_parameters.h"
 #include "subsurface_integrator.h"
+
 #include "../core/sampler.h"
 
 #include "../random/random_sampler.h"

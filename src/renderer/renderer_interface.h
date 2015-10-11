@@ -1,3 +1,8 @@
+/**
+ *  @defgroup renderer_module Renderers
+ *  @brief Renderer implementations
+ */
+
 #ifdef _MSC_VER
 #pragma once
 #endif
@@ -21,6 +26,9 @@
 
 namespace spica {
 
+    /** Interface for renderer implementations
+     *  @ingroup renderer_module
+     */
     class SPICA_RENDERER_INTERFACE_DLL IRenderer : private Uncopyable {
         
     protected:

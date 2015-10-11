@@ -3,6 +3,8 @@
 
 #include "brdf.h"
 #include "bssrdf.h"
+
+#include "../renderer/renderer_constants.h"
 #include "../renderer/renderer_helper.h"
 #include "../renderer/subsurface_integrator.h"
 

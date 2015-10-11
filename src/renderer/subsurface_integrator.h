@@ -15,11 +15,9 @@
     #define SPICA_SUBSURFACE_INTEGRATOR_DLL
 #endif
 
-#include "renderer_constants.h"
-#include "ppmprob.h"
-
 #include "../core/forward_decl.h"
 #include "../shape/bbox.h"
+#include "photon_map.h"
 
 namespace spica {
 

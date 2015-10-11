@@ -15,13 +15,9 @@
     #define SPICA_PHOTON_MAPPING_DLL
 #endif
 
-#include "../math/vector3d.h"
-#include "../core/axis_comparable.h"
-#include "../core/kdtree.h"
+#include "../core/forward_decl.h"
 
 #include "renderer_interface.h"
-#include "renderer_constants.h"
-#include "render_parameters.h"
 #include "photon_map.h"
 
 namespace spica {

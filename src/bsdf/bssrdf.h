@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#include "../math/vector3d.h"
+#include "../core/forward_decl.h"
 #include "../core/color.h"
 
 namespace spica {

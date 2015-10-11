@@ -11,17 +11,15 @@
     #define SPICA_BPT_RENDERER_DLL
 #endif
 
+#include "../core/forward_decl.h"
 #include "renderer_interface.h"
-#include "renderer_constants.h"
-#include "render_parameters.h"
-#include "renderer_helper.h"
 
 namespace spica {
     
+    /** Bidirectional path tracing
+     *  @ingroup renderer_module
+     */
     class SPICA_BPT_RENDERER_DLL BDPTRenderer : public IRenderer {
-    private:
-        spica::Image* _image;
-
     public:
         BDPTRenderer(spica::Image* image = NULL);
         ~BDPTRenderer();

@@ -10,8 +10,11 @@
 #include "renderer_helper.h"
 
 #include "../core/sampler.h"
+#include "../bsdf/bsdf.h"
 
 #include "../random/random_base.h"
+
+#include "render_parameters.h"
 
 namespace spica {
 
@@ -209,8 +212,8 @@ namespace spica {
 
     }  // anonymous namespace
 
-    MLTRenderer::MLTRenderer(spica::Image* image)
-        : IRenderer() {
+    MLTRenderer::MLTRenderer()
+        : IRenderer{} {
     }
 
     MLTRenderer::~MLTRenderer() {

@@ -11,22 +11,19 @@
     #else
         #define SPICA_PT_RENDERER_DLL __declspec(dllimport)
     #endif
-#elif defined(linux) || defined(__linux)
+#else
     #define SPICA_PT_RENDERER_DLL
 #endif
 
 #include <string>
 
+#include "../core/forward_decl.h"
 #include "renderer_interface.h"
-#include "renderer_constants.h"
-#include "render_parameters.h"
-
-#include "../random/random.h"
-#include "../random/halton.h"
 
 namespace spica {
 
-    /*! Unidirectional path tracing
+    /** Unidirectional path tracing
+     *  @ingroup renderer_module
      */
     class SPICA_PT_RENDERER_DLL PathRenderer : public IRenderer {
     public:

@@ -4,6 +4,7 @@ set(SOURCES
 
 set(HEADERS
     ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/spica_math.h
     ${CMAKE_CURRENT_LIST_DIR}/vector2d.h
     ${CMAKE_CURRENT_LIST_DIR}/vector2d_detail.h
     ${CMAKE_CURRENT_LIST_DIR}/vector3d.h

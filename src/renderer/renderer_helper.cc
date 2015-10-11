@@ -4,10 +4,19 @@
 #include <cmath>
 #include <algorithm>
 
+#include "../core/color.h"
 #include "../core/sampler.h"
-#include "../light/lighting.h"
-#include "../renderer/ray.h"
 
+#include "../math/vector3d.h"
+
+#include "../renderer/ray.h"
+#include "../light/lighting.h"
+
+#include "../bsdf/bsdf.h"
+#include "../scenes/scene.h"
+#include "../camera/camera.h"
+
+#include "render_parameters.h"
 #include "renderer_constants.h"
 
 namespace spica {

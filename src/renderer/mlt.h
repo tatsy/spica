@@ -15,22 +15,29 @@
     #define SPICA_MLT_RENDERER_DLL
 #endif
 
+#include "../core/forward_decl.h"
 #include "renderer_interface.h"
-#include "renderer_constants.h"
 
 namespace spica {
 
+    /** Metropolis light transport.
+     *  @ingroup renderer_module
+     */
     class SPICA_MLT_RENDERER_DLL MLTRenderer : private IRenderer {
     public:
-        explicit MLTRenderer(spica::Image* image = NULL);
+        /** Constructor.
+         */
+        MLTRenderer();
+
+        /** Destructor.
+         */
         ~MLTRenderer();
 
-        // ------------------------------------------------------------
-        // MLT rendering process
-        // ------------------------------------------------------------
-        // @param[in] scene: scene to be rendered
-        // @param[in] camera: camera viewing the scene
-        // @param[in] params: rendering parameters
+        /** MLT rendering process.
+         *  @param scene: The rendering scene
+         *  @param camera: The camera viewing the scene
+         *  @param params: Rendering parameters
+         */
         void render(const Scene& scene, const Camera& camera, const RenderParameters& params) override;
     };
 

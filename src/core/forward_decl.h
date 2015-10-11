@@ -63,6 +63,11 @@ namespace spica {
     class BSDF;
     class BSSRDF;
 
+    // Random module
+    class Random;
+    class Halton;
+    class RandomSampler;
+
 }  // namespace spica
 
 #endif  // _SPICA_FORWARD_DECL_H_

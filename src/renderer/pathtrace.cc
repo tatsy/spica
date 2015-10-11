@@ -10,12 +10,14 @@
 #include "../core/image.h"
 #include "../math/vector3d.h"
 
+#include "../random/halton.h"
 #include "../random/random_sampler.h"
 
 #include "../scenes/scene.h"
 #include "../light/lighting.h"
 
 #include "renderer_helper.h"
+#include "render_parameters.h"
 #include "subsurface_integrator.h"
 
 namespace spica {

@@ -15,6 +15,9 @@ namespace spica {
     template <class T, class Enable = void>
     class Vector2_;
 
+    /** Two-dimensional vector.
+     *  @ingroup math_module
+     */
     template <class T>
     class Vector2_<T, is_arith_t<T> > {
     private:

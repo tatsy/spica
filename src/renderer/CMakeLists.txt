@@ -15,6 +15,7 @@ set(SOURCES
 
 set(HEADERS
     ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/renderer.h
     ${CMAKE_CURRENT_LIST_DIR}/renderer_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/renderer_constants.h
     ${CMAKE_CURRENT_LIST_DIR}/render_parameters.h

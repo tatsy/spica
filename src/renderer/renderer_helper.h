@@ -15,13 +15,7 @@
     #define SPICA_RENDERER_HELPER_DLL
 #endif
 
-#include "render_parameters.h"
-
-#include "../bsdf/bsdf.h"
-#include "../scenes/scene.h"
-#include "../core/color.h"
-#include "../math/vector3d.h"
-#include "../camera/camera.h"
+#include "../core/forward_decl.h"
 
 namespace spica {
 

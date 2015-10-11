@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "renderer_helper.h"
+#include "render_parameters.h"
 
 #include "../scenes/scene.h"
 #include "../core/sampler.h"
@@ -20,6 +21,66 @@
 #include "subsurface_integrator.h"
 
 namespace spica {
+
+    struct SPPMRenderer::SPPMPixel {
+        Vector3D position;
+        Vector3D normal;
+        Color flux;
+        Color weight;
+        Color emission;
+        double coeff;
+        int x, y;
+        double r2;
+        int n;
+
+        explicit SPPMPixel(Vector3D pos = Vector3D())
+            : position(pos)
+            , normal()
+            , flux()
+            , weight()
+            , emission()
+            , coeff(0.0)
+            , x(-1)
+            , y(-1)
+            , r2(0.0)
+            , n(0)
+        {
+        }
+
+        SPPMPixel(const SPPMPixel& pixel)
+            : position()
+            , normal()
+            , flux()
+            , weight()
+            , emission()
+            , coeff(0.0)
+            , x(-1)
+            , y(-1)
+            , r2(0.0)
+            , n(0)
+        {
+            operator=(pixel);
+        }
+
+        SPPMPixel& operator=(const SPPMPixel& pixel) {
+            this->position = pixel.position;
+            this->normal = pixel.normal;
+            this->flux = pixel.flux;
+            this->weight = pixel.weight;
+            this->emission = pixel.emission;
+            this->coeff = pixel.coeff;
+            this->x = pixel.x;
+            this->y = pixel.y;
+            this->r2 = pixel.r2;
+            this->n = pixel.n;
+            return *this;
+        }
+
+        Color radiance() const {
+            const Color  rad = flux / (PI * r2);
+            return Color((emission + rad) * coeff);
+        }
+    };
 
     const double SPPMRenderer::kAlpha = 0.7;
 

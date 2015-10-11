@@ -5,9 +5,13 @@
 #include <fstream>
 #include <typeinfo>
 
+#include "../core/common.h"
+
 #include "renderer_helper.h"
+#include "render_parameters.h"
 
 #include "../core/sampler.h"
+#include "../bsdf/bsdf.h"
 #include "../bsdf/bssrdf.h"
 #include "../random/random_sampler.h"
 

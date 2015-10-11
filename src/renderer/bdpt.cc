@@ -7,11 +7,14 @@
 #include <algorithm>
 
 #include "renderer_helper.h"
+#include "render_parameters.h"
+
 #include "../core/common.h"
 #include "../core/sampler.h"
 
 #include "../camera/dof_camera.h"
 #include "../light/lighting.h"
+#include "../bsdf/bsdf.h"
 
 #include "../random/random_sampler.h"
 #include "../random/random.h"
@@ -599,13 +602,10 @@ namespace spica {
     }  // unnamed namespace
     
     BDPTRenderer::BDPTRenderer(spica::Image* image)
-        : IRenderer()
-        , _image(image)
-    {
+        : IRenderer{} {
     }
 
-    BDPTRenderer::~BDPTRenderer()
-    {
+    BDPTRenderer::~BDPTRenderer() {
     }
 
     void BDPTRenderer::render(const Scene& scene, const Camera& camera, const RenderParameters& params) {
@@ -638,13 +638,7 @@ namespace spica {
             buffer[i] = Image(width, height);
         }
 
-        bool isAllocInside = false;
-        if (_image == NULL) {
-            _image = new Image(width, height);
-            isAllocInside = true;
-        } else {
-            _image->resize(width, height);
-        }
+        _result.resize(width, height);
 
         // Distribute tasks
         const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
@@ -681,19 +675,19 @@ namespace spica {
                 }
             }
 
-            _image->fill(Color(0.0, 0.0, 0.0));
+            _result.fill(Color(0.0, 0.0, 0.0));
             for (int k = 0; k < kNumThreads; k++) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
-                        _image->pixel(width - x - 1, y) += buffer[k](x, y) / (s + 1);
+                        _result.pixel(width - x - 1, y) += buffer[k](x, y) / (s + 1);
                     }
                 }
             }
 
             char filename[256];
             sprintf(filename, params.saveFilenameFormat().c_str(), s + 1);
-            _image->gammaCorrect(1.0 / 2.2);
-            _image->save(filename);
+            _result.gammaCorrect(1.0 / 2.2);
+            _result.save(filename);
 
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (s + 1) / params.samplePerPixel(), filename);
         }
@@ -701,11 +695,6 @@ namespace spica {
 
         delete[] samplers;
         delete[] buffer;
-
-        if (isAllocInside) {
-            delete _image;
-            _image = NULL;
-        }
     }
 
 }  // namespace spica

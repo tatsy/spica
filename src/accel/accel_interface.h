@@ -26,9 +26,9 @@
 namespace spica {
 
     /** Accelerator type enum
-    *  @ingroup accel_module
-    *  @brief Enumerator for acclerator types.
-    */
+     *  @ingroup accel_module
+     *  @brief Enumerator for acclerator types.
+     */
     enum class AccelType : int {
         KdTree,   /**< K-D tree acclerator */
         BBVH,     /**< binary BVH accelerator */

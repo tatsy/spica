@@ -20,12 +20,9 @@
 #include <vector>
 #include <tuple>
 
-#include "shape_interface.h"
-#include "triangle.h"
-#include "plane.h"
-
+#include "../core/forward_decl.h"
 #include "../core/triplet.h"
-#include "../core/image.h"
+#include "../shape/shape_interface.h"
 #include "../scenes/vertex_data.h"
 #include "../accel/accel.h"
 
@@ -36,127 +33,149 @@ namespace spica {
      */
     class SPICA_TRIMESH_DLL Trimesh : public IShape {
     private:
-        std::vector<VertexData>    _vertices;
-        std::vector<Triplet>       _faces;
-        std::shared_ptr<IAccel> _accel;
-        AccelType _accelType;
+        std::vector<VertexData> _vertices;
+        std::vector<Triplet>    _faces;
+        Accelerator _accel;
         std::shared_ptr<Image> _texture;
-        bool _isTextured;
 
     public:
-        /** Contructor
+        /** Contructor.
          */
         Trimesh();
 
-        /** Constructor
-         *  @param filename .ply or .obj file
+        /** Constructor.
+         *  @param filename: Mesh file of PLY or OBJ format.
          */
         explicit Trimesh(const std::string& filename);
 
-        /** Constructor
-         *  @param vertices vertices to form trimesh
-         *  @param faceIDs face IDs (stating from 0)
+        /** Constructor.
+         *  @param vertices: vertices to form trimesh
+         *  @param faceIDs: face IDs (stating from 0)
          */
         Trimesh(const std::vector<Vector3D>& vertices,
                 const std::vector<Triplet>& faceIDs);
 
-        // Copy constructor
+        /** The Trimesh constructor (copy).
+         */
         Trimesh(const Trimesh& trimesh);
 
-        // Move constructor
+        /** The Trimesh constructor (move).
+         */
         Trimesh(Trimesh&& trimesh);
 
+        /** The Trimesh destructor.
+         */
         virtual ~Trimesh();
 
+        /** Assignment operator (copy).
+         */
         Trimesh& operator=(const Trimesh& trimesh);
+
+        /** Assignment operator (move).
+         */
         Trimesh& operator=(Trimesh&& trimesh);
 
-        // Check intersection
-        // @param[in] ray: input to check intersect with
-        // @param[out] hitpoint: hit point if intersected
+        /** Intersection test.
+         * @param[in]  ray: input to check intersect with
+         * @param[out] hitpoint: hit point if intersected
+         */
         bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
-        // Area of trimesh
+        /** Area of the Trimesh.
+         */
         double area() const override;
 
-        // Triangulate mesh
+        /** Triangulate the mesh.
+         */
         std::vector<Triangle> triangulate() const override;
 
-        // Set an intersection accelerator type
-        // @param[in] accelType: QBVH or k-d tree
-        // @param[in] doBuild: construct the accelerator immediately after this function call or not
-        void setAccelType(AccelType accelType, bool doBuild = false);
+        /** Build accelerator structure.
+         */
+        void buildAccel(AccelType accelType);
 
-        // Build accelerator structure
-        void buildAccel();
-
-        // Load mesh file
-        // @param[in] filename: .obj or .ply file
+        /** Load mesh file
+         * @param[in] filename: Mesh file of .PLY or .OBJ format.
+         */
         void load(const std::string& filename);
 
-        // Translate the mesh
-        // @param[in] transtion delta
+        /** Translate the mesh.
+         * @param[in] move: Transtion delta.
+         */
         void translate(const Vector3D& move);
 
-        // Scale the mesh
-        // @param[in] scaleX: scaling along X-axis
-        // @param[in] scaleY: scaling along Y-axis
-        // @param[in] scaleZ: scaling along Z-axis
+        /** Scale the mesh.
+         *  @param[in] scaleX: scaling along X-axis.
+         *  @param[in] scaleY: scaling along Y-axis.
+         *  @param[in] scaleZ: scaling along Z-axis.
+         */
         void scale(const double scaleX, const double scaleY, const double scaleZ);
 
-        // Scale the mesh
-        // @param[in] scaleAll: scaling all the axes
+        /** Scale the mesh.
+         *  @param[in] scaleAll: scaling all the axes.
+         */
         void scale(const double scaleAll);
 
-        // Put the mesh on the specified plane
-        // @param[in] plane: a plane on which the mesh is put
+        /** Put the mesh on the specified plane.
+         *  @param[in] plane: a plane on which the mesh is put.
+         */
         void putOnPlane(const Plane& plane);
 
-        // Scale and translate the mesh to fit the bounding box
-        // @param[in] bbox: target bounding box
+        /** Scale and translate the mesh to fit the bounding box.
+         *  @param[in] bbox: target bounding box.
+         */
         void fitToBBox(const BBox& bbox);
 
-        // Get a triangle with specified ID
-        // @param[in] faceID: ID of the triangle to get
+        /** Get a triangle with specified ID.
+         *  @param[in] faceID: ID of the triangle to get.
+         */
         Triangle getTriangle(int faceID) const;
 
-        // Get vertex indices
+        /** Get vertex indices.
+         */
         const std::vector<Triplet>& getIndices() const;
 
-        // Get the vertex with specified ID
-        // @param[in] vertexID: ID of the vertex
+        /** Get the vertex with specified ID.
+         *  @param[in] vertexID: ID of the vertex.
+         */
         const Vector3D& getVertex(int vertexID) const;
 
         const VertexData& getVertexData(int vertexID) const;
 
         const Vector2D& getTexcoord(int vertexID) const;
 
-        // Set color to the specified vertex
-        // @param[in] vertexID: ID of the vertex
+        /** Set color to the specified vertex.
+         *  @param[in] vertexID: ID of the vertex.
+         */
         void setColor(int vertexID, const Color& color);
 
-        // Get the color of the vertex with specified ID
-        // @param[in] vertexID: ID of the vertex
+        /** Get the color of the vertex with specified ID.
+         *  @param[in] vertexID: ID of the vertex.
+         */
         Color getColor(int vertexID) const;
 
-        // Get the normal of a face with specified ID
-        // @param[in] faceID: ID of the triangle to get a normal
+        /** Get the normal of a face with specified ID.
+         *  @param[in] faceID: ID of the triangle to get a normal.
+         */
         Vector3D getNormal(int faceID) const;
 
-        // Get the number of vertices
-        inline size_t numVerts() const { return _vertices.size(); }
+        /** Get the number of vertices
+         */
+        inline decltype(auto) numVerts() const { return _vertices.size(); }
 
-        // Get the number of faces (triangles)
+        /** Get the number of faces (triangles).
+         */
         inline size_t numFaces() const { return _faces.size(); }
 
-        // Trimesh has texture or not
-        inline bool isTextured() const { return _isTextured; }
+        /** Trimesh has texture or not.
+         */
+        inline bool isTextured() const { return static_cast<bool>(_texture); } 
 
     private:
         void loadPly(const std::string& filename);
         void loadObj(const std::string& filename);
 
-        // Compute vertex normals
+        /** Compute vertex normals.
+         */
         void calcVertexNormals();
 
         friend class Scene;

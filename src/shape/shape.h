@@ -11,6 +11,7 @@
 #include "trimesh.h"
 #include "quad.h"
 #include "disk.h"
+#include "plane.h"
 #include "sphere.h"
 
 #endif  // _SPICA_GEOMETRY_H_

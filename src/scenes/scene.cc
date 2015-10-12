@@ -12,6 +12,10 @@
 #include "../bsdf/brdf.h"
 #include "../shape/shape.h"
 
+#include "../accel/bbvh_accel.h"
+#include "../accel/qbvh_accel.h"
+#include "../accel/kd_tree_accel.h"
+
 #include "vertex_data.h"
 #include "triangle_data.h"
 

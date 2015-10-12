@@ -10,6 +10,18 @@
 
 #include "../core/common.h"
 #include "../core/path.h"
+#include "../core/triplet.h"
+#include "../core/image.h"
+
+#include "../scenes/vertex_data.h"
+#include "../accel/accel.h"
+
+#include "../renderer/ray.h"
+
+#include "shape_interface.h"
+#include "bbox.h"
+#include "triangle.h"
+#include "plane.h"
 
 namespace spica {
 
@@ -18,9 +30,7 @@ namespace spica {
         , _vertices{}
         , _faces{}
         , _accel{}
-        , _accelType{AccelType::QBVH}
-        , _texture{}
-        , _isTextured{false} {
+        , _texture{} {
     }
 
     Trimesh::Trimesh(const std::string& filename)
@@ -62,9 +72,7 @@ namespace spica {
         _vertices   = trimesh._vertices;
         _faces      = trimesh._faces;
         _accel      = trimesh._accel;
-        _accelType  = trimesh._accelType;
         _texture    = trimesh._texture;
-        _isTextured = trimesh._isTextured;
         return *this;
     }
 
@@ -72,16 +80,14 @@ namespace spica {
         _vertices   = std::move(trimesh._vertices);
         _faces      = std::move(trimesh._faces);
         _accel      = trimesh._accel;
-        _accelType  = trimesh._accelType;
         _texture    = trimesh._texture;
-        _isTextured = trimesh._isTextured;
         return *this;    
     }
 
     bool Trimesh::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        Assertion(_accel != NULL, "Accelerator is not constructed");
+        Assertion(_accel, "Accelerator is not constructed");
         hitpoint->setDistance(INFTY);
-        return _accel->intersect(ray, hitpoint) != -1;
+        return _accel.intersect(ray, hitpoint) != -1;
     }
 
     double Trimesh::area() const {
@@ -101,14 +107,7 @@ namespace spica {
         return std::move(retval);
     }
 
-    void Trimesh::setAccelType(AccelType accelType, bool doBuild) {
-        this->_accelType = accelType;
-        if (doBuild) {
-            buildAccel();
-        }
-    }
-
-    void Trimesh::buildAccel() {
+    void Trimesh::buildAccel(AccelType accelType) {
         std::vector<Triangle> triangles(_faces.size());
         for (unsigned int i = 0; i < _faces.size(); i++) {
             Vector3D p0 = _vertices[_faces[i][0]].pos();
@@ -117,18 +116,8 @@ namespace spica {
             triangles[i] = Triangle(p0, p1, p2);
         }
 
-        switch(_accelType) {
-        case AccelType::KdTree:
-            _accel = std::make_shared<KdTreeAccel>();
-            break;
-        case AccelType::QBVH:
-            _accel = std::make_shared<QBVHAccel>();
-            break;
-        default:
-            std::cerr << "Unknown accelerator type!!" << std::endl;
-            std::abort();
-        }
-        _accel->construct(triangles);
+        _accel.setAccelType(accelType);
+        _accel.construct(triangles);
     }
 
     void Trimesh::calcVertexNormals() {
@@ -207,7 +196,6 @@ namespace spica {
                 } else if (key == "comment") {
                     ss >> name;
                     if (name == "TextureFile") {
-                        _isTextured = true;
                         ss >> val;
                         std::string dir = path::getDirectory(filename);
                         std::string imgfile = dir + val;
@@ -229,7 +217,7 @@ namespace spica {
                     ifs.read((char*)ff, sizeof(float) * 3);
                     _vertices[i] = VertexData(Vector3D(ff[0], ff[1], ff[2]));
                     
-                    if (_isTextured) {
+                    if (_texture) {
                         ifs.read((char*)tt, sizeof(float) * 2);
                         _vertices[i].setTexcoord(Vector2D(tt[0], tt[1]));
                     }

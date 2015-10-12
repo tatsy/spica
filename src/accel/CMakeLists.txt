@@ -1,4 +1,5 @@
 set(ACCEL_SOURCES ${ACCEL_SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/accel.cc
     ${CMAKE_CURRENT_LIST_DIR}/kd_tree_accel.cc
     ${CMAKE_CURRENT_LIST_DIR}/bbvh_accel.cc
     ${CMAKE_CURRENT_LIST_DIR}/qbvh_accel.cc)

@@ -2,6 +2,7 @@
 #include "predefined_scenes.h"
 
 #include "../core/common.h"
+#include "../core/image.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
 #include "../bsdf/bsdf.h"

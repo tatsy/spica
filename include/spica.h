@@ -12,8 +12,6 @@
 #include "../src/core/sampler.h"
 #include "../src/core/spica_dirs.h"
 
-#include "../src/math/vector2d.h"
-#include "../src/math/vector3d.h"
 
 #include "../src/shape/shape.h"
 
@@ -21,6 +19,12 @@
 
 #include "../src/random/random.h"
 #include "../src/random/halton.h"
+
+// --------------------------------------------
+// Math
+// --------------------------------------------
+
+#include "../src/math/spica_math.h"
 
 // --------------------------------------------
 // BSDF

@@ -10,5 +10,6 @@
 
 #include "vector2d.h"
 #include "vector3d.h"
+#include "quaternion.h"
 
 #endif  // _SPICA_MATH_H_

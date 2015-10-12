@@ -22,6 +22,7 @@
 #include "bbox.h"
 #include "triangle.h"
 #include "plane.h"
+#include "meshio.h"
 
 namespace spica {
 
@@ -120,6 +121,11 @@ namespace spica {
         _accel.construct(triangles);
     }
 
+    void Trimesh::resize(int numVerts, int numFaces) {
+        this->_vertices.resize(numVerts);
+        this->_faces.resize(numFaces);
+    }
+
     void Trimesh::calcVertexNormals() {
         const int numVerts = static_cast<int>(_vertices.size());
         const int numFaces = static_cast<int>(_faces.size());
@@ -142,148 +148,19 @@ namespace spica {
     }
 
     void Trimesh::load(const std::string& filename) {
-        std::string ext = "";
-        int dotPos = filename.find_last_of(".");
-        if (dotPos != std::string::npos) {
-            ext = filename.substr(dotPos);
-            if (ext == ".ply") {
-                this->loadPly(filename);
-                return;
-            } else if (ext == ".obj") {
-                this->loadObj(filename);
-                return;
-            } 
+        std::string ext = path::getExtension(filename);
+
+        std::unique_ptr<MeshIO> meshio;
+        if (ext == ".ply") {
+            meshio = std::make_unique<PLYMeshIO>();
+        } else if (ext == ".obj") {
+            meshio = std::make_unique<OBJMeshIO>();
+        } else {
+            std::cerr << "[ERROR] unsupported mesh file extension: " << ext << std::endl;
+            std::abort();
         }
-        Assertion(ext == ".ply" || ext == ".obj", "Mesh loader only accepts .ply and .obj file format");
-    }
 
-    void Trimesh::loadPly(const std::string& filename) {
-        std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::binary);
-        Assertion(ifs.is_open(), "Failed to open mesh file");
-
-        std::string line, format, key, name, val;
-        size_t numVerts = 0;
-        size_t numFaces = 0;
-
-        std::getline(ifs, format);
-        Assertion(format == "ply", "Invalid format identifier");
-
-        bool isBody = false;
-        while(!ifs.eof()) {
-            if (!isBody) {
-                std::getline(ifs, line);
-                std::stringstream ss;
-                ss << line;
-
-                ss >> key;
-                if (key == "format") {
-                    ss >> name >> val;
-                    Assertion(name == "binary_little_endian", "PLY must be binary little endian format!");
-                } else if (key == "property") {
-                    ss >> name >> val;
-                } else if (key == "element") {
-                    ss >> name;
-                    if (name == "vertex") {
-                        ss >> numVerts;
-                    } else if (name == "face") {
-                        ss >> numFaces;
-                    } else {
-                        Assertion(false, "Invalid element indentifier");
-                    }
-                } else if (key == "end_header") {
-                    isBody = true;
-                    continue;
-                } else if (key == "comment") {
-                    ss >> name;
-                    if (name == "TextureFile") {
-                        ss >> val;
-                        std::string dir = path::getDirectory(filename);
-                        std::string imgfile = dir + val;
-                        _texture = std::make_shared<Image>(Image::fromFile(imgfile));
-                    }
-                } else {
-                    continue;
-                }
-            } else {
-                Assertion(numVerts > 0 && numFaces > 0, "numVerts and numFaces must be positive");
-
-                _vertices.resize(numVerts);
-                _faces.resize(numFaces);
-
-                int cnt = 0;
-                float ff[3];
-                float tt[2];
-                for (size_t i = 0; i < numVerts; i++) {
-                    ifs.read((char*)ff, sizeof(float) * 3);
-                    _vertices[i] = VertexData(Vector3D(ff[0], ff[1], ff[2]));
-                    
-                    if (_texture) {
-                        ifs.read((char*)tt, sizeof(float) * 2);
-                        _vertices[i].setTexcoord(Vector2D(tt[0], tt[1]));
-                    }
-                }
-
-
-                unsigned char vs;
-                int ii[3];
-                for (size_t i = 0; i < numFaces; i++) {
-                    ifs.read((char*)&vs, sizeof(unsigned char));
-                    ifs.read((char*)ii, sizeof(int) * 3);
-                    _faces[i] = Triplet(ii[0], ii[1], ii[2]);
-                    if (vs > 3) {
-                        printf("[WARNING] mesh contains non-triangle polygon (%d vertices) !!\n", (int)vs);
-                        exit(1);
-                        ifs.seekg(sizeof(int) * (vs - 3), std::ios_base::cur);
-                    }
-                }
-                break;
-            }
-        }
-        ifs.close();
-
-        // Compute vertex normals
-        calcVertexNormals();
-    }
-
-    void Trimesh::loadObj(const std::string& filename) {
-        std::ifstream ifs(filename.c_str(), std::ios::in);
-        Assertion(ifs.is_open(), "Failed to open mesh file");
-
-        std::stringstream ss;
-        std::string line;
-        _vertices.clear();
-        _faces.clear();
-        while (!ifs.eof()) {
-            std::getline(ifs, line);
-
-            // Check first character
-            auto it = line.begin();
-            while (*it == ' ') ++it;
-            if (*it == '#' || it == line.end()) continue;
-
-            ss.clear();
-            ss << line;
-
-            std::string typ;
-            ss >> typ;
-
-            if (typ == "v") {               
-                double x, y, z;
-                ss >> x >> y >> z;
-                _vertices.emplace_back(Vector3D(x, y, z));
-            } else if (typ == "f") {
-                int v0, v1, v2;
-                ss >> v0 >> v1 >> v2;
-                _faces.push_back(Triplet(v0 - 1, v1 - 1, v2 - 1));
-            } else {
-                char msg[256];
-                sprintf(msg, "Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
-                Assertion(false, msg);
-            }
-        }
-        ifs.close();
-
-        // Compute vertex normals
+        meshio->load(filename, this);
         calcVertexNormals();
     }
 
@@ -350,14 +227,29 @@ namespace spica {
         return _vertices[id].pos();
     }
 
+    void Trimesh::setVertex(int id, const Vector3D& v) {
+        Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds!!");
+        _vertices[id].setPosition(v);
+    }
+
     const VertexData& Trimesh::getVertexData(int id) const {
         Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _vertices[id];    
     }
 
+    void Trimesh::setFace(int id, const Triplet& face) {
+        Assertion(id >= 0 && id < _faces.size(), "Face index out of bounds!!");
+        _faces[id] = face;
+    }
+
     const Vector2D& Trimesh::getTexcoord(int id) const {
         Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _vertices[id].texcoord();
+    }
+
+    void Trimesh::setTexcoord(int id, const Vector2D& texcoord) {
+        Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds!!");
+        return _vertices[id].setTexcoord(texcoord);
     }
 
     void Trimesh::setColor(int id, const Color& color) {
@@ -381,6 +273,10 @@ namespace spica {
         const Vector3D& p1 = _vertices[_faces[id][1]].pos();
         const Vector3D& p2 = _vertices[_faces[id][2]].pos();
         return Triangle(p0, p1, p2);
+    }
+
+    void Trimesh::setTexture(const Image& image) {
+        _texture = std::make_shared<Image>(image);
     }
 
 }  // namesapce spica

@@ -98,6 +98,10 @@ namespace spica {
          */
         void load(const std::string& filename);
 
+        /** Resize vertex and face arrays.
+         */
+        void resize(int numVerts, int numFaces);
+
         /** Translate the mesh.
          * @param[in] move: Transtion delta.
          */
@@ -139,9 +143,15 @@ namespace spica {
          */
         const Vector3D& getVertex(int vertexID) const;
 
+        void setVertex(int vertexID, const Vector3D& v);
+
         const VertexData& getVertexData(int vertexID) const;
 
+        void setFace(int faceID, const Triplet& face);
+
         const Vector2D& getTexcoord(int vertexID) const;
+
+        void setTexcoord(int vertexID, const Vector2D& texcoord);
 
         /** Set color to the specified vertex.
          *  @param[in] vertexID: ID of the vertex.
@@ -164,16 +174,17 @@ namespace spica {
 
         /** Get the number of faces (triangles).
          */
-        inline size_t numFaces() const { return _faces.size(); }
+        inline decltype(auto) numFaces() const { return _faces.size(); }
+
+        /** Set texture image.
+         */
+        void setTexture(const Image& image);
 
         /** Trimesh has texture or not.
          */
         inline bool isTextured() const { return static_cast<bool>(_texture); } 
 
     private:
-        void loadPly(const std::string& filename);
-        void loadObj(const std::string& filename);
-
         /** Compute vertex normals.
          */
         void calcVertexNormals();

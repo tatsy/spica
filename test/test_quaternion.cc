@@ -80,7 +80,6 @@ TEST_F(QuaternionTest, SimpleRotation) {
     Vector3D v(1.0, 0.0, 0.0);
     Vector3D axis(0.0, 1.0, 0.0);
     Quaternion r    = Quaternion::rotation(axis,  PI * 0.5);
-    std::cout << r << std::endl;
     Vector3D u = (r * Quaternion(v) * r.inverse()).toVector3D();
 
     EXPECT_NEAR( 0.0, u.x(), EPS);

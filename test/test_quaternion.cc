@@ -83,9 +83,9 @@ TEST_F(QuaternionTest, SimpleRotation) {
     std::cout << r << std::endl;
     Vector3D u = (r * Quaternion(v) * r.inverse()).toVector3D();
 
-    EXPECT_DOUBLE_EQ( 0.0, u.x());
-    EXPECT_DOUBLE_EQ( 0.0, u.y());
-    EXPECT_DOUBLE_EQ(-1.0, u.z());
+    EXPECT_NEAR( 0.0, u.x(), EPS);
+    EXPECT_NEAR( 0.0, u.y(), EPS);
+    EXPECT_NEAR(-1.0, u.z(), EPS);
 }
 
 std::vector<Quaternion> quats = {

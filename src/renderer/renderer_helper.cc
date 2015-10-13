@@ -84,10 +84,9 @@ namespace spica {
             const double randnums[3] = { rands.pop(), rands.pop(), rands.pop() };
 
             // Get intersecting material
-            const int objectID     = isect.objectId();
+            const int objectID     = isect.objectID();
             const BSDF& bsdf       = scene.getBsdf(objectID);
             const Color& refl      = bsdf.reflectance();
-            const Hitpoint& hpoint = isect.hitpoint();
 
             // Russian roulette
             double roulette = max3(refl.red(), refl.green(), refl.blue());
@@ -102,10 +101,10 @@ namespace spica {
             // Sample next direction
             double pdf = 1.0;
             Vector3D nextdir;
-            bsdf.sample(ray.direction(), hpoint.normal(), 
+            bsdf.sample(ray.direction(), isect.normal(), 
                         randnums[1], randnums[2], &nextdir, &pdf);
             
-            Ray nextray(hpoint.position(), nextdir);
+            Ray nextray(isect.position(), nextdir);
             const Color nextrad = radiance(scene, params, nextray,
                                            rands, bounces + 1);
             
@@ -136,7 +135,7 @@ namespace spica {
                     const double G = dot0 * dot1 / dist2;
                     Intersection isect;
                     if (scene.intersect(Ray(pos, light_dir), &isect)) {
-                        if ((isect.hitpoint().position() - ls.position()).norm() < EPS) {
+                        if ((isect.position() - ls.position()).norm() < EPS) {
                             return Color(ls.Le() * (INV_PI * G * scene.lightArea()));
                         }
                     }
@@ -148,7 +147,7 @@ namespace spica {
                 const Ray refRay(pos, nextdir);
 
                 Intersection isect;
-                if (scene.intersect(refRay, &isect) && scene.isLightCheck(isect.objectId())) {
+                if (scene.intersect(refRay, &isect) && scene.isLightCheck(isect.objectID())) {
                     return scene.directLight(nextdir) / pdf;
                 }
             }

@@ -14,9 +14,9 @@ namespace spica {
 
     template <class T>
     Vector3_<T, is_arith_t<T> >::Vector3_()
-        : _x{0}
-        , _y{0}
-        , _z{0} {
+        : _x{T{0}}
+        , _y{T{0}}
+        , _z{T{0}} {
     }
 
     template <class T>

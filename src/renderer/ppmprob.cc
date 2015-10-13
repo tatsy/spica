@@ -161,13 +161,13 @@ namespace spica {
         const double rands[3] = { rseq.pop(), rseq.pop(), rseq.pop() };
 
         // Intersected object
-        const int objID = isect.objectId();
+        const int objID = isect.objectID();
         const BSDF& bsdf = scene.getBsdf(objID);
-        const Hitpoint hpoint = isect.hitpoint();
+
         const Color emission = scene.isLightCheck(objID) ? scene.directLight(ray.direction()) : Color::BLACK;
-        const bool into = Vector3D::dot(ray.direction(), hpoint.normal()) < 0.0;
-        const Vector3D orientNormal = into ?  hpoint.normal() 
-                                           : -hpoint.normal();
+        const bool into = Vector3D::dot(ray.direction(), isect.normal()) < 0.0;
+        const Vector3D orientNormal = into ?  isect.normal() 
+                                           : -isect.normal();
 
         // Russian roulette
         const Color& refl = bsdf.reflectance();
@@ -187,8 +187,8 @@ namespace spica {
         // Account for BSSRDF
         Color nextRad(0.0, 0.0, 0.0);
         if (bsdf.type() & BsdfType::Lambertian) {
-            nextRad = photonMap.evaluate(hpoint.position(),
-                                         hpoint.normal(),
+            nextRad = photonMap.evaluate(isect.position(),
+                                         isect.normal(),
                                          params.gatherPhotons(),
                                          globalRadius);
         } else {
@@ -196,16 +196,16 @@ namespace spica {
                 Assertion(_integrator != NULL,
                           "Subsurface intergrator is NULL !!");
                 bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
-                                              hpoint.position(),
-                                              hpoint.normal(),
+                                              isect.position(),
+                                              isect.normal(),
                                               rands[1], rands[2],
                                               *_integrator,
                                               &nextdir, &pdf);
             } else {
-                bsdf.sample(ray.direction(), hpoint.normal(), 
+                bsdf.sample(ray.direction(), isect.normal(), 
                             rands[1], rands[2], &nextdir, &pdf);
             }
-            const Ray nextRay(hpoint.position(), nextdir);
+            const Ray nextRay(isect.position(), nextdir);
             nextRad = radiance(scene, params, nextRay, rseq, bounces + 1);
         }
 

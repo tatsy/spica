@@ -313,27 +313,26 @@ namespace spica {
             return;
         }
 
-        const int       objectID = isect.objectId();
+        const int       objectID = isect.objectID();
         const BSDF&     bsdf = scene.getBsdf(objectID);
         const Color&    refl = bsdf.reflectance();
-        const Hitpoint& hpoint = isect.hitpoint();
-        const bool into = Vector3D::dot(hpoint.normal(), ray.direction()) < 0.0;
-        const Vector3D orientNormal = into ? hpoint.normal()
-                                            : -hpoint.normal();
+        const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
+        const Vector3D orientNormal = into ?  isect.normal()
+                                           : -isect.normal();
 
         double photonPdf = 1.0;
         if (bsdf.type() & BsdfType::Lambertian) {
             // Gather hit points
             std::vector<SPPMPixel*> results;
             omplock{
-                results = hashgrid[hpoint.position()];
+                results = hashgrid[isect.position()];
             }
 
             // Update hit points
             for (int i = 0; i < results.size(); i++) {
                 SPPMPixel* pixel = results[i];
-                Vector3D v = pixel->position - hpoint.position();
-                if (Vector3D::dot(pixel->normal, hpoint.normal()) > EPS &&
+                Vector3D v = pixel->position - isect.position();
+                if (Vector3D::dot(pixel->normal, isect.normal()) > EPS &&
                     (v.squaredNorm() <= pixel->r2)) {
                     const double g = (pixel->n * kAlpha + kAlpha) / 
                                      (pixel->n * kAlpha + 1.0);
@@ -359,9 +358,9 @@ namespace spica {
         double samplePdf = 1.0;
         Vector3D nextdir;
 
-        bsdf.sample(ray.direction(), hpoint.normal(),
+        bsdf.sample(ray.direction(), isect.normal(),
                     rands[1], rands[2], &nextdir, &samplePdf);
-        const Ray nextRay(hpoint.position(), nextdir);
+        const Ray nextRay(isect.position(), nextdir);
         const Color nextFlux = Color(flux * refl / (photonPdf * samplePdf));
 
         tracePhotonsRec(scene, nextRay, params, nextFlux, bounces + 1, rstk);
@@ -393,19 +392,18 @@ namespace spica {
                 break;
             }
 
-            const int       objectID = isect.objectId();
-            const Hitpoint& hpoint   = isect.hitpoint();
+            const int       objectID = isect.objectID();
             const BSDF&     bsdf     = scene.getBsdf(objectID);
             const Color&    emission = scene.isLightCheck(objectID) ? scene.directLight(ray.direction()) : Color::BLACK;
-            const bool      into     = Vector3D::dot(hpoint.normal(),
+            const bool      into     = Vector3D::dot(isect.normal(),
                                                      ray.direction()) < 0.0;
-            const Vector3D orientNormal = into ?  hpoint.normal()
-                                               : -hpoint.normal();
+            const Vector3D orientNormal = into ?  isect.normal()
+                                               : -isect.normal();
 
             if (bsdf.type() & BsdfType::Lambertian) {
                 // Ray hits diffuse object, return current weight
-                pixel->position = hpoint.position();
-                pixel->normal   = hpoint.normal();
+                pixel->position = isect.position();
+                pixel->normal   = isect.normal();
                 pixel->weight   = weight * bsdf.reflectance();
                 pixel->coeff    = coeff;
                 pixel->emission += throughput + weight * emission;
@@ -414,20 +412,20 @@ namespace spica {
                 double pdf = 1.0;
                 Vector3D nextdir;
                 if (bsdf.type() & BsdfType::Bssrdf) {
-                    Assertion(_integrator != NULL,
+                    Assertion(_integrator != nullptr,
                               "Subsurface integrator is NULL !!");
                     Color bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
-                                                        hpoint.position(),
-                                                        hpoint.normal(),
+                                                        isect.position(),
+                                                        isect.normal(),
                                                         rands[1], rands[2],
                                                         *_integrator,
                                                         &nextdir, &pdf);
                     throughput += weight * bssrdfRad;
                 } else {
-                    bsdf.sample(ray.direction(), hpoint.normal(),
+                    bsdf.sample(ray.direction(), isect.normal(),
                                 rands[1], rands[2], &nextdir, &pdf);
                 }
-                ray = Ray(hpoint.position(), nextdir);
+                ray = Ray(isect.position(), nextdir);
                 weight = weight * bsdf.reflectance() / pdf;
             }
         }

@@ -133,10 +133,9 @@ namespace spica {
         const double randnums[3] = { rstack.pop(), rstack.pop(), rstack.pop() };
 
         // Get intersecting material
-        const int objectID     = isect.objectId();
+        const int objectID     = isect.objectID();
         const BSDF& bsdf       = scene.getBsdf(objectID);
-        const Color& refl      = scene.getReflectance(isect);
-        const Hitpoint& hpoint = isect.hitpoint();
+        const Color& refl      = isect.color();
 
         // Russian roulette
         double roulette = max3(refl.red(), refl.green(), refl.blue());
@@ -158,24 +157,24 @@ namespace spica {
             Assertion(_integrator != NULL,
                       "Subsurface intergrator is NULL !!");
             bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
-                                          hpoint.position(),
-                                          hpoint.normal(),
+                                          isect.position(),
+                                          isect.normal(),
                                           randnums[1], randnums[2],
                                           *_integrator,
                                           &nextdir, &pdf);
         } else {
             // Sample next direction
-            bsdf.sample(ray.direction(), hpoint.normal(), 
+            bsdf.sample(ray.direction(), isect.normal(), 
                         randnums[1], randnums[2], &nextdir, &pdf);
         }
 
         // Compute next bounce
-        const Ray nextray(hpoint.position(), nextdir);
+        const Ray nextray(isect.position(), nextdir);
         const Color nextrad = radiance(scene, params, nextray,
                                        rstack, bounces + 1);            
 
         Color directrad = directSample(scene, objectID, ray.direction(),
-                                       hpoint.position(), hpoint.normal(),
+                                       isect.position(), isect.normal(),
                                        refl, bounces, rstack);
 
         return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
@@ -207,7 +206,7 @@ namespace spica {
                     const double G = dot0 * dot1 / dist2;
                     Intersection isect;
                     if (scene.intersect(Ray(v, lightDir), &isect)) {
-                        if (scene.isLightCheck(isect.objectId())) {
+                        if (scene.isLightCheck(isect.objectID())) {
                             return (refl * ls.Le()) * (INV_PI * G * scene.lightArea()); 
                         }
                     }
@@ -223,7 +222,7 @@ namespace spica {
             
             Intersection isect;
             if (scene.intersect(Ray(v, nextdir), &isect)) {
-                const int objID = isect.objectId();
+                const int objID = isect.objectID();
                 if (scene.isLightCheck(objID)) {
                     return (refl * scene.directLight(nextdir)) / pdf;
                 }

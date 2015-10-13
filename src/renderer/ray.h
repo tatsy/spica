@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef SPICA_RAY_H_
 #define SPICA_RAY_H_
 
@@ -13,14 +17,15 @@
 
 #include "../math/vector2d.h"
 #include "../math/vector3d.h"
+#include "../core/color.h"
 
 namespace spica {
 
     class SPICA_RAY_DLL Ray {
     private:
-        Vector3D _origin;
-        Vector3D _direction;
-        Vector3D _invdir;
+        Vector3D _origin     = { 0.0, 0.0, 0.0 };
+        Vector3D _direction  = { 0.0, 0.0, 0.0 };
+        Vector3D _invdir     = { INFTY, INFTY, INFTY };
 
     public:
         Ray();
@@ -40,10 +45,10 @@ namespace spica {
 
     class SPICA_RAY_DLL Hitpoint {
     private:
-        double _distance;
-        Vector3D _normal;
-        Vector3D _position;
-        Vector2D _texcoord;
+        double   _distance = INFTY;
+        Vector3D _position = { 0.0, 0.0, 0.0 };
+        Vector3D _normal   = { 0.0, 0.0, 0.0 };
+        Vector2D _texcoord = { INFTY, INFTY };
 
     public:
         Hitpoint();
@@ -65,23 +70,27 @@ namespace spica {
 
     class SPICA_RAY_DLL Intersection {
     private:
-        Hitpoint _hitPoint;
-        int _objectId;
+        double   _distance = INFTY;
+        Vector3D _pos      = { 0.0, 0.0, 0.0 };
+        Vector3D _normal   = { 0.0, 0.0, 0.0 };
+        Color    _color    = { 0.0, 0.0, 0.0 };
+        int      _objID    = -1;
 
     public:
         Intersection();
-        Intersection(const Intersection& intersection);
+        Intersection(const Intersection& isect);
+        Intersection(int objectID, const Hitpoint& hp, const Color& color);
         ~Intersection();
 
         Intersection& operator=(const Intersection& intersection);
 
-        double hittingDistance() const;
+        inline double   distance() const { return _distance; }
+        inline Vector3D position() const { return _pos; }
+        inline Vector3D normal()   const { return _normal; }
+        inline Color    color()    const { return _color; }
+        inline int      objectID() const { return _objID; }
 
-        inline int objectId() const { return _objectId; }
-        inline const Hitpoint& hitpoint() const { return _hitPoint; }
-
-        inline void setHitpoint(const Hitpoint& hitpoint) { _hitPoint = hitpoint; }
-        inline void setObjectId(int id) { _objectId = id; }
+        friend class Scene;
     };
 
 }  // namespace spica

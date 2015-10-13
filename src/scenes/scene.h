@@ -72,8 +72,6 @@ namespace spica {
         
         const BSDF& getBsdf(int id) const;
 
-        Color getReflectance(const Intersection& isect) const;
-
         /** Get direct lighting from specified direction
          */
         Color directLight(const Vector3D& dir) const; 

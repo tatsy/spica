@@ -7,8 +7,8 @@ using namespace spica;
 
 TEST(RayTest, DefaultInstanceTest) {
     Ray ray;
-    EXPECT_EQ_VEC(Vector3D(), ray.origin());
-    EXPECT_EQ_VEC(Vector3D(), ray.direction());
+    EXPECT_EQ_VEC(Vector3D{}, ray.origin());
+    EXPECT_EQ_VEC(Vector3D{}, ray.direction());
     EXPECT_EQ_VEC(Vector3D(INFTY, INFTY, INFTY), ray.invdir());
 }
 

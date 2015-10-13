@@ -135,18 +135,6 @@ namespace spica {
             return _bsdfs[_bsdfIds[id]];
         }
 
-        Color getReflectance(const Intersection& isect) const {
-            const int tid = isect.objectId();
-            if (_triangles[tid].isTextured() && _texture.get() != nullptr) {
-                const Vector2D& uv = isect.hitpoint().texcoord();
-                const int tx = static_cast<int>(uv.x() * _texture->width());
-                const int ty = static_cast<int>(uv.y() * _texture->height());
-                return _texture->pixel(tx, ty);
-            } else {
-                return getBsdf(tid).reflectance();
-            }
-        }
-
         Color directLight(const Vector3D& dir) const {
             return _lighting.directLight(dir);
         }
@@ -207,18 +195,25 @@ namespace spica {
             Hitpoint hitpoint;
             const int triID = _accel->intersect(ray, &hitpoint);
 
-            if (triID != -1 && _triangles[triID].isTextured()) {
-                double u = hitpoint.texcoord().x();
-                double v = hitpoint.texcoord().y();
-                const Vector2D t0 = _vertices[_triangles[triID][0]].texcoord();
-                const Vector2D t1 = _vertices[_triangles[triID][1]].texcoord();
-                const Vector2D t2 = _vertices[_triangles[triID][2]].texcoord();
-                hitpoint.setTexcoord(t0 + u * (t1 - t0) + v * (t2 - t0));
+            if (triID != -1) {
+                Color color;
+                if (_triangles[triID].isTextured()) {
+                    double u = hitpoint.texcoord().x();
+                    double v = hitpoint.texcoord().y();
+                    const Vector2D t0 = _vertices[_triangles[triID][0]].texcoord();
+                    const Vector2D t1 = _vertices[_triangles[triID][1]].texcoord();
+                    const Vector2D t2 = _vertices[_triangles[triID][2]].texcoord();
+                    const Vector2D uv = t0 + u * (t1 - t0) + v * (t2 - t0);
+                    const int tx = uv.x() * _texture->width();
+                    const int ty = uv.y() * _texture->height();
+                    color = _texture->pixel(tx, ty);
+                } else {
+                    color = getBsdf(triID).reflectance();
+                }
+                (*isect) = Intersection(triID, hitpoint, color);
+            } else {
+                (*isect) = Intersection();
             }
-
-            isect->setObjectId(triID);
-            isect->setHitpoint(hitpoint);
-
             return triID != -1;
         }
 
@@ -326,10 +321,6 @@ namespace spica {
 
     const BSDF& Scene::getBsdf(int id) const {
         return _impl->getBsdf(id);
-    }
-
-    Color Scene::getReflectance(const Intersection& isect) const {
-        return _impl->getReflectance(isect);
     }
 
     Color Scene::directLight(const Vector3D& dir) const {

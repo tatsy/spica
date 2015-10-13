@@ -96,8 +96,12 @@ namespace spica {
         return std::move(camera);
     }
 
-    std::unique_ptr<ICamera> Camera::ptr() const {
-        return std::move(std::unique_ptr<ICamera>(_ptr->clone()));
+    ICamera* Camera::getPtr() const {
+        return _ptr.get();
+    }
+
+    ICamera* Camera::releasePtr() {
+        return _ptr.release();
     }
 
 }  // namespace spica

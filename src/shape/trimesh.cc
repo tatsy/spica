@@ -189,14 +189,11 @@ namespace spica {
                          const Vector3D& origin) {
         translate(-origin);                
         for (int i = 0; i < _vertices.size(); i++) {
-            Quaternion pos(_vertices[i].pos());
-            Quaternion nrm(_vertices[i].normal());
+            const Vector3D& pos = _vertices[i].pos();
+            const Vector3D& nrm = _vertices[i].normal();
             Quaternion rot = Quaternion::rotation(axis, theta);
-
-            pos = rot * pos * rot.inverse();
-            nrm = rot * nrm * rot.inverse();
-            _vertices[i].setPosition(pos.toVector3D());
-            _vertices[i].setNormal(nrm.toVector3D());
+            _vertices[i].setPosition(rot.applyTo(pos));
+            _vertices[i].setNormal(rot.applyTo(nrm));
         }
         translate(origin);
     }

@@ -20,7 +20,6 @@
 #include "../random/random.h"
 #include "../random/halton.h"
 
-
 namespace spica {
 
     namespace {
@@ -616,7 +615,7 @@ namespace spica {
         const int height = camera.imageH();
 
         // Prepare random samplers
-        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        std::vector<RandomSampler> samplers(kNumThreads);
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
@@ -633,10 +632,7 @@ namespace spica {
             }
         }
         
-        Image* buffer = new Image[kNumThreads];
-        for (int i = 0; i < kNumThreads; i++) {
-            buffer[i] = Image(width, height);
-        }
+        std::vector<Image> buffer(kNumThreads, Image(width, height));
 
         _result.resize(width, height);
 
@@ -648,7 +644,7 @@ namespace spica {
         }
 
         // Rendering
-        DoFCamera* dofCam = reinterpret_cast<DoFCamera*>(camera.ptr().get());
+        DoFCamera* dofCam = reinterpret_cast<DoFCamera*>(camera.getPtr());
         for (int s = 0; s < params.samplePerPixel(); s++) {
             for (int t = 0; t < taskPerThread; t++) {
                 ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
@@ -692,9 +688,6 @@ namespace spica {
             printf("  %6.2f %%  processed -> %s\r", 100.0 * (s + 1) / params.samplePerPixel(), filename);
         }
         printf("\nFinish!!\n");
-
-        delete[] samplers;
-        delete[] buffer;
     }
 
 }  // namespace spica

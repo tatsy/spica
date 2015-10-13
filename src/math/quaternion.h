@@ -44,7 +44,7 @@ namespace spica {
         /** The Quaternion constructor.
          *  @param v: The three-dimensional vector for imaginary parts.
          */
-        Quaternion(const Vector3D& v);
+        explicit Quaternion(const Vector3D& v);
 
         /** The Quaternion constructor (copy).
          */
@@ -67,6 +67,10 @@ namespace spica {
          *  @param theta: Rotation angle by radii
          */
         static Quaternion rotation(const Vector3D& axis, double theta);
+
+        /** Apply transformation of quaternion to the vector.
+         */
+        Vector3D applyTo(const Vector3D& v);
 
         /** Squared norm.
          */

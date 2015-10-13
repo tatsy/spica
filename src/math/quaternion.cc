@@ -61,6 +61,11 @@ namespace spica {
         return { axis.x() * s, axis.y() * s, axis.z() * s, c };
     }
 
+    Vector3D Quaternion::applyTo(const Vector3D& v) {
+        Quaternion q{v};
+        return ((*this) * q * (this->inverse())).toVector3D();
+    }
+
     double Quaternion::squaredNorm() const {
         return _x * _x + _y * _y + _z * _z + _w * _w;
     }

@@ -13,6 +13,8 @@
 #include "../core/triplet.h"
 #include "../core/image.h"
 
+#include "../math/quaternion.h"
+
 #include "../scenes/vertex_data.h"
 #include "../accel/accel.h"
 
@@ -181,6 +183,22 @@ namespace spica {
 
     void Trimesh::scale(const double scaleAll) {
         scale(scaleAll, scaleAll, scaleAll);
+    }
+
+    void Trimesh::rotate(double theta, const Vector3D& axis,
+                         const Vector3D& origin) {
+        translate(-origin);                
+        for (int i = 0; i < _vertices.size(); i++) {
+            Quaternion pos(_vertices[i].pos());
+            Quaternion nrm(_vertices[i].normal());
+            Quaternion rot = Quaternion::rotation(axis, theta);
+
+            pos = rot * pos * rot.inverse();
+            nrm = rot * nrm * rot.inverse();
+            _vertices[i].setPosition(pos.toVector3D());
+            _vertices[i].setNormal(nrm.toVector3D());
+        }
+        translate(origin);
     }
 
     void Trimesh::putOnPlane(const Plane& plane) {

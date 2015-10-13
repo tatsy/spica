@@ -62,12 +62,12 @@ namespace spica {
         Vector3_& operator*=(double s);
 
         /** Element-wise division
-         * @param v multiplied vector
+         *  @param v multiplied vector
          */
         Vector3_& operator/=(const Vector3_& v);
 
         /** Scalar multiplication
-         * @param s multiplied scalar
+         *  @param s multiplied scalar
          */
         Vector3_& operator/=(double s);
 
@@ -92,9 +92,9 @@ namespace spica {
         static Vector3_ maximum(const Vector3_& v1, const Vector3_& v2);
 
         /** Compute reflection vector of v w.r.t n
-         * @param v incident direction
-         * @param n normal of hitpoint
-         * @return reflected direction
+         *  @param v incident direction
+         *  @param n normal of hitpoint
+         *  @return reflected direction
          */
         static Vector3_ reflect(const Vector3_& v, const Vector3_& n);
 

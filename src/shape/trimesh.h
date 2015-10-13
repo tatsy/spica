@@ -119,6 +119,14 @@ namespace spica {
          */
         void scale(const double scaleAll);
 
+        /** Rotate the mesh along specified axis.
+         *  @param theta: Rotation angle by radian.
+         *  @param axis: Rotation axis.
+         *  @param origin: Origin of the axis.
+         */
+        void rotate(double theta, const Vector3D& axis,
+                    const Vector3D& origin = Vector3D(0.0, 0.0, 0.0));
+
         /** Put the mesh on the specified plane.
          *  @param[in] plane: a plane on which the mesh is put.
          */
@@ -143,14 +151,24 @@ namespace spica {
          */
         const Vector3D& getVertex(int vertexID) const;
 
+        /** Assign a vertex position to the specified ID.
+         */
         void setVertex(int vertexID, const Vector3D& v);
 
+        /** Get the vertex with specified ID.
+         */
         const VertexData& getVertexData(int vertexID) const;
 
+        /** Assign a face indices to the specified ID.
+         */
         void setFace(int faceID, const Triplet& face);
 
+        /** Get the texture coordinates with specified ID.
+         */
         const Vector2D& getTexcoord(int vertexID) const;
 
+        /** Assign a texture coordinates to the specified ID.
+         */
         void setTexcoord(int vertexID, const Vector2D& texcoord);
 
         /** Set color to the specified vertex.

@@ -27,9 +27,19 @@ namespace spica {
      */
     class SPICA_PT_RENDERER_DLL PathRenderer : public IRenderer {
     public:
+        /** The path tracing renderer constructor.
+         */
         PathRenderer();
+
+        /** The path tracing renderer destructor.
+         */
         ~PathRenderer();
 
+        /** Rendering process.
+         *  @param scene: The redering scene.
+         *  @param camera: The camera for the scene.
+         *  @param params: The rendering parameters.
+         */
         void render(const Scene& scene, const Camera& camera,
                     const RenderParameters& params) override;
 

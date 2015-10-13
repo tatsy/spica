@@ -23,16 +23,14 @@
 namespace spica {
 
     PathRenderer::PathRenderer()
-        : IRenderer()
-    {
+        : IRenderer{} {
     }
 
-    PathRenderer::~PathRenderer()
-    {
+    PathRenderer::~PathRenderer() {
     }
 
     void PathRenderer::render(const Scene& scene, const Camera& camera,
-                                     const RenderParameters& params) {
+                              const RenderParameters& params) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
 
@@ -40,15 +38,15 @@ namespace spica {
         _integrator->initialize(scene);
 
         // Prepare random number generators
-        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        auto samplers = std::vector<RandomSampler>(kNumThreads);
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
-                samplers[i] = Random::factory(i);
+                samplers[i] = RandomSampler::useMersenne((unsigned int)time(0) + i);
                 break;
 
             case QUASI_MONTE_CARLO:
-                samplers[i] = Halton::factory(200, true, i);
+                samplers[i] = RandomSampler::useHalton(200, true, (unsigned int)time(0) + i);
                 break;
 
             default:
@@ -106,8 +104,6 @@ namespace spica {
                     100.0 * (i + 1) / params.samplePerPixel(), filename);
         }
         printf("\nFinish!!\n");
-
-        delete[] samplers;
     }
 
     Color PathRenderer::tracePath(const Scene& scene, const Camera& camera, 
@@ -176,7 +172,7 @@ namespace spica {
         // Compute next bounce
         const Ray nextray(hpoint.position(), nextdir);
         const Color nextrad = radiance(scene, params, nextray,
-                                        rstack, bounces + 1);            
+                                       rstack, bounces + 1);            
 
         Color directrad = directSample(scene, objectID, ray.direction(),
                                        hpoint.position(), hpoint.normal(),
@@ -195,6 +191,7 @@ namespace spica {
         const BSDF&  bsdf = scene.getBsdf(triID);
 
         if (bsdf.type() & BsdfType::Scatter) {
+            // Scattering surface
             if (!scene.isLightCheck(triID)) {
                 const LightSample ls = scene.sampleLight(rstk);
                 double pdf;
@@ -228,7 +225,7 @@ namespace spica {
             if (scene.intersect(Ray(v, nextdir), &isect)) {
                 const int objID = isect.objectId();
                 if (scene.isLightCheck(objID)) {
-                    return (refl * scene.directLight(in)) / pdf;
+                    return (refl * scene.directLight(nextdir)) / pdf;
                 }
             }
         } else {

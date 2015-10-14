@@ -125,22 +125,22 @@ namespace spica {
         const bool isTotalReflectance = helper::checkTotalReflection(into, in, normal, orientingNormal, &reflectdir, &transmitdir, &fresnelRe, &fresnelTr);
     
         if (isTotalReflectance) {
-            *out = reflectdir;
-            *pdf = 1.0;
+            (*out) = reflectdir;
+            (*pdf) = 1.0;
         } else {
-            const double probability = 0.25 + 0.5 * kReflectProbability;
+            const double probability = 0.25 + 0.5 * fresnelRe;
             if (rand1 < probability) {
-                *pdf = probability / fresnelRe;
-                *out = reflectdir;
+                (*pdf) = probability / fresnelRe;
+                (*out) = reflectdir;
             } else {
-                *pdf = (1.0 - probability) / fresnelTr;
-                *out = transmitdir;
+                (*pdf) = (1.0 - probability) / fresnelTr;
+                (*out) = transmitdir;
             }
         }
     }
 
     BSDF RefractiveBSDF::factory(const Color& reflectance) {
-        return std::move(BSDF(new RefractiveBSDF(reflectance), BsdfType::Reflactive));
+        return std::move(BSDF(new RefractiveBSDF(reflectance), BsdfType::Refractive));
     }
 
     BSDFBase* RefractiveBSDF::clone() const {

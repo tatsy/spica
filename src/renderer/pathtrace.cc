@@ -101,7 +101,7 @@ namespace spica {
             _result.save(filename);
 
             printf("%6.2f %%  processed -> %s\r",
-                    100.0 * (i + 1) / params.samplePerPixel(), filename);
+                   100.0 * (i + 1) / params.samplePerPixel(), filename);
         }
         printf("\nFinish!!\n");
     }
@@ -154,7 +154,7 @@ namespace spica {
 
         // Account for BSSRDF
         if (bsdf.type() & BsdfType::Bssrdf) {
-            Assertion(_integrator != NULL,
+            Assertion(_integrator != nullptr,
                       "Subsurface intergrator is NULL !!");
             bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
                                           isect.position(),
@@ -185,7 +185,7 @@ namespace spica {
                                      const Vector3D& n, const Color& refl, 
                                      int bounces, Stack<double>& rstk) const {
         // Acquire random numbers
-        const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
+        const double rands[2] = { rstk.pop(), rstk.pop() };
 
         const BSDF&  bsdf = scene.getBsdf(triID);
 
@@ -220,17 +220,25 @@ namespace spica {
             Vector3D nextdir;
             bsdf.sample(in, n, rands[0], rands[1], &nextdir, &pdf);
             
+            Vector3D on = in.dot(n) < 0.0 ? n : -n;
+
             Intersection isect;
             if (scene.intersect(Ray(v, nextdir), &isect)) {
-                const int objID = isect.objectID();
-                if (scene.isLightCheck(objID)) {
+                if (scene.isLightCheck(isect.objectID())) {
+                    if (bsdf.type() == BsdfType::Refractive) {
+                        if(on.dot(nextdir) < 0.0) {
+                            // printf("pdf = %f\n", pdf);   
+                            // return {};
+                        } else {
+                            // printf("pdf = %f\n", pdf);                            
+                        }
+                    }
                     return (refl * scene.directLight(nextdir)) / pdf;
                 }
             }
         } else {
-            std::cerr << "Invalid BSDF detected: this is "
-                         "neigher scattering nor dielectric!!" << std::endl;
-            std::abort();
+            SpicaError("Invalid BSDF detected: this is "
+                       "neigher scattering nor dielectric!!");
         }
         return Color(0.0, 0.0, 0.0);
     }

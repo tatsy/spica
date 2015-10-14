@@ -46,9 +46,9 @@ namespace spica {
         scene->addShape(Sphere(Vector3D( 0.0, -7.0,  0.0), 3.0),
                         LambertianBRDF::factory(Color(0.25, 0.75, 0.25)));
         scene->addShape(Sphere(Vector3D(-5.0, -7.0, -5.0), 3.0),
-                        SpecularBRDF::factory(Color(0.99, 0.99, 0.99)));
+                        SpecularBRDF::factory(Color(0.999, 0.999, 0.999)));
         scene->addShape(Sphere(Vector3D( 5.0, -7.0,  5.0), 3.0),
-                        RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));
+                        RefractiveBSDF::factory(Color(0.999, 0.999, 0.999)));
 
         Trimesh texcube(kDataDirectory + "tex_cube.obj");
         texcube.rotate(PI / 2.0, Vector3D(0.0, 1.0, 0.0));

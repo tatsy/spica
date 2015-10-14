@@ -136,7 +136,7 @@ namespace spica {
                 return 0.0;
             } else if (fromVert.objtype == ObjectType::Dielectric) {
                 const BSDF& bsdf = scene.getBsdf(fromVert.objectID);
-                if (bsdf.type() == BsdfType::Reflactive) {
+                if (bsdf.type() == BsdfType::Refractive) {
                     if (prevFromVertex != nullptr) {
                         const Vector3D intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalized();
                         const bool isIncoming = intoFromVertexDir.dot(fromVert.objectNormal) < 0.0;
@@ -320,7 +320,7 @@ namespace spica {
                     const Vector3D nextDir = Vector3D::reflect(currentRay.direction(), isect.normal());
                     currentRay = Ray(isect.position(), nextDir);
                     throughput = isect.color() * throughput / (toNextVertex.normalized().dot(orientNormal));
-                } else if (bsdf.type() == BsdfType::Reflactive) {
+                } else if (bsdf.type() == BsdfType::Refractive) {
                     const bool isIncoming = isect.normal().dot(orientNormal) > 0.0;
 
                     Vector3D reflectdir, transdir;
@@ -435,7 +435,7 @@ namespace spica {
                     nowRay = Ray(isect.position(), nextDir);
                     throughput = refl * throughput / (toNextVertex.normalized().dot(orientNormal));
 
-                } else if (bsdf.type() == BsdfType::Reflactive) {
+                } else if (bsdf.type() == BsdfType::Refractive) {
                     const bool isIncoming = isect.normal().dot(orientNormal) > 0.0;
 
                     Vector3D reflectdir, transdir;

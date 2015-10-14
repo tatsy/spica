@@ -32,45 +32,46 @@ namespace spica {
             *v = w.cross(*u);
         }
 
-        bool checkTotalReflection(const bool isIncoming,
+        bool checkTotalReflection(const bool into,
                                   const Vector3D& in,
-                                  const Vector3D& normal,
-                                  const Vector3D& orientNormal,
+                                  const Vector3D& n,
+                                  const Vector3D& on,
                                   Vector3D* reflectDir,
-                                  Vector3D* refractDir,
-                                  double* fresnelRef,
-                                  double* fresnelTransmit) {
+                                  Vector3D* transmitDir,
+                                  double* fresnelRe,
+                                  double* fresnelTr) {
 
-            *reflectDir = Vector3D::reflect(in, normal);
+            *reflectDir = Vector3D::reflect(in, n).normalized();
 
             // Snell's rule
-            const double nnt = isIncoming ? kIorVaccum / kIorObject : kIorObject / kIorVaccum;
-            const double ddn = in.dot(orientNormal);
+            const double nnt = into ? kIorVaccum / kIorObject 
+                                    : kIorObject / kIorVaccum;
+            const double ddn = in.dot(on);
             const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
             if (cos2t < 0.0) {
                 // Total reflect
-                *refractDir = Vector3D(0.0, 0.0, 0.0);
-                *fresnelRef = 1.0;
-                *fresnelTransmit = 0.0;
+                *transmitDir = { 0.0, 0.0, 0.0 };
+                *fresnelRe   = 1.0;
+                *fresnelTr   = 0.0;
                 return true;
             }
 
-            *refractDir = (in * nnt - normal * (isIncoming ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
+            *transmitDir = (in * nnt - n * (into ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
 
             const double a = kIorObject - kIorVaccum;
             const double b = kIorObject + kIorVaccum;
             const double R0 = (a * a) / (b * b);
 
-            const double c = 1.0 - (isIncoming ? -ddn : Vector3D::dot(*refractDir, -orientNormal));
-            *fresnelRef = R0 + (1.0 - R0) * (c * c * c * c * c);
-            *fresnelTransmit = 1.0 - (*fresnelRef);
+            const double c = 1.0 - (into ? -ddn : Vector3D::dot(*transmitDir, n));
+            *fresnelRe = R0 + (1.0 - R0) * (c * c * c * c * c);
+            *fresnelTr = (1.0 - (*fresnelRe)) * (nnt * nnt);
 
             return false;
         }
 
         Color radiance(const Scene& scene, const RenderParameters& params,
-                       const Ray& ray, Stack<double>& rands, const int bounces) {
+                       const Ray& ray, Stack<double>& rands, int bounces) {
             if (bounces >= params.bounceLimit()) {
                 return Color::BLACK;
             }

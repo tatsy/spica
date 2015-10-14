@@ -14,9 +14,9 @@ namespace spica {
 
         /** Calculate u and v axes from w, which is the surface normal.
          */
-        void SPICA_EXPORTS calcLocalCoords(const Vector3D& w, Vector3D* u, Vector3D* v);
+        SPICA_EXPORTS void calcLocalCoords(const Vector3D& w, Vector3D* u, Vector3D* v);
 
-        bool SPICA_EXPORTS checkTotalReflection(const bool isIncoming,
+        SPICA_EXPORTS bool checkTotalReflection(const bool isIncoming,
                                                 const Vector3D& in,
                                                 const Vector3D& normal,
                                                 const Vector3D& orientNormal,
@@ -32,10 +32,10 @@ namespace spica {
          *  @param[in] rseq: random number sequence
          *  @param[in] bounces: # of bounces
          */
-        Color SPICA_EXPORTS radiance(const Scene& scene, const RenderParameters& params,
+        SPICA_EXPORTS Color radiance(const Scene& scene, const RenderParameters& params,
                                      const Ray& ray, Stack<double>& rands, int bounces);
 
-        Color SPICA_EXPORTS directLight(const Scene& scene,
+        SPICA_EXPORTS Color directLight(const Scene& scene,
                                         const Vector3D& pos,
                                         const Vector3D& in,
                                         const Vector3D& normal, 

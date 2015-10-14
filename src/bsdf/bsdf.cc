@@ -81,7 +81,7 @@ namespace spica {
         Color transRad(0.0, 0.0, 0.0);
 
         // Reflactive object should be considered differently
-        if (_type & BsdfType::Reflactive) {
+        if (_type & BsdfType::Refractive) {
             const bool into = in.dot(normal) < 0.0;
             const Vector3D orientN = into ? normal : -normal;
             Vector3D refdir, transdir;

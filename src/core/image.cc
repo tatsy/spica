@@ -479,7 +479,7 @@ namespace spica {
         sprintf(buffer, "EXPOSURE=1.0000000000000%c%c", ret, ret);
         ofs.write(buffer, strlen(buffer));
 
-        sprintf(buffer, "-Y %ld +X %ld%c", _height, _width, ret);
+        sprintf(buffer, "-Y %u +X %u%c", _height, _width, ret);
         ofs.write(buffer, strlen(buffer));
 
         std::vector<unsigned char> pixbuf;

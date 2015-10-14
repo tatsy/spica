@@ -34,7 +34,7 @@ namespace spica {
         Lambertian  = 0x0001 | Scatter,  /**< Lambertian reflection */     
         Specular    = 0x0002 | Dielectric,  /**< Specular reflection */
         PhongBrdf   = 0x0004 | Scatter,  /**< Phong's BRDF */
-        Reflactive  = 0x0008 | Dielectric,  /**< Refractive object */
+        Refractive  = 0x0008 | Dielectric,  /**< Refractive object */
     };
 
     inline BsdfType operator|(BsdfType t1, BsdfType t2) {

@@ -50,7 +50,7 @@ namespace spica {
         scene->addShape(Sphere(Vector3D( 5.0, -7.0,  5.0), 3.0),
                         RefractiveBSDF::factory(Color(0.99, 0.99, 0.99)));
 
-        Trimesh texcube(kDataDirectory + "tex_cube.ply");
+        Trimesh texcube(kDataDirectory + "tex_cube.obj");
         texcube.rotate(PI / 2.0, Vector3D(0.0, 1.0, 0.0));
         texcube.fitToBBox(BBox(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0));
         texcube.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));

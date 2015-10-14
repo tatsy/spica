@@ -39,10 +39,19 @@ namespace spica {
         explicit Trimesh(const std::string& filename);
 
         /** Constructor.
-         *  @param vertices: vertices to form trimesh
-         *  @param faceIDs: face IDs (stating from 0)
+         *  @param vertices: Vertices to form trimesh
+         *  @param faceIDs: Face IDs (stating from 0)
          */
         Trimesh(const std::vector<Vector3D>& vertices,
+                const std::vector<Triplet>& faceIDs);
+
+        /** Constructor.
+         *  @param vertices: Vertices to form trimesh
+         *  @param texcoords: Texture coordinates.
+         *  @param faceIDs: Face IDs (stating from 0)
+         */
+        Trimesh(const std::vector<Vector3D>& vertices,
+                const std::vector<Vector2D>& texcoords,
                 const std::vector<Triplet>& faceIDs);
 
         /** The Trimesh constructor (copy).

@@ -41,7 +41,8 @@ namespace spica {
         load(filename);
     }
 
-    Trimesh::Trimesh(const std::vector<Vector3D>& vertices, const std::vector<Triplet>& faceIDs) 
+    Trimesh::Trimesh(const std::vector<Vector3D>& vertices,
+                     const std::vector<Triplet>& faceIDs) 
         : Trimesh{} {
 
         // Copy faces
@@ -56,6 +57,20 @@ namespace spica {
 
         // Compute vertex normals
         calcVertexNormals();
+    }
+
+    Trimesh::Trimesh(const std::vector<Vector3D>& vertices,
+                     const std::vector<Vector2D>& texcoords,
+                     const std::vector<Triplet>& faceIDs)
+        : Trimesh{vertices, faceIDs} {
+
+        if (!texcoords.empty()) {
+            Assertion(vertices.size() == texcoords.size(),
+                      "Vertex and texcoord counts are not the same!!");
+            for (int i = 0; i < texcoords.size(); i++) {
+                _vertices[i].setTexcoord(texcoords[i]);        
+            }
+        }
     }
 
     Trimesh::Trimesh(const Trimesh& trimesh)
@@ -80,10 +95,10 @@ namespace spica {
     }
 
     Trimesh& Trimesh::operator=(Trimesh&& trimesh) {
-        _vertices   = std::move(trimesh._vertices);
-        _faces      = std::move(trimesh._faces);
-        _accel      = trimesh._accel;
-        _texture    = trimesh._texture;
+        _vertices = std::move(trimesh._vertices);
+        _faces    = std::move(trimesh._faces);
+        _accel    = trimesh._accel;
+        _texture  = trimesh._texture;
         return *this;    
     }
 
@@ -134,9 +149,9 @@ namespace spica {
         std::vector<int> faceCount(numVerts, 0);
         std::vector<Vector3D> normals(numVerts, Vector3D(0.0, 0.0, 0.0));
         for (int i = 0; i < numFaces; i++) {
-            const Vector3D v0 = _vertices[_faces[i][0]].pos();
-            const Vector3D v1 = _vertices[_faces[i][1]].pos();
-            const Vector3D v2 = _vertices[_faces[i][2]].pos();
+            const Vector3D v0  = _vertices[_faces[i][0]].pos();
+            const Vector3D v1  = _vertices[_faces[i][1]].pos();
+            const Vector3D v2  = _vertices[_faces[i][2]].pos();
             const Vector3D nrm = Triangle(v0, v1, v2).normal();
             for (int k = 0; k < 3; k++) {
                 normals[_faces[i][k]] += nrm;

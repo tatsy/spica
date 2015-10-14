@@ -131,7 +131,10 @@ namespace spica {
 
         std::vector<Vector3D> vertices;
         std::vector<Vector2D> texcoords;
-        std::vector<Triplet>  faces;
+        std::vector<Triplet>  vertIDs;
+        std::vector<Triplet>  texIDs;
+        bool hasTexture = false;
+        Image texture;
         while (!ifs.eof()) {
             std::getline(ifs, line);
 
@@ -147,7 +150,14 @@ namespace spica {
             std::string typ;
             ss >> typ;
 
-            if (typ[0] == 'v') {
+            if (typ == "mtllib") {
+                // Load material file
+                std::string mtlfile;
+                std::string dir = path::getDirectory(filename);
+                ss >> mtlfile;
+                texture = getTexture(dir + mtlfile);
+                hasTexture = true;
+            } else if (typ[0] == 'v') {
                 if (typ.size() == 1) {
                     double x, y, z;
                     ss >> x >> y >> z;
@@ -162,9 +172,25 @@ namespace spica {
                     SpicaError("Unexpected character detected!!");
                 }
             } else if (typ[0] == 'f') {
-                int v0, v1, v2;
-                ss >> v0 >> v1 >> v2;
-                faces.emplace_back(v0 - 1, v1 - 1, v2 - 1);
+                if (!hasTexture) {
+                    int v0, v1, v2;
+                    ss >> v0 >> v1 >> v2;
+                    vertIDs.emplace_back(v0 - 1, v1 - 1, v2 - 1);
+                } else {
+                    std::string s0, s1, s2;
+                    ss >> s0 >> s1 >> s2;
+                   
+                    int v0, v1, v2;
+                    int t0, t1, t2;
+                    if (sscanf(s0.c_str(), "%d/%d", &v0, &t0) == 2 &&
+                        sscanf(s1.c_str(), "%d/%d", &v1, &t1) == 2 &&
+                        sscanf(s2.c_str(), "%d/%d", &v2, &t2) == 2) {
+                        vertIDs.emplace_back(v0 - 1, v1 - 1, v2 - 1);
+                        texIDs.emplace_back(t0 - 1, t1 - 1, t2 - 1);
+                    } else {
+                        SpicaError("Unsupported face format!!");
+                    }
+                }
             } else {
                 char msg[256];
                 sprintf(msg, "Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
@@ -173,13 +199,44 @@ namespace spica {
         }
         ifs.close();
 
-        (*trimesh) = Trimesh(vertices, faces);
+        if (!hasTexture) {
+            (*trimesh) = Trimesh(vertices, texcoords, vertIDs);
+        } else {
+            trimesh->resize(vertIDs.size() * 3, vertIDs.size());
+            for (int i = 0; i < vertIDs.size(); i++) {
+                for (int k = 0; k < 3; k++) {
+                    trimesh->setVertex(i * 3 + k, vertices[vertIDs[i][k]]);
+                    trimesh->setTexcoord(i * 3 + k, texcoords[texIDs[i][k]]);
+                }
+                trimesh->setFace(i, Triplet(i * 3 + 0, i * 3 + 1, i * 3 + 2));
+            }
+            trimesh->setTexture(texture);
+        }
     }
 
     void OBJMeshIO::save(const std::string& filename,
                          const Trimesh& trimesh) const {
         std::cerr << "[ERROR] not implemented yet" << std::endl;
-        std::abort();    
+        std::abort();
+    }
+
+    Image OBJMeshIO::getTexture(const std::string& filename) {
+        std::ifstream ifs(filename.c_str(), std::ios::in);
+        if (!ifs.is_open()) {
+            SpicaError("Failed to open material file!!");
+        }
+
+        std::string ident;
+        std::string texpath;
+        while (ifs >> ident) {
+            if (ident == "map_Kd") {
+                std::string dir = path::getDirectory(filename);
+                ifs >> texpath;
+                return std::move(Image::fromFile(dir + texpath));
+            }
+        }
+        SpicaError("map_Kd was not detected!!");
+        return Image{};
     }
 
 }  // namespace spica

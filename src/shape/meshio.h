@@ -48,6 +48,9 @@ namespace spica {
         void load(const std::string& filename, Trimesh* trimesh) const override;
         void save(const std::string& filename,
                   const Trimesh& trimesh) const override;
+
+    private:
+        static Image getTexture(const std::string& filename);
     };
 
 }  // namespace spica

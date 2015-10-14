@@ -153,6 +153,8 @@ namespace spica {
     }
 
     Image& Image::operator=(const Image& image) {
+        if (this == &image) return *this;
+
         release();
 
         this->_width = image._width;
@@ -501,7 +503,7 @@ namespace spica {
         sprintf(buffer, "EXPOSURE=1.0000000000000%c%c", ret, ret);
         ofs.write(buffer, strlen(buffer));
 
-        sprintf(buffer, "-Y %d +X %d%c", _height, _width, ret);
+        sprintf(buffer, "-Y %ld +X %ld%c", _height, _width, ret);
         ofs.write(buffer, strlen(buffer));
 
         std::vector<unsigned char> pixbuf;

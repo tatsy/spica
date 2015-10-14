@@ -28,7 +28,7 @@ coverage:
 	docker exec spica-env cat gcovr.xml > gcovr.xml
 
 cppcheck:
-	docker exec spica-env cppcheck --enable=all --xml . 2> cppcheck.xml
+	docker exec spica-env cppcheck --enable=all --xml src 2> cppcheck.xml
 
 cccc:
 	docker exec spica-env cccc src/**/*.cc src/**/*.h; \

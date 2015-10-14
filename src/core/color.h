@@ -11,7 +11,7 @@
     #else
         #define SPICA_COLOR_DLL __declspec(dllimport)
     #endif
-#elif defined(linux) || defined(__linux)
+#else
     #define SPICA_COLOR_DLL
 #endif
 
@@ -21,36 +21,67 @@
 
 namespace spica {
 
+    /** RGB color class.
+     */
     class SPICA_COLOR_DLL Color {
     public:
+        /** Black. */
         static const Color BLACK;
+        /** White. */
         static const Color WHITE;
+        /** Red. */
         static const Color RED;
+        /** Green. */
         static const Color GREEN;
+        /** Blue. */
         static const Color BLUE;
+        /** Cyan. */
         static const Color CYAN;
+        /** Yellow. */
         static const Color YELLOW;
+        /** Magenta. */
         static const Color MAGENTA;
 
     private:
         double _r, _g, _b;
 
     public:
+        /** The Color constructor. */
         Color();
+        /** The Color constructor
+         *  @param red: Red component.
+         *  @param green: Green component.
+         *  @param blue: Blue component.
+         */
         Color(double red, double green, double blue);
+        /** The Color constructor (copy) */
         Color(const Color& color);
+        /** The Color destructor */
         ~Color();
 
-
+        /** Assignment operator */
         Color& operator=(const Color& color);
+        /** Plus operator */
         Color& operator+=(const Color& c);
+        /** Plus operator.
+         *  @details Add the same value x to each color component.
+         */
         Color& operator+=(double x);
+        /** Minus operator. */
         Color& operator-=(const Color& c);
+        /** Minus operator.
+         *  @details Subtract the same value x from each color component   
+         */
         Color& operator-=(double x);
+        /** Component-wise multiplication. */
         Color& operator*=(const Color& c);
+        /** Scalar multiplication. */
         Color& operator*=(double s);
+        /** Component-wise division */
         Color& operator/=(const Color& c);
+        /** Scalar division */
         Color& operator/=(double s);
+        /** Negation operator */
         Color operator-() const;
 
         static Color minimum(const Color& c1, const Color& c2);
@@ -66,10 +97,14 @@ namespace spica {
         double squaredNorm() const;
         double luminance() const;
 
+        /** Red component. */
         inline double red()   const { return _r; }
+        /** Green component */
         inline double green() const { return _g; }
+        /** Blue component */
         inline double blue()  const { return _b; }
-    
+
+        /** Covert to string. */
         std::string toString() const;
     };
 

@@ -77,7 +77,6 @@ namespace spica {
 
                 trimesh->resize(numVerts, numFaces);
 
-                int cnt = 0;
                 float ff[3];
                 float tt[2];
                 for (size_t i = 0; i < numVerts; i++) {
@@ -137,8 +136,9 @@ namespace spica {
 
             // Check first character
             auto it = line.begin();
-            while (*it == ' ') ++it;
-            if (*it == '#' || it == line.end()) continue;
+            while (it != line.end() && *it == ' ') ++it;
+                
+            if(it == line.end() || *it == '#') continue;
 
             ss.clear();
             ss << line;

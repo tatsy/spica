@@ -37,7 +37,7 @@ after_success:
   - docker exec spica-env coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
   ## Deploy GitHub Pages
-  - if [ $TRAVIS_BRANCH = "master" ]; then sh deploy/ghpages.sh; fi
+  - if [ $TRAVIS_BRANCH = "master" ]; then "cd docs; sh deploy/ghpages.sh"; fi
 
 branches:
   only:

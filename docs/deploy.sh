@@ -22,4 +22,4 @@ cd html
 git add --all .
 git checkout -b gh-pages
 git commit -m "Travis build No.$TRAVIS_BUILD_NUMBER commit to GitHub Pages"
-git push --force -- quiet "https://$GH_TOKEN@github.com/tatsy/spica.git" gh-pages:gh-pages
+git push --force --quiet "https://$GH_TOKEN@github.com/tatsy/spica.git" gh-pages:gh-pages

@@ -36,8 +36,23 @@ after_success:
   - docker exec spica-env lcov --list coverage.info
   - docker exec spica-env coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
-  ## Deploy GitHub Pages
-  - if [ $TRAVIS_BRANCH = "master" ]; then "cd docs; sh deploy/ghpages.sh"; fi
+before_deploy:
+  - "cd docs; /bin/bash deploy.sh; cd -"
+  - mkdir packages
+  - tar czvf packages/releases-$TRAVIS_TAG.tar.gz $(ls)
+  - zip -q packages/releases-$TRAVIS_TAG.zip -r $(ls)
+
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: FvLmuzyUsyy8PN3u/RjsZUt4mUsuuAdG4O4FdSogAPFVeu1oathhntC8q4x1Qw7aQ+5Tper0yX7oJxKHjyuh3oCU+eNHMHGcpj1L21QzzEglUtzS/NW2/QhINt1WXB3onCxhcL9lq+NzWMOdCqPAfe/egbNX/ERCTrGZMtoFNgo=
+  file:
+    - packages/releases-$TRAVIS_TAG.tar.gz
+    - packages/releases-$TRAVIS_TAG.zip
+  on:
+    tags: true
+    condition: $CXX=clang++
 
 branches:
   only:

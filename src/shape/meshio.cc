@@ -25,7 +25,7 @@ namespace spica {
 
         if (!ifs.is_open()) {
             std::cerr << "[ERROR] failed to open file \""
-                      << filename << "\"!!" << std::endl;
+                      << filename << "\" !!" << std::endl;
             std::abort();
         }
 
@@ -123,14 +123,15 @@ namespace spica {
     }
 
     void OBJMeshIO::load(const std::string& filename, Trimesh* trimesh) const {
-    std::ifstream ifs(filename.c_str(), std::ios::in);
+        std::ifstream ifs(filename.c_str(), std::ios::in);
         Assertion(ifs.is_open(), "Failed to open mesh file");
 
         std::stringstream ss;
         std::string line;
 
         std::vector<Vector3D> vertices;
-        std::vector<Triplet> faces;
+        std::vector<Vector2D> texcoords;
+        std::vector<Triplet>  faces;
         while (!ifs.eof()) {
             std::getline(ifs, line);
 
@@ -146,11 +147,21 @@ namespace spica {
             std::string typ;
             ss >> typ;
 
-            if (typ == "v") {               
-                double x, y, z;
-                ss >> x >> y >> z;
-                vertices.emplace_back(x, y, z);
-            } else if (typ == "f") {
+            if (typ[0] == 'v') {
+                if (typ.size() == 1) {
+                    double x, y, z;
+                    ss >> x >> y >> z;
+                    vertices.emplace_back(x, y, z);
+                } else if(typ[1] == 't') {
+                    double x, y;
+                    ss >> x >> y;
+                    texcoords.emplace_back(x, y);
+                } else if(typ[1] == 'n') {
+                    // Normal not supported
+                } else {
+                    SpicaError("Unexpected character detected!!");
+                }
+            } else if (typ[0] == 'f') {
                 int v0, v1, v2;
                 ss >> v0 >> v1 >> v2;
                 faces.emplace_back(v0 - 1, v1 - 1, v2 - 1);

@@ -10,7 +10,7 @@ namespace {
     const std::string filepath = kTempDirectory + "test_image.bmp";
     const std::string hdrpath  = kTempDirectory + "test_hdr.hdr";
 
-}
+}  // anonymous namespace
 
 class ImageTest : public ::testing::Test {
 protected:
@@ -48,7 +48,6 @@ TEST_F(ImageTest, DefaultInstance) {
     EXPECT_EQ(0, image.width());
     EXPECT_EQ(0, image.height());
     ASSERT_DEATH(image(0, 0), "");
-    ASSERT_DEATH(Image(-1, -1), "");
 }
 
 TEST_F(ImageTest, InstanceWithSize) {

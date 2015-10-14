@@ -14,6 +14,8 @@ extern void* enabler;
 
 namespace spica {
 
+    /** Vertex buffer object.
+     */
     class SPICA_EXPORTS VBO {
     private:
         std::vector<float> _vertices;
@@ -22,10 +24,14 @@ namespace spica {
         std::vector<unsigned int> _indices;
 
     public:
+        /** The VBO constructor. */
         VBO();
+        /** The VBO constructor (copy). */
         VBO(const VBO& vbo);
+        /** The VBO destructor. */
         ~VBO();
 
+        /** Assignment operator. */
         VBO& operator=(const VBO& vbo);
 
         void add(const Vector3D& v, const Vector3D& normal, const Color& color);

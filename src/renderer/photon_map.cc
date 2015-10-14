@@ -1,4 +1,4 @@
-#define SPICA_PHOTON_MAP_EXPORT
+#define SPICA_API_EXPORT
 #include "photon_map.h"
 
 #include <ctime>
@@ -254,7 +254,7 @@ namespace spica {
         // Hitting object
         const int       objID  = isect.objectID();
         const BSDF&     bsdf   = scene.getBsdf(objID);
-        const Color&    refl   = bsdf.reflectance();
+        const Color&    refl   = isect.color();
 
         const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
         const Vector3D orientNormal = (into ? 1.0 : -1.0) * isect.normal();

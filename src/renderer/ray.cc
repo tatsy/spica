@@ -1,4 +1,4 @@
-#define SPICA_RAY_EXPORT
+#define SPICA_API_EXPORT
 #include "ray.h"
 #include "../core/common.h"
 

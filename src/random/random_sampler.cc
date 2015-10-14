@@ -1,4 +1,4 @@
-#define SPICA_RANDOM_SAMPLER_EXPORT
+#define SPICA_API_EXPORT
 #include "random_sampler.h"
 
 #include "random.h"

@@ -5,16 +5,6 @@
 #ifndef SPICA_CAMERA_H_
 #define SPICA_CAMERA_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_DOF_CAMERA_EXPORT
-        #define SPICA_DOF_CAMERA_DLL __declspec(dllexport)
-    #else
-        #define SPICA_DOF_CAMERA_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_DOF_CAMERA_DLL
-#endif
-
 #include "camera_interface.h"
 
 #include "../shape/plane.h"
@@ -29,12 +19,12 @@
 
 namespace spica {
 
-    struct CameraSample;
+    class CameraSample;
 
     /** Depth of field camera.
-     * @ingroup camera_module
+     *  @ingroup camera_module
      */
-    class SPICA_DOF_CAMERA_DLL DoFCamera : public ICamera {
+    class SPICA_EXPORTS DoFCamera : public ICamera {
     private:
 
         // ------------------------------------------------------------
@@ -134,7 +124,7 @@ namespace spica {
 
         void samplePoints(const int imageX, const int imageY, Random& rng, Vector3D& positionOnSensor, Vector3D& positionOnObjplane, Vector3D& positionOnLens, double& PImage, double& PLens) const;
 
-        CameraSample sample(const double imageX, const double imageY, Stack<double>& rseq) const override;
+        CameraSample sample(double imageX, double imageY, Stack<double>& rseq) const override;
 
         inline double distSL() const { return distSensorToLens_; }
         

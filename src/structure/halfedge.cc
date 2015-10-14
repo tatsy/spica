@@ -1,4 +1,4 @@
-#define SPICA_STRUCTURE_HALFEDGE_EXPORT
+#define SPICA_API_EXPORT
 #include "halfedge.h"
 
 namespace spica {

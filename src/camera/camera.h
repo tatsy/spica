@@ -10,16 +10,6 @@
 #ifndef _SPICA_CAMERA_H_
 #define _SPICA_CAMERA_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifndef SPICA_CAMERA_EXPORT
-        #define SPICA_CAMERA_DLL __declspec(dllexport)
-    #else
-        #define SPICA_CAMERA_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_CAMERA_DLL
-#endif
-
 #include <memory>
 
 #include "camera_interface.h"
@@ -39,7 +29,7 @@ namespace spica {
     /** Camera class
      * @ingroup camera_module
      */
-    class SPICA_CAMERA_DLL Camera {
+    class SPICA_EXPORTS Camera {
     private:
         std::unique_ptr<ICamera> _ptr;
         CameraType _type;

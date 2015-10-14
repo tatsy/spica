@@ -1,4 +1,4 @@
-#define SPICA_AREA_LIGHT_EXPORT
+#define SPICA_API_EXPORT
 #include "area_light.h"
 
 #include "../core/sampler.h"

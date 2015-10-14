@@ -1,4 +1,4 @@
-#define SPICA_ACCEL_EXPORT
+#define SPICA_API_EXPORT
 #include "accel.h"
 
 #include "bbvh_accel.h"

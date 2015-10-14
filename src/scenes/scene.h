@@ -5,20 +5,11 @@
 #ifndef _SPICA_SCENE_H_
 #define _SPICA_SCENE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_SCENE_EXPORT
-        #define SPICA_SCENE_DLL __declspec(dllexport)
-    #else
-        #define SPICA_SCENE_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_SCENE_DLL
-#endif
-
 #include <vector>
 #include <memory>
 #include <type_traits>
 
+#include "../core/common.h"
 #include "../core/uncopyable.h"
 #include "../core/forward_decl.h"
 
@@ -28,7 +19,7 @@ namespace spica {
 
     /** Scene provides the interface for scene graph.
      */
-    class SPICA_SCENE_DLL Scene : private Uncopyable {
+    class SPICA_EXPORTS Scene : private Uncopyable {
     private:
         class SceneImpl;
         std::unique_ptr<SceneImpl> _impl;

@@ -1,4 +1,4 @@
-#define SPICA_BRDF_EXPORT
+#define SPICA_API_EXPORT
 #include "brdf.h"
 
 #include "../core/sampler.h"

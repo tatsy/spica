@@ -1,4 +1,4 @@
-#define SPICA_PHOTON_MAPPING_EXPORT
+#define SPICA_API_EXPORT
 #include "ppmprob.h"
 
 #include <cmath>
@@ -170,7 +170,7 @@ namespace spica {
                                            : -isect.normal();
 
         // Russian roulette
-        const Color& refl = bsdf.reflectance();
+        const Color& refl = isect.color();
         double roulette = max3(refl.red(), refl.green(), refl.blue());
         if (bounces > params.bounceStartRoulette()) {
             if (rands[0] > roulette) {
@@ -209,7 +209,7 @@ namespace spica {
             nextRad = radiance(scene, params, nextRay, rseq, bounces + 1);
         }
 
-        return Color(emission + (bssrdfRad + bsdf.reflectance() * nextRad / pdf) / roulette);
+        return Color(emission + (bssrdfRad + isect.color() * nextRad / pdf) / roulette);
     }
 
 }  // namespace spica

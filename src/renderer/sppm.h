@@ -5,16 +5,6 @@
 #ifndef _SPICA_SPPM_H_
 #define _SPICA_SPPM_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_SPPM_EXPORT
-        #define SPICA_SPPM_DLL __declspec(dllexport)
-    #else
-        #define SPICA_SPPM_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_SPPM_DLL
-#endif
-
 #include "../core/forward_decl.h"
 #include "renderer_interface.h"
 #include "../core/hash_grid.h"
@@ -24,7 +14,7 @@ namespace spica {
     /** Stochastic progressive photon mapping
      *  @ingroup renderer_module
      */
-    class SPICA_SPPM_DLL SPPMRenderer : private IRenderer {
+    class SPICA_EXPORTS SPPMRenderer : private IRenderer {
     private:
 
         struct SPPMPixel;

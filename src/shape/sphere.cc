@@ -1,4 +1,4 @@
-#define SPICA_SPHERE_EXPORT
+#define SPICA_API_EXPORT
 #include "sphere.h"
 
 #include <cmath>

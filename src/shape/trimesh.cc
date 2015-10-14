@@ -1,4 +1,4 @@
-#define SPICA_TRIMESH_EXPORT
+#define SPICA_API_EXPORT
 #include "trimesh.h"
 
 #include <cstdio>

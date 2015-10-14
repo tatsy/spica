@@ -5,16 +5,6 @@
 #ifndef _SPICA_ENVMAP_H_
 #define _SPICA_ENVMAP_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_ENVMAP_EXPORT
-        #define SPICA_ENVMAP_DLL __declspec(dllexport)
-    #else
-        #define SPICA_ENVMAP_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_ENVMAP_DLL
-#endif
-
 #include <vector>
 
 #include "light_interface.h"
@@ -29,9 +19,9 @@ namespace spica {
     class Photon;
 
     /** Environment mapping
-     * @ingroup light_module
+     *  @ingroup light_module
      */
-    class SPICA_ENVMAP_DLL Envmap : public ILight {
+    class SPICA_EXPORTS Envmap : public ILight {
     private:
         Sphere _sphere;
         Image _image;
@@ -59,9 +49,8 @@ namespace spica {
 
     private:
         void createImportanceMap();
-
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_ENVMAP_H_

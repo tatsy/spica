@@ -1,11 +1,5 @@
-#define SPICA_IMAGE_EXPORT
+#define SPICA_API_EXPORT
 #include "image.h"
-
-#if defined(_WIN32) || defined(__WIN32__)
-#define PACKED(__declare__) __pragma(pack(push,1)) __declare__ __pragma(pack(pop)) 
-#else
-#define PACKED(__declare__) __declare__ __attribute__((__packed__))
-#endif
 
 #include <cmath>
 #include <cstdio>
@@ -63,22 +57,16 @@ namespace spica {
         };
 
         struct HDRPixel {
-            unsigned char r, g, b, e;
+            unsigned char r = 0;
+            unsigned char g = 0;
+            unsigned char b = 0;
+            unsigned char e = 0;
             
-            HDRPixel()
-                : r(0)
-                , g(0)
-                , b(0)
-                , e(0)
-            {
+            HDRPixel() {
             }
 
             explicit HDRPixel(const Color& color)
-                : r(0)
-                , g(0)
-                , b(0)
-                , e(0)
-            {
+                : HDRPixel{} {
                 double d = std::max(color.red(), std::max(color.green(), color.blue()));
                 if (d <= 1.0e-32) {
                     r = g = b = e = 0;
@@ -108,48 +96,33 @@ namespace spica {
     }
 
 
-    Image::Image()
-        : _width(0)
-        , _height(0)
-        , _pixels(0)
-    {
+    Image::Image() {
     }
 
-    Image::Image(int width, int height)
-        : _width(width)
-        , _height(height)
-        , _pixels(0)
-    {
+    Image::Image(unsigned int width, unsigned int height)
+        : _width{width}
+        , _height{height} {
         Assertion(width >= 0 && height >= 0, "Image size must be positive");
-        _pixels = new Color[_width * _height];
+        _pixels = std::make_unique<Color[]>(_width * _height);
     }
 
     Image::Image(const Image& image) 
-        : _width(0)
-        , _height(0)
-        , _pixels(NULL)
-    {
+        : Image{} {
         this->operator=(image);
     }
 
     Image::Image(Image&& image)
-        : _width(0)
-        , _height(0)
-        , _pixels(NULL)
-    {
+        : Image{} {
         this->operator=(std::move(image));
     }
 
-    Image::~Image()
-    {
-        delete[] _pixels;
+    Image::~Image() {
     }
 
     void Image::release() {
-        this->_width = 0;
-        this->_height = 0;
-        delete[] _pixels;
-        _pixels = NULL;
+        _width  = 0U;
+        _height = 0U;
+        _pixels.reset();
     }
 
     Image& Image::operator=(const Image& image) {
@@ -157,10 +130,12 @@ namespace spica {
 
         release();
 
-        this->_width = image._width;
+        this->_width  = image._width;
         this->_height = image._height;
-        this->_pixels = new Color[image._width * image._height];
-        memcpy((void*)_pixels, (void*)image._pixels, sizeof(Color) * image._width * image._height);
+        this->_pixels = std::make_unique<Color[]>(_width * _height);
+        std::copy(image._pixels.get(),
+                  image._pixels.get() + (_width * _height),
+                  _pixels.get());
 
         return *this;
     }
@@ -170,11 +145,10 @@ namespace spica {
 
         this->_width  = image._width;
         this->_height = image._height;
-        this->_pixels = image._pixels;
+        this->_pixels = std::move(image._pixels);
 
-        image._width = 0;
+        image._width  = 0;
         image._height = 0;
-        image._pixels = nullptr;
 
         return *this;
     }
@@ -186,21 +160,23 @@ namespace spica {
     }
 
     const Color& Image::operator()(int x, int y) const {
-        Assertion(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+        Assertion(0 <= x && x < _width && 0 <= y && y < _height,
+                  "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
     Color& Image::pixel(int x, int y) {
-        Assertion(0 <= x && x < _width && 0 <= y && y < _height, "Pixel index out of bounds");
+        Assertion(0 <= x && x < _width && 0 <= y && y < _height,
+                  "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
     void Image::resize(const int width, const int height) {
-        this->_width = width;
+        this->_width  = width;
         this->_height = height;
 
-        delete[] _pixels;
-        _pixels = new Color[width * height];
+        _pixels.reset();
+        _pixels = std::make_unique<Color[]>(width * height);
     }
 
     void Image::fill(const Color& color) {
@@ -267,7 +243,7 @@ namespace spica {
 
         this->_width  = std::abs(core.biWidth);
         this->_height = std::abs(core.biHeight);
-        this->_pixels = new Color[_width * _height];
+        this->_pixels = std::make_unique<Color[]>(_width * _height);
 
         const int lineSize = (sizeof(RGBTriple) * _width + 3) / 4 * 4;
         char* lineBits = new char[lineSize];
@@ -467,11 +443,11 @@ namespace spica {
         }
 
         // Copy loaded data to this object
-        this->_width = width;
+        this->_width  = width;
         this->_height = height;
-        this->_pixels = new spica::Color[width * height];
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
+        this->_pixels = std::make_unique<Color[]>(width * height);
+        for (unsigned int y = 0; y < height; y++) {
+            for (unsigned int x = 0; x < width; x++) {
                 const int e = tmp_data[(y * width + x) * 4 + 3];
                 const double r = tmp_data[(y * width + x) * 4 + 0] * pow(2.0, e - 128.0) / 256.0;
                 const double g = tmp_data[(y * width + x) * 4 + 1] * pow(2.0, e - 128.0) / 256.0;
@@ -507,9 +483,9 @@ namespace spica {
         ofs.write(buffer, strlen(buffer));
 
         std::vector<unsigned char> pixbuf;
-        for (int i = 0; i < _height; i++) {
+        for (unsigned int i = 0; i < _height; i++) {
             std::vector<HDRPixel> line;
-            for (int j = 0; j < _width; j++) {
+            for (unsigned int j = 0; j < _width; j++) {
                 Color color = this->operator()(j, i);
                 line.push_back(HDRPixel(color));
             }
@@ -518,7 +494,7 @@ namespace spica {
             pixbuf.push_back((_width >> 8) & 0xff);
             pixbuf.push_back(_width & 0xff);
             for (int c = 0; c < 4; c++) {
-                for (int cursor = 0; cursor < _width;) {
+                for (unsigned int cursor = 0; cursor < _width;) {
                     const int cursor_move = std::min((unsigned int)127, _width - cursor);
                     pixbuf.push_back(cursor_move);
                     for (int j = cursor; j < cursor + cursor_move; j++) {
@@ -537,9 +513,9 @@ namespace spica {
         int w, h, comp;
         unsigned char* data = stbi_load(filename.c_str(), &w, &h, &comp, STBI_rgb_alpha);
         
-        this->_width = w;
+        this->_width  = w;
         this->_height = h;
-        this->_pixels = new spica::Color[w * h];
+        this->_pixels = std::make_unique<Color[]>(w * h);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 const double r = data[(y * w + x) * 4 + 0] / 255.0;             
@@ -552,8 +528,8 @@ namespace spica {
 
     void Image::savePng(const std::string& filename) const {
         unsigned char* data = new unsigned char[_width * _height * 3];
-        for (int y = 0; y < _height; y++) {
-            for (int x = 0; x < _width; x++) {
+        for (unsigned int y = 0; y < _height; y++) {
+            for (unsigned int x = 0; x < _width; x++) {
                 int idx = y * _width + x;
                 data[idx * 3 + 0] = toByte(_pixels[idx].red());
                 data[idx * 3 + 1] = toByte(_pixels[idx].green());
@@ -583,8 +559,8 @@ namespace spica {
         lw_bar = exp(lw_bar / (_width * _height));
 
         const double l_white2 = l_white * l_white;
-        for (int y = 0; y < _height; y++) {
-            for (int x = 0; x < _width; x++) {
+        for (unsigned int y = 0; y < _height; y++) {
+            for (unsigned int x = 0; x < _width; x++) {
                 Color c = this->operator()(x, y);
                 Color ret = c * (a / lw_bar);
                 ret = ret * (1.0 + ret / l_white2) / (1.0 + ret);

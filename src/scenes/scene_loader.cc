@@ -1,4 +1,4 @@
-#define SPICA_SCENE_LOADER_EXPORT
+#define SPICA_API_EXPORT
 #include "scene_loader.h"
 
 #include "yaml_parser.h"

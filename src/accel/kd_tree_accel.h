@@ -1,15 +1,9 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_KDTREE_ACCEL_H_
 #define _SPICA_KDTREE_ACCEL_H_
-
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_KDTREE_ACCEL_EXPORT
-        #define SPICA_KDTREE_ACCEL_DLL __declspec(dllexport)
-    #else
-        #define SPICA_KDTREE_ACCEL_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_KDTREE_ACCEL_DLL 
-#endif
 
 #include <vector>
 
@@ -22,7 +16,7 @@ namespace spica {
     /** K-D tree accelerator class
      * @ingroup accel_module
      */
-    class SPICA_KDTREE_ACCEL_DLL KdTreeAccel : public IAccel {
+    class SPICA_EXPORTS KdTreeAccel : public IAccel {
     private:
         struct KdTreeNode : private spica::Uncopyable {
             BBox bbox;
@@ -59,6 +53,6 @@ namespace spica {
         KdTreeNode* constructRec(std::vector<IndexedTriangle>& triangles, int start, int end);
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_KDTREE_H_

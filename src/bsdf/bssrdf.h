@@ -1,16 +1,6 @@
 #ifndef _SPICA_BSSRDF_H_
 #define _SPICA_BSSRDF_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_BSSRDF_EXPORT
-        #define SPICA_BSSRDF_DLL __declspec(dllexport)
-    #else
-        #define SPICA_BSSRDF_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_BSSRDF_DLL
-#endif
-
 #include <vector>
 
 #include "../core/forward_decl.h"
@@ -24,7 +14,7 @@ namespace spica {
     // Interface class for BSSRDF
     // ------------------------------------------------------------
 
-    class SPICA_BSSRDF_DLL BSSRDFBase {
+    class SPICA_EXPORTS BSSRDFBase {
     protected:
         double _eta;
 
@@ -46,7 +36,7 @@ namespace spica {
     // BSSRDF with dipole approximation
     // ------------------------------------------------------------
 
-    class SPICA_BSSRDF_DLL DipoleBSSRDF : public BSSRDFBase {
+    class SPICA_EXPORTS DipoleBSSRDF : public BSSRDFBase {
     private:
         double _A;
         Color  _sigmap_t;
@@ -71,7 +61,7 @@ namespace spica {
     // BSSRDF with diffuse reflectance function Rd
     // ------------------------------------------------------------
 
-    class SPICA_BSSRDF_DLL DiffuseBSSRDF : public BSSRDFBase {
+    class SPICA_EXPORTS DiffuseBSSRDF : public BSSRDFBase {
     private:
         std::vector<double> _distances;
         std::vector<Color> _colors;
@@ -102,7 +92,7 @@ namespace spica {
     // Custom BSSRDF interface
     // ------------------------------------------------------------
 
-    class SPICA_BSSRDF_DLL CustomBSSRDF : public BSSRDFBase {
+    class SPICA_EXPORTS CustomBSSRDF : public BSSRDFBase {
     protected:
         CustomBSSRDF* _ptr;
 
@@ -118,7 +108,7 @@ namespace spica {
     // Abstract BSSRDF class
     // ------------------------------------------------------------
 
-    class SPICA_BSSRDF_DLL BSSRDF {
+    class SPICA_EXPORTS BSSRDF {
     private:
         const BSSRDFBase* _ptr;
 
@@ -145,6 +135,6 @@ namespace spica {
         friend class CustomBSSRDF;
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_BSSRDF_H_

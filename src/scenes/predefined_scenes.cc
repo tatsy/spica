@@ -1,4 +1,4 @@
-#define SPICA_PREDEFINED_SCENES_EXPORT
+#define SPICA_API_EXPORT
 #include "predefined_scenes.h"
 
 #include "../core/common.h"

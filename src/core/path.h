@@ -22,12 +22,12 @@ namespace spica {
     namespace path {
 
         inline std::string getExtension(const std::string& filename) {
-            const int pos = filename.find_last_of(".");
+            size_t pos = filename.find_last_of(".");
             return filename.substr(pos);
         }
 
         inline std::string getDirectory(const std::string& filename) {
-            const int pos = filename.find_last_of("/");
+            size_t pos = filename.find_last_of("/");
             return filename.substr(0, pos + 1);
         }
 
@@ -36,8 +36,8 @@ namespace spica {
         }
 
         inline std::vector<std::string> split(const std::string& str, const std::string& delim) {
-            int prev = 0;
-            int pos  = 0;
+            size_t prev = 0;
+            size_t pos  = 0;
             std::vector<std::string> retval;
             while ((pos = str.find_first_of(delim, prev)) != std::string::npos) {
                 retval.push_back(str.substr(prev, pos));

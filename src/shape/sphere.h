@@ -5,16 +5,6 @@
 #ifndef SPICA_SPHERE_H_
 #define SPICA_SPHERE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_SPHERE_EXPORT
-        #define SPICA_SPHERE_DLL __declspec(dllexport)
-    #else
-        #define SPICA_SPHERE_DLL __declspec(dllimport)
-    #endif
-#elif defined(linux) || defined(__linux)
-    #define SPICA_SPHERE_DLL
-#endif
-
 #include "shape_interface.h"
 #include "../math/vector3d.h"
 #include "../renderer/ray.h"
@@ -24,7 +14,7 @@ namespace spica {
     /** Sphere class
      *  @ingroup shape_module
      */
-    class SPICA_SPHERE_DLL Sphere : public IShape {
+    class SPICA_EXPORTS Sphere : public IShape {
     private:
         Vector3D _center = { 0.0, 0.0, 0.0 };
         double   _radius = 0.0;

@@ -5,18 +5,9 @@
 #ifndef _SPICA_QUATERNION_H_
 #define _SPICA_QUATERNION_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_QUATERNION_EXPORT
-        #define SPICA_QUATERNION_DLL __declspec(dllexport)
-    #else
-        #define SPICA_QUATERNION_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_QUATERNION_DLL
-#endif
-
 #include <iostream>
 
+#include "../core/common.h"
 #include "../core/forward_decl.h"
 
 namespace spica {
@@ -24,7 +15,7 @@ namespace spica {
     /** Quaternion.
      *  @ingroup math_module
      */
-    class SPICA_QUATERNION_DLL Quaternion {
+    class SPICA_EXPORTS Quaternion {
     private:
         double _x, _y, _z, _w;
 
@@ -107,11 +98,11 @@ namespace spica {
 
 }  // namespace spica
 
-SPICA_QUATERNION_DLL
+SPICA_EXPORTS
 spica::Quaternion operator*(const spica::Quaternion& q1,
                             const spica::Quaternion& q2);
 
-SPICA_QUATERNION_DLL
+SPICA_EXPORTS
 std::ostream& operator<<(std::ostream& os, const spica::Quaternion& q);
 
 #endif  // _SPICA_QUATERNION_H_

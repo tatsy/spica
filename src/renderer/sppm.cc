@@ -1,4 +1,4 @@
-#define SPICA_SPPM_EXPORT
+#define SPICA_API_EXPORT
 #include "sppm.h"
 
 #include <cstdio>
@@ -313,9 +313,9 @@ namespace spica {
             return;
         }
 
-        const int       objectID = isect.objectID();
-        const BSDF&     bsdf = scene.getBsdf(objectID);
-        const Color&    refl = bsdf.reflectance();
+        const int    objectID = isect.objectID();
+        const BSDF&  bsdf     = scene.getBsdf(objectID);
+        const Color& refl     = isect.color();
         const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
         const Vector3D orientNormal = into ?  isect.normal()
                                            : -isect.normal();
@@ -404,7 +404,7 @@ namespace spica {
                 // Ray hits diffuse object, return current weight
                 pixel->position = isect.position();
                 pixel->normal   = isect.normal();
-                pixel->weight   = weight * bsdf.reflectance();
+                pixel->weight   = weight * isect.color();
                 pixel->coeff    = coeff;
                 pixel->emission += throughput + weight * emission;
                 break;
@@ -426,7 +426,7 @@ namespace spica {
                                 rands[1], rands[2], &nextdir, &pdf);
                 }
                 ray = Ray(isect.position(), nextdir);
-                weight = weight * bsdf.reflectance() / pdf;
+                weight = weight * isect.color() / pdf;
             }
         }
     }

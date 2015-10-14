@@ -5,16 +5,6 @@
 #ifndef _SPICA_QBVH_ACCEL_H_
 #define _SPICA_QBVH_ACCEL_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_QBVH_ACCEL_EXPORT
-        #define SPICA_QBVH_ACCEL_DLL __declspec(dllexport)
-    #else
-        #define SPICA_QBVH_ACCEL_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_QBVH_ACCEL_DLL
-#endif
-
 #include <vector>
 #include <xmmintrin.h>
 
@@ -25,7 +15,7 @@ namespace spica {
     /** Quad BVH accelerator class
      *  @ingroup accel_module
      */
-    class SPICA_QBVH_ACCEL_DLL QBVHAccel : public IAccel {
+    class SPICA_EXPORTS QBVHAccel : public IAccel {
     private:
 
         struct BVHPrimitiveInfo;

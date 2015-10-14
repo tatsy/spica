@@ -5,16 +5,6 @@
 #ifndef _SPICA_BRDF_H_
 #define _SPICA_BRDF_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_BRDF_EXPORT
-        #define SPICA_BRDF_DLL __declspec(dllexport)
-    #else
-        #define SPICA_BRDF_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_BRDF_DLL
-#endif
-
 #include "../core/common.h"
 #include "../math/vector3d.h"
 #include "../core/color.h"
@@ -26,7 +16,7 @@ namespace spica {
     /** Interface for BSDF object 
      *  @ingroup bsdf_module
      */
-    class SPICA_BRDF_DLL BSDFBase {
+    class SPICA_EXPORTS BSDFBase {
     protected:
         BSDFBase() {}
         explicit BSDFBase(const BSDFBase&) {}
@@ -42,7 +32,7 @@ namespace spica {
     /** Lambertian BRDF.
      *  @ingroup bsdf_module
      */
-    class SPICA_BRDF_DLL LambertianBRDF : public BSDFBase {
+    class SPICA_EXPORTS LambertianBRDF : public BSDFBase {
     private:
         Color _reflectance;
 
@@ -60,7 +50,7 @@ namespace spica {
     /** Specular BRDF.
      *  @ingroup bsdf_module
      */
-    class SPICA_BRDF_DLL SpecularBRDF : public BSDFBase {
+    class SPICA_EXPORTS SpecularBRDF : public BSDFBase {
     private:
         Color _reflectance;
 
@@ -78,7 +68,7 @@ namespace spica {
     /** Phong BRDF.
      *  @ingroup bsdf_module
      */
-    class SPICA_BRDF_DLL PhongBRDF : public BSDFBase {
+    class SPICA_EXPORTS PhongBRDF : public BSDFBase {
     private:
         Color _reflectance;
         double _coeff;
@@ -96,7 +86,7 @@ namespace spica {
     /** Refractive BSDF
      *  @ingroup bsdf_module
      */
-    class SPICA_BRDF_DLL RefractiveBSDF : public BSDFBase {
+    class SPICA_EXPORTS RefractiveBSDF : public BSDFBase {
     private:
         Color _reflectance;
 

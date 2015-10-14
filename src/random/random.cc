@@ -50,7 +50,7 @@ Thanks!
 
 */
 
-#define SPICA_RANDOM_EXPORT
+#define SPICA_API_EXPORT
 #include "random.h"
 
 #include <cmath>

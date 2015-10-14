@@ -5,16 +5,6 @@
 #ifndef _SPICA_PHOTON_MAP_H_
 #define _SPICA_PHOTON_MAP_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_PHOTON_MAP_EXPORT
-        #define SPICA_PHOTON_MAP_DLL __declspec(dllexport)
-    #else
-        #define SPICA_PHOTON_MAP_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_PHOTON_MAP_DLL
-#endif
-
 #include "../bsdf/bsdf.h"
 
 #include "../core/color.h"
@@ -36,7 +26,7 @@ namespace spica {
     // ------------------------------------------------------------------------
     // Photon
     // ------------------------------------------------------------------------
-    class SPICA_PHOTON_MAP_DLL Photon  {
+    class SPICA_EXPORTS Photon  {
     private:
         Vector3D _position;
         Color    _flux;
@@ -68,7 +58,7 @@ namespace spica {
     // ------------------------------------------------------------------------
     // Photon map
     // ------------------------------------------------------------------------
-    class SPICA_PHOTON_MAP_DLL PhotonMap : public Uncopyable {
+    class SPICA_EXPORTS PhotonMap : public Uncopyable {
     private:
         KdTree<Photon> _kdtree;
 

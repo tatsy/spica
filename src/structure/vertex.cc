@@ -1,4 +1,4 @@
-#define SPICA_STRUCTURE_VERTEX_EXPORT
+#define SPICA_API_EXPORT
 #include "vertex.h"
 #include "face.h"
 #include "halfedge.h"

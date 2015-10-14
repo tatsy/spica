@@ -1,4 +1,4 @@
-#define SPICA_SAMPLER_EXPORT
+#define SPICA_API_EXPORT
 #include "sampler.h"
 
 #include <typeinfo>

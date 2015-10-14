@@ -1,4 +1,4 @@
-#define SPICA_BBOX_EXPORT
+#define SPICA_API_EXPORT
 #include "bbox.h"
 
 #include <algorithm>

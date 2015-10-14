@@ -5,19 +5,13 @@
 #ifndef _SPICA_LIGHT_INTERFACE_
 #define _SPICA_LIGHT_INTERFACE_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #define SPICA_LIGHT_INTERFACE __declspec(dllexport)
-#else
-    #define SPICA_LIGHT_INTERFACE
-#endif
-
 #include "../math/vector3d.h"
 #include "../core/color.h"
 #include "../renderer/ray.h"
 
 namespace spica {
 
-    class SPICA_LIGHT_INTERFACE LightSample {
+    class SPICA_EXPORTS LightSample {
     private:
         Vector3D _p;  //! position
         Vector3D _n;  //! normal
@@ -53,7 +47,7 @@ namespace spica {
         inline Color    Le()       const { return _e; }
     };
 
-    class SPICA_LIGHT_INTERFACE ILight {
+    class SPICA_EXPORTS ILight {
     public:
         ILight() {}
         virtual ~ILight() {}

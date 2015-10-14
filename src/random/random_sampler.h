@@ -9,16 +9,6 @@
 #ifndef _SPICA_RANDOM_SAMPLER_H_
 #define _SPICA_RANDOM_SAMPLER_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_RANDOM_SAMPLER_EXPORT
-        #define SPICA_RANDOM_SAMPLER_DLL __declspec(dllexport)
-    #else
-        #define SPICA_RANDOM_SAMPLER_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_RANDOM_SAMPLER_DLL
-#endif
-
 #include <memory>
 
 #include "random_base.h"
@@ -29,7 +19,7 @@ namespace spica {
     /** Random sampler class.
      *  @ingroup random_module
      */
-    class RandomSampler : private Uncopyable {
+    class SPICA_EXPORTS RandomSampler : private Uncopyable {
     private:
         std::unique_ptr<RandomBase> _rng;
 

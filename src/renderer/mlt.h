@@ -5,16 +5,6 @@
 #ifndef _SPICA_MLT_RENDERER_H_
 #define _SPICA_MLT_RENDERER_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_MLT_RENDERER_EXPORT
-        #define SPICA_MLT_RENDERER_DLL __declspec(dllexport)
-    #else
-        #define SPICA_MLT_RENDERER_DLL __declspec(dllimport)
-    #endif
-#elif defined(linux) || defined(__linux)
-    #define SPICA_MLT_RENDERER_DLL
-#endif
-
 #include "../core/forward_decl.h"
 #include "renderer_interface.h"
 
@@ -23,7 +13,7 @@ namespace spica {
     /** Metropolis light transport.
      *  @ingroup renderer_module
      */
-    class SPICA_MLT_RENDERER_DLL MLTRenderer : private IRenderer {
+    class SPICA_EXPORTS MLTRenderer : private IRenderer {
     public:
         /** Constructor.
          */

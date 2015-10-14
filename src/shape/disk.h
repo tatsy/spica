@@ -5,16 +5,6 @@
 #ifndef _SPICA_DISK_H_
 #define _SPICA_DISK_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_DISK_EXPORT
-        #define SPICA_DISK_DLL __declspec(dllexport)
-    #else
-        #define SPICA_DISK_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_DISK_DLL
-#endif
-
 #include "shape_interface.h"
 #include "../math/vector3d.h"
 
@@ -23,7 +13,7 @@ namespace spica {
     /** Disk class
      *  @ingroup shape_module
      */
-    class SPICA_DISK_DLL Disk : public IShape {    
+    class SPICA_EXPORTS Disk : public IShape {    
     private:
         Vector3D _center = { 0.0, 0.0, 0.0 };
         Vector3D _normal = { 0.0, 0.0, 0.0 };

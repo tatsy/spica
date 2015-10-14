@@ -5,12 +5,6 @@
 #ifndef _SPICA_RANDOM_BASE_H_
 #define _SPICA_RANDOM_BASE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-#define SPICA_RANDOM_BASE_DLL __declspec(dllexport)
-#else
-#define SPICA_RANDOM_BASE_DLL
-#endif
-
 #include <vector>
 
 #include "../core/uncopyable.h"
@@ -18,16 +12,18 @@
 
 namespace spica {
 
-    // --------------------------------------------------
-    // Interface class for random number generator
-    // --------------------------------------------------
-    class RandomBase {
+    /** Interface class for random number generator.
+     *  @ingroup random_module
+     */
+    class SPICA_EXPORTS RandomBase {
     public:
         virtual ~RandomBase() {}
 
-        // Request specified amount of random numbers
+        /** Request specified amount of random numbers.
+         */
         virtual void request(Stack<double>* rstack, const int numRequested) = 0;
     };
-};
+
+}  // namespace spica
 
 #endif  // _SPICA_RANDOM_BASE_H_

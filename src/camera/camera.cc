@@ -1,4 +1,4 @@
-#define SPICA_CAMERA_EXPORT
+#define SPICA_API_EXPORT
 #include "camera.h"
 
 #include <memory>

@@ -1,4 +1,4 @@
-#define SPICA_ORTHOGRAPHIC_CAMERA_EXPORT
+#define SPICA_API_EXPORT
 #include "orthographic_camera.h"
 
 namespace spica {

@@ -5,17 +5,9 @@
 #ifndef _SPICA_STRUCTURE_HALFEDGE_H_
 #define _SPICA_STRUCTURE_HALFEDGE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_STRUCTURE_HALFEDGE_EXPORT
-        #define SPICA_STRUCTURE_HALFEDGE_DLL __declspec(dllexport)
-    #else
-        #define SPICA_STRUCTURE_HALFEDGE_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_STRUCTURE_HALFEDGE_DLL
-#endif
-
 #include <memory>
+
+#include "../core/common.h"
 
 namespace spica {
 
@@ -24,7 +16,7 @@ namespace spica {
         class Vertex;
         class Face;
     
-        class HalfEdge {
+        class SPICA_EXPORTS HalfEdge {
         private:
             std::weak_ptr<Face>   _face;
             std::weak_ptr<Vertex> _from;

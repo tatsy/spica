@@ -5,12 +5,6 @@
 #ifndef _SPICA_CAMERA_INTERFACE_H_
 #define _SPICA_CAMERA_INTERFACE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #define SPICA_CAMERA_INTERFACE_DLL __declspec(dllexport)
-#else
-    #define SPICA_CAMERA_INTERFACE_DLL
-#endif
-
 #include <cstdio>
 
 #include "../math/vector3d.h"
@@ -19,7 +13,7 @@
 
 namespace spica {
 
-    class SPICA_CAMERA_INTERFACE_DLL CameraSample {
+    class SPICA_EXPORTS CameraSample {
     private:
         Ray    _ray;
         double _pdf;
@@ -75,7 +69,7 @@ namespace spica {
     };
 
     //! Interface class for cameras
-    class SPICA_CAMERA_INTERFACE_DLL ICamera {
+    class SPICA_EXPORTS ICamera {
     protected:
         Vector3D _center;
         Vector3D _direction;

@@ -10,16 +10,6 @@
 #ifndef _SPICA_LIGHTING_H_
 #define _SPICA_LIGHTING_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_LIGHTING_EXPORT
-        #define SPICA_LIGHTING_DLL __declspec(dllexport)
-    #else
-        #define SPICA_LIGHTING_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_LIGHTING_DLL
-#endif
-
 #include <memory>
 #include <string>
 
@@ -41,7 +31,7 @@ namespace spica {
     /** Lighting class
      * @ingroup light_module
      */
-    class SPICA_LIGHTING_DLL Lighting {
+    class SPICA_EXPORTS Lighting {
     private:
         std::unique_ptr<ILight> _ptr;
 

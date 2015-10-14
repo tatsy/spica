@@ -5,16 +5,6 @@
 #ifndef _SPICA_PHOTON_MAPPING_H_
 #define _SPICA_PHOTON_MAPPING_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_PHOTON_MAPPING_EXPORT
-        #define SPICA_PHOTON_MAPPING_DLL __declspec(dllexport)
-    #else
-        #define SPICA_PHOTON_MAPPING_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_PHOTON_MAPPING_DLL
-#endif
-
 #include "../core/forward_decl.h"
 
 #include "renderer_interface.h"
@@ -22,10 +12,10 @@
 
 namespace spica {
 
-    // ------------------------------------------------------------------------
-    // Progressive photon mapping: a probabilistic approach
-    // ------------------------------------------------------------------------
-    class SPICA_PHOTON_MAPPING_DLL PPMPRenderer : public IRenderer {
+    /** Progressive photon mapping: a probabilistic approach
+     *  @ingroup renderer_module
+     */
+    class SPICA_EXPORTS PPMPRenderer : public IRenderer {
 
     private:
         PhotonMap photonMap;

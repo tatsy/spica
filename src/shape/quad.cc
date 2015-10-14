@@ -1,4 +1,4 @@
-#define SPICA_QUAD_EXPORT
+#define SPICA_API_EXPORT
 #include "quad.h"
 
 #include "../math/vector3d.h"

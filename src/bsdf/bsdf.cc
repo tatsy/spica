@@ -1,4 +1,4 @@
-#define SPICA_BSDF_EXPORT
+#define SPICA_API_EXPORT
 #include "bsdf.h"
 
 #include "brdf.h"
@@ -11,37 +11,28 @@
 namespace spica {
 
     BSDF::BSDF()
-        : _ptr()
-        , _bssrdf()
-        , _type(BsdfType::None)
-    {
+        : _ptr{}
+        , _bssrdf{}
+        , _type{BsdfType::None} {
     }
 
     BSDF::BSDF(const BSDF& bsdf)
-        : _ptr()
-        , _bssrdf()
-        , _type(BsdfType::None)
-    {
+        : BSDF{} {
         this->operator=(bsdf);
     }
 
     BSDF::BSDF(BSDF&& bsdf)
-        : _ptr()
-        , _bssrdf()
-        , _type(BsdfType::None)
-    {
+        : BSDF{} {
         this->operator=(std::move(bsdf));
     }
 
     BSDF::BSDF(const BSDFBase* ptr, BsdfType type)
-        : _ptr(ptr)
-        , _bssrdf()
-        , _type(type)
-    {
+        : _ptr{ptr}
+        , _bssrdf{}
+        , _type{type} {
     }
 
-    BSDF::~BSDF()
-    {
+    BSDF::~BSDF() {
     }
 
     BSDF& BSDF::operator=(const BSDF& bsdf) {

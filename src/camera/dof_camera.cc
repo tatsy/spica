@@ -1,4 +1,4 @@
-#define SPICA_DOF_CAMERA_EXPORT
+#define SPICA_API_EXPORT
 #include "dof_camera.h"
 #include "../core/common.h"
 

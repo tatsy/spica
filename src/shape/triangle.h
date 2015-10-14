@@ -5,16 +5,6 @@
 #ifndef _SPICA_TRIANGLE_H_
 #define _SPICA_TRIANGLE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_TRIANGLE_EXPORT
-        #define SPICA_TRIANGLE_DLL __declspec(dllexport)
-    #else
-        #define SPICA_TRIANGLE_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_TRIANGLE_DLL
-#endif
-
 #include <array>
 
 #include "shape_interface.h"
@@ -25,7 +15,7 @@ namespace spica {
     /** Triangle class
      *  @ingroup shape_module
      */
-    class SPICA_TRIANGLE_DLL Triangle : public IShape {
+    class SPICA_EXPORTS Triangle : public IShape {
     private:
         std::array<Vector3D, 3> _points;
 

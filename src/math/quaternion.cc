@@ -1,4 +1,4 @@
-#define SPICA_QUATERNION_EXPORT
+#define SPICA_API_EXPORT
 #include "quaternion.h"
 
 #include <cmath>

@@ -1,4 +1,4 @@
-#define SPICA_TRIANGLE_EXPORT
+#define SPICA_API_EXPORT
 #include "triangle.h"
 
 #include "../core/common.h"

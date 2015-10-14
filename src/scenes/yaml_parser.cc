@@ -1,4 +1,4 @@
-#define SPICA_YMAL_PARSER_EXPORT
+#define SPICA_API_EXPORT
 #include "yaml_parser.h"
 
 #include <iostream>
@@ -17,7 +17,7 @@ namespace spica {
         const int kMaxCommentLength = 256;
 
         std::string trim(const std::string& s) {
-            int q = s.size() - 1;
+            int q = static_cast<int>(s.size()) - 1;
             while (q >= 0 && isspace(s[q])) q--;
 
             if (q == 0) return "";
@@ -25,7 +25,7 @@ namespace spica {
         }
         
         std::string removeComment(const std::string& s) {
-            int p = 0;
+            size_t p = 0;
             while (p < s.size() && s[p] != '#') p++;
             if (p != s.size()) return s.substr(0, p);
             return s;
@@ -334,7 +334,7 @@ namespace spica {
 
         std::string val(buf);
         if (node->kind == TokenKind::Key) {
-            int cp = val.find(':');
+            size_t cp = val.find(':');
             Assertion(cp != std::string::npos, "Key expression is invalid");
 
             // Process expression like "key: value"

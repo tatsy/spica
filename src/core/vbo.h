@@ -5,16 +5,6 @@
 #ifndef _SPICA_VBO_H_
 #define _SPICA_VBO_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_VBO_EXPORT
-        #define SPICA_VBO_DLL __declspec(dllexport)
-    #else
-        #define SPICA_VBO_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_VBO_DLL
-#endif
-
 #include <vector>
 #include <type_traits>
 
@@ -24,7 +14,7 @@ extern void* enabler;
 
 namespace spica {
 
-    class SPICA_VBO_DLL VBO {
+    class SPICA_EXPORTS VBO {
     private:
         std::vector<float> _vertices;
         std::vector<float> _normals;

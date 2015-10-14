@@ -1,4 +1,4 @@
-#define SPICA_STRUCTURE_MESH_EXPORT
+#define SPICA_API_EXPORT
 #include "mesh.h"
 
 namespace spica {

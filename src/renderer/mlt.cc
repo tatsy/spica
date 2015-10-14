@@ -1,4 +1,4 @@
-#define SPICA_MLT_RENDERER_EXPORT
+#define SPICA_API_EXPORT
 #include "mlt.h"
 
 #include <cstdio>
@@ -128,7 +128,7 @@ namespace spica {
 
             const int    objectID = isect.objectID();
             const BSDF&  bsdf     = scene.getBsdf(objectID);
-            const Color& refl     = bsdf.reflectance();
+            const Color& refl     = isect.color();
 
             double roulette = max3(refl.red(), refl.green(), refl.blue());
             if (bounces > params.bounceStartRoulette()) {

@@ -1,4 +1,4 @@
-#define SPICA_ENVMAP_EXPORT
+#define SPICA_API_EXPORT
 #include "envmap.h"
 
 #include <cstdlib>

@@ -5,16 +5,6 @@
 #ifndef _SPICA_STRUCTURE_MESH_H_
 #define _SPICA_STRUCTURE_MESH_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_STRUCTURE_MESH_EXPORT
-        #define SPICA_STRUCTURE_MESH_DLL __declspec(dllexport)
-    #else
-        #define SPICA_STRUCTURE_MESH_DLL __declspec(dllexport)
-    #endif
-#else
-    #define SPICA_STRUCTURE_MESH_DLL
-#endif
-
 #include <vector>
 
 #include "../shape/trimesh.h"
@@ -26,7 +16,7 @@ namespace spica {
 
     namespace structure {
     
-        class SPICA_STRUCTURE_MESH_DLL Mesh {
+        class SPICA_EXPORTS Mesh {
         private:
             std::vector<Vertex>   _vertices;
             std::vector<Face>     _faces;

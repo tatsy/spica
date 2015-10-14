@@ -1,4 +1,4 @@
-#define SPICA_RENDERER_INTERFACE_EXPORT
+#define SPICA_API_EXPORT
 #include "renderer_interface.h"
 
 #include "../scenes/scene.h"

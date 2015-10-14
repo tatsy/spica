@@ -1,4 +1,4 @@
-#define SPICA_LIGHTING_EXPORT
+#define SPICA_API_EXPORT
 #include "lighting.h"
 
 #include "envmap.h"

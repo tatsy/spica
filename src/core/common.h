@@ -40,6 +40,32 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "spica_dirs.h"
 
+// -----------------------------------------------------------------------------
+// API export macro
+// -----------------------------------------------------------------------------
+
+#if (defined(WIN32) || defined(_WIN32) || defined(WINCE) || defined(__CYGWIN__))
+#   if defined(SPICA_API_EXPORT)
+#       define SPICA_EXPORTS __declspec(dllexport)
+#       define SPICA_IMPORTS
+#   else
+#       define SPICA_EXPORTS
+#       define SPICA_IMPORTS __declspec(dllimport)
+#   endif
+#elif defined(__GNUC__) && __GNUC__ >= 4
+#   define SPICA_EXPORTS __attribute__((visibility ("default")))
+#   define SPICA_IMPORTS
+#else
+#   define SPICA_EXPORTS
+#   define SPICA_IMPORTS
+#endif
+
+#if (defined(WIN32) || defined(_WIN32) || defined(WINCE) || defined(__CYGWIN__))
+#   define PACKED(__declare__) __pragma(pack(push,1)) __declare__ __pragma(pack(pop)) 
+#else
+#   define PACKED(__declare__) __declare__ __attribute__((__packed__))
+#endif
+
 // ----------------------------------------------------------------------------
 // Parameter constants
 // ----------------------------------------------------------------------------
@@ -106,15 +132,20 @@ do { \
 #define SpicaInfo(MSG) \
 do { \
     std::cout << "[INFO] " << (MSG) << std::endl; \
-} while (false)
+} while (false);
 #define SpicaWarn(MSG) \
 do { \
     std::cerr << "[WARNING] " << (MSG) << std::endl; \
-} while (false)
+} while (false);
 #else
 #define SpicaInfo(MSG)
 #define SpicaWarn(MSG)
 #endif
+#define SpicaError(MSG) \
+do { \
+    std::cerr << "[ERROR] " << (MSG) << std::endl; \
+    std::abort(); \
+} while (false);
 
 // -----------------------------------------------------------------------------
 // Alignment

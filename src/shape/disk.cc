@@ -1,4 +1,4 @@
-#define SPICA_DISK_EXPORT
+#define SPICA_API_EXPORT
 #include "disk.h"
 
 #include "../core/common.h"

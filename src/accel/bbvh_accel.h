@@ -2,18 +2,8 @@
 #pragma once
 #endif
 
-#ifndef _SPICA_BBVH_ACCEL_
-#define _SPICA_BBVH_ACCEL_
-
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_BBVH_ACCEL_EXPORT
-        #define SPICA_BBVH_ACCEL_DLL __declspec(dllexport)
-    #else
-        #define SPICA_BBVH_ACCEL_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_BBVH_ACCEL_DLL
-#endif
+#ifndef _SPICA_BBVH_ACCEL_H_
+#define _SPICA_BBVH_ACCEL_H_
 
 #include <memory>
 
@@ -24,7 +14,7 @@ namespace spica {
     /** Binary BVH accelerator class
      *  @ingroup accel_module
      */
-    class SPICA_BBVH_ACCEL_DLL BBVHAccel : public IAccel {
+    class SPICA_EXPORTS BBVHAccel : public IAccel {
     private:
         struct BVHPrimitiveInfo;
         struct BucketInfo;

@@ -5,17 +5,8 @@
 #ifndef SPICA_IMAGE_H_
 #define SPICA_IMAGE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_IMAGE_EXPORT
-        #define SPICA_IMAGE_DLL __declspec(dllexport)
-    #else
-        #define SPICA_IMAGE_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_IMAGE_DLL
-#endif
-
 #include <string>
+#include <memory>
 
 #include "color.h"
 
@@ -25,15 +16,17 @@ namespace spica {
         Rainhard = 0x00
     };
 
-    class SPICA_IMAGE_DLL Image {
+    /** Image class.
+     */
+    class SPICA_EXPORTS Image {
     private:
-        unsigned int _width;
-        unsigned int _height;
-        Color* _pixels;
+        unsigned int _width  = 0U;
+        unsigned int _height = 0U;
+        std::unique_ptr<Color[]> _pixels = {};
 
     public:
         Image();
-        Image(int width, int height);
+        Image(unsigned int width, unsigned int height);
         Image(const Image& image);
         Image(Image&& image);
 
@@ -50,8 +43,9 @@ namespace spica {
         void resize(const int width, const int height);
         void fill(const Color& color);
 
-        // Gamma correction
-        // @param[in] gamma: gamma value
+        /** Gamma correction.
+         *  @param[in] gamma: gamma value
+         */
         void gammaCorrect(const double gamma);
 
         virtual void load(const std::string& filename);

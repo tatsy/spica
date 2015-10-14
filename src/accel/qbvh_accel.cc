@@ -1,4 +1,4 @@
-#define SPICA_QBVH_ACCEL_EXPORT
+#define SPICA_API_EXPORT
 #include "qbvh_accel.h"
 
 #include <stack>

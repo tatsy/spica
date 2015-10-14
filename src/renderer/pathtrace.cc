@@ -1,4 +1,4 @@
-#define SPICA_PT_RENDERER_EXPORT
+#define SPICA_API_EXPORT
 #include "pathtrace.h"
 
 #include <iostream>

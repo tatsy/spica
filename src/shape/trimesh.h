@@ -5,16 +5,6 @@
 #ifndef _SPICA_TRIMESH_H_
 #define _SPICA_TRIMESH_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_TRIMESH_EXPORT
-        #define SPICA_TRIMESH_DLL __declspec(dllexport)
-    #else
-        #define SPICA_TRIMESH_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_TRIMESH_DLL
-#endif
-
 #include <string>
 #include <memory>
 #include <vector>
@@ -31,7 +21,7 @@ namespace spica {
     /** Triangle mesh class
      *  @ingroup shape_module
      */
-    class SPICA_TRIMESH_DLL Trimesh : public IShape {
+    class SPICA_EXPORTS Trimesh : public IShape {
     private:
         std::vector<VertexData> _vertices;
         std::vector<Triplet>    _faces;

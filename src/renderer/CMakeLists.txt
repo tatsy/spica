@@ -6,6 +6,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.cc
     ${CMAKE_CURRENT_LIST_DIR}/pathtrace.cc
     ${CMAKE_CURRENT_LIST_DIR}/bdpt.cc
+    ${CMAKE_CURRENT_LIST_DIR}/bdpt_helper.cc
     ${CMAKE_CURRENT_LIST_DIR}/mlt.cc
     ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
     ${CMAKE_CURRENT_LIST_DIR}/ppmprob.cc

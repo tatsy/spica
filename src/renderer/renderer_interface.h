@@ -10,16 +10,6 @@
 #ifndef _RENDERER_INTERFACE_H_
 #define _RENDERER_INTERFACE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_RENDERER_INTERFACE_EXPORT
-        #define SPICA_RENDERER_INTERFACE_DLL __declspec(dllexport)
-    #else
-        #define SPICA_RENDERER_INTERFACE_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_RENDERER_INTERFACE_DLL
-#endif
-
 #include "../core/image.h"
 #include "../core/uncopyable.h"
 #include "../core/forward_decl.h"
@@ -29,7 +19,7 @@ namespace spica {
     /** Interface for renderer implementations
      *  @ingroup renderer_module
      */
-    class SPICA_RENDERER_INTERFACE_DLL IRenderer : private Uncopyable {
+    class SPICA_EXPORTS IRenderer : private Uncopyable {
         
     protected:
         Image _result;

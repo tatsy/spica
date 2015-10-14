@@ -1,15 +1,9 @@
+#ifndef _MSC_VER
+#pragma once
+#endif
+
 #ifndef _SPICA_QUAD_H_
 #define _SPICA_QUAD_H_
-
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_QUAD_EXPORT
-        #define SPICA_QUAD_DLL __declspec(dllexport)
-    #else
-        #define SPICA_QUAD_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_QUAD_DLL
-#endif
 
 #include <array>
 
@@ -21,7 +15,7 @@ namespace spica {
     /** Quadrangle class
      *  @ingroup shape_module
      */
-    class SPICA_QUAD_DLL Quad : public IShape {
+    class SPICA_EXPORTS Quad : public IShape {
     private:
         std::array<Vector3D, 4> _points;
 

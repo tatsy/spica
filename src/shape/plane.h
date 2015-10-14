@@ -1,15 +1,9 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef SPICA_PLANE_H_
 #define SPICA_PLANE_H_
-
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_PLANE_EXPORT
-        #define SPICA_PLANE_DLL __declspec(dllexport)
-    #else
-        #define SPICA_PLANE_DLL __declspec(dllimport)
-    #endif
-#elif defined(linux) || defined(__linux)
-    #define SPICA_PLANE_DLL
-#endif
 
 #include "shape_interface.h"
 #include "../math/vector3d.h"
@@ -19,7 +13,7 @@ namespace spica {
     /** Plane class
      *  @ingroup shape_class
      */
-    class SPICA_PLANE_DLL Plane : public IShape {
+    class SPICA_EXPORTS Plane : public IShape {
     protected:
         double   _distance = 0.0;
         Vector3D _normal   = { 0.0, 0.0, 0.0 };

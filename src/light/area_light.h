@@ -5,16 +5,6 @@
 #ifndef _SPICA_AREA_LIGHT_H_
 #define _SPICA_AREA_LIGHT_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_AREA_LIGHT_EXPORT
-        #define SPICA_AREA_LIGHT_DLL __declspec(dllexport)
-    #else
-        #define SPICA_AREA_LIGHT_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_AREA_LIGHT_DLL
-#endif
-
 #include <vector>
 
 #include "light_interface.h"
@@ -25,9 +15,9 @@
 namespace spica {
 
     /** Area light class
-     * @ingroup light_module
+     *  @ingroup light_module
      */
-    class SPICA_AREA_LIGHT_DLL AreaLight : public ILight {
+    class SPICA_EXPORTS AreaLight : public ILight {
     private:
         Color _emittance;
         std::vector<Triangle> _triangles;

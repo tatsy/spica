@@ -1,4 +1,4 @@
-#define SPICA_SUBSURFACE_INTEGRATOR_EXPORT
+#define SPICA_API_EXPORT
 #include "subsurface_integrator.h"
 
 #include <iostream>

@@ -5,23 +5,13 @@
 #ifndef SPICA_RAY_H_
 #define SPICA_RAY_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_RAY_EXPORT
-        #define SPICA_RAY_DLL __declspec(dllexport)
-    #else
-        #define SPICA_RAY_DLL __declspec(dllimport)
-    #endif
-#elif defined(linux) || defined(__linux)
-    #define SPICA_RAY_DLL
-#endif
-
 #include "../math/vector2d.h"
 #include "../math/vector3d.h"
 #include "../core/color.h"
 
 namespace spica {
 
-    class SPICA_RAY_DLL Ray {
+    class SPICA_EXPORTS Ray {
     private:
         Vector3D _origin     = { 0.0, 0.0, 0.0 };
         Vector3D _direction  = { 0.0, 0.0, 0.0 };
@@ -43,7 +33,7 @@ namespace spica {
         void calcInvdir();
     };
 
-    class SPICA_RAY_DLL Hitpoint {
+    class SPICA_EXPORTS Hitpoint {
     private:
         double   _distance = INFTY;
         Vector3D _position = { 0.0, 0.0, 0.0 };
@@ -68,7 +58,7 @@ namespace spica {
         inline void setTexcoord(const Vector2D& texcoord) { _texcoord = texcoord; }
     };
 
-    class SPICA_RAY_DLL Intersection {
+    class SPICA_EXPORTS Intersection {
     private:
         double   _distance = INFTY;
         Vector3D _pos      = { 0.0, 0.0, 0.0 };

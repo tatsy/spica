@@ -1,4 +1,4 @@
-#define SPICA_RENDERER_HELPER_EXPORT
+#define SPICA_API_EXPORT
 #include "renderer_helper.h"
 
 #include <cmath>
@@ -86,7 +86,7 @@ namespace spica {
             // Get intersecting material
             const int objectID     = isect.objectID();
             const BSDF& bsdf       = scene.getBsdf(objectID);
-            const Color& refl      = bsdf.reflectance();
+            const Color& refl      = isect.color();
 
             // Russian roulette
             double roulette = max3(refl.red(), refl.green(), refl.blue());

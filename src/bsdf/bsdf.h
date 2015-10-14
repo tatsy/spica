@@ -10,16 +10,6 @@
 #ifndef _SPICA_BSDF_H_
 #define _SPICA_BSDF_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_BSDF_EXPORT
-        #define SPICA_BSDF_DLL __declspec(dllexport)
-    #else
-        #define SPICA_BSDF_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_BSDF_DLL
-#endif
-
 #include <memory>
 
 #include "../math/vector3d.h"
@@ -56,9 +46,9 @@ namespace spica {
     }
 
     /** BSDF (Bidirectional Scattering Distributioh Function).
-     * @ingroup bsdf_module
+     *  @ingroup bsdf_module
      */
-    class SPICA_BSDF_DLL BSDF {
+    class SPICA_EXPORTS BSDF {
     private:
         std::unique_ptr<const BSDFBase> _ptr;
         std::unique_ptr<const BSSRDF>   _bssrdf;

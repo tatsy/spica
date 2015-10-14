@@ -10,16 +10,6 @@
 #ifndef _SPICA_ACCEL_H_
 #define _SPICA_ACCEL_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_ACCEL_EXPORT
-        #define SPICA_ACCEL_DLL __declspec(dllexport)
-    #else
-        #define SPICA_ACCEL_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_ACCEL_DLL
-#endif
-
 #include <memory>
 
 #include "../core/forward_decl.h"
@@ -27,7 +17,7 @@
 
 namespace spica {
 
-    class SPICA_ACCEL_DLL Accelerator {
+    class SPICA_EXPORTS Accelerator {
     private:
         std::shared_ptr<IAccel> _ptr;
         AccelType _type;

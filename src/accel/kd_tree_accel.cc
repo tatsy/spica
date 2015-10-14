@@ -1,4 +1,4 @@
-#define SPICA_KDTREE_ACCEL_EXPORT
+#define SPICA_API_EXPORT
 #include "kd_tree_accel.h"
 
 #include <cstring>

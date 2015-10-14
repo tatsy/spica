@@ -5,16 +5,6 @@
 #ifndef SPICA_COLOR_H_
 #define SPICA_COLOR_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_COLOR_EXPORT
-        #define SPICA_COLOR_DLL __declspec(dllexport)
-    #else
-        #define SPICA_COLOR_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_COLOR_DLL
-#endif
-
 #include <iostream>
 
 #include "common.h"
@@ -23,24 +13,24 @@ namespace spica {
 
     /** RGB color class.
      */
-    class SPICA_COLOR_DLL Color {
+    class SPICA_EXPORTS Color {
     public:
         /** Black. */
-        static const Color BLACK;
+        SPICA_IMPORTS static const Color BLACK;
         /** White. */
-        static const Color WHITE;
+        SPICA_IMPORTS static const Color WHITE;
         /** Red. */
-        static const Color RED;
+        SPICA_IMPORTS static const Color RED;
         /** Green. */
-        static const Color GREEN;
+        SPICA_IMPORTS static const Color GREEN;
         /** Blue. */
-        static const Color BLUE;
+        SPICA_IMPORTS static const Color BLUE;
         /** Cyan. */
-        static const Color CYAN;
+        SPICA_IMPORTS static const Color CYAN;
         /** Yellow. */
-        static const Color YELLOW;
+        SPICA_IMPORTS static const Color YELLOW;
         /** Magenta. */
-        static const Color MAGENTA;
+        SPICA_IMPORTS static const Color MAGENTA;
 
     private:
         double _r, _g, _b;
@@ -110,17 +100,17 @@ namespace spica {
 
 }  // namespace spica
 
-SPICA_COLOR_DLL spica::Color operator+(const spica::Color& c1, const spica::Color& c2);
-SPICA_COLOR_DLL spica::Color operator+(double x, const spica::Color& c);
-SPICA_COLOR_DLL spica::Color operator+(const spica::Color& c, double x);
-SPICA_COLOR_DLL spica::Color operator-(const spica::Color& c1, const spica::Color& c2);
-SPICA_COLOR_DLL spica::Color operator-(double x, const spica::Color& c);
-SPICA_COLOR_DLL spica::Color operator-(const spica::Color& c, double x);
-SPICA_COLOR_DLL spica::Color operator*(const spica::Color& c1, const spica::Color& c2);
-SPICA_COLOR_DLL spica::Color operator*(const spica::Color& c1, double s);
-SPICA_COLOR_DLL spica::Color operator*(double s, const spica::Color& c2);
-SPICA_COLOR_DLL spica::Color operator/(const spica::Color& c1, const spica::Color& c2);
-SPICA_COLOR_DLL spica::Color operator/(const spica::Color& c1, double s);
-SPICA_COLOR_DLL std::ostream& operator<<(std::ostream& os, const spica::Color& c);
+SPICA_EXPORTS spica::Color operator+(const spica::Color& c1, const spica::Color& c2);
+SPICA_EXPORTS spica::Color operator+(double x, const spica::Color& c);
+SPICA_EXPORTS spica::Color operator+(const spica::Color& c, double x);
+SPICA_EXPORTS spica::Color operator-(const spica::Color& c1, const spica::Color& c2);
+SPICA_EXPORTS spica::Color operator-(double x, const spica::Color& c);
+SPICA_EXPORTS spica::Color operator-(const spica::Color& c, double x);
+SPICA_EXPORTS spica::Color operator*(const spica::Color& c1, const spica::Color& c2);
+SPICA_EXPORTS spica::Color operator*(const spica::Color& c1, double s);
+SPICA_EXPORTS spica::Color operator*(double s, const spica::Color& c2);
+SPICA_EXPORTS spica::Color operator/(const spica::Color& c1, const spica::Color& c2);
+SPICA_EXPORTS spica::Color operator/(const spica::Color& c1, double s);
+SPICA_EXPORTS std::ostream& operator<<(std::ostream& os, const spica::Color& c);
 
 #endif  // SPICA_COLOR_H_

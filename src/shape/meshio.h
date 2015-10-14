@@ -5,18 +5,9 @@
 #ifndef _SPICA_MESHIO_H_
 #define _SPICA_MESHIO_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_MESHIO_EXPORT
-        #define SPICA_MESHIO_DLL __declspec(dllexport)
-    #else
-        #define SPICA_MESHIO_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_MESHIO_DLL
-#endif
-
 #include <string>
 
+#include "../core/common.h"
 #include "../core/forward_decl.h"
 #include "../core/uncopyable.h"
 
@@ -24,7 +15,7 @@ namespace spica {
 
     /** Mesh IO interface
      */
-    class MeshIO : private Uncopyable {
+    class SPICA_EXPORTS MeshIO : private Uncopyable {
     public:
         MeshIO() {}
         virtual ~MeshIO() {}
@@ -37,7 +28,7 @@ namespace spica {
 
     /** Mesh IO for PLY format.
      */
-    class SPICA_MESHIO_DLL PLYMeshIO : public MeshIO {
+    class SPICA_EXPORTS PLYMeshIO : public MeshIO {
     public:
         PLYMeshIO();
         ~PLYMeshIO();
@@ -49,7 +40,7 @@ namespace spica {
 
     /** Mesh IO for OBJ format.
      */
-    class SPICA_MESHIO_DLL OBJMeshIO : public MeshIO {
+    class SPICA_EXPORTS OBJMeshIO : public MeshIO {
     public:
         OBJMeshIO();
         ~OBJMeshIO();

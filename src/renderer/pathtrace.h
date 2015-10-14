@@ -5,16 +5,6 @@
 #ifndef SPICA_PT_RENDERER_H_
 #define SPICA_PT_RENDERER_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_PT_RENDERER_EXPORT
-        #define SPICA_PT_RENDERER_DLL __declspec(dllexport)
-    #else
-        #define SPICA_PT_RENDERER_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_PT_RENDERER_DLL
-#endif
-
 #include <string>
 
 #include "../core/forward_decl.h"
@@ -25,7 +15,7 @@ namespace spica {
     /** Unidirectional path tracing
      *  @ingroup renderer_module
      */
-    class SPICA_PT_RENDERER_DLL PathRenderer : public IRenderer {
+    class SPICA_EXPORTS PathRenderer : public IRenderer {
     public:
         /** The path tracing renderer constructor.
          */

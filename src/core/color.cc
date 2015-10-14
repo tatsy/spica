@@ -1,4 +1,4 @@
-#define SPICA_COLOR_EXPORT
+#define SPICA_API_EXPORT
 #include "color.h"
 
 #include <sstream>

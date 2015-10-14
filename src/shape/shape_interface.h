@@ -10,13 +10,9 @@
 #ifndef SPICA_SHAPE_INTERFACE_H_
 #define SPICA_SHAPE_INTERFACE_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #define SPICA_SHAPE_INTERFACE_DLL __declspec(dllexport)
-#else
-    #define SPICA_SHAPE_INTERFACE_DLL
-#endif
-
 #include <vector>
+
+#include "../core/common.h"
 
 namespace spica {
     
@@ -42,7 +38,7 @@ namespace spica {
     /** Interface for shapes
      *  @ingroup shape_module
      */
-    class SPICA_SHAPE_INTERFACE_DLL IShape {
+    class SPICA_EXPORTS IShape {
     protected:
         ShapeType _type;
 

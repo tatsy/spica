@@ -1,4 +1,4 @@
-#define SPICA_PLANE_EXPORT
+#define SPICA_API_EXPORT
 #include "plane.h"
 
 #include "../core/common.h"

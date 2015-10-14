@@ -5,16 +5,6 @@
 #ifndef _SPICA_ORTHOGRAPHIC_CAMERA_H_
 #define _SPICA_ORTHOGRAPHIC_CAMERA_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_ORTHOGRAPHIC_CAMERA_EXPORT
-        #define SPICA_ORTHOGRAPHIC_CAMERA_DLL __declspec(dllexport)
-    #else
-        #define SPICA_ORTHOGRAPHIC_CAMERA_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_ORTHOGRAPHIC_CAMERA_DLL
-#endif
-
 #include "../math/vector3d.h"
 #include "../core/rect.h"
 
@@ -23,9 +13,9 @@
 namespace spica {
 
     /** Orthographic camera.
-     * @ingroup camera_module
+     *  @ingroup camera_module
      */
-    class SPICA_ORTHOGRAPHIC_CAMERA_DLL OrthographicCamera : public ICamera {
+    class SPICA_EXPORTS OrthographicCamera : public ICamera {
     private:
         Rect _rect;
 

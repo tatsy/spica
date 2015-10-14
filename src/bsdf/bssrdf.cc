@@ -1,4 +1,4 @@
-#define SPICA_BSSRDF_EXPORT
+#define SPICA_API_EXPORT
 #include "bssrdf.h"
 
 #include <iostream>

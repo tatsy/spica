@@ -1,4 +1,4 @@
-#define SPICA_MESHIO_EXPORT
+#define SPICA_API_EXPORT
 #include "meshio.h"
 
 #include <iostream>

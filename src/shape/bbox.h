@@ -5,16 +5,6 @@
 #ifndef _SPICA_BBOX_H_
 #define _SPICA_BBOX_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_BBOX_EXPORT
-        #define SPICA_BBOX_DLL __declspec(dllexport)
-    #else
-        #define SPICA_BBOX_DLL __declspec(dllimport)
-    #endif
-#else
-#define SPICA_BBOX_DLL
-#endif
-
 #include "shape_interface.h"
 #include "triangle.h"
 #include "../renderer/ray.h"
@@ -25,7 +15,7 @@ namespace spica {
     /** AABB (Axis-Aligned Bounding Box) class
      *  @ingroup shape_module
      */
-    class SPICA_BBOX_DLL BBox : public IShape {
+    class SPICA_EXPORTS BBox : public IShape {
     private:
         Vector3D _posMin;    // Position of minimum corner
         Vector3D _posMax;    // Position of maximum corner

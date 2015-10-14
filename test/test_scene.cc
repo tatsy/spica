@@ -7,12 +7,9 @@ using namespace spica;
 
 class SceneTest : public ::testing::Test {
 protected:
-    SceneTest()
-        : scene() {
-    }
+    SceneTest() {}
 
-    virtual ~SceneTest() {
-    }
+    virtual ~SceneTest() {}
 
     virtual void SetUp() {
         nTrial = 100;
@@ -40,6 +37,30 @@ TEST_F(SceneTest, AccelNotPrepared) {
     Intersection isect;
     Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
     ASSERT_DEATH(scene.intersect(ray, &isect), "");
+}
+
+TEST_F(SceneTest, BoundingSphere) {
+    Camera cam = Camera::perspective(Vector3D{0.0, 0.0, 100.0},
+                                     Vector3D{0.0, 0.0, -1.0},
+                                     Vector3D{0.0, 1.0, 0.0},
+                                     45.0,
+                                     800,
+                                     600,
+                                     1.0);
+    Sphere bounds = scene.boundingSphere(cam);
+
+    EXPECT_LE((cam.center() - bounds.center()).norm(), bounds.radius());
+    EXPECT_LE((s1.center() - bounds.center()).norm(), bounds.radius() - s1.radius());
+    EXPECT_LE((s2.center() - bounds.center()).norm(), bounds.radius() - s2.radius());
+}
+
+TEST_F(SceneTest, IsTextured) {
+    Trimesh mesh(kDataDirectory + "tex_cube.ply");
+    int curTris = scene.numTriangles();
+    scene.addShape(mesh, LambertianBRDF::factory(Color(0.5, 0.5, 0.5)));
+    for (int i = curTris; i < scene.numTriangles(); i++) {
+        EXPECT_TRUE(scene.isTextured(i));
+    }
 }
 
 TEST_F(SceneTest, BBVHIntersectionTest) {

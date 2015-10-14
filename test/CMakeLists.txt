@@ -47,7 +47,6 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_scene.cc
       test_random.cc
       test_renderer_helper.cc
-      test_structure.cc
       test_path.cc
       test_yaml.cc)
     # test_renderer.cc)

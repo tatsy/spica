@@ -7,6 +7,10 @@ compiler:
 services:
   - docker
 
+before_install:
+  - sudo apt-get -qq update
+  - if [ $TRAVIS_BRANCH = "master" ]; then sudo apt-get -qq install doxygen; fi
+
 install:
   # Pull Docker image
   - docker pull tatsy/ubuntu-cxx:default
@@ -33,13 +37,7 @@ after_success:
   - docker exec spica-env coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
   ## Deploy GitHub Pages
-  - if [ $TRAVIS_BRANCH = "master" ]; then sudo apt-get install -qq doxygen; fi
-  - if [ $TRAVIS_BRANCH = "master" ]; then git config --global user.name "Travis CI"; fi
-  - if [ $TRAVIS_BRANCH = "master" ]; then git config --global user.email "travis@travis-ci.org"; fi
-  - if [ $TRAVIS_BRANCH = "master" ]; then "cd docs; doxygen doxyfile; cd html"; fi
-  - if [ $TRAVIS_BRANCH = "master" ]; then git add --all; fi
-  - if [ $TRAVIS_BRANCH = "master" ]; then git commit -m "Travis build No.$TRAVIS_BUILD_NUMBER commit to GitHub Pages"; fi
-  - if [ $TRAVIS_BRANCH = "master" ]; then git push --force --quiet "https://${GH_TOKEN}@${GH_REF}" master:gh-pages; fi
+  - if [ $TRAVIS_BRANCH = "master" ]; then sh deploy/ghpages.sh; fi
 
 branches:
   only:
@@ -48,7 +46,6 @@ branches:
 
 env:
   global:
-    GH_REF: github.com/tatsy/spica.git
     secure: FvLmuzyUsyy8PN3u/RjsZUt4mUsuuAdG4O4FdSogAPFVeu1oathhntC8q4x1Qw7aQ+5Tper0yX7oJxKHjyuh3oCU+eNHMHGcpj1L21QzzEglUtzS/NW2/QhINt1WXB3onCxhcL9lq+NzWMOdCqPAfe/egbNX/ERCTrGZMtoFNgo=
 
 notifications:

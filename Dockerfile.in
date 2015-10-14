@@ -21,7 +21,7 @@ RUN pip install gcovr
 #
 ## Install cppcheck, cccc, and doxygen
 #
-RUN apt-get -qq install cppcheck cccc
+RUN apt-get -qq install cppcheck cccc doxygen
 
 #
 ## Install freeglut and glew

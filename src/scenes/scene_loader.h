@@ -5,24 +5,16 @@
 #ifndef _SPICA_SCENE_LOADER_H_
 #define _SPICA_SCENE_LOADER_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_SCENE_LOADER_EXPORT
-        #define SPICA_SCENE_LOADER_DLL __declspec(dllexport)
-    #else
-        #define SPICA_SCENE_LOADER_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_SCENE_LOADER_DLL
-#endif
-
 #include <string>
+
+#include "../core/common.h"
 
 namespace spica {
 
     class Scene;
     class Camera;
 
-    class SPICA_SCENE_LOADER_DLL SceneLoader {
+    class SPICA_EXPORTS SceneLoader {
     public:
         SceneLoader();
         ~SceneLoader();    

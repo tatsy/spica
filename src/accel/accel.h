@@ -1,3 +1,8 @@
+/**
+ * @defgroup accel_module Accel
+ * @brief The class module for intersecting accelerating data structures
+ */
+
 #ifdef _MSC_VER
 #pragma once
 #endif
@@ -5,17 +10,33 @@
 #ifndef _SPICA_ACCEL_H_
 #define _SPICA_ACCEL_H_
 
-#include "kd_tree_accel.h"
-#include "bbvh_accel.h"
-#include "qbvh_accel.h"
+#include <memory>
+
+#include "../core/forward_decl.h"
+#include "accel_interface.h"
 
 namespace spica {
 
-    //! Accelerator types
-    enum class AccelType : int {
-        kdtreeAccel,   //! k-d tree acclerator
-        bbvhAccel,     //! binary BVH accelerator
-        qbvhAccel      //! SIMD-acclerated QBVH acclerator
+    class SPICA_EXPORTS Accelerator {
+    private:
+        std::shared_ptr<IAccel> _ptr;
+        AccelType _type;
+
+    public:
+        Accelerator();
+        Accelerator(AccelType type);
+        Accelerator(const Accelerator& accel);
+
+        ~Accelerator();
+
+        Accelerator& operator=(const Accelerator& accel);
+
+        void setAccelType(AccelType type);
+
+        void construct(const std::vector<Triangle>& triangles);
+        int  intersect(const Ray& ray, Hitpoint* hitpoint) const;
+
+        explicit operator bool() const;
     };
 
 }  // namespace spica

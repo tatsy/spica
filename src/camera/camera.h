@@ -1,3 +1,8 @@
+/**
+ * @defgroup camera_module Camera
+ * @brief camera
+ */
+
 #ifdef _MSC_VER
 #pragma once
 #endif
@@ -5,20 +10,10 @@
 #ifndef _SPICA_CAMERA_H_
 #define _SPICA_CAMERA_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifndef SPICA_CAMERA_EXPORT
-        #define SPICA_CAMERA_DLL __declspec(dllexport)
-    #else
-        #define SPICA_CAMERA_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_CAMERA_DLL
-#endif
-
 #include <memory>
 
 #include "camera_interface.h"
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 #include "../renderer/ray.h"
 
 namespace spica {
@@ -31,16 +26,29 @@ namespace spica {
         DepthOfField = 0x04
     };
 
-    class SPICA_CAMERA_DLL Camera {
+    /** Camera class
+     * @ingroup camera_module
+     */
+    class SPICA_EXPORTS Camera {
     private:
-        ICamera*   _ptr;
+        std::unique_ptr<ICamera> _ptr;
         CameraType _type;
 
     public:
+        /** The Camera constructor.
+         */
         Camera();
+
+        /** The Camera destructor.
+         */
         ~Camera();
 
+        /** The Camera constructor (copy).
+         */
         Camera(const Camera& camera);
+
+        /** The Camera constructor (move).
+         */
         Camera(Camera&& camera);
 
         Camera& operator=(const Camera&);
@@ -48,6 +56,8 @@ namespace spica {
 
         CameraSample sample(double px, double py, Stack<double>& rstack) const;
 
+        /** Instantiate Camera by DoF camera.
+         */
         static Camera asDoF(int imageWidth,
                             int imageHeight,
                             const  Vector3D& sensorCenter,
@@ -59,18 +69,42 @@ namespace spica {
                             double lensRadius,
                             double sensorSensitivity);
 
+        /** Instantiate Camera by perspective camera
+         * @param center Camera center position
+         * @param direction Camera direction
+         * @param up Upward direction
+         * @param fov Field of view (degree)
+         * @param imageW Image width
+         * @param imageH Image height
+         * @param sensitivity Camera sensor sensitivity
+         */
         static Camera perspective(const Vector3D& center,
                                   const Vector3D& direction,
                                   const Vector3D& up,
                                   double fov, int imageW, int imageH,
                                   double sensitivity);
 
-        static Camera orthogonal(const Vector3D& center,
-                                 const Vector3D& direction,
-                                 const Vector3D& up,
-                                 int imageW, int imageH, double sensitivity);
+        /** Instantiate Camera by orthographic camera
+         * @param center Camera center position
+         * @param direction Camera direction
+         * @param up Upward direction
+         * @param imageW Image width
+         * @param imageH Image height
+         * @param sensitivity Camera sensor sensitivity
+         */
+        static Camera ortho(const Vector3D& center,
+                            const Vector3D& direction,
+                            const Vector3D& up,
+                            int imageW, int imageH, double sensitivity);
 
-        std::unique_ptr<ICamera> ptr() const;
+        /** Simply get the pointer from interior unique_ptr.
+         */
+        ICamera* getPtr() const;
+
+        /** Get the pointer from interior unique_ptr and release it.
+         */
+        ICamera* releasePtr();
+
         inline CameraType type() const { return _type; }
         inline Vector3D center() const { return _ptr->center(); }
         inline Vector3D direction() const { return _ptr->direction(); }
@@ -83,31 +117,6 @@ namespace spica {
         friend class QGLRenderWidget;
         friend class BDPTRenderer;
     };
-
-    /*
-    struct CameraSample {
-        // TODO: camera is a pointer and public member, it should be fixed !!
-        Vector3D posSensor;
-        Vector3D posObjectPlane;
-        Vector3D posLens;
-        double pdfImage;
-        double pdfLens;
-        const Camera* camera;
-
-        // Compute ray corresponding to this sample
-        Ray generateRay() const {
-            return Ray(posLens, Vector3D::normalize(posObjectPlane - posLens));
-        }
-
-        // Probability density for this sample
-        double totalPdf() const {
-            const Vector3D lensToSensor = posSensor - posLens;
-            const double cosine = Vector3D::dot(camera->direction(), lensToSensor.normalized());
-            const double weight = cosine * cosine / lensToSensor.squaredNorm();
-            return pdfLens * pdfImage / weight;
-        }
-    };
-    */
 
 }  // namespace spica
 

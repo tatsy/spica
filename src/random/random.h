@@ -5,27 +5,17 @@
 #ifndef _SPICA_RANDOM_H_
 #define _SPICA_RANDOM_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_RANDOM_EXPORT
-        #define SPICA_RANDOM_DLL __declspec(dllexport)
-    #else
-        #define SPICA_RANDOM_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_RANDOM_DLL
-#endif
-
-#include "../utils/common.h"
+#include "../core/common.h"
 #include "random_base.h"
 
 namespace spica {
 
     class RandomSampler;
 
-    // --------------------------------------------------
-    // Random number generator with Mersenne twister
-    // --------------------------------------------------
-    class SPICA_RANDOM_DLL Random : public RandomBase {
+    /** Random number generator with Mersenne twister.
+     *  @ingroup random_module
+     */
+    class SPICA_EXPORTS Random : public RandomBase {
     private:
         static const int N = 624;
         static const int M = 397;
@@ -39,17 +29,22 @@ namespace spica {
     public:
         explicit Random(unsigned int seed = 0);
 
-        // Generate a random integer from [0, n-1]
         int nextInt();
+
+        /** Generate a random integer from [0, n-1].
+         */
         int nextInt(const int n);
 
-        // Generate a floating point random number from [0, 1)
+        /** Generate a floating point random number from [0, 1).
+         */
         double nextReal();
 
-        // Request specified amount of random numbers
+        /** Request specified amount of random numbers.
+         */
         void request(Stack<double>* rands, const int numRequested) override;
 
-        // Factory method for RandomSampler
+        /** Factory method for RandomSampler.
+         */
         static RandomSampler factory(unsigned int seed = 0);
 
     private:
@@ -59,6 +54,6 @@ namespace spica {
         double genrand_real2(void);
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_RANDOM_H_

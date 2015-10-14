@@ -42,7 +42,7 @@ TEST(SamplerTest, DiskSampleTest) {
 TEST(SamplerTest, SphereSampleTest) {
     Vector3D c(0.0, 1.0, 2.0);
     double r = 5.0;
-    Sphere sph(r, c);
+    Sphere sph(c, r);
 
     for (int i = 0; i < nTrial; i++) {
         Vector3D v, n;

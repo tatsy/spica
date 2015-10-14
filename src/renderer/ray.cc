@@ -1,33 +1,25 @@
-#define SPICA_RAY_EXPORT
+#define SPICA_API_EXPORT
 #include "ray.h"
-#include "../utils/common.h"
+#include "../core/common.h"
 
 #include <cmath>
 
 namespace spica {
 
-    Ray::Ray()
-        : _origin()
-        , _direction()
-        , _invdir()
-    {
-        calcInvdir();
+    Ray::Ray() {
     }
 
     Ray::Ray(const Vector3D& origin, const Vector3D& direction)
-        : _origin(origin)
-        , _direction(direction)
-        , _invdir()
-    {
-        Assertion(std::abs(1.0 - direction.norm()) < EPS, "Direction must be unit vector");
+        : _origin{origin}
+        , _direction{direction}
+        , _invdir{} {
+        Assertion(std::abs(1.0 - direction.norm()) < EPS,
+                  "Direction must be unit vector!!");
         calcInvdir();
     }
 
     Ray::Ray(const Ray& ray)
-        : _origin()
-        , _direction()
-        , _invdir()
-    {
+        : Ray {} {
         operator=(ray);
     }
 
@@ -35,28 +27,24 @@ namespace spica {
     }
 
     Ray& Ray::operator=(const Ray& ray) {
-        this->_origin = ray._origin;
+        this->_origin    = ray._origin;
         this->_direction = ray._direction;
-        this->_invdir = ray._invdir;
+        this->_invdir    = ray._invdir;
         return *this;
     }
 
     void Ray::calcInvdir() {
-        _invdir.x() = (_direction.x() == 0.0) ? INFTY : 1.0 / _direction.x();
-        _invdir.y() = (_direction.y() == 0.0) ? INFTY : 1.0 / _direction.y();
-        _invdir.z() = (_direction.z() == 0.0) ? INFTY : 1.0 / _direction.z();
+        _invdir.xRef() = (_direction.x() == 0.0) ? INFTY : 1.0 / _direction.x();
+        _invdir.yRef() = (_direction.y() == 0.0) ? INFTY : 1.0 / _direction.y();
+        _invdir.zRef() = (_direction.z() == 0.0) ? INFTY : 1.0 / _direction.z();
     }
 
-    Hitpoint::Hitpoint()
-        : _distance(INFTY)
-        , _normal()
-        , _position() {
+    Hitpoint::Hitpoint() {
     }
 
-    Hitpoint::Hitpoint(const Hitpoint& hp)
-        : _distance(hp._distance)
-        , _normal(hp._normal)
-        , _position(hp._position) {
+    Hitpoint::Hitpoint(const Hitpoint& hp) 
+        : Hitpoint{} {
+        this->operator=(hp);
     }
 
     Hitpoint::~Hitpoint() {
@@ -64,32 +52,38 @@ namespace spica {
 
     Hitpoint& Hitpoint::operator=(const Hitpoint& hp) {
         this->_distance = hp._distance;
-        this->_normal = hp._normal;
         this->_position = hp._position;
+        this->_normal   = hp._normal;
+        this->_texcoord = hp._texcoord;
         return *this;
     }
 
-    Intersection::Intersection()
-        : _hitPoint()
-        , _objectId(-1) {
+    Intersection::Intersection() {
     }
 
-    Intersection::Intersection(const Intersection& intersection)
-        : _hitPoint(intersection._hitPoint)
-        , _objectId(intersection._objectId) {
+    Intersection::Intersection(const Intersection& isect)
+        : Intersection{} {
+        this->operator=(isect);
+    }
+
+    Intersection::Intersection(int objectID, const Hitpoint& hp, const Color& color)
+        : _distance{hp.distance()}
+        , _pos{hp.position()}
+        , _normal{hp.normal()}
+        , _color{color}
+        , _objID{objectID} {
     }
 
     Intersection::~Intersection() {
     }
 
-    Intersection& Intersection::operator=(const Intersection& intersection) {
-        this->_hitPoint = intersection._hitPoint;
-        this->_objectId = intersection._objectId;
+    Intersection& Intersection::operator=(const Intersection& isect) {
+        this->_distance = isect._distance;
+        this->_pos      = isect._pos;
+        this->_normal   = isect._normal;
+        this->_color    = isect._color;
+        this->_objID    = isect._objID;
         return *this;
-    }
-
-    double Intersection::hittingDistance() const {
-        return _hitPoint.distance();
     }
 
 }  // namespace spica

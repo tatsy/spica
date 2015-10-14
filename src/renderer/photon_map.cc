@@ -1,15 +1,16 @@
-#define SPICA_PHOTON_MAP_EXPORT
+#define SPICA_API_EXPORT
 #include "photon_map.h"
 
 #include <ctime>
 
-#include "../utils/sampler.h"
+#include "../core/sampler.h"
+#include "../scenes/scene.h"
 #include "../camera/camera.h"
+#include "../light/lighting.h"
 #include "../random/random_sampler.h"
 #include "../random/random.h"
 #include "../random/halton.h"
 
-#include "scene.h"
 #include "render_parameters.h"
 
 namespace spica {
@@ -246,23 +247,22 @@ namespace spica {
 
         // If not hit the scene, then break
         Intersection isect;
-        if (!scene.intersect(ray, isect)) {
+        if (!scene.intersect(ray, &isect)) {
             return;
         }
 
         // Hitting object
-        const int       objID  = isect.objectId();
+        const int       objID  = isect.objectID();
         const BSDF&     bsdf   = scene.getBsdf(objID);
-        const Color&    refl   = bsdf.reflectance();
-        const Hitpoint& hpoint = isect.hitpoint();
+        const Color&    refl   = isect.color();
 
-        const bool into = Vector3D::dot(hpoint.normal(), ray.direction()) < 0.0;
-        const Vector3D orientNormal = (into ? 1.0 : -1.0) * hpoint.normal();
+        const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
+        const Vector3D orientNormal = (into ? 1.0 : -1.0) * isect.normal();
 
         double photonPdf = 1.0;
         if (bsdf.type() & absorbBsdf) {
-            photons->push_back(Photon(hpoint.position(), flux, 
-                                      ray.direction(), hpoint.normal()));
+            photons->push_back(Photon(isect.position(), flux, 
+                                      ray.direction(), isect.normal()));
         
             // Russian roulette
             const double prob = (refl.red() + refl.green() + refl.blue()) / 3.0;
@@ -277,10 +277,10 @@ namespace spica {
 
         double samplePdf = 1.0;
         Vector3D nextdir;
-        bsdf.sample(ray.direction(), hpoint.normal(), rands[1], rands[2],
+        bsdf.sample(ray.direction(), isect.normal(), rands[1], rands[2],
                     &nextdir, &samplePdf);
 
-        Ray nextRay(hpoint.position(), nextdir);
+        Ray nextRay(isect.position(), nextdir);
         Color nextFlux = Color((flux * refl) / (samplePdf * photonPdf));
 
         // Next bounce

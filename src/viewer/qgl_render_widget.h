@@ -9,8 +9,8 @@
 
 #include <qevent.h>
 
-#include "../utils/vbo.h"
-#include "../renderer/scene.h"
+#include "../core/vbo.h"
+#include "../scenes/scene.h"
 #include "../camera/camera.h"
 
 namespace spica {

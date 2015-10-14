@@ -50,13 +50,13 @@ Thanks!
 
 */
 
-#define SPICA_RANDOM_EXPORT
+#define SPICA_API_EXPORT
 #include "random.h"
 
 #include <cmath>
 #include <ctime>
 
-#include "../utils/common.h"
+#include "../core/common.h"
 
 #include "random_sampler.h"
 

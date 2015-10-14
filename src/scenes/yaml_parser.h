@@ -5,21 +5,12 @@
 #ifndef _SPICA_YAML_PARSER_H_
 #define _SPICA_YAML_PARSER_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_YAML_PARSER_EXPORT
-        #define SPICA_YAML_PARSER_DLL __declspec(dllexport)
-    #else
-        #define SPICA_YAML_PARSER_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_YAML_PARSER_DLL
-#endif
-
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "../utils/uncopyable.h"
+#include "../core/common.h"
+#include "../core/uncopyable.h"
 
 namespace spica {
 
@@ -39,7 +30,7 @@ namespace spica {
         ~YamlNode();
     };
 
-    class SPICA_YAML_PARSER_DLL YamlElement {
+    class SPICA_EXPORTS YamlElement {
     private:
         YamlNode* _ptr;
 
@@ -76,7 +67,7 @@ namespace spica {
         friend class YamlParser;
     };
 
-    class SPICA_YAML_PARSER_DLL YamlParser : private Uncopyable {
+    class SPICA_EXPORTS YamlParser : private Uncopyable {
     private:
         int _lpos;
         std::vector<std::string> _lines;

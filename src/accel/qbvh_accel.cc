@@ -1,4 +1,4 @@
-#define SPICA_QBVH_ACCEL_EXPORT
+#define SPICA_API_EXPORT
 #include "qbvh_accel.h"
 
 #include <stack>
@@ -7,7 +7,8 @@
 #include <cstring>
 #include <algorithm>
 
-#include "../utils/common.h"
+#include "../core/common.h"
+#include "../shape/bbox.h"
 
 namespace spica {
 
@@ -60,18 +61,121 @@ namespace spica {
 
     }  // anonymous namespace
 
+    struct QBVHAccel::BVHPrimitiveInfo {
+        int primitiveNumber;
+        Vector3D centroid;
+        BBox bounds;
+
+        BVHPrimitiveInfo(int pn, const BBox& b)
+            : primitiveNumber(pn)
+            , bounds(b) {
+            centroid = (b.posMin() + b.posMax()) * 0.5;
+        }
+    };
+
+    struct QBVHAccel::SIMDTrianglePack {
+        __m128 x[3];
+        __m128 y[3];
+        __m128 z[3];
+        int idx[4];
+    };
+
+    struct QBVHAccel::BVHBuildNode {
+        BBox bounds;
+        BVHBuildNode* children[2];
+        int splitAxis, firstPrimOffset, nPrimitives;
+        int simdTrisIdx;
+
+        BVHBuildNode()
+            : bounds()
+            , children()
+            , splitAxis(-1)
+            , firstPrimOffset(-1)
+            , nPrimitives(0)
+            , simdTrisIdx(-1) {
+            children[0] = children[1] = nullptr;
+        }
+
+        void InitLeaf(int first, int n, const BBox& b, const int asimdTrisIdx) {
+            firstPrimOffset = first;
+            nPrimitives = n;
+            bounds = b;
+            simdTrisIdx = asimdTrisIdx;
+            splitAxis = 0;
+        }
+
+        void InitInterior(int axis, BVHBuildNode* c0, BVHBuildNode* c1) {
+            children[0] = c0;
+            children[1] = c1;
+            bounds = BBox::merge(c0->bounds, c1->bounds);
+            splitAxis = axis;
+            firstPrimOffset = -1;
+            nPrimitives = 0;
+        }
+    };
+
+    struct QBVHAccel::ComparePoint {
+        int dim;
+        ComparePoint(int d) : dim(d) {}
+        bool operator()(const BVHPrimitiveInfo &a, const BVHPrimitiveInfo &b) const {
+            return a.centroid.get(dim) < b.centroid.get(dim);
+        }
+    };
+
+    struct QBVHAccel::CompareToBucket {
+        int splitBucket, nBuckets, dim;
+        const BBox& centroidBounds;
+
+        CompareToBucket(int split, int num, int d, const BBox& b)
+            : centroidBounds(b)
+            , splitBucket(split)
+            , nBuckets(num)
+            , dim(d) {
+        }
+
+        bool operator()(const BVHPrimitiveInfo& p) const {
+            int b = (int)(nBuckets * ((p.centroid.get(dim) - centroidBounds.posMin().get(dim)) / (centroidBounds.posMax().get(dim) - centroidBounds.posMin().get(dim))));
+            if (b == nBuckets) {
+                b = nBuckets - 1;
+            }
+            return b <= splitBucket;
+        }
+    };
+
+    union QBVHAccel::Children {
+        struct Node {
+            unsigned flag : 1;
+            unsigned index : 31;
+        } node;
+
+        struct Leaf {
+            unsigned flag : 1;
+            unsigned nPrimitives : 3;
+            unsigned index : 28;
+        } leaf;
+
+        unsigned int raw;
+    };
+
+    struct QBVHAccel::SIMDBVHNode {
+        __m128 bboxes[2][3];
+        Children children[4];
+        int axis_top;
+        int axis_left;
+        int axis_right;
+        int reserved;
+    };
 
     QBVHAccel::QBVHAccel()
-        : _root(NULL)
-        , _triangles()
-        , _ordered()
-        , _simdNodes()
-        , _simdTris()
-    {
+        : IAccel{AccelType::QBVH}
+        , _root{nullptr}
+        , _triangles{}
+        , _ordered{}
+        , _simdNodes{}
+        , _simdTris{} {
     }
 
-    QBVHAccel::~QBVHAccel()
-    {
+    QBVHAccel::~QBVHAccel() {
         release();
     }
 
@@ -128,7 +232,7 @@ namespace spica {
             // This is leaf node
             int firstPrimOffset = orderedPrims.size();
             
-            SIMDTrianglePack* simdt = (SIMDTrianglePack*)align_alloc(sizeof(SIMDTrianglePack), 16);
+            SIMDTrianglePack* simdt = reinterpret_cast<SIMDTrianglePack*>(align_alloc(sizeof(SIMDTrianglePack), 16));
             Assertion(simdt != nullptr, "allocation failed !!");
 
             align_attrib(float, 16) x[4 * 3] = {0};
@@ -234,7 +338,7 @@ namespace spica {
         BVHBuildNode* c[4] = {0};
 
         SIMDBVHNode* n;
-        n = (SIMDBVHNode*)align_alloc(sizeof(SIMDBVHNode), 16);
+        n = reinterpret_cast<SIMDBVHNode*>(align_alloc(sizeof(SIMDBVHNode), 16));
         Assertion(n != nullptr, "allocation failed !!");
 
         _simdNodes.push_back(n);

@@ -5,22 +5,15 @@
 #ifndef _SPICA_PERSPECTIVE_CAMERA_H_
 #define _SPICA_PERSPECTIVE_CAMERA_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_PERSPECTIVE_CAMERA_EXPORT
-        #define SPICA_PERSPECTIVE_CAMERA_DLL __declspec(dllexport)
-    #else
-        #define SPICA_PERSPECTIVE_CAMERA_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_PERSPECTIVE_CAMERA_DLL
-#endif
-
-#include "../utils/vector3d.h"
+#include "../math/vector3d.h"
 #include "camera_interface.h"
 
 namespace spica {
 
-    class SPICA_PERSPECTIVE_CAMERA_DLL PerspectiveCamera : public ICamera {
+    /** Perspective camera
+     * @ingroup camera_module
+     */
+    class SPICA_EXPORTS PerspectiveCamera : public ICamera {
     private:
         double _fov;
         double _aspect;

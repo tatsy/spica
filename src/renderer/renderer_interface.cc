@@ -1,7 +1,7 @@
-#define SPICA_RENDERER_INTERFACE_EXPORT
+#define SPICA_API_EXPORT
 #include "renderer_interface.h"
 
-#include "scene.h"
+#include "../scenes/scene.h"
 #include "render_parameters.h"
 #include "subsurface_integrator.h"
 

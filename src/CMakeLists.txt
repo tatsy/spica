@@ -25,14 +25,15 @@ function (process_subdirectory dirname)
 endfunction()
 
 # Process subdirectories
-process_subdirectory(utils)
+process_subdirectory(core)
+process_subdirectory(math)
 process_subdirectory(renderer)
-process_subdirectory(geometry)
+process_subdirectory(shape)
+process_subdirectory(bsdf)
 process_subdirectory(random)
 process_subdirectory(light)
 process_subdirectory(camera)
 process_subdirectory(scenes)
-process_subdirectory(structure)
 process_subdirectory(accel)
 
 add_library(spica_renderer SHARED ${ALL_SOURCES} ${ALL_HEADERS})

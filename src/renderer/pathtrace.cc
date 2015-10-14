@@ -1,34 +1,36 @@
-#define SPICA_PT_RENDERER_EXPORT
+#define SPICA_API_EXPORT
 #include "pathtrace.h"
 
 #include <iostream>
 #include <fstream>
 #include <algorithm>
 
-#include "../utils/common.h"
-#include "../utils/vector3d.h"
-#include "../utils/sampler.h"
-#include "../utils/image.h"
+#include "../core/common.h"
+#include "../core/sampler.h"
+#include "../core/image.h"
+#include "../math/vector3d.h"
 
+#include "../random/halton.h"
 #include "../random/random_sampler.h"
 
-#include "scene.h"
+#include "../scenes/scene.h"
+#include "../light/lighting.h"
+
 #include "renderer_helper.h"
+#include "render_parameters.h"
 #include "subsurface_integrator.h"
 
 namespace spica {
 
     PathRenderer::PathRenderer()
-        : IRenderer()
-    {
+        : IRenderer{} {
     }
 
-    PathRenderer::~PathRenderer()
-    {
+    PathRenderer::~PathRenderer() {
     }
 
     void PathRenderer::render(const Scene& scene, const Camera& camera,
-                                     const RenderParameters& params) {
+                              const RenderParameters& params) {
         const int width  = camera.imageW();
         const int height = camera.imageH();
 
@@ -36,15 +38,15 @@ namespace spica {
         _integrator->initialize(scene);
 
         // Prepare random number generators
-        RandomSampler* samplers = new RandomSampler[kNumThreads];
+        auto samplers = std::vector<RandomSampler>(kNumThreads);
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case PSEUDO_RANDOM_TWISTER:
-                samplers[i] = Random::factory(i);
+                samplers[i] = RandomSampler::useMersenne((unsigned int)time(0) + i);
                 break;
 
             case QUASI_MONTE_CARLO:
-                samplers[i] = Halton::factory(200, true, i);
+                samplers[i] = RandomSampler::useHalton(200, true, (unsigned int)time(0) + i);
                 break;
 
             default:
@@ -99,11 +101,9 @@ namespace spica {
             _result.save(filename);
 
             printf("%6.2f %%  processed -> %s\r",
-                    100.0 * (i + 1) / params.samplePerPixel(), filename);
+                   100.0 * (i + 1) / params.samplePerPixel(), filename);
         }
         printf("\nFinish!!\n");
-
-        delete[] samplers;
     }
 
     Color PathRenderer::tracePath(const Scene& scene, const Camera& camera, 
@@ -125,7 +125,7 @@ namespace spica {
         }
 
         Intersection isect;
-        if (!scene.intersect(ray, isect)) {
+        if (!scene.intersect(ray, &isect)) {
             return Color::BLACK;
         }
 
@@ -133,10 +133,9 @@ namespace spica {
         const double randnums[3] = { rstack.pop(), rstack.pop(), rstack.pop() };
 
         // Get intersecting material
-        const int objectID     = isect.objectId();
+        const int objectID     = isect.objectID();
         const BSDF& bsdf       = scene.getBsdf(objectID);
-        const Color& refl      = bsdf.reflectance();
-        const Hitpoint& hpoint = isect.hitpoint();
+        const Color& refl      = isect.color();
 
         // Russian roulette
         double roulette = max3(refl.red(), refl.green(), refl.blue());
@@ -155,43 +154,43 @@ namespace spica {
 
         // Account for BSSRDF
         if (bsdf.type() & BsdfType::Bssrdf) {
-            Assertion(_integrator != NULL,
+            Assertion(_integrator != nullptr,
                       "Subsurface intergrator is NULL !!");
             bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
-                                          hpoint.position(),
-                                          hpoint.normal(),
+                                          isect.position(),
+                                          isect.normal(),
                                           randnums[1], randnums[2],
                                           *_integrator,
                                           &nextdir, &pdf);
         } else {
             // Sample next direction
-            bsdf.sample(ray.direction(), hpoint.normal(), 
+            bsdf.sample(ray.direction(), isect.normal(), 
                         randnums[1], randnums[2], &nextdir, &pdf);
         }
 
         // Compute next bounce
-        const Ray nextray(hpoint.position(), nextdir);
+        const Ray nextray(isect.position(), nextdir);
         const Color nextrad = radiance(scene, params, nextray,
-                                        rstack, bounces + 1);            
+                                       rstack, bounces + 1);            
 
         Color directrad = directSample(scene, objectID, ray.direction(),
-                                       hpoint.position(), hpoint.normal(),
-                                       bounces, rstack);
+                                       isect.position(), isect.normal(),
+                                       refl, bounces, rstack);
 
         return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
     }
 
     Color PathRenderer::directSample(const Scene& scene, const int triID,
                                      const Vector3D& in, const Vector3D& v,
-                                     const Vector3D& n, int bounces,
-                                     Stack<double>& rstk) const {
+                                     const Vector3D& n, const Color& refl, 
+                                     int bounces, Stack<double>& rstk) const {
         // Acquire random numbers
-        const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
+        const double rands[2] = { rstk.pop(), rstk.pop() };
 
         const BSDF&  bsdf = scene.getBsdf(triID);
-        const Color& refl = bsdf.reflectance();
 
         if (bsdf.type() & BsdfType::Scatter) {
+            // Scattering surface
             if (!scene.isLightCheck(triID)) {
                 const LightSample ls = scene.sampleLight(rstk);
                 double pdf;
@@ -206,8 +205,8 @@ namespace spica {
                 if (dot0 > EPS && dot1 > EPS) {
                     const double G = dot0 * dot1 / dist2;
                     Intersection isect;
-                    if (scene.intersect(Ray(v, lightDir), isect)) {
-                        if (scene.isLightCheck(isect.objectId())) {
+                    if (scene.intersect(Ray(v, lightDir), &isect)) {
+                        if (scene.isLightCheck(isect.objectID())) {
                             return (refl * ls.Le()) * (INV_PI * G * scene.lightArea()); 
                         }
                     }
@@ -221,17 +220,25 @@ namespace spica {
             Vector3D nextdir;
             bsdf.sample(in, n, rands[0], rands[1], &nextdir, &pdf);
             
+            Vector3D on = in.dot(n) < 0.0 ? n : -n;
+
             Intersection isect;
-            if (scene.intersect(Ray(v, nextdir), isect)) {
-                const int objID = isect.objectId();
-                if (scene.isLightCheck(objID)) {
-                    return (refl * scene.directLight(in)) / pdf;
+            if (scene.intersect(Ray(v, nextdir), &isect)) {
+                if (scene.isLightCheck(isect.objectID())) {
+                    if (bsdf.type() == BsdfType::Refractive) {
+                        if(on.dot(nextdir) < 0.0) {
+                            // printf("pdf = %f\n", pdf);   
+                            // return {};
+                        } else {
+                            // printf("pdf = %f\n", pdf);                            
+                        }
+                    }
+                    return (refl * scene.directLight(nextdir)) / pdf;
                 }
             }
         } else {
-            std::cerr << "Invalid BSDF detected: this is "
-                         "neigher scattering nor dielectric!!" << std::endl;
-            std::abort();
+            SpicaError("Invalid BSDF detected: this is "
+                       "neigher scattering nor dielectric!!");
         }
         return Color(0.0, 0.0, 0.0);
     }

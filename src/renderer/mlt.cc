@@ -1,4 +1,4 @@
-#define SPICA_MLT_RENDERER_EXPORT
+#define SPICA_API_EXPORT
 #include "mlt.h"
 
 #include <cstdio>
@@ -9,9 +9,12 @@
 
 #include "renderer_helper.h"
 
-#include "../utils/sampler.h"
+#include "../core/sampler.h"
+#include "../bsdf/bsdf.h"
 
 #include "../random/random_base.h"
+
+#include "render_parameters.h"
 
 namespace spica {
 
@@ -119,15 +122,13 @@ namespace spica {
 
         Color radiance(const Scene& scene, const Ray& ray, const RenderParameters& params, int bounces, KelemenMLT& mlt) {
             Intersection isect;
-            if (!scene.intersect(ray, isect)) {
+            if (!scene.intersect(ray, &isect)) {
                 return Color::BLACK;
             }
 
-            const int    objectID = isect.objectId();
+            const int    objectID = isect.objectID();
             const BSDF&  bsdf     = scene.getBsdf(objectID);
-            const Color& refl     = bsdf.reflectance();
-
-            const Hitpoint& hpoint   = isect.hitpoint();
+            const Color& refl     = isect.color();
 
             double roulette = max3(refl.red(), refl.green(), refl.blue());
             if (bounces > params.bounceStartRoulette()) {
@@ -138,16 +139,16 @@ namespace spica {
                 roulette = 1.0;
             }
 
-            if (!scene.isLightCheck(isect.objectId())) {
+            if (!scene.isLightCheck(isect.objectID())) {
                 Stack<double> rstk;
                 mlt.request(&rstk, 3);
-                Color dlight = helper::directLight(scene, hpoint.position(), ray.direction(), hpoint.normal(), bsdf, rstk);
+                Color dlight = helper::directLight(scene, isect.position(), ray.direction(), isect.normal(), bsdf, rstk);
 
                 double pdf = 1.0;
                 Vector3D nextdir;
-                bsdf.sample(ray.direction(), hpoint.normal(), mlt.nextSample(), mlt.nextSample(), &nextdir, &pdf);
+                bsdf.sample(ray.direction(), isect.normal(), mlt.nextSample(), mlt.nextSample(), &nextdir, &pdf);
 
-                Ray nextRay(hpoint.position(), nextdir);
+                Ray nextRay(isect.position(), nextdir);
                 Color nextrad = radiance(scene, nextRay, params, bounces + 1, mlt);
                 return Color(refl * (dlight + nextrad / pdf) / roulette);
             } else if (bounces == 0) {
@@ -209,8 +210,8 @@ namespace spica {
 
     }  // anonymous namespace
 
-    MLTRenderer::MLTRenderer(spica::Image* image)
-        : IRenderer() {
+    MLTRenderer::MLTRenderer()
+        : IRenderer{} {
     }
 
     MLTRenderer::~MLTRenderer() {

@@ -1,34 +1,38 @@
 #ifndef SPICA_BPT_RENDERER_H_
 #define SPICA_BPT_RENDERER_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_BPT_RENDERER_EXPORT
-        #define SPICA_BPT_RENDERER_DLL __declspec(dllexport)
-    #else
-        #define SPICA_BPT_RENDERER_DLL __declspec(dllimport)
-    #endif
-#elif defined(linux) || defined(__linux)
-    #define SPICA_BPT_RENDERER_DLL
-#endif
-
+#include "../core/forward_decl.h"
 #include "renderer_interface.h"
-#include "renderer_constants.h"
-#include "render_parameters.h"
-#include "renderer_helper.h"
 
 namespace spica {
     
-    class SPICA_BPT_RENDERER_DLL BDPTRenderer : public IRenderer {
-    private:
-        spica::Image* _image;
-
+    /** Bidirectional path tracing
+     *  @ingroup renderer_module
+     */
+    class SPICA_EXPORTS BDPTRenderer : public IRenderer {
     public:
-        BDPTRenderer(spica::Image* image = NULL);
+        /** BDPT renderer constructor.
+         */
+        BDPTRenderer();
+
+        /** BDPT renderer destructor.
+         */
         ~BDPTRenderer();
 
-        void render(const Scene& scene, const Camera& camera, const RenderParameters& params) override;
+        /** Rendering process.
+         */
+        void render(const Scene& scene, const Camera& camera,
+                    const RenderParameters& params) override;
+
+    private:
+        /** Redering a pixel.
+         */
+        void renderPixel(const Scene& scene, const DoFCamera& camera,
+                         const RenderParameters& params,
+                         RandomSampler& sampler,
+                         Image& buffer, int x, int y) const;
     };
 
-}
+}  // namespace spica
 
 #endif // SPICA_BPT_RENDERER_H_

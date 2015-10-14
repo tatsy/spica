@@ -1,38 +1,37 @@
-#define SPICA_LIGHTING_EXPORT
+#define SPICA_API_EXPORT
 #include "lighting.h"
 
 #include "envmap.h"
 #include "area_light.h"
 
-#include "../renderer/scene.h"
+#include "../scenes/scene.h"
 
 namespace spica {
 
     Lighting::Lighting()
-        : _ptr(nullptr) {
+        : _ptr() {
     }
 
     Lighting::Lighting(const Lighting& l)
-        : _ptr(nullptr) {
+        : _ptr() {
         this->operator=(l);
     }
 
     Lighting::Lighting(Lighting&& l)
-        : _ptr(nullptr) {
+        : _ptr() {
         this->operator=(std::move(l));
     }
 
     Lighting::~Lighting() {
-        delete _ptr;
     }
 
     Lighting& Lighting::operator=(const Lighting& l) {
-        this->_ptr = l._ptr->clone();
+        this->_ptr = std::unique_ptr<ILight>(l._ptr->clone());
         return *this;
     }
 
     Lighting& Lighting::operator=(Lighting&& l) {
-        this->_ptr = l._ptr;
+        this->_ptr = std::move(l._ptr);
         l._ptr = nullptr;
         return *this;
     }
@@ -40,19 +39,19 @@ namespace spica {
     Lighting Lighting::asAreaLight(const std::vector<Triangle>& triangles,
                                    const Color& emittance) {
         Lighting l;
-        l._ptr = new AreaLight(triangles, emittance);
+        l._ptr = std::make_unique<AreaLight>(triangles, emittance);
         return std::move(l);
     }
 
     Lighting Lighting::asEnvmap(const Sphere& boundSphere, const std::string& filename) {
         Lighting l;
-        l._ptr = new Envmap(boundSphere, filename);
+        l._ptr = std::make_unique<Envmap>(boundSphere, filename);
         return std::move(l);
     }
 
     Lighting Lighting::asEnvmap(const Sphere& boundSphere, const Image& image) {
         Lighting l;
-        l._ptr = new Envmap(boundSphere, image);
+        l._ptr = std::make_unique<Envmap>(boundSphere, image);
         return std::move(l);
     }
 

@@ -1,4 +1,4 @@
-#define SPICA_SPPM_EXPORT
+#define SPICA_API_EXPORT
 #include "sppm.h"
 
 #include <cstdio>
@@ -6,11 +6,13 @@
 #include <iostream>
 #include <algorithm>
 
-#include "scene.h"
 #include "renderer_helper.h"
+#include "render_parameters.h"
 
-#include "../utils/sampler.h"
+#include "../scenes/scene.h"
+#include "../core/sampler.h"
 #include "../camera/camera.h"
+#include "../light/lighting.h"
 
 #include "../random/random_sampler.h"
 #include "../random/random.h"
@@ -19,6 +21,66 @@
 #include "subsurface_integrator.h"
 
 namespace spica {
+
+    struct SPPMRenderer::SPPMPixel {
+        Vector3D position;
+        Vector3D normal;
+        Color flux;
+        Color weight;
+        Color emission;
+        double coeff;
+        int x, y;
+        double r2;
+        int n;
+
+        explicit SPPMPixel(Vector3D pos = Vector3D())
+            : position(pos)
+            , normal()
+            , flux()
+            , weight()
+            , emission()
+            , coeff(0.0)
+            , x(-1)
+            , y(-1)
+            , r2(0.0)
+            , n(0)
+        {
+        }
+
+        SPPMPixel(const SPPMPixel& pixel)
+            : position()
+            , normal()
+            , flux()
+            , weight()
+            , emission()
+            , coeff(0.0)
+            , x(-1)
+            , y(-1)
+            , r2(0.0)
+            , n(0)
+        {
+            operator=(pixel);
+        }
+
+        SPPMPixel& operator=(const SPPMPixel& pixel) {
+            this->position = pixel.position;
+            this->normal = pixel.normal;
+            this->flux = pixel.flux;
+            this->weight = pixel.weight;
+            this->emission = pixel.emission;
+            this->coeff = pixel.coeff;
+            this->x = pixel.x;
+            this->y = pixel.y;
+            this->r2 = pixel.r2;
+            this->n = pixel.n;
+            return *this;
+        }
+
+        Color radiance() const {
+            const Color  rad = flux / (PI * r2);
+            return Color((emission + rad) * coeff);
+        }
+    };
 
     const double SPPMRenderer::kAlpha = 0.7;
 
@@ -247,31 +309,30 @@ namespace spica {
 
         // Intersection check
         Intersection isect;
-        if (!scene.intersect(ray, isect)) {
+        if (!scene.intersect(ray, &isect)) {
             return;
         }
 
-        const int       objectID = isect.objectId();
-        const BSDF&     bsdf = scene.getBsdf(objectID);
-        const Color&    refl = bsdf.reflectance();
-        const Hitpoint& hpoint = isect.hitpoint();
-        const bool into = Vector3D::dot(hpoint.normal(), ray.direction()) < 0.0;
-        const Vector3D orientNormal = into ? hpoint.normal()
-                                            : -hpoint.normal();
+        const int    objectID = isect.objectID();
+        const BSDF&  bsdf     = scene.getBsdf(objectID);
+        const Color& refl     = isect.color();
+        const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
+        const Vector3D orientNormal = into ?  isect.normal()
+                                           : -isect.normal();
 
         double photonPdf = 1.0;
         if (bsdf.type() & BsdfType::Lambertian) {
             // Gather hit points
             std::vector<SPPMPixel*> results;
             omplock{
-                results = hashgrid[hpoint.position()];
+                results = hashgrid[isect.position()];
             }
 
             // Update hit points
             for (int i = 0; i < results.size(); i++) {
                 SPPMPixel* pixel = results[i];
-                Vector3D v = pixel->position - hpoint.position();
-                if (Vector3D::dot(pixel->normal, hpoint.normal()) > EPS &&
+                Vector3D v = pixel->position - isect.position();
+                if (Vector3D::dot(pixel->normal, isect.normal()) > EPS &&
                     (v.squaredNorm() <= pixel->r2)) {
                     const double g = (pixel->n * kAlpha + kAlpha) / 
                                      (pixel->n * kAlpha + 1.0);
@@ -297,9 +358,9 @@ namespace spica {
         double samplePdf = 1.0;
         Vector3D nextdir;
 
-        bsdf.sample(ray.direction(), hpoint.normal(),
+        bsdf.sample(ray.direction(), isect.normal(),
                     rands[1], rands[2], &nextdir, &samplePdf);
-        const Ray nextRay(hpoint.position(), nextdir);
+        const Ray nextRay(isect.position(), nextdir);
         const Color nextFlux = Color(flux * refl / (photonPdf * samplePdf));
 
         tracePhotonsRec(scene, nextRay, params, nextFlux, bounces + 1, rstk);
@@ -323,7 +384,7 @@ namespace spica {
         for (int bounce = 0; ; bounce++) {
             const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
-            if (!scene.intersect(ray, isect) || bounce > params.bounceLimit()) {
+            if (!scene.intersect(ray, &isect) || bounce > params.bounceLimit()) {
                 weight = Color::BLACK;
                 pixel->weight = weight;
                 pixel->coeff = coeff;
@@ -331,20 +392,19 @@ namespace spica {
                 break;
             }
 
-            const int       objectID = isect.objectId();
-            const Hitpoint& hpoint   = isect.hitpoint();
+            const int       objectID = isect.objectID();
             const BSDF&     bsdf     = scene.getBsdf(objectID);
             const Color&    emission = scene.isLightCheck(objectID) ? scene.directLight(ray.direction()) : Color::BLACK;
-            const bool      into     = Vector3D::dot(hpoint.normal(),
+            const bool      into     = Vector3D::dot(isect.normal(),
                                                      ray.direction()) < 0.0;
-            const Vector3D orientNormal = into ?  hpoint.normal()
-                                               : -hpoint.normal();
+            const Vector3D orientNormal = into ?  isect.normal()
+                                               : -isect.normal();
 
             if (bsdf.type() & BsdfType::Lambertian) {
                 // Ray hits diffuse object, return current weight
-                pixel->position = hpoint.position();
-                pixel->normal   = hpoint.normal();
-                pixel->weight   = weight * bsdf.reflectance();
+                pixel->position = isect.position();
+                pixel->normal   = isect.normal();
+                pixel->weight   = weight * isect.color();
                 pixel->coeff    = coeff;
                 pixel->emission += throughput + weight * emission;
                 break;
@@ -352,21 +412,21 @@ namespace spica {
                 double pdf = 1.0;
                 Vector3D nextdir;
                 if (bsdf.type() & BsdfType::Bssrdf) {
-                    Assertion(_integrator != NULL,
+                    Assertion(_integrator != nullptr,
                               "Subsurface integrator is NULL !!");
                     Color bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
-                                                        hpoint.position(),
-                                                        hpoint.normal(),
+                                                        isect.position(),
+                                                        isect.normal(),
                                                         rands[1], rands[2],
                                                         *_integrator,
                                                         &nextdir, &pdf);
                     throughput += weight * bssrdfRad;
                 } else {
-                    bsdf.sample(ray.direction(), hpoint.normal(),
+                    bsdf.sample(ray.direction(), isect.normal(),
                                 rands[1], rands[2], &nextdir, &pdf);
                 }
-                ray = Ray(hpoint.position(), nextdir);
-                weight = weight * bsdf.reflectance() / pdf;
+                ray = Ray(isect.position(), nextdir);
+                weight = weight * isect.color() / pdf;
             }
         }
     }

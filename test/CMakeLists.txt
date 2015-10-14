@@ -32,9 +32,12 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_macros.h
       test_stack.cc
       test_geometry.cc
-      test_vector.cc
+      test_vector2d.cc
+      test_vector3d.cc
+      test_quaternion.cc
       test_image.cc
       test_color.cc
+      test_vertex_data.cc
       test_camera.cc
       test_light.cc
       test_ray.cc
@@ -44,7 +47,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_scene.cc
       test_random.cc
       test_renderer_helper.cc
-      test_structure.cc
+      test_path.cc
       test_yaml.cc)
     # test_renderer.cc)
 

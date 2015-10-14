@@ -1,4 +1,5 @@
 build
 tmp
 output
+.cccc
 spica_dirs.h

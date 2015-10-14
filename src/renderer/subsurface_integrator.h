@@ -5,19 +5,9 @@
 #ifndef _SPICA_SUBSURFACE_INTEGRATOR_H_
 #define _SPICA_SUBSURFACE_INTEGRATOR_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_SUBSURFACE_INTEGRATOR_EXPORT
-        #define SPICA_SUBSURFACE_INTEGRATOR_DLL __declspec(dllexport)
-    #else
-        #define SPICA_SUBSURFACE_INTEGRATOR_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_SUBSURFACE_INTEGRATOR_DLL
-#endif
-
-#include "renderer_constants.h"
-#include "ppmprob.h"
-#include "bssrdf.h"
+#include "../core/forward_decl.h"
+#include "../shape/bbox.h"
+#include "photon_map.h"
 
 namespace spica {
 
@@ -62,10 +52,10 @@ namespace spica {
         }
     };
 
-    /*! Irradiance integrator for subsurface scattering objects
+    /** Irradiance integrator for subsurface scattering objects
+     *  @ingroup renderer_module
      */
-    class SPICA_SUBSURFACE_INTEGRATOR_DLL SubsurfaceIntegrator
-        : private Uncopyable {
+    class SPICA_EXPORTS SubsurfaceIntegrator : private Uncopyable {
     private:
         struct OctreeNode {
             IrradiancePoint pt;

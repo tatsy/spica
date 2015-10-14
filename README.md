@@ -36,6 +36,14 @@ spica
 
 ## Build
 
+This project uses C++11. The build is tested under following environments.
+
+* GNU C compiler (v4.9.0 or higher)
+* LLVM Clang (v3.7.0 or higher)
+* Microsoft Visual C++ compiler (MSVC 2015)
+
+#### Command
+
 ```shell
 $ git clone https://github.com/tatsy.spica.git
 $ cmake -DENABLE_AVX=OFF -DSPICA_BUILD_TEST=OFF .
@@ -70,7 +78,7 @@ $ cmake --build .
 
 ## Acknowledgment
 
-The author sincerely thank for HDR images provided by sIBL Archive [http://www.hdrlabs.com/sibl/archive.html](http://www.hdrlabs.com/sibl/archive.html). These images are licensed under the Creative Commons Attribution-Noncommercial-Share Alike 3.0 License.
+The author sincerely thanks for HDR images provided by sIBL Archive [http://www.hdrlabs.com/sibl/archive.html](http://www.hdrlabs.com/sibl/archive.html). These images are licensed under the Creative Commons Attribution-Noncommercial-Share Alike 3.0 License.
 
 ## License
 

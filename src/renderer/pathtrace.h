@@ -5,34 +5,31 @@
 #ifndef SPICA_PT_RENDERER_H_
 #define SPICA_PT_RENDERER_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_PT_RENDERER_EXPORT
-        #define SPICA_PT_RENDERER_DLL __declspec(dllexport)
-    #else
-        #define SPICA_PT_RENDERER_DLL __declspec(dllimport)
-    #endif
-#elif defined(linux) || defined(__linux)
-    #define SPICA_PT_RENDERER_DLL
-#endif
-
 #include <string>
 
+#include "../core/forward_decl.h"
 #include "renderer_interface.h"
-#include "renderer_constants.h"
-#include "render_parameters.h"
-
-#include "../random/random.h"
-#include "../random/halton.h"
 
 namespace spica {
 
-    /*! Unidirectional path tracing
+    /** Unidirectional path tracing
+     *  @ingroup renderer_module
      */
-    class SPICA_PT_RENDERER_DLL PathRenderer : public IRenderer {
+    class SPICA_EXPORTS PathRenderer : public IRenderer {
     public:
+        /** The path tracing renderer constructor.
+         */
         PathRenderer();
+
+        /** The path tracing renderer destructor.
+         */
         ~PathRenderer();
 
+        /** Rendering process.
+         *  @param scene: The redering scene.
+         *  @param camera: The camera for the scene.
+         *  @param params: The rendering parameters.
+         */
         void render(const Scene& scene, const Camera& camera,
                     const RenderParameters& params) override;
 
@@ -50,8 +47,8 @@ namespace spica {
 
         Color directSample(const Scene& scene, const int triID,
                            const Vector3D& in, const Vector3D& v,
-                           const Vector3D& n, int bounces,
-                           Stack<double>& rands) const;
+                           const Vector3D& n, const Color& refl,
+                           int bounces, Stack<double>& rands) const;
     };
 }
 

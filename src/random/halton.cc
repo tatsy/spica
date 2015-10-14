@@ -1,4 +1,4 @@
-#define SPICA_HALTON_EXPORT
+#define SPICA_API_EXPORT
 #include "halton.h"
 
 #include <cstdlib>

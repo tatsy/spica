@@ -1,14 +1,18 @@
-#define SPICA_SUBSURFACE_INTEGRATOR_EXPORT
+#define SPICA_API_EXPORT
 #include "subsurface_integrator.h"
 
 #include <iostream>
 #include <fstream>
 #include <typeinfo>
 
+#include "../core/common.h"
+
 #include "renderer_helper.h"
+#include "render_parameters.h"
 
-#include "../utils/sampler.h"
-
+#include "../core/sampler.h"
+#include "../bsdf/bsdf.h"
+#include "../bsdf/bssrdf.h"
 #include "../random/random_sampler.h"
 
 namespace spica {

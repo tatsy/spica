@@ -1,11 +1,11 @@
-#define SPICA_ENVMAP_EXPORT
+#define SPICA_API_EXPORT
 #include "envmap.h"
 
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
 
-#include "../utils/common.h"
+#include "../core/common.h"
 #include "../renderer/photon_map.h"
 
 namespace spica {

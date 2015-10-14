@@ -1,25 +1,21 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
 #ifndef SPICA_RAY_H_
 #define SPICA_RAY_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_RAY_EXPORT
-        #define SPICA_RAY_DLL __declspec(dllexport)
-    #else
-        #define SPICA_RAY_DLL __declspec(dllimport)
-    #endif
-#elif defined(linux) || defined(__linux)
-    #define SPICA_RAY_DLL
-#endif
-
-#include "../utils/vector3d.h"
+#include "../math/vector2d.h"
+#include "../math/vector3d.h"
+#include "../core/color.h"
 
 namespace spica {
 
-    class SPICA_RAY_DLL Ray {
+    class SPICA_EXPORTS Ray {
     private:
-        Vector3D _origin;
-        Vector3D _direction;
-        Vector3D _invdir;
+        Vector3D _origin     = { 0.0, 0.0, 0.0 };
+        Vector3D _direction  = { 0.0, 0.0, 0.0 };
+        Vector3D _invdir     = { INFTY, INFTY, INFTY };
 
     public:
         Ray();
@@ -37,11 +33,12 @@ namespace spica {
         void calcInvdir();
     };
 
-    class SPICA_RAY_DLL Hitpoint {
+    class SPICA_EXPORTS Hitpoint {
     private:
-        double _distance;
-        Vector3D _normal;
-        Vector3D _position;
+        double   _distance = INFTY;
+        Vector3D _position = { 0.0, 0.0, 0.0 };
+        Vector3D _normal   = { 0.0, 0.0, 0.0 };
+        Vector2D _texcoord = { INFTY, INFTY };
 
     public:
         Hitpoint();
@@ -51,33 +48,39 @@ namespace spica {
         Hitpoint& operator=(const Hitpoint& hp);
 
         inline double distance() const { return _distance; }
-        inline Vector3D normal() const { return _normal; }
-        inline Vector3D position() const { return _position; }
+        inline const Vector3D& normal() const { return _normal; }
+        inline const Vector3D& position() const { return _position; }
+        inline const Vector2D& texcoord() const { return _texcoord; }
 
         inline void setDistance(double distance) { _distance = distance; }
         inline void setNormal(const Vector3D& normal) { _normal = normal; }
         inline void setPosition(const Vector3D& position) { _position = position; }
+        inline void setTexcoord(const Vector2D& texcoord) { _texcoord = texcoord; }
     };
 
-    class SPICA_RAY_DLL Intersection {
+    class SPICA_EXPORTS Intersection {
     private:
-        Hitpoint _hitPoint;
-        int _objectId;
+        double   _distance = INFTY;
+        Vector3D _pos      = { 0.0, 0.0, 0.0 };
+        Vector3D _normal   = { 0.0, 0.0, 0.0 };
+        Color    _color    = { 0.0, 0.0, 0.0 };
+        int      _objID    = -1;
 
     public:
         Intersection();
-        Intersection(const Intersection& intersection);
+        Intersection(const Intersection& isect);
+        Intersection(int objectID, const Hitpoint& hp, const Color& color);
         ~Intersection();
 
         Intersection& operator=(const Intersection& intersection);
 
-        double hittingDistance() const;
+        inline double   distance() const { return _distance; }
+        inline Vector3D position() const { return _pos; }
+        inline Vector3D normal()   const { return _normal; }
+        inline Color    color()    const { return _color; }
+        inline int      objectID() const { return _objID; }
 
-        inline int objectId() const { return _objectId; }
-        inline const Hitpoint& hitpoint() const { return _hitPoint; }
-
-        inline void setHitpoint(const Hitpoint& hitpoint) { _hitPoint = hitpoint; }
-        inline void setObjectId(int id) { _objectId = id; }
+        friend class Scene;
     };
 
 }  // namespace spica

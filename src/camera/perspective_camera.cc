@@ -1,4 +1,4 @@
-#define SPICA_PERSPECTIVE_CAMERA_EXPORT
+#define SPICA_API_EXPORT
 #include "perspective_camera.h"
 
 #include <cmath>

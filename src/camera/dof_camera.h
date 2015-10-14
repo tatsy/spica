@@ -5,22 +5,12 @@
 #ifndef SPICA_CAMERA_H_
 #define SPICA_CAMERA_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_DOF_CAMERA_EXPORT
-        #define SPICA_DOF_CAMERA_DLL __declspec(dllexport)
-    #else
-        #define SPICA_DOF_CAMERA_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_DOF_CAMERA_DLL
-#endif
-
 #include "camera_interface.h"
 
-#include "../geometry/plane.h"
+#include "../shape/plane.h"
 
-#include "../utils/image.h"
-#include "../utils/stack.h"
+#include "../core/image.h"
+#include "../core/stack.h"
 
 #include "../random/random.h"
 #include "../random/halton.h"
@@ -29,9 +19,12 @@
 
 namespace spica {
 
-    struct CameraSample;
+    class CameraSample;
 
-    class SPICA_DOF_CAMERA_DLL DoFCamera : public ICamera {
+    /** Depth of field camera.
+     *  @ingroup camera_module
+     */
+    class SPICA_EXPORTS DoFCamera : public ICamera {
     private:
 
         // ------------------------------------------------------------
@@ -117,9 +110,6 @@ namespace spica {
 
         ICamera* clone() const override;
 
-        //! Compute a ray from 
-        Ray rayToObjectPlane(double x, double y) const;
-
         double PImageToPAx1(const double PImage, const Vector3D& x0xV, const Vector3D& x0x1, const Vector3D& orientNormal) const;
 
         /* Return distance to the intersecting point on the lens
@@ -134,7 +124,7 @@ namespace spica {
 
         void samplePoints(const int imageX, const int imageY, Random& rng, Vector3D& positionOnSensor, Vector3D& positionOnObjplane, Vector3D& positionOnLens, double& PImage, double& PLens) const;
 
-        CameraSample sample(const double imageX, const double imageY, Stack<double>& rseq) const;
+        CameraSample sample(double imageX, double imageY, Stack<double>& rseq) const override;
 
         inline double distSL() const { return distSensorToLens_; }
         

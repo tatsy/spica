@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <typeinfo>
 
+#include "../bsdf/bsdf.h"
 #include "../camera/orthographic_camera.h"
 #include "../camera/perspective_camera.h"
 #include "../camera/dof_camera.h"
@@ -151,7 +152,7 @@ namespace spica {
     }
 
     void QGLRenderWidget::cameraToProj(QMatrix4x4* mat) const {
-        ICamera* ptr = camera._ptr;    
+        ICamera* ptr = camera._ptr.get();    
         if (typeid(*ptr) == typeid(OrthographicCamera)) {
             OrthographicCamera* cam = reinterpret_cast<OrthographicCamera*>(ptr);
             const Rect& rect = cam->rect();

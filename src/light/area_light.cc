@@ -1,8 +1,7 @@
-#define SPICA_AREA_LIGHT_EXPORT
+#define SPICA_API_EXPORT
 #include "area_light.h"
 
-#include "../utils/sampler.h"
-#include "../renderer/scene.h"
+#include "../core/sampler.h"
 
 namespace spica {
 

@@ -5,23 +5,34 @@
 #ifndef _SPICA_H_
 #define _SPICA_H_
 
-#include "../src/utils/common.h"
-#include "../src/utils/vbo.h"
-#include "../src/utils/path.h"
-#include "../src/utils/timer.h"
-#include "../src/utils/vector3d.h"
-#include "../src/utils/sampler.h"
-#include "../src/utils/spica_dirs.h"
+#include "../src/core/common.h"
+#include "../src/core/vbo.h"
+#include "../src/core/path.h"
+#include "../src/core/timer.h"
+#include "../src/core/sampler.h"
+#include "../src/core/spica_dirs.h"
 
-#include "../src/geometry/geometry.h"
 
-#include "../src/renderer/brdf.h"
-#include "../src/renderer/bssrdf.h"
-#include "../src/renderer/scene.h"
+#include "../src/shape/shape.h"
+
 #include "../src/renderer/render_parameters.h"
 
 #include "../src/random/random.h"
 #include "../src/random/halton.h"
+
+// --------------------------------------------
+// Math
+// --------------------------------------------
+
+#include "../src/math/spica_math.h"
+
+// --------------------------------------------
+// BSDF
+// --------------------------------------------
+
+#include "../src/bsdf/bsdf.h"
+#include "../src/bsdf/brdf.h"
+#include "../src/bsdf/bssrdf.h"
 
 // --------------------------------------------
 // Lights
@@ -55,14 +66,9 @@
 // Scenes
 // --------------------------------------------
 
+#include "../src/scenes/scene.h"
 #include "../src/scenes/predefined_scenes.h"
 #include "../src/scenes/yaml_parser.h"
 #include "../src/scenes/scene_loader.h"
-
-// --------------------------------------------
-// Structures
-// --------------------------------------------
-
-#include "../src/structure/mesh.h"
 
 #endif  // _SPICA_H_

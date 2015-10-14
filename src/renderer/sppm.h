@@ -5,87 +5,19 @@
 #ifndef _SPICA_SPPM_H_
 #define _SPICA_SPPM_H_
 
-#if defined(_WIN32) || defined(__WIN32__)
-    #ifdef SPICA_SPPM_EXPORT
-        #define SPICA_SPPM_DLL __declspec(dllexport)
-    #else
-        #define SPICA_SPPM_DLL __declspec(dllimport)
-    #endif
-#else
-    #define SPICA_SPPM_DLL
-#endif
-
+#include "../core/forward_decl.h"
 #include "renderer_interface.h"
-#include "renderer_constants.h"
-#include "../utils/kdtree.h"
-#include "../utils/hash_grid.h"
+#include "../core/hash_grid.h"
 
 namespace spica {
 
-    class RandomSampler;
-
-    class SPICA_SPPM_DLL SPPMRenderer : private IRenderer {
+    /** Stochastic progressive photon mapping
+     *  @ingroup renderer_module
+     */
+    class SPICA_EXPORTS SPPMRenderer : private IRenderer {
     private:
 
-        struct SPPMPixel {
-            Vector3D position;
-            Vector3D normal;
-            Color flux;
-            Color weight;
-            Color emission;
-            double coeff;
-            int x, y;
-            double r2;
-            int n;
-
-            explicit SPPMPixel(Vector3D pos = Vector3D())
-                : position(pos)
-                , normal()
-                , flux()
-                , weight()
-                , emission()
-                , coeff(0.0)
-                , x(-1)
-                , y(-1)
-                , r2(0.0)
-                , n(0)
-            {
-            }
-
-            SPPMPixel(const SPPMPixel& pixel)
-                : position()
-                , normal()
-                , flux()
-                , weight()
-                , emission()
-                , coeff(0.0)
-                , x(-1)
-                , y(-1)
-                , r2(0.0)
-                , n(0)
-            {
-                operator=(pixel);
-            }
-
-            SPPMPixel& operator=(const SPPMPixel& pixel) {
-                this->position = pixel.position;
-                this->normal   = pixel.normal;
-                this->flux     = pixel.flux;
-                this->weight   = pixel.weight;
-                this->emission = pixel.emission;
-                this->coeff    = pixel.coeff;
-                this->x        = pixel.x;
-                this->y        = pixel.y;
-                this->r2       = pixel.r2;
-                this->n        = pixel.n;
-                return *this;
-            }
-
-            Color radiance() const {
-                const Color  rad = flux / (PI * r2);
-                return Color((emission + rad) * coeff);
-            }
-        };
+        struct SPPMPixel;
 
         HashGrid<SPPMPixel*> hashgrid;
         static const double kAlpha;
@@ -124,6 +56,6 @@ namespace spica {
                                const int imageW, const int imageH);
     };
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_SPPM_H_

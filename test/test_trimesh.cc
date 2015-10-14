@@ -47,7 +47,7 @@ TEST_F(TrimeshTest, VertexFaceIdInstance) {
     vertices.push_back(Vector3D( 10.0, 0.0, -10.0));
     vertices.push_back(Vector3D( 10.0, 0.0,  10.0));
     std::vector<Triplet> indices = { Triplet(0, 1, 3), Triplet(3, 2, 0) };
-
+    
     Trimesh trimesh(vertices, indices);
     EXPECT_EQ(2, trimesh.numFaces());
     EXPECT_EQ(4, trimesh.numVerts());
@@ -61,6 +61,26 @@ TEST_F(TrimeshTest, LoadTest) {
 
     EXPECT_EQ(objmesh.numVerts(), plymesh.numVerts());
     EXPECT_EQ(objmesh.numFaces(), plymesh.numFaces());
+
+    const double tol = 0.01;
+
+    for (int i = 0; i < objmesh.numVerts(); i++) {
+        EXPECT_NEAR(objmesh.getVertex(i).x(), plymesh.getVertex(i).x(), tol);
+        EXPECT_NEAR(objmesh.getVertex(i).y(), plymesh.getVertex(i).y(), tol);
+        EXPECT_NEAR(objmesh.getVertex(i).z(), plymesh.getVertex(i).z(), tol);
+
+        EXPECT_NEAR(objmesh.getNormal(i).x(), plymesh.getNormal(i).x(), tol);
+        EXPECT_NEAR(objmesh.getNormal(i).y(), plymesh.getNormal(i).y(), tol);
+        EXPECT_NEAR(objmesh.getNormal(i).z(), plymesh.getNormal(i).z(), tol);
+    }
+
+    std::vector<Triplet> objids = objmesh.getIndices();
+    std::vector<Triplet> plyids = plymesh.getIndices();
+    for (int i = 0; i < objmesh.numFaces(); i++) {
+        EXPECT_EQ(objids[i][0], plyids[i][0]);
+        EXPECT_EQ(objids[i][1], plyids[i][1]);
+        EXPECT_EQ(objids[i][2], plyids[i][2]);
+    }
 }
 
 TEST_F(TrimeshTest, CopyAndMove) {
@@ -87,7 +107,7 @@ TEST_F(TrimeshTest, CopyAndMove) {
 
 TEST_F(TrimeshTest, BoxIntersection) {
     Trimesh trimesh(kDataDirectory + "box.ply");
-    trimesh.setAccelType(AccelType::qbvhAccel, true);
+    trimesh.buildAccel(AccelType::QBVH);
 
     Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
     Hitpoint hitpoint;
@@ -99,7 +119,7 @@ TEST_F(TrimeshTest, BoxIntersection) {
 
 TEST_F(TrimeshTest, BunnyIntersection) {
     Trimesh trimesh(kDataDirectory + "bunny.ply");
-    trimesh.setAccelType(AccelType::kdtreeAccel, true);
+    trimesh.buildAccel(AccelType::KdTree);
 
     Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
 
@@ -120,6 +140,9 @@ TEST_F(TrimeshTest, BunnyIntersection) {
         for (int k = 0; k < 3; k++) {
             EXPECT_EQ_VEC(t1[k], t2[k]);
         }
+    }
+
+    for (int i = 0; i < cp.numVerts(); i++) {
         EXPECT_EQ_VEC(trimesh.getNormal(i), cp.getNormal(i));
     }
 
@@ -133,7 +156,7 @@ TEST_F(TrimeshTest, RandomKdTreeIntersection) {
 
     Trimesh trimesh;
     trimesh.load(kDataDirectory + "bunny.ply");
-    trimesh.setAccelType(AccelType::kdtreeAccel, true);
+    trimesh.buildAccel(AccelType::KdTree);
 
     for (int i = 0; i < nTrial; i++) {
         Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
@@ -160,7 +183,7 @@ TEST_F(TrimeshTest, RandomQVBHIntersection) {
 
     Trimesh trimesh;
     trimesh.load(kDataDirectory + "bunny.ply");
-    trimesh.setAccelType(AccelType::qbvhAccel, true);
+    trimesh.buildAccel(AccelType::QBVH);
 
     for (int i = 0; i < nTrial; i++) {
         Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);

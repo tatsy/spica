@@ -203,11 +203,11 @@ TEST_P(ColorTestWithParam, ToStringAndCout) {
 }
 
 std::vector<Color> colors = {
-    Color(0.0, 1.0, 2.0),
-    Color(-2.0, -1.0, 0.0),
-    Color(3.14, 1.59, 2.65),
-    Color(1.0e8, 1.0e8, 1.0e8),
-    Color(1.0e-8, 1.0e-8, 1.0e-8)
+    Color( 0.0,    1.0,    2.0   ),
+    Color(-2.0,   -1.0,    0.0   ),
+    Color( 3.14,   1.59,   2.65  ),
+    Color( 1.0e8,  1.0e8,  1.0e8 ),
+    Color( 1.0e-8, 1.0e-8, 1.0e-8)
 };
 
 INSTANTIATE_TEST_CASE_P(, ColorTestWithParam,

@@ -1,9 +1,10 @@
-#define SPICA_SCENE_LOADER_EXPORT
+#define SPICA_API_EXPORT
 #include "scene_loader.h"
 
 #include "yaml_parser.h"
-#include "../renderer/scene.h"
-#include "../renderer/brdf.h"
+#include "scene.h"
+#include "../bsdf/bsdf.h"
+#include "../bsdf/brdf.h"
 #include "../camera/camera.h"
 
 namespace spica {

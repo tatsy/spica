@@ -13,8 +13,6 @@
 #include "../core/uncopyable.h"
 #include "../core/forward_decl.h"
 
-extern void* enabler;
-
 namespace spica {
 
     /** Scene provides the interface for scene graph.

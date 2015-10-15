@@ -7,10 +7,6 @@
 
 #include "common.h"
 
-#ifdef WITH_ENABLER
-extern void* enabler;
-#endif
-
 namespace spica {
 
     template <class T, class Enable = void>

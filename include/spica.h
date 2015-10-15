@@ -15,8 +15,6 @@
 
 #include "../src/shape/shape.h"
 
-#include "../src/renderer/render_parameters.h"
-
 #include "../src/random/random.h"
 #include "../src/random/halton.h"
 
@@ -54,6 +52,9 @@
 // --------------------------------------------
 // Renderers
 // --------------------------------------------
+
+#include "../src/renderer/render_parameters.h"
+#include "../src/renderer/renderer_helper.h"
 
 #include "../src/renderer/pathtrace.h"
 #include "../src/renderer/bdpt.h"

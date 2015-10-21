@@ -234,16 +234,15 @@ namespace spica {
     // ------------------------------------------------------------
 
     CustomBSSRDF::CustomBSSRDF()
-        : _ptr(nullptr) {
+        : _ptr{} {
     }
 
     CustomBSSRDF::~CustomBSSRDF() {
-        delete _ptr;
     }
 
     BSSRDF CustomBSSRDF::factory() {
-        Assertion(_ptr != nullptr, "BSSRDF pointer is null!!");
-        return BSSRDF(_ptr->clone());                      
+        Assertion(_ptr, "BSSRDF pointer is null!!");
+        return BSSRDF{_ptr->clone()};
     }
 
     // ------------------------------------------------------------
@@ -251,26 +250,25 @@ namespace spica {
     // ------------------------------------------------------------
 
     BSSRDF::BSSRDF()
-        : _ptr(nullptr) {
+        : _ptr{} {
     }
 
     BSSRDF::BSSRDF(const BSSRDF& bssrdf)
-        : _ptr(nullptr) {
+        : _ptr{} {
         this->operator=(bssrdf);
     }
 
     BSSRDF::BSSRDF(BSSRDF&& bssrdf)
-        : _ptr(nullptr) {
+        : _ptr{} {
         this->operator=(std::move(bssrdf));
     }
 
     BSSRDF::BSSRDF(const BSSRDFBase* ptr)
-        : _ptr(ptr) {
-        Assertion(_ptr != nullptr, "Pointer is null!!");
+        : _ptr{ptr} {
+        Assertion(_ptr, "Pointer is null!!");
     }
 
     BSSRDF::~BSSRDF() {
-        delete _ptr;
     }
 
     BSSRDF& BSSRDF::operator=(const BSSRDF& bssrdf) {
@@ -278,21 +276,16 @@ namespace spica {
             return *this;
         }
 
-        delete _ptr;
-
         if (bssrdf._ptr == nullptr) {
-            _ptr = nullptr;
+            _ptr.reset();
         } else {
-            _ptr = bssrdf._ptr->clone();
+            _ptr.reset(bssrdf._ptr->clone());
         }
         return *this;
     }
 
     BSSRDF& BSSRDF::operator=(BSSRDF&& bssrdf) {
-        delete _ptr;
-
-        this->_ptr = bssrdf._ptr;
-        bssrdf._ptr = nullptr;
+        this->_ptr = std::move(bssrdf._ptr);
         return *this;
     }
 
@@ -312,7 +305,7 @@ namespace spica {
     }
 
     void BSSRDF::nullCheck() const {
-        Assertion(_ptr != NULL, "BSSRDF does not have instance!!");
+        Assertion(_ptr, "BSSRDF does not have instance!!");
     }
 
 }  // namespace spica

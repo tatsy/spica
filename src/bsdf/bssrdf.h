@@ -2,6 +2,7 @@
 #define _SPICA_BSSRDF_H_
 
 #include <vector>
+#include <memory>
 
 #include "../core/forward_decl.h"
 #include "../core/color.h"
@@ -94,7 +95,7 @@ namespace spica {
 
     class SPICA_EXPORTS CustomBSSRDF : public BSSRDFBase {
     protected:
-        CustomBSSRDF* _ptr;
+        std::unique_ptr<const CustomBSSRDF> _ptr;
 
     public:
         CustomBSSRDF();
@@ -110,7 +111,7 @@ namespace spica {
 
     class SPICA_EXPORTS BSSRDF {
     private:
-        const BSSRDFBase* _ptr;
+        std::unique_ptr<const BSSRDFBase> _ptr;
 
     public:
         BSSRDF();

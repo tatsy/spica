@@ -5,6 +5,8 @@
 
 #include "../core/common.h"
 
+#include "trimesh.h"
+
 namespace spica {
 
     BBox::BBox()
@@ -122,9 +124,9 @@ namespace spica {
         return true;
     }
 
-    std::vector<Triangle> BBox::triangulate() const {
+    Trimesh BBox::triangulate() const {
         // TODO: this is STAB
-        return std::vector<Triangle>{};
+        return Trimesh{};
     }
 
 }  // namespace spica

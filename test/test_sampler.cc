@@ -76,7 +76,7 @@ TEST(SamplerTest, TriangleSampleTest) {
 
 TEST(SamplerTest, PoissonDiskTest) {
     Trimesh mesh(kDataDirectory + "bunny.ply");
-    std::vector<Triangle> tris = mesh.triangulate();
+    std::vector<Triangle> tris = mesh.getTriangleList();
     double mindist = 0.1;
 
     std::vector<Vector3D> points;

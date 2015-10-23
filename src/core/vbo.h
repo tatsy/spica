@@ -49,11 +49,17 @@ namespace spica {
 
     template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *&>
     void VBO::add(const T& shape, const Color& color) {        
-        const std::vector<Triangle> tris = shape.triangulate();
-        for (int i = 0; i < tris.size(); i++) {
-            const Vector3D& normal = tris[i].normal();
-            for (int j = 0; j < 3; j++) {
-                add(tris[i][j], normal, color);
+        const Trimesh tris = shape.triangulate();
+        const int triID = _vertices.size();
+        for (int i = 0; i < tris.numVerts(); i++) {
+            const VertexData& v = tris.getVertexData(i);
+            add(v.pos(), v.normal(), color);
+        }
+
+        const std::vector<Triplet> faces = tris.getIndices();
+        for (int i = 0; i < faces.size(); i++) {
+            for(int k = 0; k < 3; k++) {
+                _indices.push_back(triID + faces[i][k]);
             }
         }
     }

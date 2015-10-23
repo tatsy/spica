@@ -31,7 +31,7 @@ namespace spica {
 
         double area() const override;
 
-        std::vector<Triangle> triangulate() const override;
+        Trimesh triangulate() const override;
 
         Vector3D operator[](int id) const;
         Vector3D get(int id) const;

@@ -4,7 +4,8 @@
 #include <cmath>
 
 #include "../core/common.h"
-#include "triangle.h"
+
+#include "trimesh.h"
 
 namespace spica {
 
@@ -61,11 +62,12 @@ namespace spica {
         return 4.0 * PI * _radius * _radius;
     }
 
-    std::vector<Triangle> Sphere::triangulate() const {
+    Trimesh Sphere::triangulate() const {
         static const int nTheta = 64;
         static const int nPhi   = 128;
 
-        std::vector<Triangle> retval;
+        std::vector<VertexData> vertices;
+        std::vector<Triplet>    faces;
         for (int i = 0; i < nTheta; i++) {
             for (int j = 0; j < nPhi; j++) {
                 double theta0 = PI * i / nTheta;
@@ -82,21 +84,32 @@ namespace spica {
                 double cp0 = cos(phi0);
                 double cp1 = cos(phi1);
 
-                Vector3D v00 = _center + _radius * Vector3D(cp0 * st0, sp0 * st0, ct0);
-                Vector3D v01 = _center + _radius * Vector3D(cp0 * st1, sp0 * st1, ct1);
-                Vector3D v10 = _center + _radius * Vector3D(cp1 * st0, sp1 * st0, ct0);
-                Vector3D v11 = _center + _radius * Vector3D(cp1 * st1, sp1 * st1, ct1);
+                Vector3D n00 = Vector3D(cp0 * st0, sp0 * st0, ct0);
+                Vector3D n01 = Vector3D(cp0 * st1, sp0 * st1, ct1);
+                Vector3D n10 = Vector3D(cp1 * st0, sp1 * st0, ct0);
+                Vector3D n11 = Vector3D(cp1 * st1, sp1 * st1, ct1);
+
+                VertexData v00(_center + _radius * n00, Color::BLACK, n00);
+                VertexData v01(_center + _radius * n01, Color::BLACK, n01);
+                VertexData v10(_center + _radius * n10, Color::BLACK, n10);
+                VertexData v11(_center + _radius * n11, Color::BLACK, n11);
+
+                const int idx = static_cast<int>(vertices.size());
+                vertices.push_back(v00);
+                vertices.push_back(v01);
+                vertices.push_back(v10);
+                vertices.push_back(v11);
 
                 if (i != nTheta - 1) {
-                    retval.emplace_back(v00, v01, v11);
+                    faces.emplace_back(idx + 0, idx + 1, idx + 3);
                 } 
                 
                 if (i != 0) {
-                    retval.emplace_back(v00, v11, v10);
+                    faces.emplace_back(idx + 0, idx + 3, idx + 2);
                 }
             }
         }
-        return std::move(retval);
+        return std::move(Trimesh{vertices, faces});
     }
 
 }  // namespace spica

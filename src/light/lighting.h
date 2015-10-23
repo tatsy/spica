@@ -65,7 +65,7 @@ namespace spica {
 
         /** Initialize lighting as area light
          */
-        static Lighting asAreaLight(const std::vector<Triangle>& triangles, const Color& emittance);
+        static Lighting asAreaLight(const Trimesh& triangles, const Color& emittance);
 
         LightSample sample(Stack<double>& rstack) const;
         Color directLight(const Vector3D& dir) const;

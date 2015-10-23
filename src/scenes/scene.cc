@@ -29,7 +29,7 @@ namespace spica {
         std::vector<unsigned int> _bsdfIds;
         std::vector<unsigned int> _lightIds;
 
-        std::vector<BSDF>          _bsdfs;
+        std::vector<BSDF>       _bsdfs;
         std::shared_ptr<IAccel> _accel;
 
         Lighting  _lighting;
@@ -102,8 +102,8 @@ namespace spica {
 
         void setEnvmap(const Image& image, const Camera& camera) {
             const Sphere& shape = this->boundingSphere(camera);
-            std::vector<Triangle> tris = shape.triangulate();
-            const int newTris = static_cast<int>(tris.size());
+            Trimesh tris = shape.triangulate();
+            const int newTris = static_cast<int>(tris.numFaces());
             const int nowTris = static_cast<int>(_triangles.size());
             _lighting = Lighting::asEnvmap(shape, image);
 
@@ -197,9 +197,10 @@ namespace spica {
 
             if (triID != -1) {
                 Color color;
+                double u = hitpoint.texcoord().x();
+                double v = hitpoint.texcoord().y();
                 if (_triangles[triID].isTextured()) {
-                    double u = hitpoint.texcoord().x();
-                    double v = hitpoint.texcoord().y();
+                    // Compute texture coordinates
                     const Vector2D t0 = _vertices[_triangles[triID][0]].texcoord();
                     const Vector2D t1 = _vertices[_triangles[triID][1]].texcoord();
                     const Vector2D t2 = _vertices[_triangles[triID][2]].texcoord();
@@ -210,6 +211,13 @@ namespace spica {
                 } else {
                     color = getBsdf(triID).reflectance();
                 }
+
+                const Vector3D n0 = _vertices[_triangles[triID][0]].normal();
+                const Vector3D n1 = _vertices[_triangles[triID][1]].normal();
+                const Vector3D n2 = _vertices[_triangles[triID][2]].normal();
+                const Vector3D n  = (n0 + u * (n1 - n0) + v * (n2 - n0)).normalized();
+
+                hitpoint.setNormal(n);
                 (*isect) = Intersection(triID, hitpoint, color);
             } else {
                 (*isect) = Intersection();
@@ -248,14 +256,14 @@ namespace spica {
             addBsdf(bsdf, trip.size());
         }
 
-        void setAreaLight(const std::vector<Triangle>& tris, const Color& emission) {
+        void setAreaLight(const Trimesh& tris, const Color& emission) {
             addTriangles(tris);
 
             // Set as area light
             _lighting = Lighting::asAreaLight(tris, emission);
 
             // If new object is a light, store triangle indices
-            const int newTris = static_cast<int>(tris.size());
+            const int newTris = static_cast<int>(tris.numFaces());
             const int nowTris = static_cast<int>(_triangles.size()) - newTris;
             for (int i = 0; i < newTris; i++) {
                 _lightIds.push_back(nowTris + i);
@@ -266,14 +274,15 @@ namespace spica {
         }
 
     private:
-        void addTriangles(const std::vector<Triangle>& tris) {
-            const int newTris = static_cast<int>(tris.size());
-            for (int i = 0; i < newTris; i++) {
-                const int vid = static_cast<int>(_vertices.size());
-                for (int k = 0; k < 3; k++) {
-                    _vertices.emplace_back(tris[i][k]);
-                }
-                _triangles.emplace_back(vid, vid + 1, vid + 2);
+        void addTriangles(const Trimesh& tris) {
+            const int vid = static_cast<int>(_vertices.size());
+            for (int i = 0; i < tris.numVerts(); i++) {
+                _vertices.push_back(tris.getVertexData(i));
+            }
+
+            const std::vector<Triplet> faces = tris.getIndices();
+            for (int i = 0; i < faces.size(); i++) {
+                _triangles.emplace_back(vid + faces[i][0], vid + faces[i][1], vid + faces[i][2]);
             }
         }
 

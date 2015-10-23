@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "../core/common.h"
+#include "../core/forward_decl.h"
 
 namespace spica {
     
@@ -47,7 +48,7 @@ namespace spica {
         virtual ~IShape() {}
         virtual bool intersect(const Ray& ray, Hitpoint* hitpoint) const = 0;
         virtual double area() const = 0;
-        virtual std::vector<Triangle> triangulate() const = 0;
+        virtual Trimesh triangulate() const = 0;
         inline ShapeType type() const { return _type; }
     };
 

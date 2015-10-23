@@ -4,6 +4,8 @@
 #include "../core/common.h"
 #include "../renderer/ray.h"
 
+#include "trimesh.h"
+
 namespace spica {
 
     Triangle::Triangle()
@@ -83,8 +85,9 @@ namespace spica {
         return 0.5 * Vector3D::cross(e1, e2).norm();
     }
 
-    std::vector<Triangle> Triangle::triangulate() const {
-        return { 1, *this };
+    Trimesh Triangle::triangulate() const {
+        std::vector<Triangle> tris{1, *this};
+        return std::move(Trimesh{tris});
     }
 
 }  // namespace spica

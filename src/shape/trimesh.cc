@@ -59,18 +59,22 @@ namespace spica {
         calcVertexNormals();
     }
 
-    Trimesh::Trimesh(const std::vector<Vector3D>& vertices,
-                     const std::vector<Vector2D>& texcoords,
-                     const std::vector<Triplet>& faceIDs)
-        : Trimesh{vertices, faceIDs} {
-
-        if (!texcoords.empty()) {
-            Assertion(vertices.size() == texcoords.size(),
-                      "Vertex and texcoord counts are not the same!!");
-            for (int i = 0; i < texcoords.size(); i++) {
-                _vertices[i].setTexcoord(texcoords[i]);        
+    Trimesh::Trimesh(const std::vector<Triangle>& tris)
+        : Trimesh{} {
+        for (int i = 0; i < tris.size(); i++) {
+            int idx = _vertices.size();
+            for (int k = 0; k < 3; k++) {
+                _vertices.emplace_back(tris[i][k], Color(0.0, 0.0, 0.0), tris[i].normal());
             }
-        }
+            _faces.emplace_back(idx, idx + 1, idx + 2);
+        }    
+    }
+
+    Trimesh::Trimesh(const std::vector<VertexData>& vertices,
+                     const std::vector<Triplet>& faceIDs)
+        : IShape{ShapeType::Trimesh}
+        , _vertices{vertices}
+        , _faces{faceIDs} {
     }
 
     Trimesh::Trimesh(const Trimesh& trimesh)
@@ -117,12 +121,8 @@ namespace spica {
         return ret;
     }
 
-    std::vector<Triangle> Trimesh::triangulate() const {
-        std::vector<Triangle> retval;
-        for (int i = 0; i < _faces.size(); i++) {
-            retval.push_back(getTriangle(i));
-        }
-        return std::move(retval);
+    Trimesh Trimesh::triangulate() const {
+        return *this;
     }
 
     void Trimesh::buildAccel(AccelType accelType) {
@@ -303,6 +303,14 @@ namespace spica {
         const Vector3D& p1 = _vertices[_faces[id][1]].pos();
         const Vector3D& p2 = _vertices[_faces[id][2]].pos();
         return Triangle(p0, p1, p2);
+    }
+
+    std::vector<Triangle> Trimesh::getTriangleList() const {
+        std::vector<Triangle> tris(_faces.size());
+        for (int i = 0; i < _faces.size(); i++) {
+            tris[i] = getTriangle(i);
+        }
+        return std::move(tris);
     }
 
     void Trimesh::setTexture(const Image& image) {

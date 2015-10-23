@@ -156,6 +156,7 @@ namespace spica {
         if (bsdf.type() & BsdfType::Bssrdf) {
             Assertion(_integrator != nullptr,
                       "Subsurface intergrator is NULL !!");
+
             bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
                                           isect.position(),
                                           isect.normal(),
@@ -187,7 +188,7 @@ namespace spica {
         // Acquire random numbers
         const double rands[2] = { rstk.pop(), rstk.pop() };
 
-        const BSDF&  bsdf = scene.getBsdf(triID);
+        const BSDF& bsdf = scene.getBsdf(triID);
 
         if (bsdf.type() & BsdfType::Scatter) {
             // Scattering surface
@@ -220,19 +221,9 @@ namespace spica {
             Vector3D nextdir;
             bsdf.sample(in, n, rands[0], rands[1], &nextdir, &pdf);
             
-            Vector3D on = in.dot(n) < 0.0 ? n : -n;
-
             Intersection isect;
             if (scene.intersect(Ray(v, nextdir), &isect)) {
                 if (scene.isLightCheck(isect.objectID())) {
-                    if (bsdf.type() == BsdfType::Refractive) {
-                        if(on.dot(nextdir) < 0.0) {
-                            // printf("pdf = %f\n", pdf);   
-                            // return {};
-                        } else {
-                            // printf("pdf = %f\n", pdf);                            
-                        }
-                    }
                     return (refl * scene.directLight(nextdir)) / pdf;
                 }
             }

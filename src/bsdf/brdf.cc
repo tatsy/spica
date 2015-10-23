@@ -117,12 +117,16 @@ namespace spica {
     }
 
     void RefractiveBSDF::sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const {
-        const Vector3D orientingNormal = in.dot(normal) < 0.0 ? normal : -normal;
-        const bool into = normal.dot(orientingNormal) > 0.0;
+        const Vector3D orientN = in.dot(normal) < 0.0 ? normal : -normal;
+        const bool into = normal.dot(orientN) > 0.0;
 
         Vector3D reflectdir, transmitdir;
         double fresnelRe, fresnelTr;
-        const bool isTotalReflectance = helper::checkTotalReflection(into, in, normal, orientingNormal, &reflectdir, &transmitdir, &fresnelRe, &fresnelTr);
+        const bool isTotalReflectance = 
+            helper::checkTotalReflection(into, in,
+                                         normal, orientN,
+                                         &reflectdir, &transmitdir,
+                                         &fresnelRe, &fresnelTr);
     
         if (isTotalReflectance) {
             (*out) = reflectdir;

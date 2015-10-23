@@ -50,7 +50,7 @@ namespace spica {
         int maximumExtent() const;
 
         //! Triangulate
-        std::vector<Triangle> triangulate() const override;
+        Trimesh triangulate() const override;
 
         //! Total area
         double area() const override;

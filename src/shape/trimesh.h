@@ -46,12 +46,16 @@ namespace spica {
                 const std::vector<Triplet>& faceIDs);
 
         /** Constructor.
+         *  @param tris: Triangle list.
+         */
+        Trimesh(const std::vector<Triangle>& tris);
+
+        /** Constructor.
          *  @param vertices: Vertices to form trimesh
          *  @param texcoords: Texture coordinates.
          *  @param faceIDs: Face IDs (stating from 0)
          */
-        Trimesh(const std::vector<Vector3D>& vertices,
-                const std::vector<Vector2D>& texcoords,
+        Trimesh(const std::vector<VertexData>& vertices,
                 const std::vector<Triplet>& faceIDs);
 
         /** The Trimesh constructor (copy).
@@ -86,7 +90,7 @@ namespace spica {
 
         /** Triangulate the mesh.
          */
-        std::vector<Triangle> triangulate() const override;
+        Trimesh triangulate() const override;
 
         /** Build accelerator structure.
          */
@@ -140,6 +144,10 @@ namespace spica {
          *  @param[in] faceID: ID of the triangle to get.
          */
         Triangle getTriangle(int faceID) const;
+
+        /** Get the list of triangles.
+         */
+        std::vector<Triangle> getTriangleList() const;
 
         /** Get vertex indices.
          */

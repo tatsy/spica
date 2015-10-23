@@ -4,6 +4,8 @@
 #include "../core/common.h"
 #include "../renderer/ray.h"
 
+#include "trimesh.h"
+
 namespace spica {
 
     Plane::Plane()
@@ -49,9 +51,10 @@ namespace spica {
         return INFTY;
     }
 
-    std::vector<Triangle> Plane::triangulate() const {
+    Trimesh Plane::triangulate() const {
         Assertion(false, "Plane has infinite area, "
                          "which cannot be triangulated!!");
+        return Trimesh{};
     }
 
 }  // namespace spica

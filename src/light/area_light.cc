@@ -6,17 +6,20 @@
 namespace spica {
 
     AreaLight::AreaLight()
-        : _emittance()
-        , _triangles()
-        , _samplePdf()
-        , _totalArea(0.0) {
+        : _emittance{}
+        , _triangles{}
+        , _samplePdf{}
+        , _totalArea{0.0} {
     }
 
-    AreaLight::AreaLight(const std::vector<Triangle>& triangles, const Color& emittance)
-        : _emittance(emittance)
-        , _triangles(triangles)
-        , _samplePdf()
-        , _totalArea() {
+    AreaLight::AreaLight(const Trimesh& tris, const Color& emittance)
+        : _emittance{emittance}
+        , _triangles{}
+        , _samplePdf{}
+        , _totalArea{} {
+        for (int i = 0; i < tris.numFaces(); i++) {
+            _triangles.push_back(tris.getTriangle(i));
+        }
         calcSamplePdf();
     }
 
@@ -24,18 +27,12 @@ namespace spica {
     }
 
     AreaLight::AreaLight(const AreaLight& l)
-        : _emittance()
-        , _triangles()
-        , _samplePdf()
-        , _totalArea(0.0) {
+        : AreaLight{} {
         this->operator=(l);
     }
 
     AreaLight::AreaLight(AreaLight&& l)
-        : _emittance()
-        , _triangles()
-        , _samplePdf()
-        , _totalArea(0.0) {
+        : AreaLight{} {
         this->operator=(std::move(l));
     }
 

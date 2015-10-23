@@ -82,8 +82,8 @@ namespace spica {
 
         // Reflactive object should be considered differently
         if (_type & BsdfType::Refractive) {
-            const bool into = in.dot(normal) < 0.0;
-            const Vector3D orientN = into ? normal : -normal;
+            const Vector3D orientN = in.dot(normal) < 0.0 ? normal : -normal;
+            const bool into = normal.dot(orientN) > 0.0;
             Vector3D refdir, transdir;
             double fresnelRe, fresnelTr;
             if (helper::checkTotalReflection(into, in, normal, orientN,

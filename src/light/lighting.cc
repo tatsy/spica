@@ -36,7 +36,7 @@ namespace spica {
         return *this;
     }
 
-    Lighting Lighting::asAreaLight(const std::vector<Triangle>& triangles,
+    Lighting Lighting::asAreaLight(const Trimesh& triangles,
                                    const Color& emittance) {
         Lighting l;
         l._ptr = std::make_unique<AreaLight>(triangles, emittance);

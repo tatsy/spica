@@ -4,7 +4,7 @@
 #include "../math/vector3d.h"
 #include "../renderer/ray.h"
 
-#include "triangle.h"
+#include "trimesh.h"
 
 namespace spica {
     
@@ -60,11 +60,11 @@ namespace spica {
         return _points[id];        
     }
 
-    std::vector<Triangle> Quad::triangulate() const {
-        std::vector<Triangle> retval(2);
-        retval[0] = tr(0, 1, 2);
-        retval[1] = tr(0, 2, 3);
-        return std::move(retval);
+    Trimesh Quad::triangulate() const {
+        std::vector<Triangle> tris(2);
+        tris[0] = tr(0, 1, 2);
+        tris[1] = tr(0, 2, 3);
+        return std::move(Trimesh{tris});
     }
 
     Vector3D Quad::normal() const {

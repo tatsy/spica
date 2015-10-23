@@ -26,7 +26,7 @@ namespace spica {
 
     public:
         AreaLight();
-        AreaLight(const std::vector<Triangle>& triangles, const Color& emittance);
+        AreaLight(const Trimesh& triangles, const Color& emittance);
         AreaLight(const AreaLight& l);
         AreaLight(AreaLight&& l);
 

@@ -244,7 +244,7 @@ namespace spica {
         //scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), Color(32.0, 32.0, 32.0), true);
 
         // Back light
-        scene->setAreaLight(Sphere(Vector3D(-5.0, 5.0, -5.0), 3.0),
+        scene->setAreaLight(Sphere(Vector3D(5.0, 5.0, 5.0), 2.0),
                             Color(32.0, 32.0, 32.0));
 
         // Walls

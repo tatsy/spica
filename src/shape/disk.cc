@@ -5,7 +5,7 @@
 #include "../renderer/ray.h"
 #include "../renderer/renderer_helper.h"
 
-#include "triangle.h"
+#include "trimesh.h"
 
 namespace spica {
 
@@ -56,7 +56,7 @@ namespace spica {
         return PI * _radius * _radius;
     }
 
-    std::vector<Triangle> Disk::triangulate() const {
+    Trimesh Disk::triangulate() const {
         Vector3D u, v;
         helper::calcLocalCoords(this->_normal, &u, &v);
 

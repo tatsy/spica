@@ -43,7 +43,7 @@ namespace spica {
 
         double area() const override;
 
-        std::vector<Triangle> triangulate() const override;
+        Trimesh triangulate() const override;
     };
 
 }  // namespace spica

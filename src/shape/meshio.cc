@@ -200,7 +200,7 @@ namespace spica {
         ifs.close();
 
         if (!hasTexture) {
-            (*trimesh) = Trimesh(vertices, texcoords, vertIDs);
+            (*trimesh) = Trimesh(vertices, vertIDs);
         } else {
             trimesh->resize(vertIDs.size() * 3, vertIDs.size());
             for (int i = 0; i < vertIDs.size(); i++) {

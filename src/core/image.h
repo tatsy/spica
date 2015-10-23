@@ -48,13 +48,19 @@ namespace spica {
          */
         void gammaCorrect(const double gamma);
 
-        virtual void load(const std::string& filename);
-        virtual void save(const std::string& filename) const;
+        void load(const std::string& filename);
+        void save(const std::string& filename) const;
 
         void tonemap(Tonemap algo = Tonemap::Rainhard);
 
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }
+
+    protected:
+        /** Post save process.
+         *  This can be mainly used in the overloaded class.
+         */
+        virtual void postSave() const {}
 
     private:
         void release();

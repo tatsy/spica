@@ -224,6 +224,7 @@ namespace spica {
             fprintf(stderr, "[ERROR] unknown file extension: %s\n", ext.c_str());
             std::abort();
         }
+        postSave();
     }
 
     void Image::loadBmp(const std::string& filename) {

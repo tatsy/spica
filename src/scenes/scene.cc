@@ -89,7 +89,7 @@ namespace spica {
             }
             center /= _triangles.size();
 
-            double radius = (center - camera.center()).norm();
+            double radius = 0.0; //(center - camera.center()).norm();
             for (int i = 0; i < _triangles.size(); i++) {
                 for (int k = 0; k < 3; k++) {
                     const Vector3D& v = _vertices[_triangles[i][k]].pos();

@@ -64,7 +64,7 @@ namespace spica {
         for (int i = 0;  i < scene.numTriangles(); i++) {
             bbox.merge(scene.getTriangle(i));
         }
-        globalRadius = std::min(8.0, (bbox.posMax() - bbox.posMin()).norm() * 0.1);
+        globalRadius = (bbox.posMax() - bbox.posMin()).norm() * 0.5;
 
         // Distribute tasks
         const int tasksThread = (height + kNumThreads - 1) / kNumThreads;

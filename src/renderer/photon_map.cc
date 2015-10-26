@@ -25,10 +25,10 @@ namespace spica {
 
     Photon::Photon(const Vector3D& position, const Color& flux, 
                    const Vector3D& direction, const Vector3D& normal)
-        : _position(position)
-        , _flux(flux)
-        , _direction(direction)
-        , _normal(normal) {
+        : _position{position}
+        , _flux{flux}
+        , _direction{direction}
+        , _normal{normal} {
     }
 
     Photon::Photon(const Photon& photon)
@@ -261,6 +261,13 @@ namespace spica {
 
         Ray nextRay(isect.position(), nextdir);
         Color nextFlux = Color((flux * refl) / (samplePdf * photonPdf));
+
+        // Skip translucent object.
+        if (!(absorbBsdf & BsdfType::Bssrdf) && (bsdf.type() & BsdfType::Bssrdf)) {
+            if (nextdir.dot(isect.normal()) < 0.0) {
+                return;
+            }
+        }
 
         // Next bounce
         tracePhoton(scene, nextRay, params, nextFlux, 

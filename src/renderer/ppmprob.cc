@@ -16,19 +16,19 @@
 #include "../random/random.h"
 #include "../random/halton.h"
 
+#include "../light/lighting.h"
+
 namespace spica {
 
     const double PPMPRenderer::kAlpha = 0.7;
 
     PPMPRenderer::PPMPRenderer()
-        : IRenderer()
-        , photonMap()
-        , globalRadius(0.0)
-    {
+        : IRenderer{}
+        , photonMap{}
+        , globalRadius{0.0} {
     }
 
-    PPMPRenderer::~PPMPRenderer()
-    {
+    PPMPRenderer::~PPMPRenderer() {
     }
 
     void PPMPRenderer::render(const Scene& scene, const Camera& camera, 
@@ -64,7 +64,7 @@ namespace spica {
         for (int i = 0;  i < scene.numTriangles(); i++) {
             bbox.merge(scene.getTriangle(i));
         }
-        globalRadius = (bbox.posMax() - bbox.posMin()).norm() * 0.5;
+        globalRadius = std::min(8.0, (bbox.posMax() - bbox.posMin()).norm() * 0.1);
 
         // Distribute tasks
         const int tasksThread = (height + kNumThreads - 1) / kNumThreads;
@@ -154,7 +154,8 @@ namespace spica {
         // Intersection test
         Intersection isect;
         if (!scene.intersect(ray, &isect)) {
-            return Color::BLACK;
+            return scene.lightType() == LightType::Envmap ? 
+                   scene.directLight(ray.direction()) : Color::BLACK;
         }
 
         // Request random numbers

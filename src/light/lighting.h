@@ -23,13 +23,8 @@
 
 namespace spica {
 
-    enum class LightType {
-        AreaLight = 0x01,
-        Envmap    = 0x02
-    };
-
     /** Lighting class
-     * @ingroup light_module
+     *  @ingroup light_module
      */
     class SPICA_EXPORTS Lighting {
     private:
@@ -70,6 +65,7 @@ namespace spica {
         LightSample sample(Stack<double>& rstack) const;
         Color directLight(const Vector3D& dir) const;
         double area() const;
+        LightType type() const;
     };
 
 }  // namespace spica

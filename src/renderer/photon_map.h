@@ -46,9 +46,6 @@ namespace spica {
 
         static double distance(const Photon& p1, const Photon& p2);
 
-        static Photon sample(const Scene& scene, 
-                             Stack<double>& rstk, const int numPhotons);
-
         inline Vector3D position()  const { return _position;  }
         inline Color    flux()      const { return _flux;      }
         inline Vector3D direction() const { return _direction; }

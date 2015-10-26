@@ -2,6 +2,7 @@
 #include "photon_map.h"
 
 #include <ctime>
+#include <fstream>
 
 #include "../core/sampler.h"
 #include "../scenes/scene.h"
@@ -16,11 +17,10 @@
 namespace spica {
 
     Photon::Photon()
-        : _position()
-        , _flux()
-        , _direction()
-        , _normal()
-    {
+        : _position{}
+        , _flux{}
+        , _direction{}
+        , _normal{} {
     }
 
     Photon::Photon(const Vector3D& position, const Color& flux, 
@@ -28,21 +28,15 @@ namespace spica {
         : _position(position)
         , _flux(flux)
         , _direction(direction)
-        , _normal(normal)
-    {
+        , _normal(normal) {
     }
 
     Photon::Photon(const Photon& photon)
-        : _position()
-        , _flux()
-        , _direction()
-        , _normal()
-    {
+        : Photon{} {
         this->operator=(photon);
     }
 
-    Photon::~Photon()
-    {
+    Photon::~Photon() {
     }
 
     Photon& Photon::operator=(const Photon& photon) {
@@ -61,35 +55,11 @@ namespace spica {
         return (p1._position - p2._position).norm();
     }
 
-    Photon Photon::sample(const Scene& scene, 
-                          Stack<double>& rstk, const int numPhotons) {
-        /*
-        const int lightID = scene.lightID();
-        if (lightID >= 0) {
-            const IGeometry* light = scene.get(lightID);
-
-            const double r1 = rseq.next();
-            const double r2 = rseq.next();
-
-            Vector3D posLight, normalLight;
-            sampler::on(light, &posLight, &normalLight, r1, r2);
-            Color currentFlux = Color(light->area() * scene.getMaterial(lightID).emission * PI / numPhotons);
-            return Photon(posLight, currentFlux, normalLight, normalLight);
-        } else {
-            return scene.envmap().samplePhoton(rseq, numPhotons);
-        }
-        */
-        Assertion(false, "This is not implemented!!");
-        return Photon();
-    }
-
     PhotonMap::PhotonMap()
-        : _kdtree()
-    {
+        : _kdtree{} {
     }
 
-    PhotonMap::~PhotonMap()
-    {
+    PhotonMap::~PhotonMap() {
     }
 
     void PhotonMap::clear() {
@@ -158,6 +128,12 @@ namespace spica {
             }
         }
         printf("\n");
+
+        int numStored = 0;
+        for (int i = 0; i < kNumThreads; i++) {
+            numStored += photons[i].size();
+        }
+        printf("[INFO] %d photons stored.\n", numStored);
 
         // Deallocate memories
         delete[] samplers;
@@ -259,11 +235,14 @@ namespace spica {
         const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
         const Vector3D orientNormal = (into ? 1.0 : -1.0) * isect.normal();
 
+        if (scene.isLightCheck(objID)) {
+            return;
+        }
+
         double photonPdf = 1.0;
         if (bsdf.type() & absorbBsdf) {
             photons->push_back(Photon(isect.position(), flux, 
                                       ray.direction(), isect.normal()));
-        
             // Russian roulette
             const double prob = (refl.red() + refl.green() + refl.blue()) / 3.0;
             if (rands[0] < prob) {

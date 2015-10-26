@@ -13,25 +13,27 @@ namespace spica {
 
     class SPICA_EXPORTS LightSample {
     private:
-        Vector3D _p;  //! position
-        Vector3D _n;  //! normal
-        Color    _e;  //! light emittance
+        Vector3D _p{0.0, 0.0, 0.0};  /** Position.   */
+        Vector3D _n{0.0, 0.0, 0.0};  /** Normal.     */
+        Color    _e{0.0, 0.0, 0.0};  /** Emission.   */
+        double   _area = 0.0;        /** Light area. */
 
     public:
-        LightSample(const Vector3D& p = Vector3D(0.0, 0.0, 0.0),
-                  const Vector3D& n = Vector3D(0.0, 0.0, 0.0),
-                  const Color& e = Color(0.0, 0.0, 0.0))
-            : _p(p)
-            , _n(n)
-            , _e(e) {
+        LightSample() {
         }
 
-        ~LightSample() {}
+        LightSample(const Vector3D& p, const Vector3D& n, const Color& e, double area)
+            : _p{p}
+            , _n{n}
+            , _e{e}
+            , _area{area} {
+        }
+
+        ~LightSample() {
+        }
 
         LightSample(const LightSample& l)
-            : _p()
-            , _n()
-            , _e() {
+            : LightSample{} {
             this->operator=(l);
         }
 
@@ -45,12 +47,46 @@ namespace spica {
         inline Vector3D position() const { return _p; }
         inline Vector3D normal()   const { return _n; }
         inline Color    Le()       const { return _e; }
+        inline double   area()     const { return _area; }
+    };
+
+    /** Light type enumerator.
+     *  @ingroup light_module
+     */
+    enum class LightType {
+        None      = 0x00,  /**< Light type not specified. */
+        AreaLight = 0x01,  /**< Area light.               */
+        Envmap    = 0x02,  /**< Enviroment map.           */
     };
 
     class SPICA_EXPORTS ILight {
+    private:
+        LightType _type = LightType::None;
+
     public:
-        ILight() {}
+        ILight(LightType type) : _type{type} {}
+
+        ILight(const ILight& light)
+            : _type{light._type} {
+        }
+
+        ILight(ILight&& light)
+            : _type{light._type} {
+        }
+
         virtual ~ILight() {}
+
+        ILight& operator=(const ILight& light) {
+            _type = light._type;
+            return *this;
+        }
+
+        ILight& operator=(ILight&& light) {
+            _type = light._type;
+            return *this;
+        }
+
+        LightType type() const { return _type; }
 
         virtual LightSample sample(double r1, double r2, double r3) const = 0;
         virtual Color directLight(const Vector3D& dir) const = 0;

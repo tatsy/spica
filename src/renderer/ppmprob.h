@@ -23,9 +23,16 @@ namespace spica {
         static const double kAlpha;
 
     public:
+        /** Constructor.
+         */
         PPMPRenderer();
+
+        /** Destructor.
+         */
         ~PPMPRenderer();
 
+        /** Rendering process.
+         */
         void render(const Scene& scne, const Camera& camera, 
                     const RenderParameters& params) override;
 

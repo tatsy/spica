@@ -106,6 +106,7 @@ namespace spica {
             const int newTris = static_cast<int>(tris.numFaces());
             const int nowTris = static_cast<int>(_triangles.size());
             _lighting = Lighting::asEnvmap(shape, image);
+            return;
 
             // If new object is a light, store triangle indices
             for (int i = 0; i < newTris; i++) {
@@ -145,6 +146,10 @@ namespace spica {
 
         double lightArea() const {
             return _lighting.area();
+        }
+
+        LightType lightType() const {
+            return _lighting.type();
         }
 
         void setAccelType(AccelType type) {
@@ -342,6 +347,10 @@ namespace spica {
 
     double Scene::lightArea() const {
         return _impl->lightArea();
+    }
+
+    LightType Scene::lightType() const {
+        return _impl->lightType();
     }
 
     void Scene::setAccelType(AccelType type) {

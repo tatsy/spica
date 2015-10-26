@@ -34,6 +34,12 @@ namespace spica {
         Envmap();
         Envmap(const Sphere& boundSphere, const std::string& filename);
         Envmap(const Sphere& boundSphere, const Image& image);
+        Envmap(const Envmap& envmap);
+        Envmap(Envmap&& envmap);
+        ~Envmap();
+
+        Envmap& operator=(const Envmap& envmap);
+        Envmap& operator=(Envmap&& envmap);
 
         void resize(int width, int height);
         void clearColor(const Color& color);

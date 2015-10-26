@@ -70,4 +70,8 @@ namespace spica {
         return _ptr->area();
     }
 
+    LightType Lighting::type() const {
+        return  _ptr->type();
+    }
+
 }  // namespace spica

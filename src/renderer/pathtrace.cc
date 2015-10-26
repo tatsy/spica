@@ -126,7 +126,8 @@ namespace spica {
 
         Intersection isect;
         if (!scene.intersect(ray, &isect)) {
-            return Color::BLACK;
+            return scene.lightType() == LightType::Envmap ? 
+                   scene.directLight(ray.direction()) : Color::BLACK;
         }
 
         // Require random numbers

@@ -280,7 +280,8 @@ namespace spica {
 
         BSDF kittenBsdf = RefractiveBSDF::factory(Color(0.999, 0.999, 0.999));
         kittenBsdf.setBssrdf(bssrdf);
-        scene->addShape(kitten, kittenBsdf);
+        // scene->addShape(kitten, kittenBsdf);
+        scene->addShape(kitten, LambertianBRDF::factory(Color(0.75, 0.25, 0.25)));
 
         scene->setAccelType(AccelType::QBVH);
         scene->finalize();
@@ -308,25 +309,42 @@ namespace spica {
         const Color sigma_a  = Color(0.0021, 0.0041, 0.0071) * 10.0;
         const BSSRDF bssrdf = DipoleBSSRDF::factory(sigma_a, sigmap_s, 1.5);
 
+        // Set floor
+        const int tiles = 8;
+        const double tileSize = 8.0;
+        for (int i = 0; i <= tiles; i++) {
+            for (int j = 0; j <= tiles; j++) {
+                double ii = (i - tiles / 2) * tileSize;
+                double jj = (j - tiles / 2) * tileSize;
+                Vector3D p00(ii, -10.0, jj);
+                Vector3D p01(ii + tileSize, -10.0, jj);
+                Vector3D p10(ii, -10.0, jj + tileSize);
+                Vector3D p11(ii + tileSize, -10.0, jj + tileSize);
+                Color color = (i + j) % 2 == 0 ? Color(0.9, 0.9, 0.9) 
+                                               : Color(0.2, 0.2, 0.2);
+                BSDF bsdf = (i + j) % 2 == 0 ? LambertianBRDF::factory(color)
+                                             : LambertianBRDF::factory(color); 
+                scene->addShape(Triangle(p00, p11, p01), bsdf);
+                scene->addShape(Triangle(p00, p10, p11), bsdf);
+            }
+        }
+
+
         BSDF kittenBsdf = RefractiveBSDF::factory(Color(0.999, 0.999, 0.999));
         kittenBsdf.setBssrdf(bssrdf);
         scene->addShape(kitten, kittenBsdf);
-        
-        Disk disk(Vector3D(0.0, -10.0, 0.0), Vector3D(0.0, 1.0, 0.0), 20.0);
-        scene->addShape(disk, LambertianBRDF::factory(Color(0.95, 0.95, 0.95)));
 
-        (*camera) = Camera::asDoF(width, height, 
-                                  Vector3D(0.0, 5.0, 100.0),
-                                  Vector3D(0.0, -5.0, -100.0).normalized(),
+        Vector3D eye(0.0, 10.0, 100.0);
+        (*camera) = Camera::asDoF(width, height, eye, -eye.normalized(),
                                   Vector3D(0.0, 1.0, 0.0),
                                   20.0,
                                   42.0,
                                   58.0,
-                                  1.0,
-                                  90.0);
+                                  1.0e-1,
+                                  9000.0);
 
         // Envmap
-        Image envmap = Image::fromFile(kDataDirectory + "cave_room.hdr");
+        Image envmap = Image::fromFile(kDataDirectory + "gold_room.hdr");
         scene->setEnvmap(envmap, *camera);
 
         scene->finalize();

@@ -6,14 +6,16 @@
 namespace spica {
 
     AreaLight::AreaLight()
-        : _emittance{}
+        : ILight{LightType::AreaLight}
+        , _emittance{}
         , _triangles{}
         , _samplePdf{}
         , _totalArea{0.0} {
     }
 
     AreaLight::AreaLight(const Trimesh& tris, const Color& emittance)
-        : _emittance{emittance}
+        : ILight{LightType::AreaLight}
+        , _emittance{emittance}
         , _triangles{}
         , _samplePdf{}
         , _totalArea{} {
@@ -37,6 +39,7 @@ namespace spica {
     }
 
     AreaLight& AreaLight::operator=(const AreaLight& l) {
+        ILight::operator=(l);
         this->_emittance = l._emittance;
         this->_triangles = l._triangles;
         this->_samplePdf = l._samplePdf;
@@ -45,6 +48,7 @@ namespace spica {
     }
 
     AreaLight& AreaLight::operator=(AreaLight&& l) {
+        ILight::operator=(std::move(l));
         this->_emittance = l._emittance;
         this->_triangles = std::move(l._triangles);
         this->_samplePdf = std::move(l._samplePdf);
@@ -78,7 +82,7 @@ namespace spica {
         Vector3D p, n;
         sampler::onTriangle(tri, &p, &n, r2, r3);
 
-        return LightSample(p, n, _emittance);
+        return LightSample(p, n, _emittance, _totalArea);
     }
 
     Color AreaLight::directLight(const Vector3D& dir) const {

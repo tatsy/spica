@@ -13,7 +13,7 @@ namespace spica {
     namespace {
         void directionToPolarCoord(const Vector3D& dir, double* theta, double* phi) {
             *theta = acos(dir.y());
-            *phi = atan2(dir.z(), dir.x());
+            *phi   = atan2(dir.z(), dir.x());
             if (*phi < 0.0) {
                 *phi += 2.0 * PI;
             }
@@ -21,30 +21,66 @@ namespace spica {
     }
 
     Envmap::Envmap()
-        : _sphere()
-        , _image()
-        , _importance()
-        , _pdf()
-        , _cdf() {
+        : ILight{LightType::Envmap}
+        , _sphere{}
+        , _image{}
+        , _importance{}
+        , _pdf{}
+        , _cdf{} {
     }
 
     Envmap::Envmap(const Sphere& boundSphere, const std::string& filename)
-        : _sphere(boundSphere)
-        , _image()
-        , _importance()
-        , _pdf()
-        , _cdf() {
+        : ILight{LightType::Envmap}
+        , _sphere{boundSphere}
+        , _image{}
+        , _importance{}
+        , _pdf{}
+        , _cdf{} {
         _image.load(filename);
         createImportanceMap();
     }
 
     Envmap::Envmap(const Sphere& boundSphere, const Image& image)
-        : _sphere(boundSphere)
-        , _image(image)
-        , _importance()
-        , _pdf()
-        , _cdf() {
+        : ILight{LightType::Envmap}
+        , _sphere{boundSphere}
+        , _image{image}
+        , _importance{}
+        , _pdf{}
+        , _cdf{} {
         createImportanceMap();
+    }
+
+    Envmap::Envmap(const Envmap& envmap)
+        : Envmap{} {
+        this->operator=(envmap);
+    }
+
+    Envmap::Envmap(Envmap&& envmap)
+        : Envmap{} {
+        this->operator=(std::move(envmap));
+    }
+
+    Envmap::~Envmap() {
+    }
+
+    Envmap& Envmap::operator=(const Envmap& envmap) {
+        ILight::operator=(envmap);
+        _sphere = envmap._sphere;
+        _image  = envmap._image;
+        _importance = envmap._importance;
+        _pdf = envmap._pdf;
+        _cdf = envmap._cdf;
+        return *this;
+    }
+
+    Envmap& Envmap::operator=(Envmap&& envmap) {
+        ILight::operator=(std::move(envmap));
+        _sphere = envmap._sphere;
+        _image  = std::move(envmap._image);
+        _importance = std::move(envmap._importance);
+        _pdf = std::move(envmap._pdf);
+        _cdf = std::move(envmap._cdf);
+        return *this;
     }
 
     void Envmap::resize(int width, int height) {
@@ -60,10 +96,10 @@ namespace spica {
         double theta, phi;
         directionToPolarCoord(dir, &theta, &phi);
         
+        const double iblu = phi   / (2.0 * PI);
         const double iblv = theta / PI;
-        const double iblu = phi / (2.0 * PI);
 
-        const double iblx = clamp(iblu * _image.width(), 0.0, _image.width() - 1.0);
+        const double iblx = clamp(iblu * _image.width(),  0.0, _image.width()  - 1.0);
         const double ibly = clamp(iblv * _image.height(), 0.0, _image.height() - 1.0);
 
         return _image(iblx, ibly);
@@ -78,7 +114,7 @@ namespace spica {
     }
 
     LightSample Envmap::sample(double r1, double r2, double r3) const {
-        const int width = IMPORTANCE_MAP_SIZE;
+        const int width  = IMPORTANCE_MAP_SIZE;
         const int height = IMPORTANCE_MAP_SIZE;
 
         const int index = std::lower_bound(_cdf.begin(), _cdf.end(), r1) - _cdf.begin();
@@ -86,8 +122,8 @@ namespace spica {
         // Direction
         const int ix = index % width;
         const int iy = index / width;
-        const double u = static_cast<double>(ix + r2) / width;
-        const double v = static_cast<double>(iy + r3) / height;
+        const double u = (ix + r2) / width;
+        const double v = (iy + r3) / height;
 
         const double phi = u * 2.0 * PI;
         const double y = (1.0 - v) * 2.0 - 1.0;
@@ -98,25 +134,13 @@ namespace spica {
 
         const double A = _sphere.area();
         Color Le = sampleFromDir(dir) * PI / (A * _pdf[index]);
-        return LightSample(pos, normal, Le);
+        return LightSample(pos, normal, Le, A / (width * height));
     }
-
-    /*
-    Photon Envmap::samplePhoton(RandomSeq& rseq, const int numPhotons) const {
-        const double R = 20.0;
-        qrt(1.0 - y * y) * sin(phi));
-        const double area = (4.0 * PI * R * R) / (width * height);
-        const double pdf = _pdf[index];
-        const Color currentFlux = Color(sampleFromDir(dir) * (area * PI / (pdf * numPhotons)));
-
-        return Photon(R * dir, currentFlux, -dir, -dir);                
-    }
-    */
 
     void Envmap::createImportanceMap() {
         _importance.resize(IMPORTANCE_MAP_SIZE, IMPORTANCE_MAP_SIZE);
 
-        const int width = _importance.width();
+        const int width  = _importance.width();
         const int height = _importance.height();
 
         double total = 0.0;

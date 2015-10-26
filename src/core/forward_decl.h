@@ -56,6 +56,7 @@ namespace spica {
     class Trimesh;
 
     // Lighting module
+    enum class LightType;
     class Lighting;
     class LightSample;
 

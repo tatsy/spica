@@ -69,9 +69,13 @@ namespace spica {
          */
         LightSample sampleLight(Stack<double>& rstack) const;
 
-        /** Area of light
+        /** Area of light.
          */
         double lightArea() const;
+
+        /** Get lighting type.
+         */
+        LightType lightType() const;
 
         /** Set the type of intersection test accelerator.
          */

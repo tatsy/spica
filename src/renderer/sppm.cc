@@ -85,8 +85,7 @@ namespace spica {
     const double SPPMRenderer::kAlpha = 0.7;
 
     SPPMRenderer::SPPMRenderer()
-        : IRenderer()
-    {
+        : IRenderer{RendererType::SPPM} {
     }
 
     SPPMRenderer::~SPPMRenderer()
@@ -411,20 +410,24 @@ namespace spica {
             } else {
                 double pdf = 1.0;
                 Vector3D nextdir;
+                bsdf.sample(ray.direction(), isect.normal(),
+                            rands[1], rands[2], &nextdir, &pdf);
+
+                // TODO: material with property both of Lambertian and BSSRDF should be accounted for.
                 if (bsdf.type() & BsdfType::Bssrdf) {
                     Assertion(_integrator != nullptr,
                               "Subsurface integrator is NULL !!");
-                    Color bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
-                                                        isect.position(),
-                                                        isect.normal(),
-                                                        rands[1], rands[2],
-                                                        *_integrator,
-                                                        &nextdir, &pdf);
+
+                    double refPdf = 1.0;
+                    Color bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
+                                                      isect.position(),
+                                                      isect.normal(),
+                                                      *_integrator,
+                                                      &refPdf);
                     throughput += weight * bssrdfRad;
-                } else {
-                    bsdf.sample(ray.direction(), isect.normal(),
-                                rands[1], rands[2], &nextdir, &pdf);
+                    pdf *= refPdf;
                 }
+               
                 ray = Ray(isect.position(), nextdir);
                 weight = weight * isect.color() / pdf;
             }

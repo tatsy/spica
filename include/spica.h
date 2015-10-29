@@ -56,6 +56,7 @@
 #include "../src/renderer/render_parameters.h"
 #include "../src/renderer/renderer_helper.h"
 
+#include "../src/renderer/renderer_interface.h"
 #include "../src/renderer/pathtrace.h"
 #include "../src/renderer/bdpt.h"
 #include "../src/renderer/mlt.h"

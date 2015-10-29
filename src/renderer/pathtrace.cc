@@ -23,7 +23,7 @@
 namespace spica {
 
     PathRenderer::PathRenderer()
-        : IRenderer{} {
+        : IRenderer{RendererType::PathTrace} {
     }
 
     PathRenderer::~PathRenderer() {
@@ -153,22 +153,24 @@ namespace spica {
         Vector3D nextdir;
         double pdf = 1.0;
 
+        // Sample next direction
+        bsdf.sample(ray.direction(), isect.normal(), 
+                    randnums[1], randnums[2], &nextdir, &pdf);
+
         // Account for BSSRDF
         if (bsdf.type() & BsdfType::Bssrdf) {
             Assertion(_integrator != nullptr,
                       "Subsurface intergrator is NULL !!");
 
-            bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
+            double refPdf = 1.0;
+            bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
                                           isect.position(),
                                           isect.normal(),
-                                          randnums[1], randnums[2],
                                           *_integrator,
-                                          &nextdir, &pdf);
-        } else {
-            // Sample next direction
-            bsdf.sample(ray.direction(), isect.normal(), 
-                        randnums[1], randnums[2], &nextdir, &pdf);
+                                          &refPdf);
+            pdf *= refPdf;
         }
+
 
         // Compute next bounce
         const Ray nextray(isect.position(), nextdir);

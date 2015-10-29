@@ -211,7 +211,7 @@ namespace spica {
     }  // anonymous namespace
 
     MLTRenderer::MLTRenderer()
-        : IRenderer{} {
+        : IRenderer{RendererType::Metropolis} {
     }
 
     MLTRenderer::~MLTRenderer() {

@@ -262,13 +262,6 @@ namespace spica {
         Ray nextRay(isect.position(), nextdir);
         Color nextFlux = Color((flux * refl) / (samplePdf * photonPdf));
 
-        // Skip translucent object.
-        if (!(absorbBsdf & BsdfType::Bssrdf) && (bsdf.type() & BsdfType::Bssrdf)) {
-            if (nextdir.dot(isect.normal()) < 0.0) {
-                return;
-            }
-        }
-
         // Next bounce
         tracePhoton(scene, nextRay, params, nextFlux, 
                     rstk, bounces + 1, absorbBsdf, photons);

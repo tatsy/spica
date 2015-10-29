@@ -23,7 +23,7 @@ namespace spica {
     const double PPMPRenderer::kAlpha = 0.7;
 
     PPMPRenderer::PPMPRenderer()
-        : IRenderer{}
+        : IRenderer{RendererType::PhotonMap}
         , photonMap{}
         , globalRadius{0.0} {
     }
@@ -185,7 +185,7 @@ namespace spica {
         Vector3D nextdir;
         double pdf = 1.0;
 
-        // Account for BSSRDF
+        // Next radiance
         Color nextRad(0.0, 0.0, 0.0);
         if (bsdf.type() & BsdfType::Lambertian) {
             nextRad = photonMap.evaluate(isect.position(),
@@ -193,23 +193,22 @@ namespace spica {
                                          params.gatherPhotons(),
                                          globalRadius);
         } else {
-            if (bsdf.type() & BsdfType::Bssrdf) {
-                Assertion(_integrator != NULL,
-                          "Subsurface intergrator is NULL !!");
-                bssrdfRad = bsdf.sampleBssrdf(ray.direction(),
-                                              isect.position(),
-                                              isect.normal(),
-                                              rands[1], rands[2],
-                                              *_integrator,
-                                              &nextdir, &pdf);
-            } else {
-                bsdf.sample(ray.direction(), isect.normal(), 
-                            rands[1], rands[2], &nextdir, &pdf);
-            }
+            bsdf.sample(ray.direction(), isect.normal(), 
+                        rands[1], rands[2], &nextdir, &pdf);
             const Ray nextRay(isect.position(), nextdir);
             nextRad = radiance(scene, params, nextRay, rseq, bounces + 1);
         }
 
+        // Account for BSSRDF
+        if (bsdf.type() & BsdfType::Bssrdf) {
+            double refPdf = 1.0;
+            bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
+                                        isect.position(),
+                                        isect.normal(),
+                                        *_integrator,
+                                        &refPdf);
+            pdf *= refPdf;
+        }
         return Color(emission + (bssrdfRad + isect.color() * nextRad / pdf) / roulette);
     }
 

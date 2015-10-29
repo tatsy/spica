@@ -71,38 +71,26 @@ namespace spica {
         _ptr->sample(in, normal, rand1, rand2, out, pdf);
     }
 
-    Color BSDF::sampleBssrdf(const Vector3D& in, 
+    Color BSDF::evalBSSRDF(const Vector3D& in, 
                              const Vector3D& pos,
                              const Vector3D& normal,
-                             double rand1, double rand2,
                              const SubsurfaceIntegrator& integr,
-                             Vector3D* out, double* pdf) const {
+                             double* refPdf) const {
         // Transmitted radiance
         Color transRad(0.0, 0.0, 0.0);
 
-        // Reflactive object should be considered differently
-        if (_type & BsdfType::Refractive) {
-            const Vector3D orientN = in.dot(normal) < 0.0 ? normal : -normal;
-            const bool into = normal.dot(orientN) > 0.0;
-            Vector3D refdir, transdir;
-            double fresnelRe, fresnelTr;
-            if (helper::checkTotalReflection(into, in, normal, orientN,
-                                             &refdir, &transdir,
-                                             &fresnelRe, &fresnelTr)) {
-                // Total reflection
-                *out = refdir;
-                *pdf = 1.0;
-            } else {
-                // Process both reflection and transmission
-                *out = refdir;
-                *pdf = 1.0 / fresnelRe;
-                transRad = integr.irradiance(pos, *this) * fresnelTr;
-            }
+        // Fresnel reflection
+        const Vector3D orientN = in.dot(normal) < 0.0 ? normal : -normal;
+        const bool into = normal.dot(orientN) > 0.0;
+        Vector3D refdir, transdir;
+        double fresnelRe, fresnelTr;
+        if (helper::checkTotalReflection(into, in, normal, orientN,
+                                            &refdir, &transdir,
+                                            &fresnelRe, &fresnelTr)) {
+            (*refPdf) = 1.0;
         } else {
-            const double prob = 0.25 + kReflectProbability * 0.5;
-            transRad = integr.irradiance(pos, *this) * (1.0 - prob);
-            this->sample(in, normal, rand1, rand2, out, pdf);
-            (*pdf) /= prob;
+            (*refPdf) = (1.0 / fresnelRe);
+            transRad = integr.irradiance(pos, *this) * fresnelTr;
         }
         return transRad;
     }

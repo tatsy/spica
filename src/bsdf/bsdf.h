@@ -69,12 +69,11 @@ namespace spica {
                     double rand1, double rand2,
                     Vector3D* out, double* pdf) const;
 
-        Color sampleBssrdf(const Vector3D& in, 
-                           const Vector3D& pos,
-                           const Vector3D& normal,
-                           double rand1, double rand2,
-                           const SubsurfaceIntegrator& integr,
-                           Vector3D* out, double* pdf) const;
+        Color evalBSSRDF(const Vector3D& in, 
+                         const Vector3D& pos,
+                         const Vector3D& normal,
+                         const SubsurfaceIntegrator& integr,
+                         double* refPdf) const;
 
         BsdfType type() const;
         void setBssrdf(const BSSRDF& bssrdf);

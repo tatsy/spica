@@ -611,7 +611,7 @@ namespace spica {
     }  // anonymous namespace
     
     BDPTRenderer::BDPTRenderer()
-        : IRenderer{} {
+        : IRenderer{RendererType::BDPT} {
     }
 
     BDPTRenderer::~BDPTRenderer() {

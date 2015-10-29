@@ -10,11 +10,24 @@
 #ifndef _RENDERER_INTERFACE_H_
 #define _RENDERER_INTERFACE_H_
 
+#include <memory>
+
 #include "../core/image.h"
 #include "../core/uncopyable.h"
 #include "../core/forward_decl.h"
 
 namespace spica {
+
+    /** Strictly-typed enum for renderer types.
+     */
+    enum class RendererType : int {
+        None      = 0x00,  /**< None. */
+        PathTrace,         /**< Unidirectional path tracing. */
+        BDPT,              /**< Bidirectional path tracing. */
+        Metropolis,        /**< Metropolis light transport. */
+        PhotonMap,         /**< Probabilistic progressive photon mapping. */
+        SPPM,              /**< Stochastic progressive photon mapping */
+    };
 
     /** Interface for renderer implementations
      *  @ingroup renderer_module
@@ -23,14 +36,17 @@ namespace spica {
         
     protected:
         Image _result;
-        SubsurfaceIntegrator* _integrator;
+        std::unique_ptr<SubsurfaceIntegrator> _integrator;
+        RendererType _type;
 
     public:
-        IRenderer();
+        IRenderer(RendererType type);
         virtual ~IRenderer();
 
         virtual void render(const Scene& scene, const Camera& camera, 
                             const RenderParameters& params) = 0;
+
+        inline RendererType type() const { return _type; }
     };
 
 }  // namespace spica

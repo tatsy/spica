@@ -9,13 +9,13 @@
 
 namespace spica {
 
-    IRenderer::IRenderer()
-        : _result()
-        , _integrator(new SubsurfaceIntegrator) {
+    IRenderer::IRenderer(RendererType type)
+        : _result{}
+        , _integrator{std::make_unique<SubsurfaceIntegrator>()}
+        , _type(type) {
     }
 
     IRenderer::~IRenderer() {
-        delete _integrator;
     }
 
 }  // namespace spica

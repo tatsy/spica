@@ -45,15 +45,12 @@ namespace spica {
 
         /** Set enviroment map to the scene.
          *  @param image The image for enviroment map.
-         *  @param camera This is necessary for computing environment sphere.
          */
-        void setEnvmap(const Image& image, const Camera& camera);
+        void setEnvmap(const Image& image);
 
         /** Compute bounding sphere
-         *  @param camera Camera looking at the scene. This is necessary for
-         *                computing enviroment map.
          */
-        Sphere boundingSphere(const Camera& camera) const;
+        Sphere boundingSphere() const;
 
         /** Return triangle (make new instance in the function)
          */

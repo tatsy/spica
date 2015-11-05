@@ -49,9 +49,8 @@ TEST_F(SceneTest, BoundingSphere) {
                                      1.0);
     Sphere bounds = scene.boundingSphere(cam);
 
-    EXPECT_LE((cam.center() - bounds.center()).norm(), bounds.radius());
-    EXPECT_LE((s1.center() - bounds.center()).norm(), bounds.radius() - s1.radius());
-    EXPECT_LE((s2.center() - bounds.center()).norm(), bounds.radius() - s2.radius());
+    EXPECT_LE((s1.center() - bounds.center()).norm(), bounds.radius() - s1.radius() + EPS);
+    EXPECT_LE((s2.center() - bounds.center()).norm(), bounds.radius() - s2.radius() + EPS);
 }
 
 TEST_F(SceneTest, IsTextured) {

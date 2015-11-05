@@ -79,7 +79,7 @@ namespace spica {
             _bsdfs.clear();
         }
 
-        Sphere boundingSphere(const Camera& camera) {
+        Sphere boundingSphere() {
             Vector3D center;
             for (int i = 0; i < _triangles.size(); i++) {
                 const Vector3D& v0 = _vertices[_triangles[i][0]].pos();
@@ -89,7 +89,7 @@ namespace spica {
             }
             center /= _triangles.size();
 
-            double radius = 0.0; //(center - camera.center()).norm();
+            double radius = 0.0;
             for (int i = 0; i < _triangles.size(); i++) {
                 for (int k = 0; k < 3; k++) {
                     const Vector3D& v = _vertices[_triangles[i][k]].pos();
@@ -100,8 +100,8 @@ namespace spica {
             return Sphere(center, radius);
         }
 
-        void setEnvmap(const Image& image, const Camera& camera) {
-            const Sphere& shape = this->boundingSphere(camera);
+        void setEnvmap(const Image& image) {
+            const Sphere& shape = this->boundingSphere();
             Trimesh tris = shape.triangulate();
             const int newTris = static_cast<int>(tris.numFaces());
             const int nowTris = static_cast<int>(_triangles.size());

@@ -3,9 +3,7 @@ option(SPICA_BUILD_VIEWER "BUILD_VIEWER" ON)
 if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
 
   if (WIN32)
-    # set(Your_Qt5_DIR "Your_Qt5_DIR" CACHE STRING "Your_Qt5_DIR")
-    # set(Your_freeglut_DIR "Your_freeglut_DIR" CACHE STRING "Your_freeglut_DIR")
-    set(Your_Qt5_DIR "C:/Qt/5.4/msvc2013_64_opengl/")
+    set(Your_Qt5_DIR "Your_Qt5_DIR" CACHE STRING "Your_Qt5_DIR")
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${Your_Qt5_DIR})
   endif()
 
@@ -75,7 +73,7 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
 
   set(QT_LIB_LIST Qt5Widgets Qt5Core Qt5Gui Qt5OpenGL)
   if (WIN32)
-    set(QT_LIB_LIST ${QT_LIB_LIST} icuin53 icuuc53 icudt53)
+    set(QT_LIB_LIST ${QT_LIB_LIST} icuin54 icuuc54 icudt54)
   endif()
 
   if (MSVC)

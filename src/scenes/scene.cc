@@ -321,12 +321,12 @@ namespace spica {
         _impl->clear();
     }
 
-    Sphere Scene::boundingSphere(const Camera& camera) const {
-        return _impl->boundingSphere(camera);
+    Sphere Scene::boundingSphere() const {
+        return _impl->boundingSphere();
     }
 
-    void Scene::setEnvmap(const Image& image, const Camera& camera) {
-        _impl->setEnvmap(image, camera);
+    void Scene::setEnvmap(const Image& image) {
+        _impl->setEnvmap(image);
     }
 
     Triangle Scene::getTriangle(int id) const {

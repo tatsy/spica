@@ -345,7 +345,7 @@ namespace spica {
 
         // Envmap
         Image envmap = Image::fromFile(kDataDirectory + "gold_room.hdr");
-        scene->setEnvmap(envmap, *camera);
+        scene->setEnvmap(envmap);
 
         scene->finalize();
     }

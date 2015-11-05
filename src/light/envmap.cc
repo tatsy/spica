@@ -11,6 +11,7 @@
 namespace spica {
 
     namespace {
+
         void directionToPolarCoord(const Vector3D& dir, double* theta, double* phi) {
             *theta = acos(dir.y());
             *phi   = atan2(dir.z(), dir.x());
@@ -18,12 +19,14 @@ namespace spica {
                 *phi += 2.0 * PI;
             }
         }
-    }
+
+    }  // anonymous namespace
 
     Envmap::Envmap()
         : ILight{LightType::Envmap}
         , _sphere{}
         , _image{}
+        , _lowres{}
         , _importance{}
         , _pdf{}
         , _cdf{} {
@@ -33,6 +36,7 @@ namespace spica {
         : ILight{LightType::Envmap}
         , _sphere{boundSphere}
         , _image{}
+        , _lowres{}
         , _importance{}
         , _pdf{}
         , _cdf{} {
@@ -44,6 +48,7 @@ namespace spica {
         : ILight{LightType::Envmap}
         , _sphere{boundSphere}
         , _image{image}
+        , _lowres{}
         , _importance{}
         , _pdf{}
         , _cdf{} {
@@ -67,6 +72,7 @@ namespace spica {
         ILight::operator=(envmap);
         _sphere = envmap._sphere;
         _image  = envmap._image;
+        _lowres = envmap._lowres;
         _importance = envmap._importance;
         _pdf = envmap._pdf;
         _cdf = envmap._cdf;
@@ -77,6 +83,7 @@ namespace spica {
         ILight::operator=(std::move(envmap));
         _sphere = envmap._sphere;
         _image  = std::move(envmap._image);
+        _lowres = std::move(envmap._lowres);
         _importance = std::move(envmap._importance);
         _pdf = std::move(envmap._pdf);
         _cdf = std::move(envmap._cdf);
@@ -86,10 +93,6 @@ namespace spica {
     void Envmap::resize(int width, int height) {
         _image.resize(width, height);
         _importance.resize(width, height);
-    }
-
-    void Envmap::clearColor(const Color& color) {
-        _image.fill(color);
     }
 
     Color Envmap::sampleFromDir(const Vector3D& dir) const {

@@ -47,7 +47,7 @@ TEST_F(SceneTest, BoundingSphere) {
                                      800,
                                      600,
                                      1.0);
-    Sphere bounds = scene.boundingSphere(cam);
+    Sphere bounds = scene.boundingSphere();
 
     EXPECT_LE((s1.center() - bounds.center()).norm(), bounds.radius() - s1.radius() + EPS);
     EXPECT_LE((s2.center() - bounds.center()).norm(), bounds.radius() - s2.radius() + EPS);

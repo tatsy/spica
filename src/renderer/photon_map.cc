@@ -106,7 +106,7 @@ namespace spica {
                 samplers[threadID].request(&rstk, 250);
 
                 // Generate sample on the light
-                const LightSample ls = scene.sampleLight(rstk);
+                const LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
                 
                 Color flux = Color(scene.lightArea() * ls.Le() * PI /
                                    params.castPhotons());

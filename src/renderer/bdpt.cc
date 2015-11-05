@@ -228,7 +228,7 @@ namespace spica {
 
         TraceResult lightTrace(const Scene& scene, const DoFCamera& camera, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
             // Generate sample on the light
-            const LightSample ls = scene.sampleLight(rstk);
+            const LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
 
             // Store vertex on light itself
             double totalPdfA = 1.0 / scene.lightArea();

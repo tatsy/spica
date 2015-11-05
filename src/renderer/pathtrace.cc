@@ -46,7 +46,7 @@ namespace spica {
                 break;
 
             case QUASI_MONTE_CARLO:
-                samplers[i] = RandomSampler::useHalton(200, true, (unsigned int)time(0) + i);
+                samplers[i] = RandomSampler::useHalton(300, true, (unsigned int)time(0) + i);
                 break;
 
             default:
@@ -164,22 +164,23 @@ namespace spica {
 
             double refPdf = 1.0;
             bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
-                                          isect.position(),
-                                          isect.normal(),
-                                          *_integrator,
-                                          &refPdf);
+                                        isect.position(),
+                                        isect.normal(),
+                                        *_integrator,
+                                        &refPdf);
             pdf *= refPdf;
         }
 
+        // Sample direct lighting
+        Color directrad = directSample(scene, objectID, ray.direction(),
+                                       isect.position(), isect.normal(),
+                                       refl, bounces, rstack);
 
         // Compute next bounce
         const Ray nextray(isect.position(), nextdir);
         const Color nextrad = radiance(scene, params, nextray,
                                        rstack, bounces + 1);            
 
-        Color directrad = directSample(scene, objectID, ray.direction(),
-                                       isect.position(), isect.normal(),
-                                       refl, bounces, rstack);
 
         return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
     }
@@ -188,18 +189,18 @@ namespace spica {
                                      const Vector3D& in, const Vector3D& v,
                                      const Vector3D& n, const Color& refl, 
                                      int bounces, Stack<double>& rstk) const {
-        // Acquire random numbers
-        const double rands[2] = { rstk.pop(), rstk.pop() };
+
+        double rands[5] = { rstk.pop(), rstk.pop(), rstk.pop(), rstk.pop(), rstk.pop() };
 
         const BSDF& bsdf = scene.getBsdf(triID);
 
         if (bsdf.type() & BsdfType::Scatter) {
             // Scattering surface
             if (!scene.isLightCheck(triID)) {
-                const LightSample ls = scene.sampleLight(rstk);
+                const LightSample ls = scene.sampleLight(rands[0], rands[1], rands[2]);
                 double pdf;
                 Vector3D nextdir;
-                bsdf.sample(in, n, rands[0], rands[1], &nextdir, &pdf);
+                bsdf.sample(in, n, rands[3], rands[4], &nextdir, &pdf);
         
                 const Vector3D lightDir = (ls.position() - v).normalized();
                 const double dist2 = (ls.position() - v).squaredNorm();

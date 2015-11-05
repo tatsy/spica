@@ -266,7 +266,7 @@ namespace spica {
                 }
 
                 // Sample point on light
-                const LightSample ls = scene.sampleLight(rstk);
+                const LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
 
                 // Compute flux
                 Color flux = Color(scene.lightArea() * ls.Le() * PI / numPhotons);

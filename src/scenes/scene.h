@@ -62,9 +62,9 @@ namespace spica {
          */
         Color directLight(const Vector3D& dir) const; 
 
-        /** Sample vertex on the light. This method consumes three random numbers
+        /** Sample vertex on the light. This method consumes three random numbers.
          */
-        LightSample sampleLight(Stack<double>& rstack) const;
+        LightSample sampleLight(double r1, double r2, double r3) const;
 
         /** Area of light.
          */

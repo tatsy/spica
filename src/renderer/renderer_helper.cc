@@ -124,7 +124,7 @@ namespace spica {
             const Vector3D  orientNormal = into ? normal : -normal;
 
             if (bsdf.type() & BsdfType::Lambertian) {
-                LightSample ls = scene.sampleLight(rstk);
+                LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
 
                 const Vector3D v_to_l = ls.position() - pos;
                 const Vector3D light_dir = v_to_l.normalized();

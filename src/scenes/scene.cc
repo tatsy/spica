@@ -140,8 +140,8 @@ namespace spica {
             return _lighting.directLight(dir);
         }
 
-        LightSample sampleLight(Stack<double>& rstack) const {
-            return _lighting.sample(rstack);
+        LightSample sampleLight(double r1, double r2, double r3) const {
+            return _lighting.sample(r1, r2, r3);
         }
 
         double lightArea() const {
@@ -341,8 +341,8 @@ namespace spica {
         return _impl->directLight(dir);
     }
 
-    LightSample Scene::sampleLight(Stack<double>& rstack) const {
-        return _impl->sampleLight(rstack);
+    LightSample Scene::sampleLight(double r1, double r2, double r3) const {
+        return _impl->sampleLight(r1, r2, r3);
     }
 
     double Scene::lightArea() const {

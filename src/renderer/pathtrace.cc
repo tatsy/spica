@@ -220,13 +220,13 @@ namespace spica {
                     if (scene.intersect(Ray(v, lightDir), &isect)) {
                         if (scene.isLightCheck(isect.objectID())) {
                             // Multiple importance sampling
-                            double lightPdf = INV_PI * dot1 / dist2;
+                            double lightPdf = 1.0 / (INV_PI * G * scene.lightArea());
 
                             double bsdfPdf = bsdf.pdf(in, n, lightDir);
 
                             double weight = powerHeuristic(1, lightPdf, 1, bsdfPdf);
 
-                            Ld += (refl * ls.Le()) * (INV_PI * weight * dot0 * scene.lightArea()); 
+                            Ld += (refl * ls.Le()) * weight / lightPdf; 
                             // return (refl * ls.Le()) * (INV_PI * G * scene.lightArea()); 
                         }
                     }
@@ -241,10 +241,10 @@ namespace spica {
                 Intersection isect;
                 if (scene.intersect(testRay, &isect)) {
                     if (scene.isLightCheck(isect.objectID())) {
-                        double lightPdf = 1.0 / scene.lightArea();
+                        double dot = std::max(0.0, Vector3D::dot(isect.normal(), -nextdir));
+                        double lightPdf = INV_PI * dot / scene.lightArea();
                         double weight = powerHeuristic(1, bsdfPdf, 1, lightPdf);
-                        double dot = Vector3D::dot(n, nextdir);
-                        Ld += (refl * scene.directLight(nextdir)) * (INV_PI * weight * dot);
+                        // Ld += (refl * scene.directLight(nextdir)) * weight / bsdfPdf;
                     }
                 } else if (scene.lightType() == LightType::Envmap) {
                     // TODO: MIS for Enviroment map

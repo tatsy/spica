@@ -222,7 +222,7 @@ namespace spica {
     }
 
 	void Envmap::createLowResolution() {
-		const int maxsize = 128;
+		const int maxsize = 256;
 		const int winsize = 15;
 		const double sigma = 2.0 * winsize * winsize;
 
@@ -231,7 +231,7 @@ namespace spica {
 		const int width  = static_cast<int>(_image.width() * scale);
 		const int height = static_cast<int>(_image.height() * scale); 
 
-		_lowres.resize(width, height);
+		Image temp(width, height);
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				const int orgX = static_cast<int>(x / scale);
@@ -250,9 +250,31 @@ namespace spica {
 						}
 					}
 				}
-				_lowres.pixel(x, y) = sumColor / (sumWgt + EPS);
+				temp.pixel(x, y) = sumColor / (sumWgt + EPS);
 			}
 		}
+
+        _lowres.resize(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+				Color sumColor(0.0, 0.0, 0.0);
+				double sumWgt = 0.0;
+				for (int dy = -winsize; dy <= winsize; dy++) {
+					for (int dx = -winsize; dx <= winsize; dx++) {
+                        int nx = x + dx;
+                        int ny = y + dy;
+                        if (nx >= 0 && ny >= 0 && nx < width && ny < height && dx * dx + dy * dy <= winsize * winsize) {
+							double wgt = exp(- (dx * dx + dy * dy) / sigma);
+							sumColor += wgt * temp(nx, ny);
+							sumWgt += wgt;                            
+                        }
+                    }
+                }
+                _lowres.pixel(x, y) = sumColor / (sumWgt + EPS);
+            }
+        }
+        _lowres.save(kOutputDirectory + "lowres.png");
+
 	}
 
     ILight* Envmap::clone() const {

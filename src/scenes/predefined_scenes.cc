@@ -322,15 +322,16 @@ namespace spica {
                 Vector3D p11(ii + tileSize, -10.0, jj + tileSize);
                 Color color = (i + j) % 2 == 0 ? Color(0.9, 0.9, 0.9) 
                                                : Color(0.2, 0.2, 0.2);
-                BSDF bsdf = (i + j) % 2 == 0 ? LambertianBRDF::factory(color)
-                                             : LambertianBRDF::factory(color); 
+                BSDF bsdf = (i + j) % 2 == 0 ? PhongBRDF::factory(color)
+                                             : PhongBRDF::factory(color); 
                 scene->addShape(Triangle(p00, p11, p01), bsdf);
                 scene->addShape(Triangle(p00, p10, p11), bsdf);
             }
         }
 
 
-        BSDF kittenBsdf = RefractiveBSDF::factory(Color(0.999, 0.999, 0.999));
+        BSDF kittenBsdf = PhongBRDF::factory(Color(0.999, 0.999, 0.999));
+        // BSDF kittenBsdf = LambertianBRDF::factory(Color(0.75, 0.75, 0.25));
         kittenBsdf.setBssrdf(bssrdf);
         scene->addShape(kitten, kittenBsdf);
 

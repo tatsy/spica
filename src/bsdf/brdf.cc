@@ -30,7 +30,7 @@ namespace spica {
     }
 
     double LambertianBRDF::pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const {
-        return Vector3D::dot(in, out) * INV_PI;
+        return Vector3D::dot(normal, out) * INV_PI;
     }
 
     BSDF LambertianBRDF::factory(const Color& reflectance) {

@@ -1,8 +1,6 @@
 #ifndef _SPICA_QGL_RENDER_WIDGET_H_
 #define _SPICA_QGL_RENDER_WIDGET_H_
 
-#include <GL/glew.h>
-#include <GL/glut.h>
 #include <QtOpenGL/qgl.h>
 #include <qopenglshaderprogram.h>
 #include <qtimer.h>

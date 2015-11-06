@@ -5,8 +5,6 @@
 using namespace spica;
 
 int main(int argc, char** argv) {
-    glutInit(&argc, argv);
-
     QApplication app(argc, argv);
 
     Scene scene;

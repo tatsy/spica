@@ -1,29 +1,27 @@
 # Enable GTest
-enable_testing()
-
-option(SPICA_BUILD_TEST "SPICA_BUILD_TEST" ON)
-set(GTEST_ROOT $ENV{GTEST_ROOT} CACHE STRING "GTEST_ROOT")
+option(SPICA_BUILD_TEST "SPICA_BUILD_TEST" OFF)
 
 if (${SPICA_BUILD_TEST} STREQUAL "ON")
-  # Link directory
+  enable_testing()
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-  if (NOT "${GTEST_ROOT}" STREQUAL "")
-    set(GTEST_LIB)
-    if (WIN32)
-      set(GTEST_LIB "gtest.lib")
-      set(GTEST_MAIN_LIB "gtest_main.lib")
-    else()
-      set(GTEST_LIB "libgtest.a")
-      set(GTEST_MAIN_LIB "libgtest_main.a")
-    endif()
-    set(GTEST_LIBRARY ${GTEST_ROOT}/lib/${GTEST_LIB})
-    set(GTEST_MAIN_LIBRARY ${GTEST_ROOT}/lib/${GTEST_MAIN_LIB})
-    set(GTEST_INCLUDE_DIRS ${GTEST_ROOT}/include)
+  set(GTEST_ROOT "GTEST_ROOT" CACHE PATH "GTEST_ROOT")
+  if (NOT EXISTS "${GTEST_ROOT}/include/gtest/gtest.h")
+    message(FATAL_ERROR "[ERROR] Google Test not found!!")
+  endif()
+
+  set(GTEST_INCLUDE_DIRS "${GTEST_ROOT}/include")
+  set(GTEST_LIBRARY_DIRS "${GTEST_ROOT}/lib")
+  if (WIN32)
+    set(GTEST_LIBRARIES
+        "$<$<CONFIG:Release>:${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest${LIB_SUFFIX}>"
+        "$<$<CONFIG:Release>:${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest_main${LIB_SUFFIX}>"
+        "$<$<CONFIG:Debug>:${GTEST_LIBRARY_DIRS}/Debug/${LIB_PREFIX}gtest${LIB_SUFFIX}>"
+        "$<$<CONFIG:Debug>:${GTEST_LIBRARY_DIRS}/Debug/${LIB_PREFIX}gtest_main${LIB_SUFFIX}>")
   else()
-    set(GTEST_LIBRARY $ENV{GTEST_LIBRARY})
-    set(GTEST_MAIN_LIBRARY $ENV{GTEST_MAIN_LIBRARY})
-    set(GTEST_INCLUDE_DIRS $ENV{GTEST_INCLUDE_DIRS})
+    set(GTEST_LIBRARIES
+        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest${LIB_SUFFIX}"
+        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest_main${LIB_SUFFIX}")
   endif()
 
   set(TEST_NAME spica_tests)
@@ -53,8 +51,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
 
   add_definitions(-DGTEST_LANG_CXX11)
   add_executable(${TEST_NAME} ${SOURCE_FILES})
-  target_link_libraries(${TEST_NAME} ${GTEST_LIBRARY})
-  target_link_libraries(${TEST_NAME} ${GTEST_MAIN_LIBRARY})
+  target_link_libraries(${TEST_NAME} ${GTEST_LIBRARIES})
   target_link_libraries(${TEST_NAME} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
 
   if (MSVC)

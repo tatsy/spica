@@ -64,17 +64,26 @@ namespace spica {
 
         void resize(int width, int height);
 
+		/** Direct light sampling.
+		 *  @details This method is usually called for direct light sampling.
+		 */
         Color directLight(const Vector3D& dir) const override;
+
+		/** Global light sampling.
+		 *  @details This method is usually called when the ray does not intersect anything.
+		 */
+		Color globalLight(const Vector3D& dir) const override;
+
         double area() const override;
         LightSample sample(double r1, double r2, double r3) const override;
 
-        Color sampleFromDir(const Vector3D& dir) const;
         const Image& getImage() const;
 
         ILight* clone() const override;
 
     private:
         void createImportanceMap();
+		void createLowResolution();
     };
 
 }  // namespace spica

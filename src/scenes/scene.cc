@@ -140,6 +140,10 @@ namespace spica {
             return _lighting.directLight(dir);
         }
 
+		Color globalLight(const Vector3D& dir) const {
+			return _lighting.globalLight(dir);
+		}
+
         LightSample sampleLight(double r1, double r2, double r3) const {
             return _lighting.sample(r1, r2, r3);
         }
@@ -340,6 +344,10 @@ namespace spica {
     Color Scene::directLight(const Vector3D& dir) const {
         return _impl->directLight(dir);
     }
+
+	Color Scene::globalLight(const Vector3D& dir) const {
+		return _impl->globalLight(dir);
+	}
 
     LightSample Scene::sampleLight(double r1, double r2, double r3) const {
         return _impl->sampleLight(r1, r2, r3);

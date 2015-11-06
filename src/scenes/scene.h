@@ -62,6 +62,11 @@ namespace spica {
          */
         Color directLight(const Vector3D& dir) const; 
 
+		/** Get lighting of global enviroment.
+		 *  @details This method is usually used to sample light when the ray does not intersect anything.
+		 */
+		Color globalLight(const Vector3D& dir) const;
+
         /** Sample vertex on the light. This method consumes three random numbers.
          */
         LightSample sampleLight(double r1, double r2, double r3) const;

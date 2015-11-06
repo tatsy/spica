@@ -20,6 +20,19 @@ namespace spica {
             }
         }
 
+		Color sampleWithDirection(const Image& image, const Vector3D& dir) {
+			double theta, phi;
+			directionToPolarCoord(dir, &theta, &phi);
+        
+			const double iblu = phi   / (2.0 * PI);
+			const double iblv = theta / PI;
+
+			const double iblx = clamp(iblu * image.width(),  0.0, image.width()  - 1.0);
+			const double ibly = clamp(iblv * image.height(), 0.0, image.height() - 1.0);
+
+			return image(iblx, ibly);		
+		}
+
     }  // anonymous namespace
 
     Envmap::Envmap()
@@ -42,6 +55,7 @@ namespace spica {
         , _cdf{} {
         _image.load(filename);
         createImportanceMap();
+		createLowResolution();
     }
 
     Envmap::Envmap(const Sphere& boundSphere, const Image& image)
@@ -53,6 +67,7 @@ namespace spica {
         , _pdf{}
         , _cdf{} {
         createImportanceMap();
+		createLowResolution();
     }
 
     Envmap::Envmap(const Envmap& envmap)
@@ -95,22 +110,13 @@ namespace spica {
         _importance.resize(width, height);
     }
 
-    Color Envmap::sampleFromDir(const Vector3D& dir) const {
-        double theta, phi;
-        directionToPolarCoord(dir, &theta, &phi);
-        
-        const double iblu = phi   / (2.0 * PI);
-        const double iblv = theta / PI;
-
-        const double iblx = clamp(iblu * _image.width(),  0.0, _image.width()  - 1.0);
-        const double ibly = clamp(iblv * _image.height(), 0.0, _image.height() - 1.0);
-
-        return _image(iblx, ibly);
-    }
-
     Color Envmap::directLight(const Vector3D& dir) const {
-        return sampleFromDir(dir);
+		return sampleWithDirection(_lowres, dir);
     }
+
+	Color Envmap::globalLight(const Vector3D& dir) const {
+        return sampleWithDirection(_image, dir);
+	}
 
     double Envmap::area() const {
         return _sphere.area();
@@ -136,15 +142,15 @@ namespace spica {
         Vector3D normal = -dir;
 
         const double A = _sphere.area();
-        Color Le = sampleFromDir(dir) * PI / (A * _pdf[index]);
+        Color Le = sampleWithDirection(_lowres, dir) * PI / (A * _pdf[index]);
         return LightSample(pos, normal, Le, A / (width * height));
     }
 
     void Envmap::createImportanceMap() {
-        _importance.resize(IMPORTANCE_MAP_SIZE, IMPORTANCE_MAP_SIZE);
-
-        const int width  = _importance.width();
-        const int height = _importance.height();
+		// Compute importance map
+        const int width  = IMPORTANCE_MAP_SIZE;
+        const int height = IMPORTANCE_MAP_SIZE;
+		_importance.resize(width, height);
 
         double total = 0.0;
         for (int iy = 0; iy < height; iy++) {
@@ -196,7 +202,7 @@ namespace spica {
                         const double y = (1.0 - v) * 2.0 - 1.0;
 
                         const Vector3D dir = Vector3D(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
-                        accum += sampleFromDir(dir) / (superX * superY);
+                        accum += sampleWithDirection(_image, dir) / (superX * superY);
                     }
                 }
 
@@ -214,6 +220,40 @@ namespace spica {
             _cdf[i] = _pdf[i] + _cdf[i - 1];
         }
     }
+
+	void Envmap::createLowResolution() {
+		const int maxsize = 512;
+		const int winsize = 5;
+		const double sigma = 2.0 * winsize * winsize;
+
+		double scale = (double)maxsize / std::max(_image.width(), _image.height());
+
+		const int width  = static_cast<int>(_image.width() * scale);
+		const int height = static_cast<int>(_image.height() * scale); 
+
+		_lowres.resize(width, height);
+		for (int y = 0; y < height; y++) {
+			for (int x = 0; x < width; x++) {
+				const int orgX = static_cast<int>(x / scale);
+				const int orgY = static_cast<int>(y / scale);
+
+				Color sumColor(0.0, 0.0, 0.0);
+				double sumWgt = 0.0;
+				for (int dy = -winsize; dy <= winsize; dy++) {
+					for (int dx = -winsize; dx <= winsize; dx++) {
+						int nx = orgX + dx;
+						int ny = orgY + dy;
+						if (nx >= 0 && ny >= 0 && nx < _image.width() && ny < _image.height()) {
+							double wgt = exp(- (dx * dx + dy * dy) / sigma);
+							sumColor += wgt * _image(nx, ny);
+							sumWgt += wgt;
+						}
+					}
+				}
+				_lowres.pixel(x, y) = sumColor / (sumWgt + EPS);
+			}
+		}
+	}
 
     ILight* Envmap::clone() const {
         return new Envmap(*this);

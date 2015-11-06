@@ -89,6 +89,10 @@ namespace spica {
         return _emittance;
     }
 
+	Color AreaLight::globalLight(const Vector3D& dir) const {
+		return Color::BLACK;
+	}
+
     double AreaLight::area() const {
         return _totalArea;
     }

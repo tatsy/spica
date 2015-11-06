@@ -43,7 +43,7 @@ RUN \
 RUN \
   cd spica && \
   git submodule update --init --recursive && \
-  cmake . && \
+  cmake -D SPICA_BUILD_TEST=ON . && \
   cmake --build .
 
 #

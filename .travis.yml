@@ -16,7 +16,7 @@ install:
   - docker pull tatsy/ubuntu-cxx:default
 
   # Dynamically generate Dockerfile
-  - sed -e "s/@C_COMPILER@/$CC/;s/@CXX_COMPILER@/$CXX/;s/@BRANCH_NAME@/$TRAVIS_BRANCH/;s/@PULL_REQUEST@/$TRAVIS_PULL_REQUEST/" Dockerfile.in > Dockerfile
+  - sed -i -e "s/@C_COMPILER@/$CC/;s/@CXX_COMPILER@/$CXX/;s/@BRANCH_NAME@/$TRAVIS_BRANCH/;s/@PULL_REQUEST@/$TRAVIS_PULL_REQUEST/" Dockerfile
 
   # Build Dockerfile
   - docker build --tag=spica-env .

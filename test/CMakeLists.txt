@@ -5,9 +5,13 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   enable_testing()
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
-  set(GTEST_ROOT "GTEST_ROOT" CACHE PATH "GTEST_ROOT")
-  if (NOT EXISTS "${GTEST_ROOT}/include/gtest/gtest.h")
-    message(FATAL_ERROR "[ERROR] Google Test not found!!")
+  if(WIN32)
+    set(GTEST_ROOT "GTEST_ROOT" CACHE PATH "GTEST_ROOT")
+    if (NOT EXISTS "${GTEST_ROOT}/include/gtest/gtest.h")
+      message(FATAL_ERROR "[ERROR] Google Test not found!!")
+    endif()
+  else()
+    set(GTEST_ROOT "/usr/local")
   endif()
 
   set(GTEST_INCLUDE_DIRS "${GTEST_ROOT}/include")
@@ -20,8 +24,8 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
         "$<$<CONFIG:Debug>:${GTEST_LIBRARY_DIRS}/Debug/${LIB_PREFIX}gtest_main${LIB_SUFFIX}>")
   else()
     set(GTEST_LIBRARIES
-        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest${LIB_SUFFIX}"
-        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest_main${LIB_SUFFIX}")
+        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest.a"
+        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest_main.a")
   endif()
 
   set(TEST_NAME spica_tests)

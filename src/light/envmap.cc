@@ -192,7 +192,7 @@ namespace spica {
         const int superY = _image.height() / height;
         for (int iy = 0; iy < height; iy++) {
             for (int ix = 0; ix < width; ix++) {
-                Color accum;
+                Color accum(0.0, 0.0, 0.0);
                 for (int sy = 0; sy < superY; sy++) {
                     for (int sx = 0; sx < superX; sx++) {
                         const double u = (ix + static_cast<double>(sx) / superX) / width;
@@ -222,8 +222,8 @@ namespace spica {
     }
 
 	void Envmap::createLowResolution() {
-		const int maxsize = 512;
-		const int winsize = 5;
+		const int maxsize = 128;
+		const int winsize = 15;
 		const double sigma = 2.0 * winsize * winsize;
 
 		double scale = (double)maxsize / std::max(_image.width(), _image.height());

@@ -69,6 +69,8 @@ namespace spica {
                     double rand1, double rand2,
                     Vector3D* out, double* pdf) const;
 
+        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const;
+
         Color evalBSSRDF(const Vector3D& in, 
                          const Vector3D& pos,
                          const Vector3D& normal,

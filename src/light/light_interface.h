@@ -90,7 +90,7 @@ namespace spica {
 
         virtual LightSample sample(double r1, double r2, double r3) const = 0;
         virtual Color directLight(const Vector3D& dir) const = 0;
-		virtual Color globalLight(const Vector3D& dir) const = 0;
+        virtual Color globalLight(const Vector3D& dir) const = 0;
         virtual double area() const = 0;
         virtual ILight* clone() const = 0;
     };

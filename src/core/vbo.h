@@ -34,10 +34,9 @@ namespace spica {
         /** Assignment operator. */
         VBO& operator=(const VBO& vbo);
 
-        void add(const Vector3D& v, const Vector3D& normal, const Color& color);
-
         template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *& = enabler>
         void add(const T& shape, const Color& color);
+        void add(const Trimesh& shape);
 
         inline int numIndices() const { return (int)_indices.size(); }
 
@@ -45,12 +44,16 @@ namespace spica {
         inline const float* normals() const { return &_normals[0]; }
         inline const float* colors() const { return &_colors[0]; }
         inline const unsigned int* indices() const { return &_indices[0]; }
+
+    private:
+        void add(const Vector3D& v, const Vector3D& normal, const Color& color);
+
     };
 
     template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *&>
     void VBO::add(const T& shape, const Color& color) {        
         const Trimesh tris = shape.triangulate();
-        const int triID = _vertices.size();
+        const int triID = _vertices.size() / 3;
         for (int i = 0; i < tris.numVerts(); i++) {
             const VertexData& v = tris.getVertexData(i);
             add(v.pos(), v.normal(), color);

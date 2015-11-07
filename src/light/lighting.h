@@ -70,8 +70,9 @@ namespace spica {
         LightSample sample(double r1, double r2, double r3) const;
 
         Color directLight(const Vector3D& dir) const;
-		Color globalLight(const Vector3D& dir) const;
+        Color globalLight(const Vector3D& dir) const;
 
+        ILight* ptr() const;
         double area() const;
         LightType type() const;
     };

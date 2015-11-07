@@ -105,6 +105,8 @@ namespace spica {
          */
         ICamera* releasePtr();
 
+        inline bool isNull() const { return !static_cast<bool>(_ptr); }
+
         inline CameraType type() const { return _type; }
         inline Vector3D center() const { return _ptr->center(); }
         inline Vector3D direction() const { return _ptr->direction(); }

@@ -37,7 +37,7 @@ namespace spica {
 
         LightSample sample(double r1, double r2, double r3) const override;
         Color directLight(const Vector3D& dir) const override;
-		Color globalLight(const Vector3D& dir) const override;
+        Color globalLight(const Vector3D& dir) const override;
         double area() const override;
         ILight* clone() const override;
 

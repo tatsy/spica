@@ -25,6 +25,7 @@ namespace spica {
         virtual ~BSDFBase() {}
         virtual const Color& reflectance() const = 0;
         virtual void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const = 0;
+        virtual double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const = 0;
         virtual BSDFBase* clone() const = 0;
     };
 
@@ -40,6 +41,7 @@ namespace spica {
         static BSDF factory(const Color& reflectance);
         const Color& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
         BSDFBase* clone() const override;
 
     private:
@@ -58,6 +60,7 @@ namespace spica {
         static BSDF factory(const Color& reflectance);
         const Color& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
         BSDFBase* clone() const override;
 
     private:
@@ -77,6 +80,7 @@ namespace spica {
         static BSDF factory(const Color& reflectance, const double n = 32);
         const Color& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
         BSDFBase* clone() const override;
 
     private:
@@ -94,6 +98,7 @@ namespace spica {
         static BSDF factory(const Color& reflectance);
         const Color& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
         BSDFBase* clone() const override;
 
     private:

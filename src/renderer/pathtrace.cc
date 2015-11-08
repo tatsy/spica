@@ -208,47 +208,30 @@ namespace spica {
                 Color Ld(0.0, 0.0, 0.0);
 
                 // Sample light
-                const LightSample ls = scene.sampleLight(rands[0], rands[1], rands[2]);        
-                const Vector3D lightDir = (ls.position() - v).normalized();
-                const double dist2 = (ls.position() - v).squaredNorm();
+                const LightSample lightSample = scene.sampleLight(rands[0], rands[1], rands[2]);        
+                const Vector3D lightDir = (lightSample.position() - v).normalized();
+                const double dist2 = (lightSample.position() - v).squaredNorm();
                 const double dot0  = Vector3D::dot(n, lightDir);
-                const double dot1  = Vector3D::dot(ls.normal(), -lightDir);
+                const double dot1  = Vector3D::dot(lightSample.normal(), -lightDir);
 
                 if (dot0 > EPS && dot1 > EPS) {
-                    const double G = dot0 * dot1 / dist2;
+                    // Visibility check
                     Intersection isect;
                     if (scene.intersect(Ray(v, lightDir), &isect)) {
                         if (scene.isLightCheck(isect.objectID())) {
-                            // Multiple importance sampling
-                            double lightPdf = 1.0 / (INV_PI * G * scene.lightArea());
-
-                            double bsdfPdf = bsdf.pdf(in, n, lightDir);
+                            // PDFs are computed for polar coordinate system
+                            double jacob = dot1 / dist2;
+                            double lightPdf = 1.0 / (INV_PI * jacob * scene.lightArea());
+                            double bsdfPdf  = bsdf.pdf(in, n, lightDir);
 
                             double weight = powerHeuristic(1, lightPdf, 1, bsdfPdf);
 
-                            Ld += (refl * ls.Le()) * weight / lightPdf; 
-                            // return (refl * ls.Le()) * (INV_PI * G * scene.lightArea()); 
+                            Ld += (refl * dot0 * lightSample.Le()) * weight / lightPdf; 
                         }
                     }
                 }
 
-                // Sample BSDF
-                double bsdfPdf;
-                Vector3D nextdir;
-                bsdf.sample(in, n, rands[3], rands[4], &nextdir, &bsdfPdf);
-
-                Ray testRay(v, nextdir);
-                Intersection isect;
-                if (scene.intersect(testRay, &isect)) {
-                    if (scene.isLightCheck(isect.objectID())) {
-                        double dot = std::max(0.0, Vector3D::dot(isect.normal(), -nextdir));
-                        double lightPdf = INV_PI * dot / scene.lightArea();
-                        double weight = powerHeuristic(1, bsdfPdf, 1, lightPdf);
-                        // Ld += (refl * scene.directLight(nextdir)) * weight / bsdfPdf;
-                    }
-                } else if (scene.lightType() == LightType::Envmap) {
-                    // TODO: MIS for Enviroment map
-                }
+                // TODO: Sample BSDF with multiple importance sampling
                 return Ld;
             }
         } else if (bsdf.type() & BsdfType::Dielectric) {

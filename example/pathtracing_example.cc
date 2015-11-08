@@ -18,14 +18,14 @@ int main(int argc, char **argv) {
     Camera camera;
     cornellBox(&scene, &camera, width, height);
     // kittenBox(&scene, &camera, width, height);
-    kittenEnvmap(&scene, &camera, width, height);
+    // kittenEnvmap(&scene, &camera, width, height);
     
     Timer timer;
     timer.start();
 
     RenderParameters params(samples);
     params.castPhotons(500000);
-    // params.randomType(QUASI_MONTE_CARLO);
+    params.randomType(QUASI_MONTE_CARLO);
     params.saveFilenameFormat(kOutputDirectory + "pathtrace_%03d.png");
 
     PathRenderer renderer;

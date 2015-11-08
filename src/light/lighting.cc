@@ -65,10 +65,14 @@ namespace spica {
         return _ptr->directLight(dir);
     }
 
-	Color Lighting::globalLight(const Vector3D& dir) const {
-		Assertion(_ptr != nullptr, "Light pointer is null!!");
-		return _ptr->globalLight(dir);
-	}
+    Color Lighting::globalLight(const Vector3D& dir) const {
+        Assertion(_ptr != nullptr, "Light pointer is null!!");
+        return _ptr->globalLight(dir);
+    }
+
+    ILight* Lighting::ptr() const {
+        return _ptr.get();
+    }
 
     double Lighting::area() const {
         Assertion(_ptr != nullptr, "Light pointer is null!!");

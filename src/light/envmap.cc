@@ -20,18 +20,18 @@ namespace spica {
             }
         }
 
-		Color sampleWithDirection(const Image& image, const Vector3D& dir) {
-			double theta, phi;
-			directionToPolarCoord(dir, &theta, &phi);
+        Color sampleWithDirection(const Image& image, const Vector3D& dir) {
+            double theta, phi;
+            directionToPolarCoord(dir, &theta, &phi);
         
-			const double iblu = phi   / (2.0 * PI);
-			const double iblv = theta / PI;
+            const double iblu = phi   / (2.0 * PI);
+            const double iblv = theta / PI;
 
-			const double iblx = clamp(iblu * image.width(),  0.0, image.width()  - 1.0);
-			const double ibly = clamp(iblv * image.height(), 0.0, image.height() - 1.0);
+            const double iblx = clamp(iblu * image.width(),  0.0, image.width()  - 1.0);
+            const double ibly = clamp(iblv * image.height(), 0.0, image.height() - 1.0);
 
-			return image(iblx, ibly);		
-		}
+            return image(iblx, ibly);        
+        }
 
     }  // anonymous namespace
 
@@ -55,7 +55,7 @@ namespace spica {
         , _cdf{} {
         _image.load(filename);
         createImportanceMap();
-		createLowResolution();
+        createLowResolution();
     }
 
     Envmap::Envmap(const Sphere& boundSphere, const Image& image)
@@ -67,7 +67,7 @@ namespace spica {
         , _pdf{}
         , _cdf{} {
         createImportanceMap();
-		createLowResolution();
+        createLowResolution();
     }
 
     Envmap::Envmap(const Envmap& envmap)
@@ -111,12 +111,12 @@ namespace spica {
     }
 
     Color Envmap::directLight(const Vector3D& dir) const {
-		return sampleWithDirection(_lowres, dir);
+        return sampleWithDirection(_lowres, dir);
     }
 
-	Color Envmap::globalLight(const Vector3D& dir) const {
+    Color Envmap::globalLight(const Vector3D& dir) const {
         return sampleWithDirection(_image, dir);
-	}
+    }
 
     double Envmap::area() const {
         return _sphere.area();
@@ -147,10 +147,10 @@ namespace spica {
     }
 
     void Envmap::createImportanceMap() {
-		// Compute importance map
+        // Compute importance map
         const int width  = IMPORTANCE_MAP_SIZE;
         const int height = IMPORTANCE_MAP_SIZE;
-		_importance.resize(width, height);
+        _importance.resize(width, height);
 
         double total = 0.0;
         for (int iy = 0; iy < height; iy++) {
@@ -192,7 +192,7 @@ namespace spica {
         const int superY = _image.height() / height;
         for (int iy = 0; iy < height; iy++) {
             for (int ix = 0; ix < width; ix++) {
-                Color accum;
+                Color accum(0.0, 0.0, 0.0);
                 for (int sy = 0; sy < superY; sy++) {
                     for (int sx = 0; sx < superX; sx++) {
                         const double u = (ix + static_cast<double>(sx) / superX) / width;
@@ -222,8 +222,8 @@ namespace spica {
     }
 
 	void Envmap::createLowResolution() {
-		const int maxsize = 512;
-		const int winsize = 5;
+		const int maxsize = 256;
+		const int winsize = 15;
 		const double sigma = 2.0 * winsize * winsize;
 
 		double scale = (double)maxsize / std::max(_image.width(), _image.height());
@@ -231,7 +231,7 @@ namespace spica {
 		const int width  = static_cast<int>(_image.width() * scale);
 		const int height = static_cast<int>(_image.height() * scale); 
 
-		_lowres.resize(width, height);
+		Image temp(width, height);
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
 				const int orgX = static_cast<int>(x / scale);
@@ -250,9 +250,29 @@ namespace spica {
 						}
 					}
 				}
-				_lowres.pixel(x, y) = sumColor / (sumWgt + EPS);
+				temp.pixel(x, y) = sumColor / (sumWgt + EPS);
 			}
 		}
+
+        _lowres.resize(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+				Color sumColor(0.0, 0.0, 0.0);
+				double sumWgt = 0.0;
+				for (int dy = -winsize; dy <= winsize; dy++) {
+					for (int dx = -winsize; dx <= winsize; dx++) {
+                        int nx = x + dx;
+                        int ny = y + dy;
+                        if (nx >= 0 && ny >= 0 && nx < width && ny < height && dx * dx + dy * dy <= winsize * winsize) {
+							double wgt = exp(- (dx * dx + dy * dy) / sigma);
+							sumColor += wgt * temp(nx, ny);
+							sumWgt += wgt;                            
+                        }
+                    }
+                }
+                _lowres.pixel(x, y) = sumColor / (sumWgt + EPS);
+            }
+        }
 	}
 
     ILight* Envmap::clone() const {

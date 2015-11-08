@@ -44,4 +44,20 @@ namespace spica {
         _colors.push_back(color.blue());
     }
 
+    void VBO::add(const Trimesh& shape) {
+        const Trimesh tris = shape.triangulate();
+        const int triID = _vertices.size() / 3;
+        for (int i = 0; i < tris.numVerts(); i++) {
+            const VertexData& v = tris.getVertexData(i);
+            add(v.pos(), v.normal(), v.color());
+        }
+
+        const std::vector<Triplet> faces = tris.getIndices();
+        for (int i = 0; i < faces.size(); i++) {
+            for(int k = 0; k < 3; k++) {
+                _indices.push_back(triID + faces[i][k]);
+            }
+        }
+    }
+
 }  // namespace spica

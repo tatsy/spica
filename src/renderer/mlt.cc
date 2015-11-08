@@ -285,8 +285,8 @@ namespace spica {
 
                     rand[threadID].request(&rstk, 2);
 
-					kelemenMlt.large_step = rstk.pop() < p_large ? 1 : 0;
-					kelemenMlt.initUsedRandCoords();
+                    kelemenMlt.large_step = rstk.pop() < p_large ? 1 : 0;
+                    kelemenMlt.initUsedRandCoords();
                     PathSample new_path = generateNewPath(scene, camera, params, kelemenMlt, -1, -1, params.bounceLimit());
 
                     double a = std::min(1.0, new_path.F.luminance() / old_path.F.luminance());
@@ -301,19 +301,19 @@ namespace spica {
                         accept++;
                         old_path = new_path;
                         if (kelemenMlt.large_step) {
-							kelemenMlt.large_step_time = kelemenMlt.global_time;
+                            kelemenMlt.large_step_time = kelemenMlt.global_time;
                         }
                         kelemenMlt.global_time++;
                         while (!kelemenMlt.primary_samples_stack.empty()) {
-							kelemenMlt.primary_samples_stack.pop();
-						}
+                            kelemenMlt.primary_samples_stack.pop();
+                        }
                     } else {
                         // Reject
                         reject++;
                         int idx = kelemenMlt.used_rand_coords - 1;
                         while (!kelemenMlt.primary_samples_stack.empty()) {
-							kelemenMlt.primary_samples[idx--] = kelemenMlt.primary_samples_stack.top();
-							kelemenMlt.primary_samples_stack.pop();
+                            kelemenMlt.primary_samples[idx--] = kelemenMlt.primary_samples_stack.top();
+                            kelemenMlt.primary_samples_stack.pop();
                         }
                     }
                 }

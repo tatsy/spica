@@ -43,10 +43,15 @@ namespace spica {
          */
         void clear();
 
-        /** Set enviroment map to the scene.
+        /** Set environment map to the scene.
          *  @param image The image for enviroment map.
          */
         void setEnvmap(const Image& image);
+
+        /** Get environment map of the scene.
+         *  @return If lighting does not use environment map, then returns the black image.
+         */
+        Image getEnvmap() const;
 
         /** Compute bounding sphere
          */
@@ -62,10 +67,10 @@ namespace spica {
          */
         Color directLight(const Vector3D& dir) const; 
 
-		/** Get lighting of global enviroment.
-		 *  @details This method is usually used to sample light when the ray does not intersect anything.
-		 */
-		Color globalLight(const Vector3D& dir) const;
+        /** Get lighting of global enviroment.
+         *  @details This method is usually used to sample light when the ray does not intersect anything.
+         */
+        Color globalLight(const Vector3D& dir) const;
 
         /** Sample vertex on the light. This method consumes three random numbers.
          */

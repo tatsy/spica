@@ -71,6 +71,10 @@ namespace spica {
         _ptr->sample(in, normal, rand1, rand2, out, pdf);
     }
 
+    double BSDF::pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const {
+        return _ptr->pdf(in, normal, out);    
+    }
+
     Color BSDF::evalBSSRDF(const Vector3D& in, 
                              const Vector3D& pos,
                              const Vector3D& normal,

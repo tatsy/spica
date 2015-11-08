@@ -29,6 +29,10 @@ namespace spica {
         sampler::onHemisphere(orieintingNormal, out, rand1, rand2);
     }
 
+    double LambertianBRDF::pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const {
+        return Vector3D::dot(normal, out) * INV_PI;
+    }
+
     BSDF LambertianBRDF::factory(const Color& reflectance) {
         return std::move(BSDF(new LambertianBRDF(reflectance), BsdfType::Lambertian));
     }
@@ -55,6 +59,14 @@ namespace spica {
 
         (*pdf) = 1.0;
         (*out) = Vector3D::reflect(in, orieintingNormal);
+    }
+
+    double SpecularBRDF::pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const {
+        Vector3D refdir = Vector3D::reflect(in, normal);
+        if (Vector3D::dot(refdir, out) > (1.0 - EPS) ) {
+            return 1.0;
+        }
+        return 0.0;
     }
 
     BSDF SpecularBRDF::factory(const Color& reflectance) {
@@ -93,6 +105,12 @@ namespace spica {
 
         (*pdf) = 1.0;
         (*out) = (u * sin(theta) * cos(phi) + w * cos(theta) + v * sin(theta) * sin(phi)).normalized();
+    }
+
+    double PhongBRDF::pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const {
+        Vector3D refdir = Vector3D::reflect(in, normal);
+        double cosine = std::max(0.0, Vector3D::dot(refdir, out));
+        return (_coeff + 1.0) / (2.0 * PI) * pow(cosine, _coeff);
     }
 
     BSDF PhongBRDF::factory(const Color& reflectance, const double n) {
@@ -141,6 +159,33 @@ namespace spica {
                 (*out) = transmitdir;
             }
         }
+    }
+
+    double RefractiveBSDF::pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const {
+        const Vector3D orientN = in.dot(normal) < 0.0 ? normal : -normal;
+        const bool into = normal.dot(orientN) > 0.0;
+
+        Vector3D reflectdir, transmitdir;
+        double fresnelRe, fresnelTr;
+        const bool isTotalReflectance = 
+            helper::checkTotalReflection(into, in,
+                                         normal, orientN,
+                                         &reflectdir, &transmitdir,
+                                         &fresnelRe, &fresnelTr);
+    
+        if (isTotalReflectance) {
+            if (Vector3D::dot(reflectdir, out) > (1.0 - EPS)) { 
+                return 1.0;
+            }
+            return 0.0;
+        } else {
+            if (Vector3D::dot(reflectdir, out) > (1.0 - EPS)) {
+                return 1.0 / fresnelRe;
+            } else if (Vector3D::dot(transmitdir, out) > (1.0 - EPS)) {
+                return 1.0 / fresnelTr;            
+            }
+            return 0.0;
+        }                
     }
 
     BSDF RefractiveBSDF::factory(const Color& reflectance) {

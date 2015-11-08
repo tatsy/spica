@@ -24,8 +24,8 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
         "$<$<CONFIG:Debug>:${GTEST_LIBRARY_DIRS}/Debug/${LIB_PREFIX}gtest_main${LIB_SUFFIX}>")
   else()
     set(GTEST_LIBRARIES
-        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest${LIB_SUFFIX}"
-        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest_main${LIB_SUFFIX}")
+        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest.a"
+        "${GTEST_LIBRARY_DIRS}/${LIB_PREFIX}gtest_main.a")
   endif()
 
   set(TEST_NAME spica_tests)

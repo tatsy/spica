@@ -7,7 +7,10 @@
 #include "../math/vector3d.h"
 #include "../accel/accel.h"
 #include "../camera/camera.h"
+
 #include "../light/lighting.h"
+#include "../light//envmap.h"
+
 #include "../bsdf/bsdf.h"
 #include "../bsdf/brdf.h"
 #include "../shape/shape.h"
@@ -106,18 +109,24 @@ namespace spica {
             const int newTris = static_cast<int>(tris.numFaces());
             const int nowTris = static_cast<int>(_triangles.size());
             _lighting = Lighting::asEnvmap(shape, image);
-            return;
+        }
 
-            // If new object is a light, store triangle indices
-            for (int i = 0; i < newTris; i++) {
-                _lightIds.push_back(nowTris + i);
+        Image getEnvmap() {
+            switch(_lighting.type()) {
+            case LightType::AreaLight: {
+                return std::move(Image(1024, 1024));
+                break;
             }
 
-            // Add triangles to the scene
-            addTriangles(tris);
-
-            // Add empty BSDF
-            addBsdf(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), newTris);
+            case LightType::Envmap: {
+                Envmap* envmap = reinterpret_cast<Envmap*>(_lighting.ptr());
+                return envmap->getImage();
+                break;
+            }
+            default:
+                SpicaError("Unknown ligting type!!");
+            }
+            return Image{};
         }
 
         Triangle getTriangle(int id) const {
@@ -140,9 +149,9 @@ namespace spica {
             return _lighting.directLight(dir);
         }
 
-		Color globalLight(const Vector3D& dir) const {
-			return _lighting.globalLight(dir);
-		}
+        Color globalLight(const Vector3D& dir) const {
+            return _lighting.globalLight(dir);
+        }
 
         LightSample sampleLight(double r1, double r2, double r3) const {
             return _lighting.sample(r1, r2, r3);
@@ -333,6 +342,10 @@ namespace spica {
         _impl->setEnvmap(image);
     }
 
+    Image Scene::getEnvmap() const {
+        return std::move(_impl->getEnvmap());
+    }
+
     Triangle Scene::getTriangle(int id) const {
         return _impl->getTriangle(id);
     }
@@ -345,9 +358,9 @@ namespace spica {
         return _impl->directLight(dir);
     }
 
-	Color Scene::globalLight(const Vector3D& dir) const {
-		return _impl->globalLight(dir);
-	}
+    Color Scene::globalLight(const Vector3D& dir) const {
+        return _impl->globalLight(dir);
+    }
 
     LightSample Scene::sampleLight(double r1, double r2, double r3) const {
         return _impl->sampleLight(r1, r2, r3);

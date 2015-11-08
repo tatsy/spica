@@ -184,9 +184,15 @@ namespace spica {
         return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
     }
 
+    double powerHeuristic(int nf, double f, int ng, double g) {
+        double ff = nf * f;
+        double gg = ng * g;
+        return (ff * ff) / (ff * ff + gg * gg);
+    }
+
     Color PathRenderer::directSample(const Scene& scene, const int triID,
                                      const Vector3D& in, const Vector3D& v,
-                                     const Vector3D& n, const Color& refl, 
+                                     const Vector3D& n, const Color& refl,
                                      int bounces, Stack<double>& rstk) const {
 
         double rands[5] = { rstk.pop(), rstk.pop(), rstk.pop(), rstk.pop(), rstk.pop() };
@@ -195,12 +201,14 @@ namespace spica {
 
         if (bsdf.type() & BsdfType::Scatter) {
             // Scattering surface
-            if (!scene.isLightCheck(triID)) {
-                const LightSample ls = scene.sampleLight(rands[0], rands[1], rands[2]);
-                double pdf;
-                Vector3D nextdir;
-                bsdf.sample(in, n, rands[3], rands[4], &nextdir, &pdf);
-        
+            if (bounces == 0 && scene.isLightCheck(triID)) {
+                return scene.directLight(in);
+            } else {
+                // Multiple importance sampling
+                Color Ld(0.0, 0.0, 0.0);
+
+                // Sample light
+                const LightSample ls = scene.sampleLight(rands[0], rands[1], rands[2]);        
                 const Vector3D lightDir = (ls.position() - v).normalized();
                 const double dist2 = (ls.position() - v).squaredNorm();
                 const double dot0  = Vector3D::dot(n, lightDir);
@@ -211,12 +219,37 @@ namespace spica {
                     Intersection isect;
                     if (scene.intersect(Ray(v, lightDir), &isect)) {
                         if (scene.isLightCheck(isect.objectID())) {
-                            return (refl * ls.Le()) * (INV_PI * G * scene.lightArea()); 
+                            // Multiple importance sampling
+                            double lightPdf = 1.0 / (INV_PI * G * scene.lightArea());
+
+                            double bsdfPdf = bsdf.pdf(in, n, lightDir);
+
+                            double weight = powerHeuristic(1, lightPdf, 1, bsdfPdf);
+
+                            Ld += (refl * ls.Le()) * weight / lightPdf; 
+                            // return (refl * ls.Le()) * (INV_PI * G * scene.lightArea()); 
                         }
                     }
                 }
-            } else if (bounces == 0) {
-                return scene.directLight(in);
+
+                // Sample BSDF
+                double bsdfPdf;
+                Vector3D nextdir;
+                bsdf.sample(in, n, rands[3], rands[4], &nextdir, &bsdfPdf);
+
+                Ray testRay(v, nextdir);
+                Intersection isect;
+                if (scene.intersect(testRay, &isect)) {
+                    if (scene.isLightCheck(isect.objectID())) {
+                        double dot = std::max(0.0, Vector3D::dot(isect.normal(), -nextdir));
+                        double lightPdf = INV_PI * dot / scene.lightArea();
+                        double weight = powerHeuristic(1, bsdfPdf, 1, lightPdf);
+                        // Ld += (refl * scene.directLight(nextdir)) * weight / bsdfPdf;
+                    }
+                } else if (scene.lightType() == LightType::Envmap) {
+                    // TODO: MIS for Enviroment map
+                }
+                return Ld;
             }
         } else if (bsdf.type() & BsdfType::Dielectric) {
             // Dielectric surface

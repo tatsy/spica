@@ -44,11 +44,11 @@ namespace spica {
         RandomSampler* samplers = new RandomSampler[kNumThreads];
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
-            case PSEUDO_RANDOM_TWISTER:
+            case RandomType::MT19937:
                 samplers[i] = Random::factory((unsigned int)i);
                 break;
 
-            case QUASI_MONTE_CARLO:
+            case RandomType::Halton:
                 samplers[i] = Halton::factory(250, true, (unsigned int)i);
                 break;
 

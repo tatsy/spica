@@ -41,11 +41,11 @@ namespace spica {
         auto samplers = std::vector<RandomSampler>(kNumThreads);
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
-            case PSEUDO_RANDOM_TWISTER:
+            case RandomType::MT19937:
                 samplers[i] = RandomSampler::useMersenne((unsigned int)time(0) + i);
                 break;
 
-            case QUASI_MONTE_CARLO:
+            case RandomType::Halton:
                 samplers[i] = RandomSampler::useHalton(300, true, (unsigned int)time(0) + i);
                 break;
 

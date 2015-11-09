@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
     RenderParameters params(samples);
     params.castPhotons(500000);
-    params.randomType(QUASI_MONTE_CARLO);
+    params.randomType(RandomType::Halton);
     params.saveFilenameFormat(kOutputDirectory + "pathtrace_%03d.png");
 
     PathRenderer renderer;

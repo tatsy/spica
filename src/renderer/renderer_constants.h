@@ -7,11 +7,11 @@
 
 namespace spica {
 
-    enum RandomType {
-
-        PSEUDO_RANDOM_TWISTER = 0x01,  // Monte Carlo integrater using Mersenne twister
-        QUASI_MONTE_CARLO = 0x02,      // Quasi Monte Carlo integrator with randomized Halton
-
+    /** Strictly-typed enum for random sampler type.
+     */
+    enum class RandomType {
+        MT19937 = 0x01,  /**< Monte Carlo integrater using Mersenne twister. */
+        Halton  = 0x02,  /**< Quasi Monte Carlo integrator with randomized Halton. */
     };
 
     const double kIorVaccum = 1.0;

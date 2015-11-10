@@ -129,9 +129,6 @@ namespace spica {
             return scene.globalLight(ray.direction());
         }
 
-        // Require random numbers
-        const double randnums[3] = { rstack.pop(), rstack.pop(), rstack.pop() };
-
         // Get intersecting material
         const int objectID     = isect.objectID();
         const BSDF& bsdf       = scene.getBsdf(objectID);
@@ -142,7 +139,7 @@ namespace spica {
         if (bounces < params.bounceStartRoulette()) {
             roulette = 1.0;
         } else {
-            if (roulette <= randnums[0]) {
+            if (roulette <= rstack.pop()) {
                 return Color::BLACK;
             }
         }
@@ -154,7 +151,7 @@ namespace spica {
 
         // Sample next direction
         bsdf.sample(ray.direction(), isect.normal(), 
-                    randnums[1], randnums[2], &nextdir, &pdf);
+                    rstack.pop(), rstack.pop(), &nextdir, &pdf);
 
         // Account for BSSRDF
         if (bsdf.type() & BsdfType::Bssrdf) {
@@ -195,8 +192,6 @@ namespace spica {
                                      const Vector3D& n, const Color& refl,
                                      int bounces, Stack<double>& rstk) const {
 
-        double rands[5] = { rstk.pop(), rstk.pop(), rstk.pop(), rstk.pop(), rstk.pop() };
-
         const BSDF& bsdf = scene.getBsdf(triID);
 
         if (bsdf.type() & BsdfType::Scatter) {
@@ -208,7 +203,7 @@ namespace spica {
                 Color Ld(0.0, 0.0, 0.0);
 
                 // Sample light
-                const LightSample lightSample = scene.sampleLight(rands[0], rands[1], rands[2]);        
+                const LightSample lightSample = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());        
                 const Vector3D lightDir = (lightSample.position() - v).normalized();
                 const double dist2 = (lightSample.position() - v).squaredNorm();
                 const double dot0  = Vector3D::dot(n, lightDir);
@@ -238,7 +233,7 @@ namespace spica {
             // Dielectric surface
             double pdf;
             Vector3D nextdir;
-            bsdf.sample(in, n, rands[0], rands[1], &nextdir, &pdf);
+            bsdf.sample(in, n, rstk.pop(), rstk.pop(), &nextdir, &pdf);
             
             Intersection isect;
             if (scene.intersect(Ray(v, nextdir), &isect)) {

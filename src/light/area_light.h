@@ -35,7 +35,8 @@ namespace spica {
         AreaLight& operator=(const AreaLight& l);
         AreaLight& operator=(AreaLight&& l);
 
-        LightSample sample(double r1, double r2, double r3) const override;
+        LightSample sample(const Vector3D& v, Stack<double>& rands) const override;
+        Photon samplePhoton(Stack<double>& rands) const override;
         Color directLight(const Vector3D& dir) const override;
         Color globalLight(const Vector3D& dir) const override;
         double area() const override;
@@ -43,6 +44,7 @@ namespace spica {
 
     private:
         void calcSamplePdf();
+        void sampleOnLight(Vector3D* pos, Vector3D* nrm, Stack<double>& rands) const;
     };
 
 }  // namespace spica

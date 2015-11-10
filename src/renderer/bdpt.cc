@@ -228,23 +228,23 @@ namespace spica {
 
         TraceResult lightTrace(const Scene& scene, const DoFCamera& camera, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
             // Generate sample on the light
-            const LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
+            const LightSample Ls = scene.sampleLight(Vector3D(), rstk);
 
             // Store vertex on light itself
             double totalPdfA = 1.0 / scene.lightArea();
-            vertices->push_back(Vertex(ls.position(), ls.normal(), ls.normal(),
-                                       Color(0.0, 0.0, 0.0), ls.Le(), ObjectType::Light, totalPdfA, Color(0.0, 0.0, 0.0), -1));
+            vertices->push_back(Vertex(Ls.position(), Ls.normal(), Ls.normal(),
+                                       Color(0.0, 0.0, 0.0), Ls.Le(), ObjectType::Light, totalPdfA, Color(0.0, 0.0, 0.0), -1));
 
             // Compute initial tracing direction
             Vector3D nextDir;
-            sampler::onHemisphere(ls.normal(), &nextDir, rstk.pop(), rstk.pop());
-            double pdfOmega = sample_hemisphere_pdf_omega(ls.normal(), nextDir);
+            sampler::onHemisphere(Ls.normal(), &nextDir, rstk.pop(), rstk.pop());
+            double pdfOmega = sample_hemisphere_pdf_omega(Ls.normal(), nextDir);
 
-            Ray currentRay(ls.position(), nextDir);
-            Vector3D prevNormal = ls.normal();
+            Ray currentRay(Ls.position(), nextDir);
+            Vector3D prevNormal = Ls.normal();
 
             // Trace light ray
-            Color throughput = ls.Le();
+            Color throughput = Ls.Le();
             for (int bounce = 0; bounce < bounceLimit; bounce++) {
                 const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 

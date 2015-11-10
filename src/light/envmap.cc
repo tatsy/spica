@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "../core/common.h"
+#include "../core/sampler.h"
 #include "../renderer/photon_map.h"
 
 namespace spica {
@@ -122,28 +123,52 @@ namespace spica {
         return _sphere.area();
     }
 
-    LightSample Envmap::sample(double r1, double r2, double r3) const {
+    LightSample Envmap::sample(const Vector3D& vtx, Stack<double>& rands) const {
+
+        Vector3D pos, dir, nrm;
+        Color emt;
+        double pdf;
+        sampleOnLight(&pos, &dir, &nrm, &emt, &pdf, rands);
+
+        return LightSample(pos, nrm, dir, emt, pdf);
+    }
+
+    Photon Envmap::samplePhoton(Stack<double>& rands) const {
+        Vector3D pos, dir, nrm;
+        Color emt;
+        double pdf;
+        sampleOnLight(&pos, &dir, &nrm, &emt, &pdf, rands);
+
+        Color flux = emt / pdf;
+        return Photon(pos, flux, dir, nrm);
+    }
+
+    void Envmap::sampleOnLight(Vector3D* pos, Vector3D* dir, Vector3D* nrm, Color* emt, double* pdf, Stack<double>& rands) const {
         const int width  = IMPORTANCE_MAP_SIZE;
         const int height = IMPORTANCE_MAP_SIZE;
 
-        const int index = std::lower_bound(_cdf.begin(), _cdf.end(), r1) - _cdf.begin();
+        // Sample envmap pixel following PDF
+        const int index = std::lower_bound(_cdf.begin(), _cdf.end(), rands.pop()) - _cdf.begin();
 
         // Direction
         const int ix = index % width;
         const int iy = index / width;
-        const double u = (ix + r2) / width;
-        const double v = (iy + r3) / height;
+        const double u = (ix + rands.pop()) / width;
+        const double v = (iy + rands.pop()) / height;
 
         const double phi = u * 2.0 * PI;
         const double y = (1.0 - v) * 2.0 - 1.0;
-        const Vector3D dir = Vector3D(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
+        (*nrm) = -Vector3D(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
     
-        Vector3D pos = _sphere.center() + dir * _sphere.radius();
-        Vector3D normal = -dir;
+        (*pos) = _sphere.center() - (*nrm) * _sphere.radius();
 
-        const double A = _sphere.area();
-        Color Le = sampleWithDirection(_lowres, dir) * PI / (A * _pdf[index]);
-        return LightSample(pos, normal, Le, A / (width * height));
+        sampler::onHemisphere(*nrm, dir);
+
+        (*emt) = sampleWithDirection(_lowres, -(*nrm)) * PI / area();
+
+        // PI is for the hemisphere from viewing point.
+        // PI is for emitting direction.
+        (*pdf) = _pdf[index] / (PI * PI);
     }
 
     void Envmap::createImportanceMap() {

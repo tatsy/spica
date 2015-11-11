@@ -117,16 +117,15 @@ namespace spica {
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case RandomType::MT19937:
-                samplers[i] = Random::factory((unsigned int)i);
+                samplers[i] = Random::factory((unsigned int)time(0) + i);
                 break;
                 
             case RandomType::Halton:
-                samplers[i] = Halton::factory(250, true, (unsigned int)i);
+                samplers[i] = Halton::factory(250, true, (unsigned int)time(0) + i);
                 break;
 
             default:
-                std::cerr << "[ERROR] unknown random sampler type !!"
-                          << std::endl;
+                std::cerr << "[ERROR] unknown random sampler type !!" << std::endl;
                 std::abort();
                 break;
             }
@@ -134,6 +133,7 @@ namespace spica {
 
         for (int t = 0; t < params.samplePerPixel(); t++) {
             std::cout << "--- Iteration No." << (t + 1) << " ---" << std::endl;
+
             // 1st pass: Trace rays from camera
             traceRays(scene, camera, params, samplers, hpoints);
 
@@ -182,7 +182,7 @@ namespace spica {
         for (int i = 0; i < numPoints; i++) {
             if (pixels[i].n == 0) {
                 pixels[i].r2 = irad * irad;
-                pixels[i].n = 0;
+                pixels[i].n  = 0;
                 pixels[i].flux = Color(0.0, 0.0, 0.0);
             }
 
@@ -334,7 +334,7 @@ namespace spica {
                                      (pixel->n * kAlpha + 1.0);
                     omplock{
                         pixel->r2 *= g;
-                        pixel->n += 1;
+                        pixel->n  += 1;
                         pixel->flux = g * (pixel->flux + 
                                            pixel->weight * flux * INV_PI);
                     }

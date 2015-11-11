@@ -112,7 +112,7 @@ namespace spica {
     }
 
     Color Envmap::directLight(const Vector3D& dir) const {
-        return sampleWithDirection(_lowres, dir);
+        return sampleWithDirection(_image, dir);
     }
 
     Color Envmap::globalLight(const Vector3D& dir) const {
@@ -124,12 +124,12 @@ namespace spica {
     }
 
     LightSample Envmap::sample(const Vector3D& vtx, Stack<double>& rands) const {
-
         Vector3D pos, dir, nrm;
         Color emt;
         double pdf;
         sampleOnLight(&pos, &dir, &nrm, &emt, &pdf, rands);
 
+        pdf = 1.0 / (PI * _sphere.radius() * _sphere.radius());
         return LightSample(pos, nrm, dir, emt, pdf);
     }
 
@@ -157,18 +157,20 @@ namespace spica {
         const double v = (iy + rands.pop()) / height;
 
         const double phi = u * 2.0 * PI;
-        const double y = (1.0 - v) * 2.0 - 1.0;
-        (*nrm) = -Vector3D(sqrt(1.0 - y * y) * cos(phi), y, sqrt(1.0 - y * y) * sin(phi));
+        const double sintheta = (1.0 - v) * 2.0 - 1.0;
+        const double costheta = sqrt(1.0 - sintheta * sintheta);
+        (*dir) = Vector3D(costheta * cos(phi), sintheta, costheta * sin(phi));
+        (*nrm) = -(*dir);
     
-        (*pos) = _sphere.center() - (*nrm) * _sphere.radius();
+        (*pos) = _sphere.center() + (*dir) * _sphere.radius();
+        
+        // (*emt) = sampleWithDirection(_lowres, (*dir));
+        (*emt) = sampleWithDirection(_image, (*dir));
 
-        sampler::onHemisphere(*nrm, dir);
-
-        (*emt) = sampleWithDirection(_lowres, -(*nrm)) * PI / area();
-
-        // PI is for the hemisphere from viewing point.
-        // PI is for emitting direction.
-        (*pdf) = _pdf[index] / (PI * PI);
+        double worldRadius = _sphere.radius();
+        double areaPdf = 1.0 / (PI * _sphere.radius() * _sphere.radius());
+        double directionPdf = _pdf[index] * width * height / (2.0 * PI * PI * sintheta);
+        (*pdf) = directionPdf * areaPdf;
     }
 
     void Envmap::createImportanceMap() {

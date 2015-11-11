@@ -97,7 +97,7 @@ namespace spica {
 
         // Random direction sample (Lambertian surface)
         Vector3D dir;
-        sampler::onHemisphere(n, &dir);
+        sampler::onHemisphere(n, &dir, rands.pop(), rands.pop());
 
         Color flux = PI * _emittance * area();
         return Photon(p, flux, dir, n);

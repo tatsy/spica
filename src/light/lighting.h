@@ -63,11 +63,15 @@ namespace spica {
         static Lighting asAreaLight(const Trimesh& triangles, const Color& emittance);
 
         /** Sample position on light.
-         *  @param[in] r1: First random number.
-         *  @param[in] r2: Second random number.
-         *  @param[in] r3: Third random number.
+         *  @param[in] v: Previous hit point.
+         *  @param[in] rands: Random numbers.
          */
-        LightSample sample(double r1, double r2, double r3) const;
+        LightSample sample(const Vector3D& v, Stack<double>& rands) const;
+
+        /** Sample photon.
+         *  @param[in] rands: Random numbers.
+         */
+        Photon samplePhoton(Stack<double>& rands) const;
 
         Color directLight(const Vector3D& dir) const;
         Color globalLight(const Vector3D& dir) const;

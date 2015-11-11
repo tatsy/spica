@@ -5,6 +5,7 @@
 #include "area_light.h"
 
 #include "../scenes/scene.h"
+#include "../renderer//photon_map.h"
 
 namespace spica {
 
@@ -55,9 +56,14 @@ namespace spica {
         return std::move(l);
     }
 
-    LightSample Lighting::sample(double r1, double r2, double r3) const {
+    LightSample Lighting::sample(const Vector3D& v, Stack<double>& rands) const {
         Assertion(_ptr != nullptr, "Light pointer is null!!");
-        return _ptr->sample(r1, r2, r3);
+        return _ptr->sample(v, rands);
+    }
+
+    Photon Lighting::samplePhoton(Stack<double>& rands) const {
+        Assertion(_ptr != nullptr, "Light pointer is null!!");
+        return _ptr->samplePhoton(rands);        
     }
 
     Color Lighting::directLight(const Vector3D& dir) const {

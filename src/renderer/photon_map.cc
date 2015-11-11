@@ -106,17 +106,16 @@ namespace spica {
                 samplers[threadID].request(&rstk, 250);
 
                 // Generate sample on the light
-                const LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
+                Photon photon = scene.samplePhoton(rstk);
                 
-                Color flux = Color(scene.lightArea() * ls.Le() * PI /
-                                   params.castPhotons());
+                Color flux = photon.flux() / params.castPhotons();
 
                 Vector3D dir;
-                sampler::onHemisphere(ls.normal(), &dir,
+                sampler::onHemisphere(photon.normal(), &dir,
                                       rstk.pop(), rstk.pop());
 
                 // Trace photon
-                Ray ray(ls.position(), dir);
+                Ray ray(photon.position(), dir);
                 tracePhoton(scene, ray, params, flux, 
                             rstk, 0, absorbBsdf, &photons[threadID]);
             }

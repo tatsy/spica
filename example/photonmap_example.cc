@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
     params.castPhotons(numPhotons);
     params.gatherPhotons(gatherPhotons);
     params.gatherRadius(gatherRadius);
+    params.randomType(RandomType::Halton);
     params.saveFilenameFormat(kOutputDirectory + "photonmap_%03d.png");
 
     Timer timer;

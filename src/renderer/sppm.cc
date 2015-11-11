@@ -298,9 +298,6 @@ namespace spica {
             return;
         }
         
-        // Request random number
-        const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
-
         // Remove photons with zero flux
         if (max3(flux.red(), flux.green(), flux.blue()) <= 0.0) {
             return;
@@ -345,9 +342,8 @@ namespace spica {
             }
 
             // Determine continue or terminate trace with Russian roulette
-            bool hoge = false;
             const double prob = (refl.red() + refl.green() + refl.blue()) / 3.0;
-            if (rands[0] < prob) {
+            if (rstk.pop() < prob) {
                 photonPdf = prob;
             } else {
                 return;
@@ -358,7 +354,7 @@ namespace spica {
         Vector3D nextdir;
 
         bsdf.sample(ray.direction(), isect.normal(),
-                    rands[1], rands[2], &nextdir, &samplePdf);
+                    rstk.pop(), rstk.pop(), &nextdir, &samplePdf);
         const Ray nextRay(isect.position(), nextdir);
         const Color nextFlux = Color(flux * refl / (photonPdf * samplePdf));
 
@@ -381,13 +377,11 @@ namespace spica {
         Color weight(1.0, 1.0, 1.0);
         Color throughput(0.0, 0.0, 0.0);
         for (int bounce = 0; ; bounce++) {
-            const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
-
             if (!scene.intersect(ray, &isect) || bounce > params.bounceLimit()) {
                 weight = Color::BLACK;
                 pixel->weight = weight;
                 pixel->coeff = coeff;
-                pixel->emission += throughput;
+                pixel->emission += scene.globalLight(ray.direction());
                 break;
             }
 
@@ -411,7 +405,7 @@ namespace spica {
                 double pdf = 1.0;
                 Vector3D nextdir;
                 bsdf.sample(ray.direction(), isect.normal(),
-                            rands[1], rands[2], &nextdir, &pdf);
+                            rstk.pop(), rstk.pop(), &nextdir, &pdf);
 
                 // TODO: material with property both of Lambertian and BSSRDF should be accounted for.
                 if (bsdf.type() & BsdfType::Bssrdf) {

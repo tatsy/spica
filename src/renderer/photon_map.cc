@@ -213,9 +213,6 @@ namespace spica {
             return;
         }
 
-        // Request random numbers
-        const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
-
         // Remove photon with zero flux
         if (max3(flux.red(), flux.green(), flux.blue()) <= 0.0) {
             return;
@@ -245,7 +242,7 @@ namespace spica {
                                       ray.direction(), isect.normal()));
             // Russian roulette
             const double prob = (refl.red() + refl.green() + refl.blue()) / 3.0;
-            if (rands[0] < prob) {
+            if (rstk.pop() < prob) {
                 // Reflection
                 photonPdf *= prob;
             } else {
@@ -256,7 +253,7 @@ namespace spica {
 
         double samplePdf = 1.0;
         Vector3D nextdir;
-        bsdf.sample(ray.direction(), isect.normal(), rands[1], rands[2],
+        bsdf.sample(ray.direction(), isect.normal(), rstk.pop(), rstk.pop(),
                     &nextdir, &samplePdf);
 
         Ray nextRay(isect.position(), nextdir);

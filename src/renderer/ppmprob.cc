@@ -154,12 +154,8 @@ namespace spica {
         // Intersection test
         Intersection isect;
         if (!scene.intersect(ray, &isect)) {
-            return scene.lightType() == LightType::Envmap ? 
-                   scene.directLight(ray.direction()) : Color::BLACK;
+            return scene.globalLight(ray.direction());
         }
-
-        // Request random numbers
-        const double rands[3] = { rseq.pop(), rseq.pop(), rseq.pop() };
 
         // Intersected object
         const int objID = isect.objectID();
@@ -174,7 +170,7 @@ namespace spica {
         const Color& refl = isect.color();
         double roulette = max3(refl.red(), refl.green(), refl.blue());
         if (bounces > params.bounceStartRoulette()) {
-            if (rands[0] > roulette) {
+            if (rseq.pop() > roulette) {
                 return emission;
             }
         }
@@ -194,7 +190,7 @@ namespace spica {
                                          globalRadius);
         } else {
             bsdf.sample(ray.direction(), isect.normal(), 
-                        rands[1], rands[2], &nextdir, &pdf);
+                        rseq.pop(), rseq.pop(), &nextdir, &pdf);
             const Ray nextRay(isect.position(), nextdir);
             nextRad = radiance(scene, params, nextRay, rseq, bounces + 1);
         }

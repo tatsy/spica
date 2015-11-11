@@ -62,7 +62,7 @@
 #include "../src/renderer/mlt.h"
 #include "../src/renderer/ppmprob.h"
 #include "../src/renderer/sppm.h"
-#include "../src/renderer/subsurface_sppm_renderer.h"
+#include "../src/renderer/subsurface_integrator.h"
 
 // --------------------------------------------
 // Scenes

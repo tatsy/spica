@@ -565,6 +565,7 @@ namespace spica {
                 Color c = this->operator()(x, y);
                 Color ret = c * (a / lw_bar);
                 ret = ret * (1.0 + ret / l_white2) / (1.0 + ret);
+                ret = Color::minimum(ret, Color(1.0, 1.0, 1.0));
                 this->pixel(x, y) = ret;
             }
         }

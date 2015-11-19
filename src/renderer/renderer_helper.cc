@@ -119,25 +119,17 @@ namespace spica {
                           const Vector3D& normal,
                           const BSDF& bsdf,
                           Stack<double>& rstk) {
-
             const bool      into = Vector3D::dot(normal, in) < 0.0;
             const Vector3D  orientNormal = into ? normal : -normal;
 
             if (bsdf.type() & BsdfType::Lambertian) {
-                LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
-
-                const Vector3D v_to_l = ls.position() - pos;
-                const Vector3D light_dir = v_to_l.normalized();
-                const double dist2 = v_to_l.squaredNorm();
-                const double dot0 = orientNormal.dot(light_dir);
-                const double dot1 = ls.normal().dot(-1.0 * light_dir);
-
-                if (dot0 >= 0.0 && dot1 >= 0.0) {
-                    const double G = dot0 * dot1 / dist2;
+                LightSample Ls = scene.sampleLight(pos, rstk);
+                if (Ls.pdf() != 0.0) {
                     Intersection isect;
-                    if (scene.intersect(Ray(pos, light_dir), &isect)) {
-                        if ((isect.position() - ls.position()).norm() < EPS) {
-                            return Color(ls.Le() * (INV_PI * G * scene.lightArea()));
+                    if (scene.intersect(Ray(pos, -Ls.dir()), &isect)) {
+                        if ((isect.position() - Ls.position()).norm() < EPS) {
+                            double dot = Vector3D::dot(normal, -Ls.dir());
+                            return Ls.Le() * std::abs(dot) * Ls.pdf();
                         }
                     }
                 }

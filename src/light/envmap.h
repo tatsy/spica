@@ -75,7 +75,9 @@ namespace spica {
         Color globalLight(const Vector3D& dir) const override;
 
         double area() const override;
-        LightSample sample(double r1, double r2, double r3) const override;
+
+        LightSample sample(const Vector3D& v, Stack<double>& rands) const override;
+        Photon samplePhoton(Stack<double>& rands) const override;
 
         const Image& getImage() const;
 
@@ -84,6 +86,7 @@ namespace spica {
     private:
         void createImportanceMap();
         void createLowResolution();
+        void sampleOnLight(Vector3D* pos, Vector3D* dir, Vector3D* nrm, Color* emt, double* pdf, Stack<double>& rands) const;
     };
 
 }  // namespace spica

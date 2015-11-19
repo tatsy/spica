@@ -19,6 +19,8 @@
 #include "../accel/qbvh_accel.h"
 #include "../accel/kd_tree_accel.h"
 
+#include "../renderer/photon_map.h"
+
 #include "vertex_data.h"
 #include "triangle_data.h"
 
@@ -153,8 +155,12 @@ namespace spica {
             return _lighting.globalLight(dir);
         }
 
-        LightSample sampleLight(double r1, double r2, double r3) const {
-            return _lighting.sample(r1, r2, r3);
+        LightSample sampleLight(const Vector3D& v, Stack<double>& rands) const {
+            return _lighting.sample(v, rands);
+        }
+
+        Photon samplePhoton(Stack<double>& rands) const {
+            return _lighting.samplePhoton(rands);
         }
 
         double lightArea() const {
@@ -362,8 +368,12 @@ namespace spica {
         return _impl->globalLight(dir);
     }
 
-    LightSample Scene::sampleLight(double r1, double r2, double r3) const {
-        return _impl->sampleLight(r1, r2, r3);
+    LightSample Scene::sampleLight(const Vector3D& v, Stack<double>& rands) const {
+        return _impl->sampleLight(v, rands);
+    }
+
+    Photon Scene::samplePhoton(Stack<double>& rands) const {
+        return _impl->samplePhoton(rands);
     }
 
     double Scene::lightArea() const {

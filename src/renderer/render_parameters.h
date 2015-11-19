@@ -32,7 +32,7 @@ namespace spica {
                          int castPhotons = 1000000,
                          int gatherPhotons = 64,
                          double gatherRadius = 32.0,
-                         RandomType randomType = PSEUDO_RANDOM_TWISTER,
+                         RandomType randomType = RandomType::MT19937,
                          std::string saveFilenameFormat = "%03d.png")
             : _samplePerPixel(samplePerPixel)
             , _bounceLimit(bounceLimit)

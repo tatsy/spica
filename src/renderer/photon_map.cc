@@ -77,11 +77,11 @@ namespace spica {
 
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
-            case PSEUDO_RANDOM_TWISTER:
+            case RandomType::MT19937:
                 samplers[i] = Random::factory((unsigned int)(time(0) + i));
                 break;
 
-            case QUASI_MONTE_CARLO:
+            case RandomType::Halton:
                 samplers[i] = Halton::factory(250, true, 
                                               (unsigned int)(time(0) + i));
                 break;
@@ -106,17 +106,16 @@ namespace spica {
                 samplers[threadID].request(&rstk, 250);
 
                 // Generate sample on the light
-                const LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
+                Photon photon = scene.samplePhoton(rstk);
                 
-                Color flux = Color(scene.lightArea() * ls.Le() * PI /
-                                   params.castPhotons());
+                Color flux = photon.flux() / params.castPhotons();
 
                 Vector3D dir;
-                sampler::onHemisphere(ls.normal(), &dir,
+                sampler::onHemisphere(photon.normal(), &dir,
                                       rstk.pop(), rstk.pop());
 
                 // Trace photon
-                Ray ray(ls.position(), dir);
+                Ray ray(photon.position(), dir);
                 tracePhoton(scene, ray, params, flux, 
                             rstk, 0, absorbBsdf, &photons[threadID]);
             }
@@ -213,9 +212,6 @@ namespace spica {
             return;
         }
 
-        // Request random numbers
-        const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
-
         // Remove photon with zero flux
         if (max3(flux.red(), flux.green(), flux.blue()) <= 0.0) {
             return;
@@ -245,7 +241,7 @@ namespace spica {
                                       ray.direction(), isect.normal()));
             // Russian roulette
             const double prob = (refl.red() + refl.green() + refl.blue()) / 3.0;
-            if (rands[0] < prob) {
+            if (rstk.pop() < prob) {
                 // Reflection
                 photonPdf *= prob;
             } else {
@@ -256,7 +252,7 @@ namespace spica {
 
         double samplePdf = 1.0;
         Vector3D nextdir;
-        bsdf.sample(ray.direction(), isect.normal(), rands[1], rands[2],
+        bsdf.sample(ray.direction(), isect.normal(), rstk.pop(), rstk.pop(),
                     &nextdir, &samplePdf);
 
         Ray nextRay(isect.position(), nextdir);

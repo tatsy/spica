@@ -37,6 +37,7 @@ namespace spica {
     class Hitpoint;
     class Intersection;
     class RenderParameters;
+    class Photon;
     class SubsurfaceIntegrator;
 
     // Accelerator module

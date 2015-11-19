@@ -2,6 +2,7 @@
 #include "area_light.h"
 
 #include "../core/sampler.h"
+#include "../renderer/photon_map.h"
 
 namespace spica {
 
@@ -73,16 +74,44 @@ namespace spica {
         }
     }
 
-    LightSample AreaLight::sample(double r1, double r2, double r3) const {
+    LightSample AreaLight::sample(const Vector3D& v, Stack<double>& rands) const {
+        // Randomly choose point on the triangle
+        Vector3D p, n;
+        sampleOnLight(&p, &n, rands);
+
+        // Compute PDF
+        Vector3D dir = (p - v).normalized();
+        double dist2 = (p - v).squaredNorm();
+        const double dot1 = Vector3D::dot(n, -dir);
+        double pdf = 0.0;
+        if (dot1 > EPS) {
+            pdf = 1.0 / (INV_PI * (dot1 / dist2) * area());
+        }
+        return LightSample(p, n, -dir, _emittance, pdf);
+    }
+
+    Photon AreaLight::samplePhoton(Stack<double>& rands) const {
+        // Randomly choose point on the triangle
+        Vector3D p, n;
+        sampleOnLight(&p, &n, rands);
+
+        // Random direction sample (Lambertian surface)
+        Vector3D dir;
+        sampler::onHemisphere(n, &dir, rands.pop(), rands.pop());
+
+        Color flux = PI * _emittance * area();
+        return Photon(p, flux, dir, n);
+    }
+
+    void AreaLight::sampleOnLight(Vector3D* pos, Vector3D* nrm, Stack<double>& rands) const {
         Assertion(!_samplePdf.empty(), "Light PDFs are not computed!!");
 
-        const int id = std::lower_bound(_samplePdf.begin(), _samplePdf.end(), r1) - _samplePdf.begin();
+        // Randomly choose triangle
+        const int id = std::lower_bound(_samplePdf.begin(), _samplePdf.end(), rands.pop()) - _samplePdf.begin();
         const Triangle& tri = _triangles[id];
 
-        Vector3D p, n;
-        sampler::onTriangle(tri, &p, &n, r2, r3);
-
-        return LightSample(p, n, _emittance, _totalArea);
+        // Randomly choose point on the triangle
+        sampler::onTriangle(tri, pos, nrm, rands.pop(), rands.pop());            
     }
 
     Color AreaLight::directLight(const Vector3D& dir) const {

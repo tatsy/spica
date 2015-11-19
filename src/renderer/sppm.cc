@@ -116,17 +116,16 @@ namespace spica {
         RandomSampler* samplers = new RandomSampler[kNumThreads];
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
-            case PSEUDO_RANDOM_TWISTER:
-                samplers[i] = Random::factory((unsigned int)i);
+            case RandomType::MT19937:
+                samplers[i] = Random::factory((unsigned int)time(0) + i);
                 break;
-
-            case QUASI_MONTE_CARLO:
-                samplers[i] = Halton::factory(250, true, (unsigned int)i);
+                
+            case RandomType::Halton:
+                samplers[i] = Halton::factory(250, true, (unsigned int)time(0) + i);
                 break;
 
             default:
-                std::cerr << "[ERROR] unknown random sampler type !!"
-                          << std::endl;
+                std::cerr << "[ERROR] unknown random sampler type !!" << std::endl;
                 std::abort();
                 break;
             }
@@ -134,6 +133,7 @@ namespace spica {
 
         for (int t = 0; t < params.samplePerPixel(); t++) {
             std::cout << "--- Iteration No." << (t + 1) << " ---" << std::endl;
+
             // 1st pass: Trace rays from camera
             traceRays(scene, camera, params, samplers, hpoints);
 
@@ -182,7 +182,7 @@ namespace spica {
         for (int i = 0; i < numPoints; i++) {
             if (pixels[i].n == 0) {
                 pixels[i].r2 = irad * irad;
-                pixels[i].n = 0;
+                pixels[i].n  = 0;
                 pixels[i].flux = Color(0.0, 0.0, 0.0);
             }
 
@@ -266,16 +266,16 @@ namespace spica {
                 }
 
                 // Sample point on light
-                const LightSample ls = scene.sampleLight(rstk.pop(), rstk.pop(), rstk.pop());
+                Photon photon = scene.samplePhoton(rstk);
 
                 // Compute flux
-                Color flux = Color(scene.lightArea() * ls.Le() * PI / numPhotons);
+                Color flux = photon.flux() / numPhotons;
 
                 // Prepare ray
                 Vector3D nextDir;
-                sampler::onHemisphere(ls.normal(), &nextDir);
-                Ray ray(ls.position(), nextDir);
-                Vector3D prevNormal = ls.normal();
+                sampler::onHemisphere(photon.normal(), &nextDir);
+                Ray ray(photon.position(), nextDir);
+                Vector3D prevNormal = photon.normal();
 
                 tracePhotonsRec(scene, ray, params, flux, 0, rstk);
             }
@@ -298,9 +298,6 @@ namespace spica {
             return;
         }
         
-        // Request random number
-        const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
-
         // Remove photons with zero flux
         if (max3(flux.red(), flux.green(), flux.blue()) <= 0.0) {
             return;
@@ -337,7 +334,7 @@ namespace spica {
                                      (pixel->n * kAlpha + 1.0);
                     omplock{
                         pixel->r2 *= g;
-                        pixel->n += 1;
+                        pixel->n  += 1;
                         pixel->flux = g * (pixel->flux + 
                                            pixel->weight * flux * INV_PI);
                     }
@@ -345,9 +342,8 @@ namespace spica {
             }
 
             // Determine continue or terminate trace with Russian roulette
-            bool hoge = false;
             const double prob = (refl.red() + refl.green() + refl.blue()) / 3.0;
-            if (rands[0] < prob) {
+            if (rstk.pop() < prob) {
                 photonPdf = prob;
             } else {
                 return;
@@ -358,7 +354,7 @@ namespace spica {
         Vector3D nextdir;
 
         bsdf.sample(ray.direction(), isect.normal(),
-                    rands[1], rands[2], &nextdir, &samplePdf);
+                    rstk.pop(), rstk.pop(), &nextdir, &samplePdf);
         const Ray nextRay(isect.position(), nextdir);
         const Color nextFlux = Color(flux * refl / (photonPdf * samplePdf));
 
@@ -381,13 +377,11 @@ namespace spica {
         Color weight(1.0, 1.0, 1.0);
         Color throughput(0.0, 0.0, 0.0);
         for (int bounce = 0; ; bounce++) {
-            const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
-
             if (!scene.intersect(ray, &isect) || bounce > params.bounceLimit()) {
                 weight = Color::BLACK;
                 pixel->weight = weight;
                 pixel->coeff = coeff;
-                pixel->emission += throughput;
+                pixel->emission += scene.globalLight(ray.direction());
                 break;
             }
 
@@ -411,7 +405,7 @@ namespace spica {
                 double pdf = 1.0;
                 Vector3D nextdir;
                 bsdf.sample(ray.direction(), isect.normal(),
-                            rands[1], rands[2], &nextdir, &pdf);
+                            rstk.pop(), rstk.pop(), &nextdir, &pdf);
 
                 // TODO: material with property both of Lambertian and BSSRDF should be accounted for.
                 if (bsdf.type() & BsdfType::Bssrdf) {

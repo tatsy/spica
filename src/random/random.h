@@ -39,6 +39,10 @@ namespace spica {
          */
         double nextReal();
 
+        /** Generate a random number from normal distribution.
+         */
+        double normal();
+
         /** Request specified amount of random numbers.
          */
         void request(Stack<double>* rands, const int numRequested) override;

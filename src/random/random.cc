@@ -86,6 +86,12 @@ namespace spica {
         return genrand_real2();
     }
 
+    double Random::normal() {
+        const double r1 = nextReal();
+        const double r2 = nextReal();
+        return sqrt(-2.0 * log(r1)) * sin(2.0 * PI * r2);
+    }
+
     void Random::request(Stack<double>* rands, const int numRequested) {
         rands->clear();
         for (int i = 0; i < numRequested; i++) {

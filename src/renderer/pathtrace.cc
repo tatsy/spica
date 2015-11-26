@@ -7,7 +7,9 @@
 
 #include "../core/common.h"
 #include "../core/sampler.h"
-#include "../core/image.h"
+#include "../image/image.h"
+#include "../image/tmo.h"
+
 #include "../math/vector3d.h"
 
 #include "../random/halton.h"
@@ -97,7 +99,7 @@ namespace spica {
 
             char filename[256];
             sprintf(filename, params.saveFilenameFormat().c_str(), i + 1);
-            _result.gammaCorrect(1.0 / 2.2);
+            _result = GammaTmo(2.2).apply(_result);
             _result.save(filename);
 
             printf("%6.2f %%  processed -> %s\r",

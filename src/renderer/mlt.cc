@@ -10,6 +10,9 @@
 #include "renderer_helper.h"
 
 #include "../core/sampler.h"
+
+#include "../image/tmo.h"
+
 #include "../bsdf/bsdf.h"
 
 #include "../random/random_base.h"
@@ -331,7 +334,7 @@ namespace spica {
 
             char filename[256];
             sprintf(filename, params.saveFilenameFormat().c_str(), usedSamples);
-            _result.gammaCorrect(1.0 / 2.2);
+            _result = GammaTmo(2.2).apply(_result);
             _result.save(filename);
         }
         printf("\nFinish\n");

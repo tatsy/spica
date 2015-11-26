@@ -11,6 +11,7 @@
 
 #include "../scenes/scene.h"
 #include "../core/sampler.h"
+#include "../image/tmo.h"
 #include "../camera/camera.h"
 #include "../light/lighting.h"
 
@@ -151,7 +152,7 @@ namespace spica {
 
             char filename[512];
             sprintf(filename, params.saveFilenameFormat().c_str(), t + 1);
-            image.gammaCorrect(1.0 / 2.2);
+            image = GammaTmo(2.2).apply(image);
             image.save(filename);
         }
 

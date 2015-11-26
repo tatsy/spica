@@ -1,0 +1,11 @@
+set(SOURCES
+    ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/image.cc
+    ${CMAKE_CURRENT_LIST_DIR}/tmo.cc
+    PARENT_SCOPE)
+
+set(HEADERS
+    ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/image.h
+    ${CMAKE_CURRENT_LIST_DIR}/tmo.h
+    PARENT_SCOPE)

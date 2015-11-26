@@ -11,7 +11,7 @@
 #include "../core/common.h"
 #include "../core/path.h"
 #include "../core/triplet.h"
-#include "../core/image.h"
+#include "../image/image.h"
 
 #include "../math/quaternion.h"
 

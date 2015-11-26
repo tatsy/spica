@@ -10,6 +10,8 @@
 #include "render_parameters.h"
 #include "subsurface_integrator.h"
 
+#include "../image/tmo.h"
+
 #include "../core/sampler.h"
 
 #include "../random/random_sampler.h"
@@ -115,7 +117,7 @@ namespace spica {
             // Save image
             char filename[512];
             sprintf(filename, params.saveFilenameFormat().c_str(), i + 1);
-            _result.gammaCorrect(1.0 / 2.2);
+            _result = GammaTmo(2.2).apply(_result);
             _result.save(filename);
 
             printf("save: %s\n (%d / %d)\n", filename, i + 1, samples);

@@ -17,7 +17,6 @@
 
 #include "../math/vector3d.h"
 #include "../core/stack.h"
-#include "../core/image.h"
 #include "../shape/triangle.h"
 #include "../shape/sphere.h"
 

@@ -158,9 +158,22 @@ TEST_F(ImageTest, SaveAndLoad) {
     }
 }
 
-TEST_F(ImageTest, Tonemap) {
+TEST_F(ImageTest, ReinhardTmo) {
     Image image;
-    image.load(kDataDirectory + "gold_room.hdr");
-    EXPECT_NO_FATAL_FAILURE(image.tonemap());
-    image.save(kTempDirectory + "gold_room.png");
+    image.load(kDataDirectory + "memorial.hdr");
+
+    ReinhardTmo tmo;
+    EXPECT_NO_FATAL_FAILURE(image = tmo.apply(image));
+    EXPECT_NO_FATAL_FAILURE(image = GammaTmo(2.2).apply(image));
+    image.save(kTempDirectory + "reinhard.png");
+}
+
+TEST_F(ImageTest, DragoTmo) {
+    Image image;
+    image.load(kDataDirectory + "memorial.hdr");
+
+    DragoTmo tmo;
+    EXPECT_NO_FATAL_FAILURE(image = tmo.apply(image));
+    EXPECT_NO_FATAL_FAILURE(image = GammaTmo(2.2).apply(image));
+    image.save(kTempDirectory + "drago.png");
 }

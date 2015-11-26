@@ -27,6 +27,7 @@ endfunction()
 # Process subdirectories
 process_subdirectory(core)
 process_subdirectory(math)
+process_subdirectory(image)
 process_subdirectory(renderer)
 process_subdirectory(shape)
 process_subdirectory(bsdf)

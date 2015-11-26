@@ -12,6 +12,8 @@
 #include "../core/common.h"
 #include "../core/sampler.h"
 
+#include "../image/tmo.h"
+
 #include "../camera/dof_camera.h"
 #include "../light/lighting.h"
 #include "../bsdf/bsdf.h"
@@ -683,7 +685,7 @@ namespace spica {
 
             char filename[256];
             sprintf(filename, params.saveFilenameFormat().c_str(), s + 1);
-            _result.gammaCorrect(1.0 / 2.2);
+            _result = GammaTmo(2.0).apply(_result);
             _result.save(filename);
 
             printf("  %6.2f %%  processed -> %s\r",

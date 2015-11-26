@@ -9,7 +9,7 @@
 
 #include "../shape/plane.h"
 
-#include "../core/image.h"
+#include "../image/image.h"
 #include "../core/stack.h"
 
 #include "../random/random.h"

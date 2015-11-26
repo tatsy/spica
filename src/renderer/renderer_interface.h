@@ -12,7 +12,7 @@
 
 #include <memory>
 
-#include "../core/image.h"
+#include "../image/image.h"
 #include "../core/uncopyable.h"
 #include "../core/forward_decl.h"
 

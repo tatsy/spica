@@ -8,8 +8,8 @@
 #include <vector>
 #include <algorithm>
 
-#include "common.h"
-#include "path.h"
+#include "../core/common.h"
+#include "../core/path.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../3rdparty/stb_image.h"
@@ -183,18 +183,6 @@ namespace spica {
         const int n = _width * _height;
         for (int i = 0; i < n; i++) {
             _pixels[i] = color;
-        }
-    }
-
-    void Image::gammaCorrect(double gamma) {
-        for (int y = 0; y < _height; y++) {
-            for (int x = 0; x < _width; x++) {
-                Color& c = _pixels[y * _width + x];
-                double r = pow(c.red(),   gamma);
-                double g = pow(c.green(), gamma);
-                double b = pow(c.blue(),  gamma);
-                c = Color(r, g, b);
-            }
         }
     }
 
@@ -539,36 +527,6 @@ namespace spica {
         }
         stbi_write_png(filename.c_str(), _width, _height, 3, data, _width * 3);
         delete[] data;
-    }
-
-    void Image::tonemap(Tonemap algo) {
-        Assertion(algo == Tonemap::Rainhard, "Tone mapping algorithm other than Reinhard '02 is not supported");
-
-        const double delta = 1.0e-8;
-        const double a = 0.18;
-
-        double lw_bar = 0.0;
-        double l_white = 0.0;
-        for (int y = 0; y < _height; y++) {
-            for (int x = 0; x < _width; x++) {
-                Color c = this->operator()(x, y);
-                double l = c.luminance();
-                lw_bar += log(l + delta);         
-                l_white = std::max(l_white, l);
-            }
-        }
-        lw_bar = exp(lw_bar / (_width * _height));
-
-        const double l_white2 = l_white * l_white;
-        for (unsigned int y = 0; y < _height; y++) {
-            for (unsigned int x = 0; x < _width; x++) {
-                Color c = this->operator()(x, y);
-                Color ret = c * (a / lw_bar);
-                ret = ret * (1.0 + ret / l_white2) / (1.0 + ret);
-                ret = Color::minimum(ret, Color(1.0, 1.0, 1.0));
-                this->pixel(x, y) = ret;
-            }
-        }
     }
 
     double Image::toReal(unsigned char b) {

@@ -10,7 +10,7 @@
 #include "light_interface.h"
 
 #include "../core/color.h"
-#include "../core/image.h"
+#include "../image/image.h"
 #include "../math/vector3d.h"
 #include "../shape/sphere.h"
 

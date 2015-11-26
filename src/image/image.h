@@ -8,13 +8,9 @@
 #include <string>
 #include <memory>
 
-#include "color.h"
+#include "../core/color.h"
 
 namespace spica {
-
-    enum class Tonemap {
-        Rainhard = 0x00
-    };
 
     /** Image class.
      */
@@ -43,15 +39,8 @@ namespace spica {
         void resize(const int width, const int height);
         void fill(const Color& color);
 
-        /** Gamma correction.
-         *  @param[in] gamma: gamma value
-         */
-        void gammaCorrect(const double gamma);
-
         void load(const std::string& filename);
         void save(const std::string& filename) const;
-
-        void tonemap(Tonemap algo = Tonemap::Rainhard);
 
         inline unsigned int width() const { return _width; }
         inline unsigned int height() const { return _height; }

@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "../core/common.h"
-#include "../core/image.h"
+#include "../image/image.h"
 #include "../core/path.h"
 
 #include "trimesh.h"

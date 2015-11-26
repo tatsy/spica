@@ -9,7 +9,6 @@
 
 #include "light_interface.h"
 
-#include "../core/image.h"
 #include "../shape/triangle.h"
 
 namespace spica {

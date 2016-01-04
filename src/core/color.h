@@ -94,6 +94,23 @@ namespace spica {
         /** Blue component */
         inline double blue()  const { return _b; }
 
+        /** Element accessor. */
+        inline double operator[](int i) const {
+            Assertion(i >= 0 && i <= 2, "Index out of range!!");
+            if (i == 0) return _r;
+            if (i == 1) return _g;
+            if (i == 2) return _b;
+            return 0.0;
+        }
+
+        /** Element accessor. */
+        inline double& ref(int i) {
+            Assertion(i >= 0 && i <= 2, "Index out of range!!");
+            if (i == 0) return _r;
+            if (i == 1) return _g;
+            if (i == 2) return _b;            
+        }
+
         /** Covert to string. */
         std::string toString() const;
     };

@@ -30,6 +30,7 @@
 
 #include "../src/image/image.h"
 #include "../src/image/tmo.h"
+#include "../src/image/birateral.h"
 
 // --------------------------------------------
 // BSDF

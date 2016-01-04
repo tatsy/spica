@@ -61,6 +61,25 @@ namespace spica {
         Image apply(const Image& image) const override;
     };
 
+    /** Durand TMO.
+     */
+    class SPICA_EXPORTS DurandTMO: public Tmo {
+    private:
+        double _sigmaSpace;
+        double _sigmaColor;
+        double _targetContrast;
+
+    public:
+        explicit DurandTMO(double sigmaSpace = 0.02,
+                           double sigmaColor = 0.4,
+                           double targetContrast = 5.0);
+        ~DurandTMO();
+        Image apply(const Image& image) const override;
+
+    private:
+        void birateralSeparation(const Image& L, double sigma_s, double sigma_r, Image* Lbase, Image* Ldetail) const;
+    };
+
 }  // namespace spica
 
 #endif  // _SPICA_TMO_H_

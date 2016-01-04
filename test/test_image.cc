@@ -158,6 +158,17 @@ TEST_F(ImageTest, SaveAndLoad) {
     }
 }
 
+TEST_F(ImageTest, Bilateral) {
+    Image image;
+    image.load(kDataDirectory + "lamp.png");
+
+    Image result;
+    double sigma_s = std::max(image.width(), image.height()) * 0.02;
+    EXPECT_NO_FATAL_FAILURE(birateral(image, &result, sigma_s, 0.4));
+
+    result.save(kTempDirectory + "birateral.png");
+}
+
 TEST_F(ImageTest, ReinhardTmo) {
     Image image;
     image.load(kDataDirectory + "memorial.hdr");
@@ -176,4 +187,14 @@ TEST_F(ImageTest, DragoTmo) {
     EXPECT_NO_FATAL_FAILURE(image = tmo.apply(image));
     EXPECT_NO_FATAL_FAILURE(image = GammaTmo(2.2).apply(image));
     image.save(kTempDirectory + "drago.png");
+}
+
+TEST_F(ImageTest, DurandTmo) {
+    Image image;
+    image.load(kDataDirectory + "memorial.hdr");
+
+    DurandTMO tmo;
+    EXPECT_NO_FATAL_FAILURE(image = tmo.apply(image));
+    EXPECT_NO_FATAL_FAILURE(image = GammaTmo(2.2).apply(image));
+    image.save(kTempDirectory + "durand.png");
 }

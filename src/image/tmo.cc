@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "image.h"
+#include "birateral.h"
 
 namespace spica {
 
@@ -156,5 +157,92 @@ namespace spica {
 
         return std::move(ret);
     }
+
+    DurandTMO::DurandTMO(double sigmaSpace, double sigmaColor, double targetContrast)
+        : Tmo{}
+        , _sigmaSpace{sigmaSpace}
+        , _sigmaColor{sigmaColor}
+        , _targetContrast{targetContrast} {
+    }
+
+    DurandTMO::~DurandTMO() {
+    }
+
+    Image DurandTMO::apply(const Image& image) const {
+        const int width  = image.width();
+        const int height = image.height();
+
+        Image L(width, height);
+        Image tmp(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const double l = image(x, y).luminance();
+                L.pixel(x, y) = Color(l, l, l);
+                tmp.pixel(x, y) = image(x, y) / (l + EPS);
+            }
+        }
+
+        Image Lbase, Ldetail;
+        birateralSeparation(L, _sigmaSpace, _sigmaColor, &Lbase, &Ldetail);
+
+        double maxLogBase = -INFTY;
+        double minLogBase =  INFTY;
+        Image logBase(width, height);
+        Image logDetail(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const double l = log10(Lbase(x, y).luminance() + EPS);
+                maxLogBase = std::max(maxLogBase, l);
+                minLogBase = std::min(minLogBase, l);
+                logBase.pixel(x, y) = Color(l, l, l);
+
+                const double d = log10(Ldetail(x, y).luminance() + EPS);
+                logDetail.pixel(x, y) = Color(d, d, d);
+            }
+        }
+
+        const double compressionFactor = log(_targetContrast) / (maxLogBase - minLogBase);
+        const double logAbsolute = compressionFactor * maxLogBase;
+
+        Image ret(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const double logCompressed = logBase(x, y).luminance() * compressionFactor + logDetail(x, y).luminance() - logAbsolute;
+                const Color compressed = tmp(x, y) * pow(10.0, logCompressed);
+                ret.pixel(x, y) = compressed.clamp(Color(0.0, 0.0, 0.0), Color(1.0, 1.0, 1.0));                
+            }
+        }
+
+        return std::move(ret);
+    }
+
+    void DurandTMO::birateralSeparation(const Image& L, double sigma_s, double sigma_r, Image* Lbase, Image* Ldetail) const {
+        const int width  = L.width();
+        const int height = L.height();
+        
+        Image logL(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const double l = log10(L(x, y).luminance() + 1.0e-6);
+                logL.pixel(x, y) = Color(l, l, l);
+            }
+        }
+
+        Image filL;
+        sigma_s = std::max(width, height) * sigma_s;
+        birateral(logL, &filL, sigma_s, sigma_r);
+
+        Lbase->resize(width, height);
+        Ldetail->resize(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                const double l = std::max(0.0, pow(10.0, filL(x, y).luminance()) - 1.0e-6);
+                Lbase->pixel(x, y) = Color(l, l, l);
+                Ldetail->pixel(x, y) = L(x, y) / (l + EPS);
+            }
+        }        
+    }
+
+
 
 }  // namespace spica

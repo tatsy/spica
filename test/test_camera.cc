@@ -173,8 +173,9 @@ TEST_F(OrthographicCameraTest, Instance) {
     Vector3D up(0.0, 1.0, 0.0);
     const int width = 320;
     const int height = 240;
+    Rect rect(0, 0, width, height);
 
-    Camera camera = Camera::ortho(center, direction, up, width, height, 1.0);
+    Camera camera = Camera::ortho(center, direction, up, rect, width, height, 1.0);
     EXPECT_EQ_VEC(center, camera.center());
     EXPECT_EQ_VEC(direction, camera.direction());
     EXPECT_EQ_VEC(up, camera.up());

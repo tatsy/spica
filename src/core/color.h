@@ -109,7 +109,7 @@ namespace spica {
             Assertion(i >= 0 && i <= 2, "Index out of range!!");
             if (i == 0) return _r;
             if (i == 1) return _g;
-            if (i == 2) return _b;            
+            return _b;            
         }
 
         /** Covert to string. */

@@ -24,6 +24,7 @@ namespace spica {
         OrthographicCamera(const Vector3D& center,
                          const Vector3D& direction,
                          const Vector3D& up,
+                         const Rect& rect,
                          int imageW, int imageH, double sensitivity);
         ~OrthographicCamera();
 

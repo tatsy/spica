@@ -12,6 +12,7 @@
 
 #include <memory>
 
+#include "../core/forward_decl.h"
 #include "camera_interface.h"
 #include "../math/vector3d.h"
 #include "../renderer/ray.h"
@@ -88,6 +89,7 @@ namespace spica {
          * @param center Camera center position
          * @param direction Camera direction
          * @param up Upward direction
+         * @param rect Viewing rectangle
          * @param imageW Image width
          * @param imageH Image height
          * @param sensitivity Camera sensor sensitivity
@@ -95,6 +97,7 @@ namespace spica {
         static Camera ortho(const Vector3D& center,
                             const Vector3D& direction,
                             const Vector3D& up,
+                            const Rect& rect,
                             int imageW, int imageH, double sensitivity);
 
         /** Simply get the pointer from interior unique_ptr.

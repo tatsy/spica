@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "../core/rect.h"
 #include "dof_camera.h"
 #include "perspective_camera.h"
 #include "orthographic_camera.h"
@@ -88,10 +89,11 @@ namespace spica {
     Camera Camera::ortho(const Vector3D& center,
                          const Vector3D& direction,
                          const Vector3D& up,
+                         const Rect& rect,
                          int imageW, int imageH, double sensitivity) {
         Camera camera;
         camera._type = CameraType::Orthogonal;
-        camera._ptr = std::make_unique<OrthographicCamera>(center, direction, up,
+        camera._ptr = std::make_unique<OrthographicCamera>(center, direction, up, rect,
                                                            imageW, imageH, sensitivity);
         return std::move(camera);
     }

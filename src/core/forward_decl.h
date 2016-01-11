@@ -14,6 +14,11 @@ namespace spica {
     template <class T>
     class Stack;
 
+    template <class T, class Enable>
+    class Rect_;
+    using Rect = Rect_<int, void>;
+    using RectF = Rect_<double, void>;
+
     // Math module
     template <class T, class Enable>
     class Vector2_;

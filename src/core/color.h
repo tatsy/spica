@@ -79,6 +79,7 @@ namespace spica {
 
         static Color sqrt(const Color& c);
         static Color exp(const Color& c);
+        static Color log(const Color& c);
         Color clamp(const Color& lo = Color(0.0, 0.0, 0.0),
                     const Color& hi = Color(INFTY, INFTY, INFTY)) const;
 

@@ -184,8 +184,8 @@ namespace spica {
     }
 
     double powerHeuristic(int nf, double f, int ng, double g) {
-        double ff = nf * f;
-        double gg = ng * g;
+        const double ff = nf * f;
+        const double gg = ng * g;
         return (ff * ff) / (ff * ff + gg * gg);
     }
 

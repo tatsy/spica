@@ -46,6 +46,7 @@ namespace spica {
         virtual void render(const Scene& scene, const Camera& camera, 
                             const RenderParameters& params) = 0;
 
+        const Image& result() const { return _result; }
         inline RendererType type() const { return _type; }
     };
 

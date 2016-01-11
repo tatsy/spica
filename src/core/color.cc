@@ -135,6 +135,11 @@ namespace spica {
         return Color(exp(c._r), exp(c._g), exp(c._b));
     }
 
+    Color Color::log(const Color& c) {
+        using ::log;
+        return Color(log(c._r), log(c._g), log(c._b));
+    }
+
     Color Color::maximum(const Color& c1, const Color& c2) {
         const double r = std::max(c1._r, c2._r);
         const double g = std::max(c1._g, c2._g);

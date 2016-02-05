@@ -7,8 +7,6 @@
 
 #include "camera_interface.h"
 
-#include "../shape/plane.h"
-
 #include "../image/image.h"
 #include "../core/stack.h"
 

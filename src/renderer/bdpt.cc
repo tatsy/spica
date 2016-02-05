@@ -641,7 +641,7 @@ namespace spica {
                 break;
 
             default:
-                SpicaError("[ERROR] unknown random number generator type!!");
+                FatalError("[ERROR] unknown random number generator type!!");
             }
         }
         

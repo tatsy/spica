@@ -169,7 +169,7 @@ namespace spica {
                 } else if(typ[1] == 'n') {
                     // Normal not supported
                 } else {
-                    SpicaError("Unexpected character detected!!");
+                    FatalError("Unexpected character detected!!");
                 }
             } else if (typ[0] == 'f') {
                 if (!hasTexture) {
@@ -188,7 +188,7 @@ namespace spica {
                         vertIDs.emplace_back(v0 - 1, v1 - 1, v2 - 1);
                         texIDs.emplace_back(t0 - 1, t1 - 1, t2 - 1);
                     } else {
-                        SpicaError("Unsupported face format!!");
+                        FatalError("Unsupported face format!!");
                     }
                 }
             } else {
@@ -223,7 +223,7 @@ namespace spica {
     Image OBJMeshIO::getTexture(const std::string& filename) {
         std::ifstream ifs(filename.c_str(), std::ios::in);
         if (!ifs.is_open()) {
-            SpicaError("Failed to open material file!!");
+            FatalError("Failed to open material file!!");
         }
 
         std::string ident;
@@ -235,7 +235,7 @@ namespace spica {
                 return std::move(Image::fromFile(dir + texpath));
             }
         }
-        SpicaError("map_Kd was not detected!!");
+        FatalError("map_Kd was not detected!!");
         return Image{};
     }
 

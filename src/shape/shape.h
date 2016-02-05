@@ -2,8 +2,8 @@
 #pragma once
 #endif
 
-#ifndef _SPICA_GEOMETRY_H_
-#define _SPICA_GEOMETRY_H_
+#ifndef _SPICA_SHAPE_H_
+#define _SPICA_SHAPE_H_
 
 #include "shape_interface.h"
 #include "bbox.h"
@@ -11,7 +11,6 @@
 #include "trimesh.h"
 #include "quad.h"
 #include "disk.h"
-#include "plane.h"
 #include "sphere.h"
 
-#endif  // _SPICA_GEOMETRY_H_
+#endif  // _SPICA_SHAPE_H_

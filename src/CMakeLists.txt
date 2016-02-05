@@ -42,7 +42,6 @@ add_library(spica_renderer SHARED ${ALL_SOURCES} ${ALL_HEADERS})
 if (MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
   set_property(TARGET spica_renderer APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
-  configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/spica_renderer.vcxproj.user" @ONLY)
 endif()
 
 # Build viewer

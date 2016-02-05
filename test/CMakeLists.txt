@@ -61,7 +61,6 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
     set_property(TARGET ${TEST_NAME} APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
-    configure_file(${SPICA_ROOT_DIRECTORY}/template/project.vcxproj.user.in "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TEST_NAME}.vcxproj.user" @ONLY)
   endif()
 
   add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})

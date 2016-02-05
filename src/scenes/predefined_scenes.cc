@@ -53,7 +53,7 @@ namespace spica {
         Trimesh texcube(kDataDirectory + "tex_cube.obj");
         texcube.rotate(PI / 2.0, Vector3D(0.0, 1.0, 0.0));
         texcube.fitToBBox(BBox(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0));
-        texcube.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        // texcube.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
         texcube.translate(Vector3D(-5.0, 0.0, 5.0));
         scene->addShape(texcube, LambertianBRDF::factory(Color(0.75, 0.75, 0.75)));
 
@@ -245,7 +245,7 @@ namespace spica {
 
         // Back light
         scene->setAreaLight(Sphere(Vector3D(5.0, 5.0, 5.0), 2.0),
-                            Color(32.0, 32.0, 32.0));
+                            Color(64.0, 64.0, 64.0));
 
         // Walls
         Vector3D v000(-10.0, -10.0, -10.0);
@@ -271,17 +271,17 @@ namespace spica {
 
         // Objects
         Trimesh kitten(kDataDirectory + "kitten.ply");
-        kitten.scale(0.15, 0.15, 0.15);
-        kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        kitten.scale(0.1, 0.1, 0.1);
+        // kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
 
-        const Color sigmap_s = Color(2.19, 2.62, 3.00) * 0.1;
-        const Color sigma_a  = Color(0.0021, 0.0041, 0.0071) * 10.0;
-        const BSSRDF bssrdf = DipoleBSSRDF::factory(sigma_a, sigmap_s, 1.5);
-
-        BSDF kittenBsdf = RefractiveBSDF::factory(Color(0.999, 0.999, 0.999));
+        // BSDF kittenBsdf = LambertianBRDF::factory(Color(0.81, 0.81, 0.69));
+        BSDF kittenBsdf = SpecularBRDF::factory(Color(0.999, 0.999, 0.999));
+        const Color sigmap_s = Color(0.70, 1.22, 1.90);
+        const Color sigma_a  = Color(0.0014, 0.0025, 0.0142);
+        const BSSRDF bssrdf = DipoleBSSRDF::factory(sigma_a, sigmap_s, 1.3);
         kittenBsdf.setBssrdf(bssrdf);
-        // scene->addShape(kitten, kittenBsdf);
-        scene->addShape(kitten, LambertianBRDF::factory(Color(0.75, 0.25, 0.25)));
+        scene->addShape(kitten, kittenBsdf);
+        // scene->addShape(kitten, LambertianBRDF::factory(Color(0.75, 0.25, 0.25)));
 
         scene->setAccelType(AccelType::QBVH);
         scene->finalize();
@@ -303,10 +303,10 @@ namespace spica {
         // Objects
         Trimesh kitten(kDataDirectory + "kitten.ply");
         kitten.scale(0.15, 0.15, 0.15);
-        kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        // kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
 
-        const Color sigmap_s = Color(2.19, 2.62, 3.00) * 0.1;
-        const Color sigma_a  = Color(0.0021, 0.0041, 0.0071) * 10.0;
+        const Color sigmap_s = Color(2.19, 2.62, 3.00);
+        const Color sigma_a  = Color(0.0021, 0.0041, 0.0071);
         const BSSRDF bssrdf = DipoleBSSRDF::factory(sigma_a, sigmap_s, 1.5);
 
         // Set floor
@@ -332,7 +332,7 @@ namespace spica {
 
         // BSDF kittenBsdf = PhongBRDF::factory(Color(0.999, 0.999, 0.999));
         BSDF kittenBsdf = LambertianBRDF::factory(Color(0.75, 0.75, 0.25));
-        // kittenBsdf.setBssrdf(bssrdf);
+        kittenBsdf.setBssrdf(bssrdf);
         scene->addShape(kitten, kittenBsdf);
 
         Vector3D eye(0.0, 10.0, 100.0);

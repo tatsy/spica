@@ -15,7 +15,8 @@ namespace spica {
     template <class T, class Enable = void>
     class Vector2_;
 
-    /** Two-dimensional vector.
+    /** 
+     *  Two-dimensional vector.
      *  @ingroup math_module
      */
     template <class T>

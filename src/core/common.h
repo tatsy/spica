@@ -129,11 +129,11 @@ do { \
 // -----------------------------------------------------------------------------
 
 #ifndef NDEBUG
-#define SpicaInfo(MSG) \
+#define MsgInfo(MSG) \
 do { \
     std::cout << "[INFO] " << (MSG) << std::endl; \
 } while (false);
-#define SpicaWarn(MSG) \
+#define Warning(MSG) \
 do { \
     std::cerr << "[WARNING] " << (MSG) << std::endl; \
 } while (false);
@@ -141,7 +141,7 @@ do { \
 #define SpicaInfo(MSG)
 #define SpicaWarn(MSG)
 #endif
-#define SpicaError(MSG) \
+#define FatalError(MSG) \
 do { \
     std::cerr << "[ERROR] " << (MSG) << std::endl; \
     std::abort(); \

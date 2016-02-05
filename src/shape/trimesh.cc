@@ -23,7 +23,6 @@
 #include "shape_interface.h"
 #include "bbox.h"
 #include "triangle.h"
-#include "plane.h"
 #include "meshio.h"
 
 namespace spica {
@@ -211,21 +210,6 @@ namespace spica {
             _vertices[i].setNormal(rot.applyTo(nrm));
         }
         translate(origin);
-    }
-
-    void Trimesh::putOnPlane(const Plane& plane) {
-        // Find nearest point
-        double minval = INFTY;
-        for (size_t i = 0; i < _vertices.size(); i++) {
-            const double dt = Vector3D::dot(plane.normal(), _vertices[i].pos());
-            minval = std::min(minval, dt);
-        }
-
-        for (size_t i = 0; i < _vertices.size(); i++) {
-            const Vector3D newPos = _vertices[i].pos() - 
-                                    (minval + plane.distance()) * plane.normal();
-            _vertices[i].setPosition(newPos);
-        }
     }
 
     void Trimesh::fitToBBox(const BBox& bbox) {

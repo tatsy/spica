@@ -258,7 +258,7 @@ namespace spica {
                 }
             }
         } else {
-            SpicaError("Invalid BSDF detected: this is "
+            FatalError("Invalid BSDF detected: this is "
                        "neigher scattering nor dielectric!!");
         }
         return Color(0.0, 0.0, 0.0);

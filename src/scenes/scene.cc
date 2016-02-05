@@ -126,7 +126,7 @@ namespace spica {
                 break;
             }
             default:
-                SpicaError("Unknown ligting type!!");
+                FatalError("Unknown ligting type!!");
             }
             return Image{};
         }

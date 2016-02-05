@@ -98,7 +98,7 @@ namespace spica {
         const Color dneg3 = dneg * dneg * dneg;
         const Color posTerm = _zpos * (dpos * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dpos);
         const Color negTerm = _zneg * (dneg * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dneg);
-        const Color Rd = ((_alphap * posTerm * dneg3 - negTerm * dpos3) / (4.0 * PI * _sigma_tr * dpos3 * dneg3));
+        const Color Rd = _alphap * (posTerm * dneg3 - negTerm * dpos3) / (4.0 * PI * dpos3 * dneg3 * _sigma_tr);
         return Rd.clamp();
     }
 
@@ -113,8 +113,7 @@ namespace spica {
     DiffuseBSSRDF::DiffuseBSSRDF()
         : BSSRDFBase()
         , _distances()
-        , _colors()
-    {
+        , _colors() {
     }
 
     DiffuseBSSRDF::DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors)

@@ -7,55 +7,6 @@ using namespace spica;
 
 #include "test_macros.h"
 
-
-// ------------------------------
-// Plane class test
-// ------------------------------
-
-TEST(PlaneTest, DefaultInstance) {
-    Plane pl;
-    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), pl.normal());
-    EXPECT_EQ(0.0, pl.distance());
-}
-
-TEST(PlaneTest, Instance) {
-    Plane pl(3.0, Vector3D(-1.0, 0.0, 0.0));
-
-    EXPECT_EQ(3.0, pl.distance());
-
-    EXPECT_EQ(-1.0, pl.normal().x());
-    EXPECT_EQ(0.0, pl.normal().y());
-    EXPECT_EQ(0.0, pl.normal().z());
-}
-
-TEST(PlaneTest, CopyAndAssign) {
-    Plane p0(3.0, Vector3D(-1.0, 0.0, 0.0));
-
-    Plane p1(p0);
-    EXPECT_EQ_VEC(p0.normal(), p1.normal());
-    EXPECT_EQ(p0.distance(), p1.distance());
-
-    Plane p2;
-    p2 = p0;
-    EXPECT_EQ_VEC(p0.normal(), p2.normal());
-    EXPECT_EQ(p0.distance(), p2.distance());
-}
-
-TEST(PlaneTest, IntersectionTest) {
-    Plane pl(3.0, Vector3D(-1.0, 0.0, 0.0));
-
-    Hitpoint hitpoint;
-    EXPECT_TRUE(pl.intersect(Ray(Vector3D(0.0, 1.0, 1.0), Vector3D(3.0, 4.0, 0.0).normalized()), &hitpoint));
-    EXPECT_DOUBLE_EQ(5.0, hitpoint.distance());
-    EXPECT_FALSE(pl.intersect(Ray(Vector3D(0.0, 1.0, 1.0), Vector3D(-1.0, 0.0, 0.0)), &hitpoint));    
-}
-
-TEST(PlaneTest, UndefinedFunctions) {
-    Plane pl;
-    ASSERT_DEATH(pl.area(), "");
-    ASSERT_DEATH(pl.triangulate(), "");
-}
-
 // ------------------------------
 // Sphere class test
 // ------------------------------

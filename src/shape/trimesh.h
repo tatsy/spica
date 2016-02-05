@@ -130,11 +130,6 @@ namespace spica {
         void rotate(double theta, const Vector3D& axis,
                     const Vector3D& origin = Vector3D(0.0, 0.0, 0.0));
 
-        /** Put the mesh on the specified plane.
-         *  @param[in] plane: a plane on which the mesh is put.
-         */
-        void putOnPlane(const Plane& plane);
-
         /** Scale and translate the mesh to fit the bounding box.
          *  @param[in] bbox: target bounding box.
          */

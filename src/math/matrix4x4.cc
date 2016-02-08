@@ -1,6 +1,8 @@
 #define SPICA_API_EXPORT
 #include "matrix4x4.h"
 
+#include <sstream>
+#include <iomanip>
 #include <cstring>
 
 namespace spica {
@@ -9,6 +11,10 @@ namespace spica {
         m[0][0] = m[1][1] = m[2][2] = m[3][3] = 1.0;
         m[0][1] = m[0][2] = m[0][3] = m[1][0] = m[1][2] = m[1][3] = 
             m[2][0] = m[2][1] = m[2][3] = m[3][0] = m[3][1] = m[3][2] = 0.0;
+    }
+
+    Matrix4x4::Matrix4x4(const Matrix4x4& mat) {
+        this->operator=(mat);
     }
 
     Matrix4x4::Matrix4x4(double mat[4][4]) {
@@ -29,6 +35,7 @@ namespace spica {
         m[1][3] = t13;
         m[2][0] = t20;
         m[2][1] = t21;
+        m[2][2] = t22;
         m[2][3] = t23;
         m[3][0] = t30;
         m[3][1] = t31;
@@ -81,7 +88,7 @@ namespace spica {
 
             indxr[i] = irow;
             indxc[i] = icol;
-            if (minv[icol][icol] = 0.0) {
+            if (std::abs(minv[icol][icol]) < EPS) {
                 FatalError("Singular matrix cannot be inverted");
             }
 
@@ -97,7 +104,7 @@ namespace spica {
                     double save = minv[j][icol];
                     minv[j][icol] = 0.0;
                     for (int k = 0; k < 4; k++) {
-                        minv[j][k] -= minv[icol][j] * save;
+                        minv[j][k] -= minv[icol][k] * save;
                     }
                 }
             }
@@ -113,6 +120,11 @@ namespace spica {
         }
 
         return Matrix4x4(minv);
+    }
+
+    Matrix4x4& Matrix4x4::operator=(const Matrix4x4& mat) {
+        memcpy(m, mat.m, sizeof(m));
+        return *this;
     }
 
     bool Matrix4x4::operator==(const Matrix4x4& m2) const {
@@ -133,4 +145,54 @@ namespace spica {
         return false;
     }
 
+    double Matrix4x4::operator()(int i, int j) const {
+        Assertion(i >= 0 && i < 4 && j >= 0 && j < 4,
+                  "Index out of bounds!!");
+        return m[i][j];
+    }
+
+    std::string Matrix4x4::toString() const {
+        std::stringstream ss;
+        ss << std::fixed;
+        ss << std::setprecision(8);
+        ss << "[ ";
+        for (int i = 0; i < 4; i++) {
+            ss << "[ ";
+            for (int j = 0; j < 4; j++) {
+                ss << m[i][j];
+                if (j != 3) {
+                    ss << ", ";
+                }
+            }
+            ss << "] ";
+
+            if (i != 3) {
+                ss << std::endl << "  ";
+            }
+        }
+        ss << "]";
+        printf("gugug\n");
+        return std::move(ss.str());
+    }
+
+
 }  // namespace spica
+
+spica::Matrix4x4 operator*(const spica::Matrix4x4& m1, const spica::Matrix4x4& m2) {
+    double ret[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            ret[i][j] = 0.0;
+            for (int k = 0; k < 4; k++) {
+                ret[i][j] += m1(i, k) * m2(k, j);            
+            }
+        }
+    }
+    return spica::Matrix4x4(ret);
+}
+
+std::ostream& operator<<(std::ostream& os, const spica::Matrix4x4& mat) {
+    printf("Hello\n");
+    // os << mat.toString();
+    return os;
+}

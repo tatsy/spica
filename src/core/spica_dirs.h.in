@@ -7,7 +7,7 @@
 
 namespace spica {
 
-    static const std::string kRootDirectory   = "@SPICA_ROOT_DIRECTORY@/";
+    static const std::string kRootDirectory   = "@SPICA_ROOT_DIR@/";
     static const std::string kDataDirectory   = kRootDirectory + "data/";
     static const std::string kTempDirectory   = kRootDirectory + "tmp/";
     static const std::string kOutputDirectory = kRootDirectory+ "output/";

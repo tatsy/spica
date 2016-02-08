@@ -5,6 +5,9 @@
 #ifndef _SPICA_MATRIX4X4_H_
 #define _SPICA_MATRIX4X4_H_
 
+#include <iostream>
+#include <string>
+
 #include "../core/common.h"
 
 namespace spica {
@@ -25,6 +28,11 @@ namespace spica {
          */
         Matrix4x4();
 
+        /**
+         * Copy constructor.
+         */
+        Matrix4x4(const Matrix4x4& mat);
+
         Matrix4x4(double m[4][4]);
         Matrix4x4(double t00, double t01, double t02, double t03,
                   double t10, double t11, double t12, double t13,
@@ -43,10 +51,22 @@ namespace spica {
          */
         Matrix4x4 inverted() const;
 
+        Matrix4x4& operator=(const Matrix4x4& mat);
+
         bool operator==(const Matrix4x4& m2) const;
         bool operator!=(const Matrix4x4& m2) const;
+
+        double operator()(int i, int j) const;
+
+        std::string toString() const;
     };
 
 }  // namespace spica
+
+SPICA_EXPORTS spica::Matrix4x4 operator*(const spica::Matrix4x4& m1,
+                                         const spica::Matrix4x4& m2);
+
+SPICA_EXPORTS std::ostream& operator<<(std::ostream& os,
+                                       const spica::Matrix4x4& mat);
 
 #endif  // _SPICA_MATRIX4X4_H_

@@ -10,6 +10,7 @@
 
 #include "vector2d.h"
 #include "vector3d.h"
+#include "matrix4x4.h"
 #include "quaternion.h"
 
 #endif  // _SPICA_MATH_H_

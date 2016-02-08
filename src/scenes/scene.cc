@@ -115,7 +115,7 @@ namespace spica {
 
         Image getEnvmap() {
             switch(_lighting.type()) {
-            case LightType::AreaLight: {
+            case LightType::Area: {
                 return std::move(Image(1024, 1024));
                 break;
             }

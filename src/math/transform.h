@@ -18,6 +18,7 @@ namespace spica {
         Transform();
         Transform(const double mat[4][4]);
         Transform(const Matrix4x4& m);
+        Transform(const Matrix4x4& m, const Matrix4x4& mInv);
         Transform(const Transform& t);
 
         Transform& operator=(const Transform& t);
@@ -26,6 +27,8 @@ namespace spica {
         bool operator!=(const Transform& t);
 
         bool isIdentity() const;
+
+        Transform inverted() const;
 
         inline const Matrix4x4& getMat() const { return m_; }
         inline const Matrix4x4& getInvMat() const { return mInv_; }

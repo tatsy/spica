@@ -21,7 +21,7 @@ namespace spica {
     /** Environment mapping
      *  @ingroup light_module
      */
-    class SPICA_EXPORTS Envmap : public ILight {
+    class SPICA_EXPORTS Envmap : public Light {
     private:
         Sphere _sphere;
         Image _image;
@@ -81,7 +81,7 @@ namespace spica {
 
         const Image& getImage() const;
 
-        ILight* clone() const override;
+        Light* clone() const override;
 
     private:
         void createImportanceMap();

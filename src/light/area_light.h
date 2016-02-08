@@ -13,10 +13,10 @@
 
 namespace spica {
 
-    /** Area light class
+    /** Area light class.
      *  @ingroup light_module
      */
-    class SPICA_EXPORTS AreaLight : public ILight {
+    class SPICA_EXPORTS AreaLight : public Light {
     private:
         Color _emittance;
         std::vector<Triangle> _triangles;
@@ -39,7 +39,7 @@ namespace spica {
         Color directLight(const Vector3D& dir) const override;
         Color globalLight(const Vector3D& dir) const override;
         double area() const override;
-        ILight* clone() const override;
+        Light* clone() const override;
 
     private:
         void calcSamplePdf();

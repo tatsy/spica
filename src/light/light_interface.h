@@ -61,38 +61,38 @@ namespace spica {
      */
     enum class LightType {
         None      = 0x00,  /**< Light type not specified. */
-        AreaLight = 0x01,  /**< Area light.               */
+        Area      = 0x01,  /**< Area light.               */
         Envmap    = 0x02,  /**< Enviroment map.           */
     };
 
-    class SPICA_EXPORTS ILight {
-    private:
-        LightType _type = LightType::None;
-
+    /**
+     * The base class for the lights.
+     */
+    class SPICA_EXPORTS Light {
     public:
-        ILight(LightType type) : _type{type} {}
+        Light(LightType type) : type_{ type } {}
 
-        ILight(const ILight& light)
-            : _type{light._type} {
+        Light(const Light& light)
+            : type_{ light.type_ } {
         }
 
-        ILight(ILight&& light)
-            : _type{light._type} {
+        Light(Light&& light)
+            : type_{ light.type_ } {
         }
 
-        virtual ~ILight() {}
+        virtual ~Light() {}
 
-        ILight& operator=(const ILight& light) {
-            _type = light._type;
+        Light& operator=(const Light& light) {
+            type_ = light.type_;
             return *this;
         }
 
-        ILight& operator=(ILight&& light) {
-            _type = light._type;
+        Light& operator=(Light&& light) {
+            type_ = light.type_;
             return *this;
         }
 
-        LightType type() const { return _type; }
+        LightType type() const { return type_; }
 
         virtual LightSample sample(const Vector3D& v, Stack<double>& rands) const = 0;
         virtual Photon samplePhoton(Stack<double>& rands) const = 0;
@@ -100,7 +100,10 @@ namespace spica {
         virtual Color directLight(const Vector3D& dir) const = 0;
         virtual Color globalLight(const Vector3D& dir) const = 0;
         virtual double area() const = 0;
-        virtual ILight* clone() const = 0;
+        virtual Light* clone() const = 0;
+
+    private:
+        LightType type_ = LightType::None;
     };
 
 }  // spica

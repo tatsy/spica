@@ -17,8 +17,13 @@ namespace spica {
     }
 
     Transform::Transform(const Matrix4x4& m)
-        : m_{m}
-        , mInv_{m.inverted()} {
+        : m_{ m }
+        , mInv_{ m.inverted() } {
+    }
+
+    Transform::Transform(const Matrix4x4& m, const Matrix4x4& mInv)
+        : m_{ m }
+        , mInv_{ mInv } {
     }
 
     Transform::Transform(const Transform& t)
@@ -47,6 +52,10 @@ namespace spica {
                 m_(1, 0) == 0.0 && m_(1, 1) == 1.0 && m_(1, 2) == 0.0 && m_(1, 3) == 0.0 &&
                 m_(2, 0) == 0.0 && m_(2, 1) == 0.0 && m_(2, 2) == 1.0 && m_(2, 3) == 0.0 &&
                 m_(3, 0) == 0.0 && m_(3, 1) == 0.0 && m_(3, 2) == 0.0 && m_(3, 3) == 1.0);
+    }
+
+    Transform Transform::inverted() const {
+        return Transform(mInv_, m_);
     }
 
 }  // namespace spica

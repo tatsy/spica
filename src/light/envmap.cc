@@ -37,7 +37,7 @@ namespace spica {
     }  // anonymous namespace
 
     Envmap::Envmap()
-        : ILight{LightType::Envmap}
+        : Light{LightType::Envmap}
         , _sphere{}
         , _image{}
         , _lowres{}
@@ -47,7 +47,7 @@ namespace spica {
     }
 
     Envmap::Envmap(const Sphere& boundSphere, const std::string& filename)
-        : ILight{LightType::Envmap}
+        : Light{LightType::Envmap}
         , _sphere{boundSphere}
         , _image{}
         , _lowres{}
@@ -60,7 +60,7 @@ namespace spica {
     }
 
     Envmap::Envmap(const Sphere& boundSphere, const Image& image)
-        : ILight{LightType::Envmap}
+        : Light{LightType::Envmap}
         , _sphere{boundSphere}
         , _image{image}
         , _lowres{}
@@ -85,7 +85,7 @@ namespace spica {
     }
 
     Envmap& Envmap::operator=(const Envmap& envmap) {
-        ILight::operator=(envmap);
+        Light::operator=(envmap);
         _sphere = envmap._sphere;
         _image  = envmap._image;
         _lowres = envmap._lowres;
@@ -96,7 +96,7 @@ namespace spica {
     }
 
     Envmap& Envmap::operator=(Envmap&& envmap) {
-        ILight::operator=(std::move(envmap));
+        Light::operator=(std::move(envmap));
         _sphere = envmap._sphere;
         _image  = std::move(envmap._image);
         _lowres = std::move(envmap._lowres);
@@ -302,7 +302,7 @@ namespace spica {
         }
 	}
 
-    ILight* Envmap::clone() const {
+    Light* Envmap::clone() const {
         return new Envmap(*this);
     }
 

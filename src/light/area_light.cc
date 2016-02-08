@@ -7,7 +7,7 @@
 namespace spica {
 
     AreaLight::AreaLight()
-        : ILight{LightType::AreaLight}
+        : Light{LightType::Area}
         , _emittance{}
         , _triangles{}
         , _samplePdf{}
@@ -15,7 +15,7 @@ namespace spica {
     }
 
     AreaLight::AreaLight(const Trimesh& tris, const Color& emittance)
-        : ILight{LightType::AreaLight}
+        : Light{LightType::Area}
         , _emittance{emittance}
         , _triangles{}
         , _samplePdf{}
@@ -40,7 +40,7 @@ namespace spica {
     }
 
     AreaLight& AreaLight::operator=(const AreaLight& l) {
-        ILight::operator=(l);
+        Light::operator=(l);
         this->_emittance = l._emittance;
         this->_triangles = l._triangles;
         this->_samplePdf = l._samplePdf;
@@ -49,7 +49,7 @@ namespace spica {
     }
 
     AreaLight& AreaLight::operator=(AreaLight&& l) {
-        ILight::operator=(std::move(l));
+        Light::operator=(std::move(l));
         this->_emittance = l._emittance;
         this->_triangles = std::move(l._triangles);
         this->_samplePdf = std::move(l._samplePdf);
@@ -126,7 +126,7 @@ namespace spica {
         return _totalArea;
     }
 
-    ILight* AreaLight::clone() const {
+    Light* AreaLight::clone() const {
         return new AreaLight(*this);
     }
 

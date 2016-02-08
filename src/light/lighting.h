@@ -27,7 +27,7 @@ namespace spica {
      */
     class SPICA_EXPORTS Lighting {
     private:
-        std::unique_ptr<ILight> _ptr;
+        std::unique_ptr<Light> _ptr;
 
     public:
         /** The Lighting constructor.
@@ -75,7 +75,7 @@ namespace spica {
         Color directLight(const Vector3D& dir) const;
         Color globalLight(const Vector3D& dir) const;
 
-        ILight* ptr() const;
+        Light* ptr() const;
         double area() const;
         LightType type() const;
     };

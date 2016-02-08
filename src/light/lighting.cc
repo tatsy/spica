@@ -27,7 +27,7 @@ namespace spica {
     }
 
     Lighting& Lighting::operator=(const Lighting& l) {
-        this->_ptr = std::unique_ptr<ILight>(l._ptr->clone());
+        this->_ptr = std::unique_ptr<Light>(l._ptr->clone());
         return *this;
     }
 
@@ -76,7 +76,7 @@ namespace spica {
         return _ptr->globalLight(dir);
     }
 
-    ILight* Lighting::ptr() const {
+    Light* Lighting::ptr() const {
         return _ptr.get();
     }
 

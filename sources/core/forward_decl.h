@@ -6,7 +6,7 @@
 namespace spica {
 
     // Core module
-    class Color;
+    class RGBSpectrum;
     class Image;
     class VertexData;
     class TriangleData;

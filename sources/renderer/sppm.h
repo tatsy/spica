@@ -44,7 +44,7 @@ namespace spica {
 
         void tracePhotonsRec(const Scene& scene, const Ray& ray,
                              const RenderParameters& params,
-                             const Color& flux,
+                             const Spectrum& flux,
                              int bounces,
                              Stack<double>& rstk) const;
 

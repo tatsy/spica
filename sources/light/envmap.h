@@ -9,7 +9,7 @@
 
 #include "light_interface.h"
 
-#include "../core/color.h"
+#include "../core/spectrum.h"
 #include "../image/image.h"
 #include "../math/vector3d.h"
 #include "../shape/sphere.h"
@@ -67,12 +67,12 @@ namespace spica {
         /** Direct light sampling.
          *  @details This method is usually called for direct light sampling.
          */
-        Color directLight(const Vector3D& dir) const override;
+        Spectrum directLight(const Vector3D& dir) const override;
 
         /** Global light sampling.
          *  @details This method is usually called when the ray does not intersect anything.
          */
-        Color globalLight(const Vector3D& dir) const override;
+        Spectrum globalLight(const Vector3D& dir) const override;
 
         double area() const override;
 
@@ -86,7 +86,7 @@ namespace spica {
     private:
         void createImportanceMap();
         void createLowResolution();
-        void sampleOnLight(Vector3D* pos, Vector3D* dir, Vector3D* nrm, Color* emt, double* pdf, Stack<double>& rands) const;
+        void sampleOnLight(Vector3D* pos, Vector3D* dir, Vector3D* nrm, Spectrum* emt, double* pdf, Stack<double>& rands) const;
     };
 
 }  // namespace spica

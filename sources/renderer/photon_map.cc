@@ -23,7 +23,7 @@ namespace spica {
         , _normal{} {
     }
 
-    Photon::Photon(const Vector3D& position, const Color& flux, 
+    Photon::Photon(const Vector3D& position, const Spectrum& flux, 
                    const Vector3D& direction, const Vector3D& normal)
         : _position{position}
         , _flux{flux}
@@ -108,7 +108,7 @@ namespace spica {
                 // Generate sample on the light
                 Photon photon = scene.samplePhoton(rstk);
                 
-                Color flux = photon.flux() / params.castPhotons();
+                Spectrum flux = photon.flux() / params.castPhotons();
 
                 Vector3D dir;
                 sampler::onHemisphere(photon.normal(), &dir,
@@ -150,11 +150,11 @@ namespace spica {
         printf("OK\n");
     }
 
-    Color PhotonMap::evaluate(const Vector3D& position,
+    Spectrum PhotonMap::evaluate(const Vector3D& position,
                               const Vector3D& normal,
                               int gatherPhotons, double gatherRadius) const {
         // Find k-nearest neightbors
-        Photon query(position, Color(), Vector3D(), normal);
+        Photon query(position, Spectrum(), Vector3D(), normal);
         std::vector<Photon> photons;
         knnFind(query, &photons, gatherPhotons, gatherRadius);
 
@@ -177,18 +177,18 @@ namespace spica {
         // Cone filter
         const int numValidPhotons = static_cast<int>(validPhotons.size());
         const double k = 1.1;
-        Color totalFlux = Color(0.0, 0.0, 0.0);
+        Spectrum totalFlux = Spectrum(0.0, 0.0, 0.0);
         for (int i = 0; i < numValidPhotons; i++) {
             const double w = 1.0 - (distances[i] / (k * maxdist));
-            const Color v = Color(photons[i].flux() * INV_PI);
+            const Spectrum v = Spectrum(photons[i].flux() * INV_PI);
             totalFlux += w * v;
         }
         totalFlux /= (1.0 - 2.0 / (3.0 * k));
 
         if (maxdist > EPS) {
-            return Color(totalFlux / (PI * maxdist * maxdist));
+            return Spectrum(totalFlux / (PI * maxdist * maxdist));
         }
-        return Color(0.0, 0.0, 0.0);
+        return Spectrum(0.0, 0.0, 0.0);
 
     }
 
@@ -202,7 +202,7 @@ namespace spica {
     void PhotonMap::tracePhoton(const Scene& scene,
                                 const Ray& ray,
                                 const RenderParameters& params,
-                                const Color& flux,
+                                const Spectrum& flux,
                                 Stack<double>& rstk,
                                 int bounces,
                                 BsdfType absorbBsdf,
@@ -226,7 +226,7 @@ namespace spica {
         // Hitting object
         const int       objID  = isect.objectID();
         const BSDF&     bsdf   = scene.getBsdf(objID);
-        const Color&    refl   = isect.color();
+        const Spectrum&    refl   = isect.color();
 
         const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
         const Vector3D orientNormal = (into ? 1.0 : -1.0) * isect.normal();
@@ -256,7 +256,7 @@ namespace spica {
                     &nextdir, &samplePdf);
 
         Ray nextRay(isect.position(), nextdir);
-        Color nextFlux = Color((flux * refl) / (samplePdf * photonPdf));
+        Spectrum nextFlux = Spectrum((flux * refl) / (samplePdf * photonPdf));
 
         // Next bounce
         tracePhoton(scene, nextRay, params, nextFlux, 

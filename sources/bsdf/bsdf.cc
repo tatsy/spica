@@ -26,7 +26,7 @@ namespace spica {
         this->operator=(std::move(bsdf));
     }
 
-    BSDF::BSDF(const BSDFBase* ptr, BsdfType type)
+    BSDF::BSDF(const AbstractBSDF* ptr, BsdfType type)
         : _ptr{ptr}
         , _bssrdf{}
         , _type{type} {
@@ -61,7 +61,7 @@ namespace spica {
         return *this;
     }
 
-    const Color& BSDF::reflectance() const {
+    const Spectrum& BSDF::reflectance() const {
         return _ptr->reflectance();
     }
 
@@ -75,13 +75,13 @@ namespace spica {
         return _ptr->pdf(in, normal, out);    
     }
 
-    Color BSDF::evalBSSRDF(const Vector3D& in, 
+    Spectrum BSDF::evalBSSRDF(const Vector3D& in, 
                              const Vector3D& pos,
                              const Vector3D& normal,
                              const SubsurfaceIntegrator& integr,
                              double* refPdf) const {
         // Transmitted radiance
-        Color transRad(0.0, 0.0, 0.0);
+        Spectrum transRad{};
 
         // Fresnel reflection
         const Vector3D orientN = in.dot(normal) < 0.0 ? normal : -normal;

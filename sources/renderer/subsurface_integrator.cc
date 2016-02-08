@@ -154,17 +154,17 @@ namespace spica {
         return node;
     }
 
-    Color SubsurfaceIntegrator::
+    Spectrum SubsurfaceIntegrator::
           Octree::iradSubsurface(const Vector3D& pos,
                                  const BSSRDF& bssrdf) const {
         return iradSubsurfaceRec(_root, pos, bssrdf);
     }
 
-    Color SubsurfaceIntegrator::
+    Spectrum SubsurfaceIntegrator::
           Octree::iradSubsurfaceRec(OctreeNode* node,
                                     const Vector3D& pos,
                                     const BSSRDF& bssrdf) const {
-        if (node == NULL) return Color(0.0, 0.0, 0.0);
+        if (node == NULL) return Spectrum(0.0, 0.0, 0.0);
 
         const double distSquared = (node->pt.pos - pos).squaredNorm();
         double dw = node->pt.area / distSquared;
@@ -172,7 +172,7 @@ namespace spica {
             (dw < _parent->_maxError && !node->bbox.inside(pos))) {
             return bssrdf(pos, node->pt.pos) * (node->pt.irad) * node->pt.area;
         } else {
-            Color ret(0.0, 0.0, 0.0);
+            Spectrum ret(0.0, 0.0, 0.0);
             for (int i = 0; i < 8; i++) {
                 if (node->children[i] != NULL) {
                     ret += iradSubsurfaceRec(node->children[i], pos, bssrdf);
@@ -234,11 +234,11 @@ namespace spica {
                                            const RenderParameters& params) {
         // Compute irradiance on each sampled point
         const int numPoints = static_cast<int>(points.size());
-        std::vector<Color> irads(numPoints);
+        std::vector<Spectrum> irads(numPoints);
 
         for(int i = 0; i < numPoints; i++) {
             // Estimate irradiance with photon map
-            Color irad = _photonMap.evaluate(points[i], normals[i],
+            Spectrum irad = _photonMap.evaluate(points[i], normals[i],
                                              params.gatherPhotons(),
                                              params.gatherRadius());
             irads[i] = irad;
@@ -256,12 +256,12 @@ namespace spica {
         std::cout << "Octree constructed !!" << std::endl;
     }
 
-    Color SubsurfaceIntegrator::irradiance(const Vector3D& p,
+    Spectrum SubsurfaceIntegrator::irradiance(const Vector3D& p,
                                            const BSDF& bsdf) const {
         Assertion(bsdf._bssrdf != NULL,
                   "Specified object does not have BSSRDF !!");
-        const Color Mo = _octree.iradSubsurface(p, *bsdf._bssrdf);
-        return Color(INV_PI * (1.0 - bsdf._bssrdf->Fdr()) * Mo);
+        const Spectrum Mo = _octree.iradSubsurface(p, *bsdf._bssrdf);
+        return Spectrum(INV_PI * (1.0 - bsdf._bssrdf->Fdr()) * Mo);
     }
 
 }  // namespace spica

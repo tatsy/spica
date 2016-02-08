@@ -7,6 +7,7 @@
 
 #include "../core/common.h"
 #include "../core/forward_decl.h"
+#include "../core/spectrum.h"
 
 namespace spica {
 
@@ -32,15 +33,15 @@ namespace spica {
          *  @param[in] rseq: random number sequence
          *  @param[in] bounces: # of bounces
          */
-        SPICA_EXPORTS Color radiance(const Scene& scene, const RenderParameters& params,
-                                     const Ray& ray, Stack<double>& rands, int bounces);
+        SPICA_EXPORTS Spectrum radiance(const Scene& scene, const RenderParameters& params,
+                                        const Ray& ray, Stack<double>& rands, int bounces);
 
-        SPICA_EXPORTS Color directLight(const Scene& scene,
-                                        const Vector3D& pos,
-                                        const Vector3D& in,
-                                        const Vector3D& normal, 
-                                        const BSDF& bsdf,
-                                        Stack<double>& rstk);
+        SPICA_EXPORTS Spectrum directLight(const Scene& scene,
+                                           const Vector3D& pos,
+                                           const Vector3D& in,
+                                           const Vector3D& normal, 
+                                           const BSDF& bsdf,
+                                           Stack<double>& rstk);
 
     }  // namespace helper
 

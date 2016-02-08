@@ -5,31 +5,30 @@
 #include <memory>
 
 #include "../core/forward_decl.h"
-#include "../core/color.h"
+#include "../core/spectrum.h"
 
 namespace spica {
-
-    class BSSRDF;
 
     // ------------------------------------------------------------
     // Interface class for BSSRDF
     // ------------------------------------------------------------
 
     class SPICA_EXPORTS BSSRDFBase {
-    protected:
-        double _eta;
-
-    protected:
-        explicit BSSRDFBase(double eta = 1.3) : _eta(eta) {}
-        explicit BSSRDFBase(const BSSRDFBase& base) : _eta(base._eta) {}
-        BSSRDFBase& operator=(const BSSRDFBase& base) { _eta = base._eta; return *this; }
-
     public:
         virtual ~BSSRDFBase() {}
         virtual double Ft(const Vector3D& nornal, const Vector3D& in) const;
         virtual double Fdr() const;
-        virtual Color operator()(const Vector3D& v1, const Vector3D& v2) const = 0;
+        virtual Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const = 0;
         virtual BSSRDFBase* clone() const = 0;
+
+    protected:
+        // Protected methods
+        explicit BSSRDFBase(double eta = 1.3) : _eta(eta) {}
+        explicit BSSRDFBase(const BSSRDFBase& base) : _eta(base._eta) {}
+        BSSRDFBase& operator=(const BSSRDFBase& base) { _eta = base._eta; return *this; }
+
+        // Protected fields
+        double _eta;
     };
 
 
@@ -40,21 +39,21 @@ namespace spica {
     class SPICA_EXPORTS DipoleBSSRDF : public BSSRDFBase {
     private:
         double _A;
-        Color  _sigmap_t;
-        Color  _sigma_tr;
-        Color  _alphap;
-        Color  _zpos;
-        Color  _zneg;
+        Spectrum  _sigmap_t;
+        Spectrum  _sigma_tr;
+        Spectrum  _alphap;
+        Spectrum  _zpos;
+        Spectrum  _zneg;
 
     private:
         DipoleBSSRDF();
-        DipoleBSSRDF(const Color& sigma_a, const Color& sigmap_s, double eta = 1.3);
+        DipoleBSSRDF(const Spectrum& sigma_a, const Spectrum& sigmap_s, double eta = 1.3);
         DipoleBSSRDF(const DipoleBSSRDF& bssrdf);
         DipoleBSSRDF& operator=(const DipoleBSSRDF& bssrdf);
 
     public:
-        static BSSRDF factory(const Color& sigma_a, const Color& sigmap_s, double eta = 1.3);
-        Color operator()(const Vector3D& v1, const Vector3D& v2) const override;
+        static BSSRDF factory(const Spectrum& sigma_a, const Spectrum& sigmap_s, double eta = 1.3);
+        Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const override;
         BSSRDFBase* clone() const override;
     };
 
@@ -63,30 +62,30 @@ namespace spica {
     // ------------------------------------------------------------
 
     class SPICA_EXPORTS DiffuseBSSRDF : public BSSRDFBase {
-    private:
-        std::vector<double> _distances;
-        std::vector<Color> _colors;
-
     public:
         DiffuseBSSRDF();
-        DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
+        DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Spectrum>& colors);
         DiffuseBSSRDF(const DiffuseBSSRDF& bssrdf);
         DiffuseBSSRDF(DiffuseBSSRDF&& bssrdf);
         DiffuseBSSRDF& operator=(const DiffuseBSSRDF& bssrdf);
         DiffuseBSSRDF& operator=(DiffuseBSSRDF&& bssrdf);
 
-        static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors);
+        static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Spectrum>& colors);
         BSSRDF factory() const;
-        Color operator()(const Vector3D& v1, const Vector3D& v2) const override;
+        Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const override;
         BSSRDFBase* clone() const override;
 
         int numIntervals() const;
         const std::vector<double>& distances() const;
-        const std::vector<Color>& colors() const;
+        const std::vector<Spectrum>& colors() const;
 
         DiffuseBSSRDF scaled(double sc) const;
         void load(const std::string& filename);
         void save(const std::string& filename) const;
+
+    private:
+        std::vector<double>   _distances;
+        std::vector<Spectrum> _colors;
     };
 
     // ------------------------------------------------------------
@@ -101,7 +100,7 @@ namespace spica {
         CustomBSSRDF();
         virtual ~CustomBSSRDF();
         virtual BSSRDF factory();
-        virtual Color operator()(const Vector3D& v1, const Vector3D& v2) const override = 0;
+        virtual Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const override = 0;
         virtual BSSRDFBase* clone() const override = 0;
     };
  
@@ -124,7 +123,7 @@ namespace spica {
 
         double Ft(const Vector3D& normal, const Vector3D& in) const;
         double Fdr() const;
-        Color operator()(const Vector3D& v1, const Vector3D& v2) const;
+        Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const;
 
     private:
         explicit BSSRDF(const BSSRDFBase* ptr);

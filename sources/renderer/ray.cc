@@ -66,7 +66,7 @@ namespace spica {
         this->operator=(isect);
     }
 
-    Intersection::Intersection(int objectID, const Hitpoint& hp, const Color& color)
+    Intersection::Intersection(int objectID, const Hitpoint& hp, const Spectrum& color)
         : _distance{hp.distance()}
         , _pos{hp.position()}
         , _normal{hp.normal()}

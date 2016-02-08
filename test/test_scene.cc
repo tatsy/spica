@@ -15,8 +15,8 @@ protected:
         nTrial = 100;
         s1 = Sphere(Vector3D(0.0, 0.0, 0.0), 5.0);
         s2 = Sphere(Vector3D(0.0, 10.0, 0.0), 2.0);
-        scene.addShape(s1, LambertianBRDF::factory(Color(0.3, 0.5, 0.7)));
-        scene.setAreaLight(s2, Color(32.0, 32.0, 32.0));
+        scene.addShape(s1, LambertianBRDF::factory(Spectrum(0.3, 0.5, 0.7)));
+        scene.setAreaLight(s2, Spectrum(32.0, 32.0, 32.0));
     }
 
     virtual void TearDown() {
@@ -56,7 +56,7 @@ TEST_F(SceneTest, BoundingSphere) {
 TEST_F(SceneTest, IsTextured) {
     Trimesh mesh(kDataDirectory + "tex_cube.ply");
     int curTris = scene.numTriangles();
-    scene.addShape(mesh, LambertianBRDF::factory(Color(0.5, 0.5, 0.5)));
+    scene.addShape(mesh, LambertianBRDF::factory(Spectrum(0.5, 0.5, 0.5)));
     for (int i = curTris; i < scene.numTriangles(); i++) {
         EXPECT_TRUE(scene.isTextured(i));
     }

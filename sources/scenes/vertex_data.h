@@ -7,14 +7,14 @@
 
 #include "../math/vector2d.h"
 #include "../math/vector3d.h"
-#include "../core/color.h"
+#include "../core/spectrum.h"
 
 namespace spica {
 
     class VertexData {
     private:
         Vector3D _pos;
-        Color    _color;
+        Spectrum _color;
         Vector3D _normal;
         Vector2D _texcoord;
         bool     _isTextured;
@@ -29,7 +29,7 @@ namespace spica {
         }
 
         explicit VertexData(const Vector3D& pos,
-                            const Color& color = Color(0.0, 0.0, 0.0),
+                            const Spectrum& color = Spectrum(),
                             const Vector3D& normal = Vector3D(0.0, 0.0, 0.0),
                             const Vector2D& texcoord = Vector2D(INFTY, INFTY))
             : _pos(pos)
@@ -64,13 +64,13 @@ namespace spica {
         }
 
         inline const Vector3D& pos() const { return _pos; }
-        inline const Color& color() const { return _color; }
+        inline const Spectrum& color() const { return _color; }
         inline const Vector3D& normal() const { return _normal; }
         inline const Vector2D& texcoord() const { return _texcoord; }
         inline bool isTextured() const { return _isTextured; }
 
         inline void setPosition(const Vector3D& pos) { _pos = pos; }
-        inline void setColor(const Color& color) { _color = color; }
+        inline void setColor(const Spectrum& color) { _color = color; }
         inline void setNormal(const Vector3D& nrm) { _normal = nrm; }
         inline void setTexcoord(const Vector2D& texcoord) { _texcoord = texcoord; }
     };

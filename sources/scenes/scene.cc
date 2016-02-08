@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-#include "../core/color.h"
+#include "../core/spectrum.h"
 #include "../math/vector3d.h"
 #include "../accel/accel.h"
 #include "../camera/camera.h"
@@ -147,11 +147,11 @@ namespace spica {
             return _bsdfs[_bsdfIds[id]];
         }
 
-        Color directLight(const Vector3D& dir) const {
+        Spectrum directLight(const Vector3D& dir) const {
             return _lighting.directLight(dir);
         }
 
-        Color globalLight(const Vector3D& dir) const {
+        Spectrum globalLight(const Vector3D& dir) const {
             return _lighting.globalLight(dir);
         }
 
@@ -220,7 +220,7 @@ namespace spica {
             const int triID = _accel->intersect(ray, &hitpoint);
 
             if (triID != -1) {
-                Color color;
+                Spectrum color;
                 double u = hitpoint.texcoord().x();
                 double v = hitpoint.texcoord().y();
                 if (_triangles[triID].isTextured()) {
@@ -280,7 +280,7 @@ namespace spica {
             addBsdf(bsdf, trip.size());
         }
 
-        void setAreaLight(const Trimesh& tris, const Color& emission) {
+        void setAreaLight(const Trimesh& tris, const Spectrum& emission) {
             addTriangles(tris);
 
             // Set as area light
@@ -294,7 +294,7 @@ namespace spica {
             }
 
             // Add empty BSDF
-            addBsdf(LambertianBRDF::factory(Color(0.0, 0.0, 0.0)), newTris);
+            addBsdf(LambertianBRDF::factory(Spectrum(0.0, 0.0, 0.0)), newTris);
         }
 
     private:
@@ -360,11 +360,11 @@ namespace spica {
         return _impl->getBsdf(id);
     }
 
-    Color Scene::directLight(const Vector3D& dir) const {
+    Spectrum Scene::directLight(const Vector3D& dir) const {
         return _impl->directLight(dir);
     }
 
-    Color Scene::globalLight(const Vector3D& dir) const {
+    Spectrum Scene::globalLight(const Vector3D& dir) const {
         return _impl->globalLight(dir);
     }
 
@@ -450,37 +450,37 @@ namespace spica {
 
     template <>
     SPICA_EXPORTS
-    void Scene::setAreaLight(const BBox& shape, const Color& emission) {
+    void Scene::setAreaLight(const BBox& shape, const Spectrum& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);    
     }
 
     template <>
     SPICA_EXPORTS
-    void Scene::setAreaLight(const Disk& shape, const Color& emission) {
+    void Scene::setAreaLight(const Disk& shape, const Spectrum& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 
     template <>
     SPICA_EXPORTS
-    void Scene::setAreaLight(const Quad& shape, const Color& emission) {
+    void Scene::setAreaLight(const Quad& shape, const Spectrum& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 
     template <>
     SPICA_EXPORTS
-    void Scene::setAreaLight(const Sphere& shape, const Color& emission) {
+    void Scene::setAreaLight(const Sphere& shape, const Spectrum& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 
     template <>
     SPICA_EXPORTS
-    void Scene::setAreaLight(const Triangle& shape, const Color& emission) {
+    void Scene::setAreaLight(const Triangle& shape, const Spectrum& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 
     template <>
     SPICA_EXPORTS
-    void Scene::setAreaLight(const Trimesh& shape, const Color& emission) {
+    void Scene::setAreaLight(const Trimesh& shape, const Spectrum& emission) {
         _impl->setAreaLight(shape.triangulate(), emission);
     }
 

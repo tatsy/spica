@@ -34,21 +34,21 @@ namespace spica {
                     const RenderParameters& params) override;
 
     private:
-        Color tracePath(const Scene& scene, const Camera& camera,
-                        const RenderParameters& params,
-                        const double pixelX, const double pixelY,
-                        Stack<double>& rands);
+        Spectrum tracePath(const Scene& scene, const Camera& camera,
+                           const RenderParameters& params,
+                           const double pixelX, const double pixelY,
+                           Stack<double>& rands);
 
-        Color radiance(const Scene& scene,
-                       const RenderParameters& params,
-                       const Ray& ray,
-                       Stack<double>& rstack,
-                       int bounces) const;
+        Spectrum radiance(const Scene& scene,
+                          const RenderParameters& params,
+                          const Ray& ray,
+                          Stack<double>& rstack,
+                          int bounces) const;
 
-        Color directSample(const Scene& scene, const int triID,
-                           const Vector3D& in, const Vector3D& v,
-                           const Vector3D& n, const Color& refl,
-                           int bounces, Stack<double>& rands) const;
+        Spectrum directSample(const Scene& scene, const int triID,
+                              const Vector3D& in, const Vector3D& v,
+                              const Vector3D& n, const Spectrum& refl,
+                              int bounces, Stack<double>& rands) const;
     };
 }
 

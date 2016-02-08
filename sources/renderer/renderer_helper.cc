@@ -4,7 +4,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include "../core/color.h"
+#include "../core/spectrum.h"
 #include "../core/sampler.h"
 
 #include "../math/vector3d.h"
@@ -70,15 +70,15 @@ namespace spica {
             return false;
         }
 
-        Color radiance(const Scene& scene, const RenderParameters& params,
+        Spectrum radiance(const Scene& scene, const RenderParameters& params,
                        const Ray& ray, Stack<double>& rands, int bounces) {
             if (bounces >= params.bounceLimit()) {
-                return Color::BLACK;
+                return Spectrum(0.0, 0.0, 0.0);
             }
 
             Intersection isect;
             if (!scene.intersect(ray, &isect)) {
-                return Color::BLACK;
+                return Spectrum(0.0, 0.0, 0.0);
             }
 
             // Require random numbers
@@ -87,7 +87,7 @@ namespace spica {
             // Get intersecting material
             const int objectID     = isect.objectID();
             const BSDF& bsdf       = scene.getBsdf(objectID);
-            const Color& refl      = isect.color();
+            const Spectrum& refl      = isect.color();
 
             // Russian roulette
             double roulette = max3(refl.red(), refl.green(), refl.blue());
@@ -95,7 +95,7 @@ namespace spica {
                 roulette = 1.0;
             } else {
                 if (roulette <= randnums[0]) {
-                    return Color::BLACK;
+                    return Spectrum(0.0, 0.0, 0.0);
                 }
             }
 
@@ -106,14 +106,14 @@ namespace spica {
                         randnums[1], randnums[2], &nextdir, &pdf);
             
             Ray nextray(isect.position(), nextdir);
-            const Color nextrad = radiance(scene, params, nextray,
+            const Spectrum nextrad = radiance(scene, params, nextray,
                                            rands, bounces + 1);
             
             // Return result
-            return Color(refl * nextrad / (roulette * pdf));       
+            return Spectrum(refl * nextrad / (roulette * pdf));       
         }
 
-        Color directLight(const Scene& scene,
+        Spectrum directLight(const Scene& scene,
                           const Vector3D& pos,
                           const Vector3D& in,
                           const Vector3D& normal,
@@ -144,7 +144,7 @@ namespace spica {
                     return scene.directLight(nextdir) / pdf;
                 }
             }
-            return Color(0.0, 0.0, 0.0);
+            return Spectrum(0.0, 0.0, 0.0);
         }
 
     }

@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "../include/spica.h"
-#include "../src/renderer/renderer_helper.h"
+#include "../sources/renderer/renderer_helper.h"
 using namespace spica;
 
 #include "test_macros.h"

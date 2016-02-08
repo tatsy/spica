@@ -45,8 +45,8 @@ namespace spica {
     // BSSRDF with dipole approximation
     // ------------------------------------------------------------
 
-    DipoleBSSRDF::DipoleBSSRDF(const Color& sigma_a,
-                               const Color& sigmap_s, double eta)
+    DipoleBSSRDF::DipoleBSSRDF(const Spectrum& sigma_a,
+                               const Spectrum& sigmap_s, double eta)
         : BSSRDFBase(eta)
         , _A(0.0)
         , _sigmap_t()
@@ -57,9 +57,9 @@ namespace spica {
     {
         _A = (1.0 + Fdr()) / (1.0 - Fdr());
         _sigmap_t = sigma_a + sigmap_s;
-        _sigma_tr = Color::sqrt(3.0 * sigma_a * _sigmap_t);
+        _sigma_tr = Spectrum::sqrt(3.0 * sigma_a * _sigmap_t);
         _alphap = sigmap_s / _sigmap_t;
-        _zpos = Color(1.0, 1.0, 1.0) / _sigmap_t;
+        _zpos = Spectrum(1.0, 1.0, 1.0) / _sigmap_t;
         _zneg = _zpos * (1.0 + (4.0 / 3.0) * _A);
     }
 
@@ -86,20 +86,20 @@ namespace spica {
         return *this;
     }
 
-    BSSRDF DipoleBSSRDF::factory(const Color& sigma_a, const Color& sigmap_s, double eta) {
+    BSSRDF DipoleBSSRDF::factory(const Spectrum& sigma_a, const Spectrum& sigmap_s, double eta) {
         return BSSRDF(new DipoleBSSRDF(sigma_a, sigmap_s, eta));
     }
 
-    Color DipoleBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+    Spectrum DipoleBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
         const double d2 = (v1 - v2).squaredNorm();
-        const Color dpos = Color::sqrt(d2 + _zpos * _zpos);
-        const Color dneg = Color::sqrt(d2 + _zneg * _zneg);
-        const Color dpos3 = dpos * dpos * dpos;
-        const Color dneg3 = dneg * dneg * dneg;
-        const Color posTerm = _zpos * (dpos * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dpos);
-        const Color negTerm = _zneg * (dneg * _sigma_tr + 1.0) * Color::exp(-_sigma_tr * dneg);
-        const Color Rd = _alphap * (posTerm * dneg3 - negTerm * dpos3) / (4.0 * PI * dpos3 * dneg3 * _sigma_tr);
-        return Rd.clamp();
+        const Spectrum dpos = Spectrum::sqrt(d2 + _zpos * _zpos);
+        const Spectrum dneg = Spectrum::sqrt(d2 + _zneg * _zneg);
+        const Spectrum dpos3 = dpos * dpos * dpos;
+        const Spectrum dneg3 = dneg * dneg * dneg;
+        const Spectrum posTerm = _zpos * (dpos * _sigma_tr + 1.0) * Spectrum::exp(-_sigma_tr * dpos);
+        const Spectrum negTerm = _zneg * (dneg * _sigma_tr + 1.0) * Spectrum::exp(-_sigma_tr * dneg);
+        const Spectrum Rd = _alphap * (posTerm * dneg3 - negTerm * dpos3) / (4.0 * PI * dpos3 * dneg3 * _sigma_tr);
+        return Spectrum::clamp(Rd);
     }
 
     BSSRDFBase* DipoleBSSRDF::clone() const {
@@ -116,7 +116,7 @@ namespace spica {
         , _colors() {
     }
 
-    DiffuseBSSRDF::DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors)
+    DiffuseBSSRDF::DiffuseBSSRDF(const double eta, const std::vector<double>& distances, const std::vector<Spectrum>& colors)
         : BSSRDFBase(eta)
         , _distances(distances)
         , _colors(colors) {
@@ -151,7 +151,7 @@ namespace spica {
         return *this;
     }
 
-    BSSRDF DiffuseBSSRDF::factory(const double eta, const std::vector<double>& distances, const std::vector<Color>& colors) {
+    BSSRDF DiffuseBSSRDF::factory(const double eta, const std::vector<double>& distances, const std::vector<Spectrum>& colors) {
         return std::move(BSSRDF(new DiffuseBSSRDF(eta, distances, colors)));
     }
 
@@ -159,9 +159,9 @@ namespace spica {
         return std::move(BSSRDF(new DiffuseBSSRDF(*this)));
     }
 
-    Color DiffuseBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+    Spectrum DiffuseBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
         const double d = (v1 - v2).norm();
-        if (d < 0.0 || d > _distances[_distances.size() - 1]) return Color(0.0, 0.0, 0.0);
+        if (d < 0.0 || d > _distances[_distances.size() - 1]) return Spectrum(0.0, 0.0, 0.0);
         const int idx = std::lower_bound(_distances.begin(), _distances.end(), d) - _distances.begin();
         return _colors[idx];
     }
@@ -178,7 +178,7 @@ namespace spica {
         return _distances;
     }
 
-    const std::vector<Color>& DiffuseBSSRDF::colors() const {
+    const std::vector<Spectrum>& DiffuseBSSRDF::colors() const {
         return _colors;
     }
 
@@ -222,7 +222,7 @@ namespace spica {
         for (int i = 0; i < intervals; i++) {
             ifs.read((char*)ff, sizeof(float) * 4);
             _distances[i] = ff[0];
-            _colors[i] = spica::Color(ff[1], ff[2], ff[3]);
+            _colors[i] = Spectrum(ff[1], ff[2], ff[3]);
         }
 
         ifs.close();
@@ -298,7 +298,7 @@ namespace spica {
         return _ptr->Fdr();
     }
 
-    Color BSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+    Spectrum BSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
         nullCheck();
         return _ptr->operator()(v1, v2);
     }

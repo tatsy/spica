@@ -60,11 +60,11 @@ namespace spica {
         Image ret(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                const Color& color = image(x, y);
+                const RGBSpectrum& color = image(x, y);
                 const double r = clamp(pow(color.red(), invG), 0.0, 1.0);
                 const double g = clamp(pow(color.green(), invG), 0.0, 1.0);
                 const double b = clamp(pow(color.blue(), invG), 0.0, 1.0);
-                ret.pixel(x, y) = Color(r, g, b);
+                ret.pixel(x, y) = RGBSpectrum(r, g, b);
             }
         }
         return std::move(ret);
@@ -177,7 +177,7 @@ namespace spica {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 const double l = image(x, y).luminance();
-                L.pixel(x, y) = Color(l, l, l);
+                L.pixel(x, y) = RGBSpectrum(l, l, l);
                 tmp.pixel(x, y) = image(x, y) / (l + EPS);
             }
         }
@@ -194,10 +194,10 @@ namespace spica {
                 const double l = log10(Lbase(x, y).luminance() + EPS);
                 maxLogBase = std::max(maxLogBase, l);
                 minLogBase = std::min(minLogBase, l);
-                logBase.pixel(x, y) = Color(l, l, l);
+                logBase.pixel(x, y) = RGBSpectrum(l, l, l);
 
                 const double d = log10(Ldetail(x, y).luminance() + EPS);
-                logDetail.pixel(x, y) = Color(d, d, d);
+                logDetail.pixel(x, y) = RGBSpectrum(d, d, d);
             }
         }
 
@@ -208,8 +208,8 @@ namespace spica {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 const double logCompressed = logBase(x, y).luminance() * compressionFactor + logDetail(x, y).luminance() - logAbsolute;
-                const Color compressed = tmp(x, y) * pow(10.0, logCompressed);
-                ret.pixel(x, y) = compressed.clamp(Color(0.0, 0.0, 0.0), Color(1.0, 1.0, 1.0));                
+                const RGBSpectrum compressed = tmp(x, y) * pow(10.0, logCompressed);
+                ret.pixel(x, y) = compressed.clamp(RGBSpectrum(0.0, 0.0, 0.0), RGBSpectrum(1.0, 1.0, 1.0));                
             }
         }
 
@@ -224,7 +224,7 @@ namespace spica {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 const double l = log10(L(x, y).luminance() + 1.0e-6);
-                logL.pixel(x, y) = Color(l, l, l);
+                logL.pixel(x, y) = RGBSpectrum(l, l, l);
             }
         }
 
@@ -237,7 +237,7 @@ namespace spica {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 const double l = std::max(0.0, pow(10.0, filL(x, y).luminance()) - 1.0e-6);
-                Lbase->pixel(x, y) = Color(l, l, l);
+                Lbase->pixel(x, y) = RGBSpectrum(l, l, l);
                 Ldetail->pixel(x, y) = L(x, y) / (l + EPS);
             }
         }        

@@ -38,7 +38,7 @@ TEST_F(VertexDataTest, Instance) {
         Vector3D pos(rng.nextReal() * 2.0 - 1.0,
                      rng.nextReal() * 2.0 - 1.0,
                      rng.nextReal() * 2.0 - 1.0);
-        Color color(rng.nextReal(), rng.nextReal(), rng.nextReal());
+        RGBSpectrum color(rng.nextReal(), rng.nextReal(), rng.nextReal());
         Vector3D normal(rng.nextReal() * 2.0 - 1.0,
                         rng.nextReal() * 2.0 - 1.0,
                         rng.nextReal() * 2.0 - 1.0);
@@ -73,7 +73,7 @@ TEST_F(VertexDataTest, Copy) {
         Vector3D pos(rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0);
-        Color color(rng.nextReal(), rng.nextReal(), rng.nextReal());
+        RGBSpectrum color(rng.nextReal(), rng.nextReal(), rng.nextReal());
         Vector3D normal(rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0);
@@ -110,7 +110,7 @@ TEST_F(VertexDataTest, Assign) {
         Vector3D pos(rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0);
-        Color color(rng.nextReal(), rng.nextReal(), rng.nextReal());
+        RGBSpectrum color(rng.nextReal(), rng.nextReal(), rng.nextReal());
         Vector3D normal(rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0);

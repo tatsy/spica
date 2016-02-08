@@ -21,7 +21,7 @@ namespace spica {
             }
         }
 
-        Color sampleWithDirection(const Image& image, const Vector3D& dir) {
+        Spectrum sampleWithDirection(const Image& image, const Vector3D& dir) {
             double theta, phi;
             directionToPolarCoord(dir, &theta, &phi);
         
@@ -111,11 +111,11 @@ namespace spica {
         _importance.resize(width, height);
     }
 
-    Color Envmap::directLight(const Vector3D& dir) const {
+    Spectrum Envmap::directLight(const Vector3D& dir) const {
         return sampleWithDirection(_image, dir);
     }
 
-    Color Envmap::globalLight(const Vector3D& dir) const {
+    Spectrum Envmap::globalLight(const Vector3D& dir) const {
         return sampleWithDirection(_image, dir);
     }
 
@@ -125,7 +125,7 @@ namespace spica {
 
     LightSample Envmap::sample(const Vector3D& vtx, Stack<double>& rands) const {
         Vector3D pos, dir, nrm;
-        Color emt;
+        Spectrum emt;
         double pdf;
         sampleOnLight(&pos, &dir, &nrm, &emt, &pdf, rands);
 
@@ -135,15 +135,15 @@ namespace spica {
 
     Photon Envmap::samplePhoton(Stack<double>& rands) const {
         Vector3D pos, dir, nrm;
-        Color emt;
+        Spectrum emt;
         double pdf;
         sampleOnLight(&pos, &dir, &nrm, &emt, &pdf, rands);
 
-        Color flux = emt / pdf;
+        Spectrum flux = emt / pdf;
         return Photon(pos, flux, dir, nrm);
     }
 
-    void Envmap::sampleOnLight(Vector3D* pos, Vector3D* dir, Vector3D* nrm, Color* emt, double* pdf, Stack<double>& rands) const {
+    void Envmap::sampleOnLight(Vector3D* pos, Vector3D* dir, Vector3D* nrm, Spectrum* emt, double* pdf, Stack<double>& rands) const {
         const int width  = IMPORTANCE_MAP_SIZE;
         const int height = IMPORTANCE_MAP_SIZE;
 
@@ -192,7 +192,7 @@ namespace spica {
                 const int begin_y = static_cast<int>(v * _image.height());
                 const int end_y = clamp<int>(static_cast<int>(next_v * _image.height()), 0, _image.height());
 
-                Color accum;
+                Spectrum accum;
                 const int area = (end_y - begin_y) * (end_x - begin_x);
                 for (int ty = begin_y; ty < end_y; ty++) {
                     for (int tx = begin_x; tx < end_x; tx++) {
@@ -200,7 +200,7 @@ namespace spica {
                     }
                 }
 
-                _importance.pixel(ix, iy) = Color(1.0, 1.0, 1.0) * accum.luminance() / area;
+                _importance.pixel(ix, iy) = Spectrum(1.0, 1.0, 1.0) * accum.luminance() / area;
                 total += _importance(ix, iy).red();
             }
         }
@@ -219,7 +219,7 @@ namespace spica {
         const int superY = _image.height() / height;
         for (int iy = 0; iy < height; iy++) {
             for (int ix = 0; ix < width; ix++) {
-                Color accum(0.0, 0.0, 0.0);
+                Spectrum accum(0.0, 0.0, 0.0);
                 for (int sy = 0; sy < superY; sy++) {
                     for (int sx = 0; sx < superX; sx++) {
                         const double u = (ix + static_cast<double>(sx) / superX) / width;
@@ -264,7 +264,7 @@ namespace spica {
 				const int orgX = static_cast<int>(x / scale);
 				const int orgY = static_cast<int>(y / scale);
 
-				Color sumColor(0.0, 0.0, 0.0);
+				Spectrum sumSpectrum(0.0, 0.0, 0.0);
 				double sumWgt = 0.0;
 				for (int dy = -winsize; dy <= winsize; dy++) {
 					for (int dx = -winsize; dx <= winsize; dx++) {
@@ -272,19 +272,19 @@ namespace spica {
 						int ny = orgY + dy;
 						if (nx >= 0 && ny >= 0 && nx < _image.width() && ny < _image.height()) {
 							double wgt = exp(- (dx * dx + dy * dy) / sigma);
-							sumColor += wgt * _image(nx, ny);
+							sumSpectrum += wgt * _image(nx, ny);
 							sumWgt += wgt;
 						}
 					}
 				}
-				temp.pixel(x, y) = sumColor / (sumWgt + EPS);
+				temp.pixel(x, y) = sumSpectrum / (sumWgt + EPS);
 			}
 		}
 
         _lowres.resize(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-				Color sumColor(0.0, 0.0, 0.0);
+				Spectrum sumSpectrum(0.0, 0.0, 0.0);
 				double sumWgt = 0.0;
 				for (int dy = -winsize; dy <= winsize; dy++) {
 					for (int dx = -winsize; dx <= winsize; dx++) {
@@ -292,12 +292,12 @@ namespace spica {
                         int ny = y + dy;
                         if (nx >= 0 && ny >= 0 && nx < width && ny < height && dx * dx + dy * dy <= winsize * winsize) {
 							double wgt = exp(- (dx * dx + dy * dy) / sigma);
-							sumColor += wgt * temp(nx, ny);
+							sumSpectrum += wgt * temp(nx, ny);
 							sumWgt += wgt;                            
                         }
                     }
                 }
-                _lowres.pixel(x, y) = sumColor / (sumWgt + EPS);
+                _lowres.pixel(x, y) = sumSpectrum / (sumWgt + EPS);
             }
         }
 	}

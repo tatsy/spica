@@ -14,7 +14,7 @@ namespace spica {
         , _totalArea{0.0} {
     }
 
-    AreaLight::AreaLight(const Trimesh& tris, const Color& emittance)
+    AreaLight::AreaLight(const Trimesh& tris, const Spectrum& emittance)
         : Light{LightType::Area}
         , _emittance{emittance}
         , _triangles{}
@@ -99,7 +99,7 @@ namespace spica {
         Vector3D dir;
         sampler::onHemisphere(n, &dir, rands.pop(), rands.pop());
 
-        Color flux = PI * _emittance * area();
+        Spectrum flux = PI * _emittance * area();
         return Photon(p, flux, dir, n);
     }
 
@@ -114,12 +114,12 @@ namespace spica {
         sampler::onTriangle(tri, pos, nrm, rands.pop(), rands.pop());            
     }
 
-    Color AreaLight::directLight(const Vector3D& dir) const {
+    Spectrum AreaLight::directLight(const Vector3D& dir) const {
         return _emittance;
     }
 
-    Color AreaLight::globalLight(const Vector3D& dir) const {
-        return Color::BLACK;
+    Spectrum AreaLight::globalLight(const Vector3D& dir) const {
+        return Spectrum{};
     }
 
     double AreaLight::area() const {

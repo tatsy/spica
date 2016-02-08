@@ -89,10 +89,10 @@ namespace spica {
                 Vector3D n10 = Vector3D(cp1 * st0, sp1 * st0, ct0);
                 Vector3D n11 = Vector3D(cp1 * st1, sp1 * st1, ct1);
 
-                VertexData v00(_center + _radius * n00, Color::BLACK, n00);
-                VertexData v01(_center + _radius * n01, Color::BLACK, n01);
-                VertexData v10(_center + _radius * n10, Color::BLACK, n10);
-                VertexData v11(_center + _radius * n11, Color::BLACK, n11);
+                VertexData v00(_center + _radius * n00, Spectrum{}, n00);
+                VertexData v01(_center + _radius * n01, Spectrum{}, n01);
+                VertexData v10(_center + _radius * n10, Spectrum{}, n10);
+                VertexData v11(_center + _radius * n11, Spectrum{}, n11);
 
                 const int idx = static_cast<int>(vertices.size());
                 vertices.push_back(v00);

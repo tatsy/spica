@@ -32,7 +32,7 @@ namespace spica {
         return *this;
     }
 
-    void VBO::add(const Vector3D& v, const Vector3D& normal, const Color& color) {
+    void VBO::add(const Vector3D& v, const Vector3D& normal, const RGBSpectrum& color) {
         _vertices.push_back(v.x());
         _vertices.push_back(v.y());
         _vertices.push_back(v.z());

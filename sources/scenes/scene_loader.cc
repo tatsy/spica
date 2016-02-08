@@ -51,9 +51,9 @@ namespace spica {
             std::string bsdfType = bsdfElem.valueByKey("type").asString();
 
             std::vector<double> ref = bsdfElem.valueByKey("refl").asDoubleList();
-            Color reflectance(ref[0], ref[1], ref[2]);
+            Spectrum reflectance(ref[0], ref[1], ref[2]);
             std::vector<double> emt = bsdfElem.valueByKey("emit").asDoubleList();
-            Color emission(emt[0], emt[1], emt[2]);
+            Spectrum emission(emt[0], emt[1], emt[2]);
             bool isLight = elem.valueByKey("light").asBool();
 
             BSDF bsdf;

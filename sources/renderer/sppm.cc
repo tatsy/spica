@@ -26,9 +26,9 @@ namespace spica {
     struct SPPMRenderer::SPPMPixel {
         Vector3D position;
         Vector3D normal;
-        Color flux;
-        Color weight;
-        Color emission;
+        Spectrum flux;
+        Spectrum weight;
+        Spectrum emission;
         double coeff;
         int x, y;
         double r2;
@@ -77,9 +77,9 @@ namespace spica {
             return *this;
         }
 
-        Color radiance() const {
-            const Color  rad = flux / (PI * r2);
-            return Color((emission + rad) * coeff);
+        Spectrum radiance() const {
+            const Spectrum rad = flux / (PI * r2);
+            return (emission + rad) * coeff;
         }
     };
 
@@ -143,7 +143,7 @@ namespace spica {
 
             // Save temporal image
             Image image(width, height);
-            image.fill(Color::BLACK);
+            image.fill(RGBSpectrum(0.0, 0.0, 0.0));
             for (int i = 0; i < numPoints; i++) {
                 const int px = width - hpoints[i].x - 1;
                 const int py = hpoints[i].y;
@@ -184,7 +184,7 @@ namespace spica {
             if (pixels[i].n == 0) {
                 pixels[i].r2 = irad * irad;
                 pixels[i].n  = 0;
-                pixels[i].flux = Color(0.0, 0.0, 0.0);
+                pixels[i].flux = Spectrum(0.0, 0.0, 0.0);
             }
 
             bbox.merge(pixels[i].position + iradv);
@@ -270,7 +270,7 @@ namespace spica {
                 Photon photon = scene.samplePhoton(rstk);
 
                 // Compute flux
-                Color flux = photon.flux() / numPhotons;
+                Spectrum flux = photon.flux() / numPhotons;
 
                 // Prepare ray
                 Vector3D nextDir;
@@ -291,7 +291,7 @@ namespace spica {
 
     void SPPMRenderer::tracePhotonsRec(const Scene& scene, const Ray& ray,
                                        const RenderParameters& params,
-                                       const Color& flux,
+                                       const Spectrum& flux,
                                        int bounces,
                                        Stack<double>& rstk) const {
         // Too many bounces terminate the recursion
@@ -312,7 +312,7 @@ namespace spica {
 
         const int    objectID = isect.objectID();
         const BSDF&  bsdf     = scene.getBsdf(objectID);
-        const Color& refl     = isect.color();
+        const Spectrum& refl     = isect.color();
         const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
         const Vector3D orientNormal = into ?  isect.normal()
                                            : -isect.normal();
@@ -357,7 +357,7 @@ namespace spica {
         bsdf.sample(ray.direction(), isect.normal(),
                     rstk.pop(), rstk.pop(), &nextdir, &samplePdf);
         const Ray nextRay(isect.position(), nextdir);
-        const Color nextFlux = Color(flux * refl / (photonPdf * samplePdf));
+        const Spectrum nextFlux = Spectrum(flux * refl / (photonPdf * samplePdf));
 
         tracePhotonsRec(scene, nextRay, params, nextFlux, bounces + 1, rstk);
     }
@@ -375,11 +375,11 @@ namespace spica {
         const double coeff = camera.sensitivity() / camSample.pdf();
 
         Intersection isect;
-        Color weight(1.0, 1.0, 1.0);
-        Color throughput(0.0, 0.0, 0.0);
+        Spectrum weight(1.0, 1.0, 1.0);
+        Spectrum throughput(0.0, 0.0, 0.0);
         for (int bounce = 0; ; bounce++) {
             if (!scene.intersect(ray, &isect) || bounce > params.bounceLimit()) {
-                weight = Color::BLACK;
+                weight = Spectrum(0.0, 0.0, 0.0);
                 pixel->weight = weight;
                 pixel->coeff = coeff;
                 pixel->emission += scene.globalLight(ray.direction());
@@ -388,7 +388,7 @@ namespace spica {
 
             const int       objectID = isect.objectID();
             const BSDF&     bsdf     = scene.getBsdf(objectID);
-            const Color&    emission = scene.isLightCheck(objectID) ? scene.directLight(ray.direction()) : Color::BLACK;
+            const Spectrum& emission = scene.isLightCheck(objectID) ? scene.directLight(ray.direction()) : Spectrum(0.0, 0.0, 0.0);
             const bool      into     = Vector3D::dot(isect.normal(),
                                                      ray.direction()) < 0.0;
             const Vector3D orientNormal = into ?  isect.normal()
@@ -414,7 +414,7 @@ namespace spica {
                               "Subsurface integrator is NULL !!");
 
                     double refPdf = 1.0;
-                    Color bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
+                    Spectrum bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
                                                       isect.position(),
                                                       isect.normal(),
                                                       *_integrator,

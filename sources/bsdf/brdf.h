@@ -7,102 +7,110 @@
 
 #include "../core/common.h"
 #include "../math/vector3d.h"
-#include "../core/color.h"
+#include "../core/spectrum.h"
 
 namespace spica {
 
     class BSDF;
 
-    /** Interface for BSDF object 
+    /** Abstract class for BSDF object 
      *  @ingroup bsdf_module
      */
-    class SPICA_EXPORTS BSDFBase {
-    protected:
-        BSDFBase() {}
-        explicit BSDFBase(const BSDFBase&) {}
-
+    class SPICA_EXPORTS AbstractBSDF {
     public:
-        virtual ~BSDFBase() {}
-        virtual const Color& reflectance() const = 0;
+        // Public methods
+        AbstractBSDF() {}
+        virtual ~AbstractBSDF() {}
+        virtual const Spectrum& reflectance() const = 0;
         virtual void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const = 0;
         virtual double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const = 0;
-        virtual BSDFBase* clone() const = 0;
+        virtual AbstractBSDF* clone() const = 0;
     };
 
 
     /** Lambertian BRDF.
      *  @ingroup bsdf_module
      */
-    class SPICA_EXPORTS LambertianBRDF : public BSDFBase {
-    private:
-        Color _reflectance;
+    class SPICA_EXPORTS LambertianBRDF : public AbstractBSDF {
 
     public:
-        static BSDF factory(const Color& reflectance);
-        const Color& reflectance() const override;
+        // Public methods
+        static BSDF factory(const Spectrum& reflectance);
+        const Spectrum& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
         double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
-        BSDFBase* clone() const override;
+        AbstractBSDF* clone() const override;
 
     private:
-        explicit LambertianBRDF(const Color& reflectance);
+        // Private methods
+        explicit LambertianBRDF(const Spectrum& reflectance);
+
+        // Private fields
+        Spectrum reflectance_;
     };
 
 
     /** Specular BRDF.
      *  @ingroup bsdf_module
      */
-    class SPICA_EXPORTS SpecularBRDF : public BSDFBase {
-    private:
-        Color _reflectance;
-
+    class SPICA_EXPORTS SpecularBRDF : public AbstractBSDF {
     public:
-        static BSDF factory(const Color& reflectance);
-        const Color& reflectance() const override;
+        // Public methods
+        static BSDF factory(const Spectrum& reflectance);
+        const Spectrum& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
         double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
-        BSDFBase* clone() const override;
+        AbstractBSDF* clone() const override;
 
     private:
-        explicit SpecularBRDF(const Color& reflectance);
+        // Private methods
+        explicit SpecularBRDF(const Spectrum& reflectance);
+
+        // Private fields
+        Spectrum reflectance_;
     };
 
 
     /** Phong BRDF.
      *  @ingroup bsdf_module
      */
-    class SPICA_EXPORTS PhongBRDF : public BSDFBase {
-    private:
-        Color _reflectance;
-        double _coeff;
-
+    class SPICA_EXPORTS PhongBRDF : public AbstractBSDF {
     public:
-        static BSDF factory(const Color& reflectance, const double n = 32);
-        const Color& reflectance() const override;
+        // Public methods
+        static BSDF factory(const Spectrum& reflectance, const double n = 32);
+        const Spectrum& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
         double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
-        BSDFBase* clone() const override;
+        AbstractBSDF* clone() const override;
 
     private:
-        PhongBRDF(const Color& reflectance, const double n);
+        // Private methods
+        PhongBRDF(const Spectrum& reflectance, const double n);
+
+        // Private fields
+        Spectrum reflectance_;
+        double   coeff_;
     };
 
     /** Refractive BSDF
      *  @ingroup bsdf_module
      */
-    class SPICA_EXPORTS RefractiveBSDF : public BSDFBase {
-    private:
-        Color _reflectance;
+    class SPICA_EXPORTS RefractiveBSDF : public AbstractBSDF {
 
     public:
-        static BSDF factory(const Color& reflectance);
-        const Color& reflectance() const override;
+        // Public methods
+        static BSDF factory(const Spectrum& reflectance);
+        const Spectrum& reflectance() const override;
         void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
         double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
-        BSDFBase* clone() const override;
+        AbstractBSDF* clone() const override;
 
     private:
-        RefractiveBSDF(const Color& reflectance);
+        // Private methods
+        RefractiveBSDF(const Spectrum& reflectance);
+
+        // Private fields
+        Spectrum reflectance_;
     };
 
 }  // namespace spica

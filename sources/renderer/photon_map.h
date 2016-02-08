@@ -7,7 +7,7 @@
 
 #include "../bsdf/bsdf.h"
 
-#include "../core/color.h"
+#include "../core/spectrum.h"
 #include "../core/kdtree.h"
 #include "../core/uncopyable.h"
 #include "../core/stack.h"
@@ -27,15 +27,9 @@ namespace spica {
     // Photon
     // ------------------------------------------------------------------------
     class SPICA_EXPORTS Photon  {
-    private:
-        Vector3D _position;
-        Color    _flux;
-        Vector3D _direction;
-        Vector3D _normal;
-
     public:
         Photon();
-        Photon(const Vector3D& position, const Color& flux, 
+        Photon(const Vector3D& position, const Spectrum& flux, 
                const Vector3D& direction, const Vector3D& normal);
         Photon(const Photon& photon);
         ~Photon();
@@ -47,9 +41,15 @@ namespace spica {
         static double distance(const Photon& p1, const Photon& p2);
 
         inline Vector3D position()  const { return _position;  }
-        inline Color    flux()      const { return _flux;      }
+        inline Spectrum flux()      const { return _flux;      }
         inline Vector3D direction() const { return _direction; }
         inline Vector3D normal()    const { return _normal;    }
+
+    private:
+        Vector3D _position;
+        Spectrum _flux;
+        Vector3D _direction;
+        Vector3D _normal;
     };
 
     // ------------------------------------------------------------------------
@@ -68,7 +68,7 @@ namespace spica {
                        const RenderParameters& params,
                        BsdfType absorbBsdf);
 
-        Color evaluate(const Vector3D& position,
+        Spectrum evaluate(const Vector3D& position,
                        const Vector3D& normal,
                        int gatherPhotons, double gatherRadius) const;
         
@@ -78,7 +78,7 @@ namespace spica {
 
         void tracePhoton(const Scene& scene, const Ray& ray,
                          const RenderParameters& params,
-                         const Color& flux, Stack<double>& rstk,
+                         const Spectrum& flux, Stack<double>& rstk,
                          int bounces, BsdfType absorbBsdf,
                          std::vector<Photon>* photons);
     };

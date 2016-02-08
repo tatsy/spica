@@ -15,7 +15,7 @@ TEST_F(AreaLightTest, Instance) {
     const Vector3D v10( 10.0, 0.0, -10.0);
     const Vector3D v11( 10.0, 0.0,  10.0);
     Quad quad(v00, v01, v11, v10);
-    Lighting light = Lighting::asAreaLight(quad.triangulate(), Color(32.0, 32.0, 32.0));
+    Lighting light = Lighting::asAreaLight(quad.triangulate(), Spectrum(32.0, 32.0, 32.0));
 
     EXPECT_EQ(quad.area(), light.area());
 }

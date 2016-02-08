@@ -59,7 +59,7 @@ namespace spica {
 
         /** Initialize lighting as area light
          */
-        static Lighting asAreaLight(const Trimesh& triangles, const Color& emittance);
+        static Lighting asAreaLight(const Trimesh& triangles, const Spectrum& emittance);
 
         /** Sample position on light.
          *  @param[in] v: Previous hit point.
@@ -72,8 +72,8 @@ namespace spica {
          */
         Photon samplePhoton(Stack<double>& rands) const;
 
-        Color directLight(const Vector3D& dir) const;
-        Color globalLight(const Vector3D& dir) const;
+        Spectrum directLight(const Vector3D& dir) const;
+        Spectrum globalLight(const Vector3D& dir) const;
 
         Light* ptr() const;
         double area() const;

@@ -8,18 +8,14 @@
 #include <string>
 #include <memory>
 
-#include "../core/color.h"
+#include "../core/spectrum.h"
 
 namespace spica {
 
-    /** Image class.
+    /** 
+     * Image class.
      */
     class SPICA_EXPORTS Image {
-    private:
-        unsigned int _width  = 0U;
-        unsigned int _height = 0U;
-        std::unique_ptr<Color[]> _pixels = {};
-
     public:
         Image();
         Image(unsigned int width, unsigned int height);
@@ -33,11 +29,11 @@ namespace spica {
 
         static Image fromFile(const std::string& filename);
 
-        const Color& operator()(int x, int y) const;
-        Color& pixel(int x, int y);
+        const RGBSpectrum& operator()(int x, int y) const;
+        RGBSpectrum& pixel(int x, int y);
 
         void resize(const int width, const int height);
-        void fill(const Color& color);
+        void fill(const RGBSpectrum& color);
 
         void load(const std::string& filename);
         void save(const std::string& filename) const;
@@ -46,8 +42,11 @@ namespace spica {
         inline unsigned int height() const { return _height; }
 
     protected:
-        /** Post save process.
-         *  This can be mainly used in the overloaded class.
+        /** 
+         * @brief Post save process.
+         * @details 
+         * This method is used, for example in the derived class,
+         * when you want to notify another process that the image is saved.
          */
         virtual void postSave() const {}
 
@@ -64,6 +63,12 @@ namespace spica {
 
         void loadPng(const std::string& filename);
         void savePng(const std::string& filename) const;
+
+    private:
+        unsigned int _width  = 0U;
+        unsigned int _height = 0U;
+        std::unique_ptr<RGBSpectrum[]> _pixels = {};
+
     };
 
 }

@@ -38,7 +38,7 @@ namespace spica {
     }
 
     Lighting Lighting::asAreaLight(const Trimesh& triangles,
-                                   const Color& emittance) {
+                                   const Spectrum& emittance) {
         Lighting l;
         l._ptr = std::make_unique<AreaLight>(triangles, emittance);
         return std::move(l);
@@ -66,12 +66,12 @@ namespace spica {
         return _ptr->samplePhoton(rands);        
     }
 
-    Color Lighting::directLight(const Vector3D& dir) const {
+    Spectrum Lighting::directLight(const Vector3D& dir) const {
         Assertion(_ptr != nullptr, "Light pointer is null!!");
         return _ptr->directLight(dir);
     }
 
-    Color Lighting::globalLight(const Vector3D& dir) const {
+    Spectrum Lighting::globalLight(const Vector3D& dir) const {
         Assertion(_ptr != nullptr, "Light pointer is null!!");
         return _ptr->globalLight(dir);
     }

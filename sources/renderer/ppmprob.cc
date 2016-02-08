@@ -77,7 +77,7 @@ namespace spica {
 
         // Rendering
         Image buffer(width, height);
-        buffer.fill(Color::BLACK);
+        buffer.fill(RGBSpectrum(0.0, 0.0, 0.0));
         _result.resize(width, height);
         for (int i = 0; i < params.samplePerPixel(); i++) {
             // Precomputation for subsurface scattering
@@ -129,28 +129,28 @@ namespace spica {
     }
 
     // Path tracing
-    Color PPMPRenderer::tracePath(const Scene& scene,
-                                  const Camera& camera,
-                                  const RenderParameters& params, 
-                                  Stack<double>& rstk, 
-                                  const int pixelX,
-                                  const int pixelY) const {
+    Spectrum PPMPRenderer::tracePath(const Scene& scene,
+                                     const Camera& camera,
+                                     const RenderParameters& params, 
+                                     Stack<double>& rstk, 
+                                     const int pixelX,
+                                     const int pixelY) const {
         CameraSample camSample = camera.sample(pixelX, pixelY, rstk);
         const Ray    ray       = camSample.ray();
         const double invpdf    = (camera.sensitivity() / camSample.pdf());
 
-        return Color(radiance(scene, params, ray, rstk, 0) * invpdf);
+        return Spectrum(radiance(scene, params, ray, rstk, 0) * invpdf);
     }    
 
     // Recursive function to compute radiance
-    Color PPMPRenderer::radiance(const Scene& scene, 
-                                 const RenderParameters& params, 
-                                 const Ray& ray,
-                                 Stack<double>& rseq,
-                                 int bounces) const {
+    Spectrum PPMPRenderer::radiance(const Scene& scene, 
+                                    const RenderParameters& params, 
+                                    const Ray& ray,
+                                    Stack<double>& rseq,
+                                    int bounces) const {
         // Too many bounces terminate recursion
         if (bounces >= params.bounceLimit()) {
-            return Color::BLACK;
+            return Spectrum(0.0, 0.0, 0.0);
         }
 
         // Intersection test
@@ -163,13 +163,13 @@ namespace spica {
         const int objID = isect.objectID();
         const BSDF& bsdf = scene.getBsdf(objID);
 
-        const Color emission = scene.isLightCheck(objID) ? scene.directLight(ray.direction()) : Color::BLACK;
+        const Spectrum emission = scene.isLightCheck(objID) ? scene.directLight(ray.direction()) : Spectrum(0.0, 0.0, 0.0);
         const bool into = Vector3D::dot(ray.direction(), isect.normal()) < 0.0;
         const Vector3D orientNormal = into ?  isect.normal() 
                                            : -isect.normal();
 
         // Russian roulette
-        const Color& refl = isect.color();
+        const Spectrum& refl = isect.color();
         double roulette = max3(refl.red(), refl.green(), refl.blue());
         if (bounces > params.bounceStartRoulette()) {
             if (rseq.pop() > roulette) {
@@ -179,12 +179,12 @@ namespace spica {
         roulette = 1.0;
 
         // Variables for next bounce
-        Color bssrdfRad(0.0, 0.0, 0.0);
+        Spectrum bssrdfRad(0.0, 0.0, 0.0);
         Vector3D nextdir;
         double pdf = 1.0;
 
         // Next radiance
-        Color nextRad(0.0, 0.0, 0.0);
+        Spectrum nextRad(0.0, 0.0, 0.0);
         if (bsdf.type() & BsdfType::Lambertian) {
             nextRad = photonMap.evaluate(isect.position(),
                                          isect.normal(),
@@ -207,7 +207,7 @@ namespace spica {
                                         &refPdf);
             pdf *= refPdf;
         }
-        return Color(emission + (bssrdfRad + isect.color() * nextRad / pdf) / roulette);
+        return emission + (bssrdfRad + isect.color() * nextRad / pdf) / roulette;
     }
 
 }  // namespace spica

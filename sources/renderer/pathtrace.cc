@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "../core/common.h"
+#include "../core/spectrum.h"
 #include "../core/sampler.h"
 #include "../image/image.h"
 #include "../image/tmo.h"
@@ -71,7 +72,7 @@ namespace spica {
         // Trace rays
         int processed = 0;
         _result.resize(width, height);
-        buffer.fill(Color::BLACK);
+        buffer.fill(RGBSpectrum(0.0, 0.0, 0.0));
         for (int i = 0; i < params.samplePerPixel(); i++) {
             if (i % kNumThreads == 0) {
                 _integrator->construct(scene, params);
@@ -108,22 +109,22 @@ namespace spica {
         printf("\nFinish!!\n");
     }
 
-    Color PathRenderer::tracePath(const Scene& scene, const Camera& camera, 
-                                  const RenderParameters& params,
-                                  const double pixelX, const double pixelY,
-                                  Stack<double>& rands) {
+    Spectrum PathRenderer::tracePath(const Scene& scene, const Camera& camera, 
+                                     const RenderParameters& params,
+                                     const double pixelX, const double pixelY,
+                                     Stack<double>& rands) {
         CameraSample camSample = camera.sample(pixelX, pixelY, rands);
         const Ray ray = camSample.ray();
 
         return radiance(scene, params, ray, rands, 0) * (camera.sensitivity() / camSample.pdf());
     }
 
-    Color PathRenderer::radiance(const Scene& scene,
+    Spectrum PathRenderer::radiance(const Scene& scene,
                                 const RenderParameters& params,
                                 const Ray& ray, Stack<double>& rstack,
                                 int bounces) const {
         if (bounces >= params.bounceLimit()) {
-            return Color::BLACK;
+            return RGBSpectrum(0.0, 0.0, 0.0);
         }
 
         Intersection isect;
@@ -134,7 +135,7 @@ namespace spica {
         // Get intersecting material
         const int objectID     = isect.objectID();
         const BSDF& bsdf       = scene.getBsdf(objectID);
-        const Color& refl      = isect.color();
+        const Spectrum& refl      = isect.color();
 
         // Russian roulette
         double roulette = max3(refl.red(), refl.green(), refl.blue());
@@ -142,12 +143,12 @@ namespace spica {
             roulette = 1.0;
         } else {
             if (roulette <= rstack.pop()) {
-                return Color::BLACK;
+                return Spectrum(0.0, 0.0, 0.0);
             }
         }
 
         // Variables for next bounce
-        Color bssrdfRad(0.0, 0.0, 0.0);
+        Spectrum bssrdfRad(0.0, 0.0, 0.0);
         Vector3D nextdir;
         double pdf = 1.0;
 
@@ -170,14 +171,14 @@ namespace spica {
         }
 
         // Sample direct lighting
-        Color directrad = directSample(scene, objectID, ray.direction(),
-                                       isect.position(), isect.normal(),
-                                       refl, bounces, rstack);
+        Spectrum directrad = directSample(scene, objectID, ray.direction(),
+                                          isect.position(), isect.normal(),
+                                          refl, bounces, rstack);
 
         // Compute next bounce
         const Ray nextray(isect.position(), nextdir);
-        const Color nextrad = radiance(scene, params, nextray,
-                                       rstack, bounces + 1);            
+        const Spectrum nextrad = radiance(scene, params, nextray,
+                                          rstack, bounces + 1);            
 
 
         return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
@@ -189,17 +190,17 @@ namespace spica {
         return (ff * ff) / (ff * ff + gg * gg);
     }
 
-    Color PathRenderer::directSample(const Scene& scene, const int triID,
-                                     const Vector3D& in, const Vector3D& v,
-                                     const Vector3D& n, const Color& refl,
-                                     int bounces, Stack<double>& rstk) const {
+    Spectrum PathRenderer::directSample(const Scene& scene, const int triID,
+                                        const Vector3D& in, const Vector3D& v,
+                                        const Vector3D& n, const Spectrum& refl,
+                                        int bounces, Stack<double>& rstk) const {
         const BSDF& bsdf = scene.getBsdf(triID);
         if (bsdf.type() & BsdfType::Scatter) {
             // Scattering surface
             if (bounces == 0 && scene.isLightCheck(triID)) {
                 return scene.directLight(in);
             } else {
-                Color Ld(0.0, 0.0, 0.0);
+                Spectrum Ld(0.0, 0.0, 0.0);
 
                 // Sample light with multiple importance sampling
                 const LightSample Ls = scene.sampleLight(v, rstk);                
@@ -261,7 +262,7 @@ namespace spica {
             FatalError("Invalid BSDF detected: this is "
                        "neigher scattering nor dielectric!!");
         }
-        return Color(0.0, 0.0, 0.0);
+        return Spectrum(0.0, 0.0, 0.0);
     }
 
 }  // namespace spica

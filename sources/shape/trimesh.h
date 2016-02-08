@@ -176,12 +176,12 @@ namespace spica {
         /** Set color to the specified vertex.
          *  @param[in] vertexID: ID of the vertex.
          */
-        void setColor(int vertexID, const Color& color);
+        void setColor(int vertexID, const RGBSpectrum& color);
 
         /** Get the color of the vertex with specified ID.
          *  @param[in] vertexID: ID of the vertex.
          */
-        Color getColor(int vertexID) const;
+        RGBSpectrum getColor(int vertexID) const;
 
         /** Get the normal of a face with specified ID.
          *  @param[in] faceID: ID of the triangle to get a normal.

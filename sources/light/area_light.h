@@ -18,14 +18,14 @@ namespace spica {
      */
     class SPICA_EXPORTS AreaLight : public Light {
     private:
-        Color _emittance;
+        Spectrum _emittance;
         std::vector<Triangle> _triangles;
         std::vector<double>   _samplePdf;
         double _totalArea;
 
     public:
         AreaLight();
-        AreaLight(const Trimesh& triangles, const Color& emittance);
+        AreaLight(const Trimesh& triangles, const Spectrum& emittance);
         AreaLight(const AreaLight& l);
         AreaLight(AreaLight&& l);
 
@@ -36,8 +36,8 @@ namespace spica {
 
         LightSample sample(const Vector3D& v, Stack<double>& rands) const override;
         Photon samplePhoton(Stack<double>& rands) const override;
-        Color directLight(const Vector3D& dir) const override;
-        Color globalLight(const Vector3D& dir) const override;
+        Spectrum directLight(const Vector3D& dir) const override;
+        Spectrum globalLight(const Vector3D& dir) const override;
         double area() const override;
         Light* clone() const override;
 

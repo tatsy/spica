@@ -63,7 +63,7 @@ namespace spica {
         for (int i = 0; i < tris.size(); i++) {
             int idx = _vertices.size();
             for (int k = 0; k < 3; k++) {
-                _vertices.emplace_back(tris[i][k], Color(0.0, 0.0, 0.0), tris[i].normal());
+                _vertices.emplace_back(tris[i][k], Spectrum(0.0, 0.0, 0.0), tris[i].normal());
             }
             _faces.emplace_back(idx, idx + 1, idx + 2);
         }    
@@ -266,12 +266,12 @@ namespace spica {
         return _vertices[id].setTexcoord(texcoord);
     }
 
-    void Trimesh::setColor(int id, const Color& color) {
+    void Trimesh::setColor(int id, const Spectrum& color) {
         Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         _vertices[id].setColor(color);
     }
 
-    Color Trimesh::getColor(int id) const {
+    Spectrum Trimesh::getColor(int id) const {
         Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _vertices[id].color();
     }

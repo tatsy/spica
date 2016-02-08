@@ -12,6 +12,7 @@
 #include "../core/common.h"
 #include "../core/uncopyable.h"
 #include "../core/forward_decl.h"
+#include "../core/spectrum.h"
 
 namespace spica {
 
@@ -65,12 +66,12 @@ namespace spica {
 
         /** Get direct lighting from specified direction
          */
-        Color directLight(const Vector3D& dir) const; 
+        Spectrum directLight(const Vector3D& dir) const; 
 
         /** Get lighting of global enviroment.
          *  @details This method is usually used to sample light when the ray does not intersect anything.
          */
-        Color globalLight(const Vector3D& dir) const;
+        Spectrum globalLight(const Vector3D& dir) const;
 
         /** Sample vertex on the light. This method consumes three random numbers.
          */
@@ -130,7 +131,7 @@ namespace spica {
          *           this fuction call overwrites the light setting.             
          */
         template <class T>
-        void setAreaLight(const T& shape, const Color& emission);
+        void setAreaLight(const T& shape, const Spectrum& emission);
     };
 
 }  // namespace spica

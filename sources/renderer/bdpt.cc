@@ -36,12 +36,12 @@ namespace spica {
         /** Structs for storing path/light tracing results.
          */
         struct TraceResult {
-            Color value;
+            Spectrum value;
             int imageX;
             int imageY;
             HitOn hitObj;
 
-            TraceResult(const Color& value_,
+            TraceResult(const Spectrum& value_,
                         int imageX_, int imageY_,
                         HitOn hitObj_)
                 : value{value_}
@@ -64,21 +64,21 @@ namespace spica {
             Vector3D position;
             Vector3D objectNormal;
             Vector3D orientNormal;
-            Color reflectance;
-            Color emission;
+            Spectrum reflectance;
+            Spectrum emission;
             ObjectType objtype;
             double totalPdfA;
-            Color throughput;
+            Spectrum throughput;
             int objectID;
 
             Vertex(const Vector3D& position_,
                    const Vector3D & orientNormal_,
                    const Vector3D& objectNormal_,
-                   const Color& reflectance_,
-                   const Color& emission_,
+                   const Spectrum& reflectance_,
+                   const Spectrum& emission_,
                    const ObjectType objtype_,
                    const double totalPdfA_,
-                   const Color& throughput_,
+                   const Spectrum& throughput_,
                    int objectID_)
                 : position{position_}
                 , orientNormal{orientNormal_}
@@ -184,7 +184,7 @@ namespace spica {
             if (verts[0]->emission.norm() > 0.0) {
                 roulette = 1.0;
             } else if (verts[0]->objectID >= 0) {
-                const Color& refl = verts[0]->reflectance;
+                const Spectrum& refl = verts[0]->reflectance;
                 roulette = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
             }
 
@@ -235,7 +235,7 @@ namespace spica {
             // Store vertex on light itself
             double totalPdfA = 1.0 / scene.lightArea();
             vertices->push_back(Vertex(Ls.position(), Ls.normal(), Ls.normal(),
-                                       Color(0.0, 0.0, 0.0), Ls.Le(), ObjectType::Light, totalPdfA, Color(0.0, 0.0, 0.0), -1));
+                                       Spectrum(0.0, 0.0, 0.0), Ls.Le(), ObjectType::Light, totalPdfA, Spectrum(0.0, 0.0, 0.0), -1));
 
             // Compute initial tracing direction
             Vector3D nextDir;
@@ -246,7 +246,7 @@ namespace spica {
             Vector3D prevNormal = Ls.normal();
 
             // Trace light ray
-            Color throughput = Ls.Le();
+            Spectrum throughput = Ls.Le();
             for (int bounce = 0; bounce < bounceLimit; bounce++) {
                 const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
 
@@ -273,9 +273,9 @@ namespace spica {
                     const double G = x0x1.normalized().dot(camera.direction().normalized()) * (-1.0) * (x0x1.normalized().dot(prevNormal) / x0x1.dot(x0x1));
                     throughput *= G;
                     vertices->push_back(Vertex(positionOnLens, camera.direction().normalized(), camera.direction().normalized(),
-                                        Color(0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0), ObjectType::Lens, totalPdfA, throughput, -1));
+                                        Spectrum(0.0, 0.0, 0.0), Spectrum(0.0, 0.0, 0.0), ObjectType::Lens, totalPdfA, throughput, -1));
                 
-                    const Color result = Color((camera.contribSensitivity(x0xV, x0xI, x0x1) * throughput) / totalPdfA);
+                    const Spectrum result = Spectrum((camera.contribSensitivity(x0xV, x0xI, x0x1) * throughput) / totalPdfA);
                     return TraceResult(result, x, y, HitOn::Lens);
                 }
 
@@ -286,7 +286,7 @@ namespace spica {
                 // Otherwise, trace next direction
                 const int triangleID = isect.objectID();
                 const BSDF& bsdf = scene.getBsdf(triangleID);
-                const Color& refl = isect.color();
+                const Spectrum& refl = isect.color();
 
                 const Vector3D orientNormal = isect.normal().dot(currentRay.direction()) < 0.0 ? isect.normal() : -isect.normal();
                 const double rouletteProb = scene.isLightCheck(triangleID) ? 1.0 : std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
@@ -304,7 +304,7 @@ namespace spica {
                 const double G = toNextVertex.normalized().dot(orientNormal) * (-1.0 * toNextVertex).normalized().dot(prevNormal) / toNextVertex.dot(toNextVertex);
                 throughput *= G;
 
-                Color emission = Color(0.0, 0.0, 0.0);
+                Spectrum emission = Spectrum(0.0, 0.0, 0.0);
                 if (scene.isLightCheck(triangleID)) {
                     emission = scene.directLight(currentRay.direction());
                 }
@@ -355,7 +355,7 @@ namespace spica {
                 prevNormal = orientNormal;
             }
 
-            return TraceResult(Color(), 0, 0, HitOn::Object);
+            return TraceResult(Spectrum(), 0, 0, HitOn::Object);
         }
 
         TraceResult pathTrace(const Scene& scene, const DoFCamera& camera, int x, int y, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
@@ -364,10 +364,10 @@ namespace spica {
 
             double totalPdfA = 1.0 / camera.lensArea();
 
-            Color throughput = Color(1.0, 1.0, 1.0);
+            Spectrum throughput = Spectrum(1.0, 1.0, 1.0);
 
             vertices->push_back(Vertex(camSample.posLens(), camera.lensNormal(), camera.lensNormal(),
-                                       Color(0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0), ObjectType::Lens, totalPdfA, throughput, -1));
+                                       Spectrum(0.0, 0.0, 0.0), Spectrum(0.0, 0.0, 0.0), ObjectType::Lens, totalPdfA, throughput, -1));
         
             Ray nowRay = camSample.ray();
             double nowSampledPdfOmega = 1.0;
@@ -383,7 +383,7 @@ namespace spica {
                 }
 
                 const BSDF& bsdf = scene.getBsdf(isect.objectID());
-                const Color& refl = isect.color();
+                const Spectrum& refl = isect.color();
 
                 const Vector3D orientNormal = isect.normal().dot(nowRay.direction()) < 0.0 ? isect.normal() : -isect.normal();
                 const double rouletteProb = scene.isLightCheck(isect.objectID()) ? 1.0 : std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
@@ -414,14 +414,14 @@ namespace spica {
                 throughput *= G;
 
                 if (scene.isLightCheck(isect.objectID())) {
-                    const Color emittance = scene.directLight(nowRay.direction());
-                    const Color result = Color(throughput * emittance / totalPdfA);
+                    const Spectrum emittance = scene.directLight(nowRay.direction());
+                    const Spectrum result = Spectrum(throughput * emittance / totalPdfA);
                     vertices->push_back(Vertex(isect.position(), orientNormal, isect.normal(),
                                                isect.color(), emittance, ObjectType::Light, totalPdfA, throughput, isect.objectID()));
                     return TraceResult(result, x, y, HitOn::Light);
                 }
 
-                vertices->push_back(Vertex(isect.position(), orientNormal, isect.normal(), isect.color(), Color(0.0, 0.0, 0.0),
+                vertices->push_back(Vertex(isect.position(), orientNormal, isect.normal(), isect.color(), Spectrum(0.0, 0.0, 0.0),
                                            bsdf.type() == BsdfType::Lambertian ? ObjectType::Diffuse : ObjectType::Dielectric,
                                            totalPdfA, throughput, isect.objectID()));
 
@@ -470,16 +470,16 @@ namespace spica {
                 prevNormal = orientNormal;
             }
 
-            return TraceResult(Color(), 0, 0, HitOn::Object);
+            return TraceResult(Spectrum(), 0, 0, HitOn::Object);
         }
 
         struct Sample {
             int imageX;
             int imageY;
-            Color value;
+            Spectrum value;
             bool startFromPixel;
 
-            Sample(const int imageX_, const int imageY_, const Color& value_, const bool startFromPixel_)
+            Sample(const int imageX_, const int imageY_, const Spectrum& value_, const bool startFromPixel_)
                 : imageX(imageX_)
                 , imageY(imageY_)
                 , value(value_)
@@ -502,7 +502,7 @@ namespace spica {
             // If trace terminates on light, store path tracing result
             if (ptResult.hitObj == HitOn::Light) {
                 const double weightMIS = calcMISWeight(scene, camera, eyeVerts[eyeVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, (const int)eyeVerts.size(), 0);
-                const Color result = Color(weightMIS * ptResult.value);
+                const Spectrum result = Spectrum(weightMIS * ptResult.value);
                 bptResult.samples.push_back(Sample(x, y, result, true));
             }
 
@@ -511,7 +511,7 @@ namespace spica {
                 const double weightMIS = calcMISWeight(scene, camera, lightVerts[lightVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, 0, (const int)lightVerts.size());
                 const int lx = ltResult.imageX;
                 const int ly = ltResult.imageY;
-                const Color result = Color(weightMIS * ltResult.value);
+                const Spectrum result = Spectrum(weightMIS * ltResult.value);
                 bptResult.samples.push_back(Sample(lx, ly, result, false));
             }
 
@@ -528,9 +528,9 @@ namespace spica {
                         continue;
                     }
 
-                    Color eyeThoughput = eyeEnd.throughput;
-                    Color lightThrouput = lightEnd.throughput;
-                    Color connectedThroughput = Color(1.0, 1.0, 1.0);
+                    Spectrum eyeThoughput = eyeEnd.throughput;
+                    Spectrum lightThrouput = lightEnd.throughput;
+                    Spectrum connectedThroughput = Spectrum(1.0, 1.0, 1.0);
 
                     if (lightVertId == 1) {
                         lightThrouput = lightVerts[0].emission;
@@ -590,7 +590,7 @@ namespace spica {
                         continue;
                     }
 
-                    const Color result = Color(weightMIS * (connectedThroughput * eyeThoughput * lightThrouput) / totalPdfA);
+                    const Spectrum result = Spectrum(weightMIS * (connectedThroughput * eyeThoughput * lightThrouput) / totalPdfA);
                     bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId > 1.0));
                 }
             }
@@ -598,7 +598,7 @@ namespace spica {
             return bptResult;
         }
 
-        bool isInvalidValue(const Color& color) {
+        bool isInvalidValue(const Spectrum& color) {
             if (isnan(color.red()) || isnan(color.green()) || isnan(color.blue())) return true;
             if (color.red() < 0.0 || INFTY < color.red()) return true;
             if (color.green() < 0.0 || INFTY < color.green()) return true;
@@ -606,7 +606,7 @@ namespace spica {
             return false;
         }
 
-        bool isValidValue(const Color& color) {
+        bool isValidValue(const Spectrum& color) {
             return !isInvalidValue(color);
         }
 
@@ -673,11 +673,11 @@ namespace spica {
                 }
             }
 
-            _result.fill(Color(0.0, 0.0, 0.0));
+            _result.fill(Spectrum(0.0, 0.0, 0.0));
             for (int k = 0; k < kNumThreads; k++) {
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
-                        const Color pix = buffer[k](x, y) / (s + 1);
+                        const Spectrum pix = buffer[k](x, y) / (s + 1);
                         _result.pixel(width - x - 1, y) += pix;
                     }
                 }

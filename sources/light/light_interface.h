@@ -7,7 +7,7 @@
 
 #include "../core/forward_decl.h"
 #include "../math/vector3d.h"
-#include "../core/color.h"
+#include "../core/spectrum.h"
 #include "../core/stack.h"
 
 namespace spica {
@@ -17,14 +17,14 @@ namespace spica {
         Vector3D _pos{0.0, 0.0, 0.0};  /** Position.      */
         Vector3D _nrm{0.0, 0.0, 0.0};  /** Normal.        */
         Vector3D _dir{0.0, 0.0, 0.0};  /** Out direction. */
-        Color    _emt{0.0, 0.0, 0.0};  /** Emission.      */
+        Spectrum _emt{0.0, 0.0, 0.0};  /** Emission.      */
         double   _pdf = 0.0;           /** Sample PDF.    */
 
     public:
         LightSample() {
         }
 
-        LightSample(const Vector3D& p, const Vector3D& n, const Vector3D& dir, const Color& e, double pdf)
+        LightSample(const Vector3D& p, const Vector3D& n, const Vector3D& dir, const Spectrum& e, double pdf)
             : _pos{p}
             , _nrm{n}
             , _dir{dir}
@@ -52,7 +52,7 @@ namespace spica {
         inline Vector3D position() const { return _pos; }
         inline Vector3D normal()   const { return _nrm; }
         inline Vector3D dir()      const { return _dir; }
-        inline Color    Le()       const { return _emt; }
+        inline Spectrum Le()       const { return _emt; }
         inline double   pdf()      const { return _pdf; }
     };
 
@@ -97,8 +97,8 @@ namespace spica {
         virtual LightSample sample(const Vector3D& v, Stack<double>& rands) const = 0;
         virtual Photon samplePhoton(Stack<double>& rands) const = 0;
 
-        virtual Color directLight(const Vector3D& dir) const = 0;
-        virtual Color globalLight(const Vector3D& dir) const = 0;
+        virtual Spectrum directLight(const Vector3D& dir) const = 0;
+        virtual Spectrum globalLight(const Vector3D& dir) const = 0;
         virtual double area() const = 0;
         virtual Light* clone() const = 0;
 

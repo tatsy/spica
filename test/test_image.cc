@@ -33,7 +33,7 @@ protected:
         rand->resize(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                rand->pixel(x, y) = Color(rng.nextReal(), rng.nextReal(), rng.nextReal());
+                rand->pixel(x, y) = RGBSpectrum(rng.nextReal(), rng.nextReal(), rng.nextReal());
             }
         }
     }
@@ -114,12 +114,12 @@ TEST_F(ImageTest, Resize) {
 
 TEST_F(ImageTest, Fill) {
     Image image(width, height);
-    image.fill(Color::BLUE);
+    image.fill(RGBSpectrum(1.0, 2.0, 3.0));
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            EXPECT_EQ(Color::BLUE.red(), image(x, y).red());
-            EXPECT_EQ(Color::BLUE.green(), image(x, y).green());
-            EXPECT_EQ(Color::BLUE.blue(), image(x, y).blue());
+            EXPECT_EQ(1.0, image(x, y).red());
+            EXPECT_EQ(2.0, image(x, y).green());
+            EXPECT_EQ(3.0, image(x, y).blue());
         }
     }
 }
@@ -128,7 +128,7 @@ TEST_F(ImageTest, SaveAndLoad) {
     Image image(width, height);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            image.pixel(x, y) = Color(rng.nextReal(), rng.nextReal(), rng.nextReal());
+            image.pixel(x, y) = RGBSpectrum(rng.nextReal(), rng.nextReal(), rng.nextReal());
         }
     }
     image.save(filepath);

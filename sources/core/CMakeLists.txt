@@ -4,7 +4,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
 
  set(SOURCES ${SOURCES}
      ${CMAKE_CURRENT_LIST_DIR}/vbo.cc
-     ${CMAKE_CURRENT_LIST_DIR}/color.cc
+     ${CMAKE_CURRENT_LIST_DIR}/spectrum.cc
      ${CMAKE_CURRENT_LIST_DIR}/sampler.cc
      PARENT_SCOPE)
 
@@ -17,7 +17,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/rect.h
      ${CMAKE_CURRENT_LIST_DIR}/stack.h
      ${CMAKE_CURRENT_LIST_DIR}/uncopyable.h
-     ${CMAKE_CURRENT_LIST_DIR}/color.h
+     ${CMAKE_CURRENT_LIST_DIR}/spectrum.h
      ${CMAKE_CURRENT_LIST_DIR}/sampler.h
      ${CMAKE_CURRENT_LIST_DIR}/timer.h
      ${CMAKE_CURRENT_LIST_DIR}/axis_comparable.h

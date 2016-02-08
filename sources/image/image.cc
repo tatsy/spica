@@ -65,7 +65,7 @@ namespace spica {
             HDRPixel() {
             }
 
-            explicit HDRPixel(const Color& color)
+            explicit HDRPixel(const RGBSpectrum& color)
                 : HDRPixel{} {
                 double d = std::max(color.red(), std::max(color.green(), color.blue()));
                 if (d <= 1.0e-32) {
@@ -103,7 +103,7 @@ namespace spica {
         : _width{width}
         , _height{height} {
         Assertion(width >= 0 && height >= 0, "Image size must be positive");
-        _pixels = std::make_unique<Color[]>(_width * _height);
+        _pixels = std::make_unique<RGBSpectrum[]>(_width * _height);
     }
 
     Image::Image(const Image& image) 
@@ -132,7 +132,7 @@ namespace spica {
 
         this->_width  = image._width;
         this->_height = image._height;
-        this->_pixels = std::make_unique<Color[]>(_width * _height);
+        this->_pixels = std::make_unique<RGBSpectrum[]>(_width * _height);
         std::copy(image._pixels.get(),
                   image._pixels.get() + (_width * _height),
                   _pixels.get());
@@ -159,13 +159,13 @@ namespace spica {
         return std::move(img);
     }
 
-    const Color& Image::operator()(int x, int y) const {
+    const RGBSpectrum& Image::operator()(int x, int y) const {
         Assertion(0 <= x && x < _width && 0 <= y && y < _height,
                   "Pixel index out of bounds");
         return _pixels[y * _width + x];
     }
 
-    Color& Image::pixel(int x, int y) {
+    RGBSpectrum& Image::pixel(int x, int y) {
         Assertion(0 <= x && x < _width && 0 <= y && y < _height,
                   "Pixel index out of bounds");
         return _pixels[y * _width + x];
@@ -176,10 +176,10 @@ namespace spica {
         this->_height = height;
 
         _pixels.reset();
-        _pixels = std::make_unique<Color[]>(width * height);
+        _pixels = std::make_unique<RGBSpectrum[]>(width * height);
     }
 
-    void Image::fill(const Color& color) {
+    void Image::fill(const RGBSpectrum& color) {
         const int n = _width * _height;
         for (int i = 0; i < n; i++) {
             _pixels[i] = color;
@@ -232,7 +232,7 @@ namespace spica {
 
         this->_width  = std::abs(core.biWidth);
         this->_height = std::abs(core.biHeight);
-        this->_pixels = std::make_unique<Color[]>(_width * _height);
+        this->_pixels = std::make_unique<RGBSpectrum[]>(_width * _height);
 
         const int lineSize = (sizeof(RGBTriple) * _width + 3) / 4 * 4;
         char* lineBits = new char[lineSize];
@@ -246,7 +246,7 @@ namespace spica {
                 double red   = toReal(triple.rgbRed);
                 double green = toReal(triple.rgbGreen);
                 double blue  = toReal(triple.rgbBlue);
-                this->_pixels[y * _width + x] = Color(red, green, blue);
+                this->_pixels[y * _width + x] = RGBSpectrum(red, green, blue);
                 ptr += sizeof(RGBTriple);
             }
         }
@@ -434,14 +434,14 @@ namespace spica {
         // Copy loaded data to this object
         this->_width  = width;
         this->_height = height;
-        this->_pixels = std::make_unique<Color[]>(width * height);
+        this->_pixels = std::make_unique<RGBSpectrum[]>(width * height);
         for (unsigned int y = 0; y < height; y++) {
             for (unsigned int x = 0; x < width; x++) {
                 const int e = tmp_data[(y * width + x) * 4 + 3];
                 const double r = tmp_data[(y * width + x) * 4 + 0] * pow(2.0, e - 128.0) / 256.0;
                 const double g = tmp_data[(y * width + x) * 4 + 1] * pow(2.0, e - 128.0) / 256.0;
                 const double b = tmp_data[(y * width + x) * 4 + 2] * pow(2.0, e - 128.0) / 256.0;
-                _pixels[y * width + x] = spica::Color(r, g, b);
+                _pixels[y * width + x] = spica::RGBSpectrum(r, g, b);
             }
         }
 
@@ -475,7 +475,7 @@ namespace spica {
         for (unsigned int i = 0; i < _height; i++) {
             std::vector<HDRPixel> line;
             for (unsigned int j = 0; j < _width; j++) {
-                Color color = this->operator()(j, i);
+                RGBSpectrum color = this->operator()(j, i);
                 line.push_back(HDRPixel(color));
             }
             pixbuf.push_back(0x02);
@@ -504,13 +504,13 @@ namespace spica {
         
         this->_width  = w;
         this->_height = h;
-        this->_pixels = std::make_unique<Color[]>(w * h);
+        this->_pixels = std::make_unique<RGBSpectrum[]>(w * h);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 const double r = data[(y * w + x) * 4 + 0] / 255.0;             
                 const double g = data[(y * w + x) * 4 + 1] / 255.0;             
                 const double b = data[(y * w + x) * 4 + 2] / 255.0;             
-                this->_pixels[y * w + x] = Color(r, g, b);
+                this->_pixels[y * w + x] = RGBSpectrum(r, g, b);
             }
         }
     }

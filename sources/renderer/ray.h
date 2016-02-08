@@ -7,7 +7,7 @@
 
 #include "../math/vector2d.h"
 #include "../math/vector3d.h"
-#include "../core/color.h"
+#include "../core/spectrum.h"
 
 namespace spica {
 
@@ -63,13 +63,13 @@ namespace spica {
         double   _distance = INFTY;
         Vector3D _pos      = { 0.0, 0.0, 0.0 };
         Vector3D _normal   = { 0.0, 0.0, 0.0 };
-        Color    _color    = { 0.0, 0.0, 0.0 };
+        Spectrum _color    = { 0.0, 0.0, 0.0 };
         int      _objID    = -1;
 
     public:
         Intersection();
         Intersection(const Intersection& isect);
-        Intersection(int objectID, const Hitpoint& hp, const Color& color);
+        Intersection(int objectID, const Hitpoint& hp, const Spectrum& color);
         ~Intersection();
 
         Intersection& operator=(const Intersection& intersection);
@@ -77,7 +77,7 @@ namespace spica {
         inline double   distance() const { return _distance; }
         inline Vector3D position() const { return _pos; }
         inline Vector3D normal()   const { return _normal; }
-        inline Color    color()    const { return _color; }
+        inline Spectrum color()    const { return _color; }
         inline int      objectID() const { return _objID; }
 
         friend class Scene;

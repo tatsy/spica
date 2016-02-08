@@ -13,11 +13,11 @@
 #include <memory>
 
 #include "../math/vector3d.h"
-#include "../core/color.h"
+#include "../core/spectrum.h"
 
 namespace spica {
 
-    class BSDFBase;
+    class AbstractBSDF;
     class BSSRDF;
     class SubsurfaceIntegrator;
 
@@ -50,7 +50,7 @@ namespace spica {
      */
     class SPICA_EXPORTS BSDF {
     private:
-        std::unique_ptr<const BSDFBase> _ptr;
+        std::unique_ptr<const AbstractBSDF> _ptr;
         std::unique_ptr<const BSSRDF>   _bssrdf;
         BsdfType _type;
 
@@ -63,7 +63,7 @@ namespace spica {
         BSDF& operator=(const BSDF& bsdf);
         BSDF& operator=(BSDF&& bsdf);
 
-        const Color& reflectance() const;
+        const Spectrum& reflectance() const;
 
         void sample(const Vector3D& in, const Vector3D& normal, 
                     double rand1, double rand2,
@@ -71,7 +71,7 @@ namespace spica {
 
         double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const;
 
-        Color evalBSSRDF(const Vector3D& in, 
+        Spectrum evalBSSRDF(const Vector3D& in, 
                          const Vector3D& pos,
                          const Vector3D& normal,
                          const SubsurfaceIntegrator& integr,
@@ -81,7 +81,7 @@ namespace spica {
         void setBssrdf(const BSSRDF& bssrdf);
 
     private:
-        BSDF(const BSDFBase* ptr, BsdfType type);
+        BSDF(const AbstractBSDF* ptr, BsdfType type);
 
         // Friend classes
         friend class LambertianBRDF;

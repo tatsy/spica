@@ -123,20 +123,20 @@ namespace spica {
 
         };
 
-        Color radiance(const Scene& scene, const Ray& ray, const RenderParameters& params, int bounces, KelemenMLT& mlt) {
+        Spectrum radiance(const Scene& scene, const Ray& ray, const RenderParameters& params, int bounces, KelemenMLT& mlt) {
             Intersection isect;
             if (!scene.intersect(ray, &isect)) {
-                return Color::BLACK;
+                return Spectrum{};
             }
 
             const int    objectID = isect.objectID();
             const BSDF&  bsdf     = scene.getBsdf(objectID);
-            const Color& refl     = isect.color();
+            const Spectrum& refl     = isect.color();
 
             double roulette = max3(refl.red(), refl.green(), refl.blue());
             if (bounces > params.bounceStartRoulette()) {
                 if (mlt.nextSample() >= roulette) {
-                    return Color::BLACK;
+                    return Spectrum{};
                 }
             } else {
                 roulette = 1.0;
@@ -145,26 +145,26 @@ namespace spica {
             if (!scene.isLightCheck(isect.objectID())) {
                 Stack<double> rstk;
                 mlt.request(&rstk, 3);
-                Color dlight = helper::directLight(scene, isect.position(), ray.direction(), isect.normal(), bsdf, rstk);
+                Spectrum dlight = helper::directLight(scene, isect.position(), ray.direction(), isect.normal(), bsdf, rstk);
 
                 double pdf = 1.0;
                 Vector3D nextdir;
                 bsdf.sample(ray.direction(), isect.normal(), mlt.nextSample(), mlt.nextSample(), &nextdir, &pdf);
 
                 Ray nextRay(isect.position(), nextdir);
-                Color nextrad = radiance(scene, nextRay, params, bounces + 1, mlt);
-                return Color(refl * (dlight + nextrad / pdf) / roulette);
+                Spectrum nextrad = radiance(scene, nextRay, params, bounces + 1, mlt);
+                return Spectrum(refl * (dlight + nextrad / pdf) / roulette);
             } else if (bounces == 0) {
                 return scene.directLight(ray.direction());
             }
-            return Color::BLACK;
+            return Spectrum(0.0, 0.0, 0.0);
         }
 
         struct PathSample {
             int x, y;
-            Color F;
+            Spectrum F;
             double weight;
-            PathSample(const int x_ = 0, const int y_ = 0, const Color& F_ = Color(), const double weight_ = 1.0)
+            PathSample(const int x_ = 0, const int y_ = 0, const Spectrum& F_ = Spectrum(), const double weight_ = 1.0)
                 : x(x_)
                 , y(y_)
                 , F(F_)
@@ -205,7 +205,7 @@ namespace spica {
             CameraSample camSample = camera.sample(x, y, stk);
 
             const Ray ray = camSample.ray();
-            Color c = radiance(scene, ray, params, 0, mlt);
+            Spectrum c = radiance(scene, ray, params, 0, mlt);
             weight *= camera.sensitivity() / camSample.pdf();
 
             return PathSample(x, y, c, weight);
@@ -323,7 +323,7 @@ namespace spica {
             }
 
             const int usedSamples = kNumThreads * (t + 1);
-            _result.fill(Color::BLACK);
+            _result.fill(Spectrum{});
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     for (int k = 0; k < kNumThreads; k++) {

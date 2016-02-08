@@ -12,6 +12,10 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/common.h
      ${CMAKE_CURRENT_LIST_DIR}/forward_decl.h
      ${CMAKE_CURRENT_LIST_DIR}/triplet.h
+     ${CMAKE_CURRENT_LIST_DIR}/point3d.h
+     ${CMAKE_CURRENT_LIST_DIR}/point3d_detail.h
+     ${CMAKE_CURRENT_LIST_DIR}/normal3d.h
+     ${CMAKE_CURRENT_LIST_DIR}/normal3d_detail.h
      ${CMAKE_CURRENT_LIST_DIR}/vbo.h
      ${CMAKE_CURRENT_LIST_DIR}/path.h
      ${CMAKE_CURRENT_LIST_DIR}/rect.h

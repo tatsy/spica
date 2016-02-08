@@ -24,6 +24,12 @@ RUN pip install gcovr
 RUN apt-get -qq install cppcheck cccc doxygen
 
 #
+## Install freeglut and glew
+#
+RUN apt-get -qq install freeglut3-dev libglew-dev
+RUN apt-get -qq install libxmu-dev libxi-dev
+
+#
 ## Build spica
 #
 RUN git clone --depth 10 -b $BRANCH_NAME https://github.com/tatsy/spica.git

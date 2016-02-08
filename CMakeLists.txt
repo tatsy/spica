@@ -68,6 +68,6 @@ include_directories(${STB_INCLUDE_DIRS})
 # ------------------------------------------------------------------------------
 # Include subdirectories
 # ------------------------------------------------------------------------------
-add_subdirectory(src)
+add_subdirectory(sources)
 add_subdirectory(test)
 add_subdirectory(example)

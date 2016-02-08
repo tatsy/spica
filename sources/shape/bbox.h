@@ -8,7 +8,7 @@
 #include "shape_interface.h"
 #include "triangle.h"
 #include "../renderer/ray.h"
-#include "../math/vector3d.h"
+#include "../core/point3d.h"
 
 namespace spica {
 
@@ -16,14 +16,10 @@ namespace spica {
      *  @ingroup shape_module
      */
     class SPICA_EXPORTS BBox : public IShape {
-    private:
-        Vector3D _posMin;    // Position of minimum corner
-        Vector3D _posMax;    // Position of maximum corner
-        
     public:
         BBox();
         BBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);
-        BBox(const Vector3D& posMin, const Vector3D& posMax);
+        BBox(const Point& posMin, const Point& posMax);
         BBox(const BBox& box);
 
         ~BBox();
@@ -38,13 +34,13 @@ namespace spica {
         static BBox fromTriangle(const Triangle& t);
 
         // Enlarge box to contain vertex or box
-        void merge(const Vector3D& v);
+        void merge(const Point& v);
         void merge(const BBox& box);
         void merge(const Triangle& t);
         static BBox merge(const BBox& b1, const BBox& b2);
 
         // Check if vertex is inside or not
-        bool inside(const Vector3D& v) const;
+        bool inside(const Point& v) const;
 
         //! Maximum extent: returns 0 -> x, 1 -> y, 2 -> z
         int maximumExtent() const;
@@ -55,8 +51,12 @@ namespace spica {
         //! Total area
         double area() const override;
 
-        inline Vector3D posMin() const { return _posMin; }
-        inline Vector3D posMax() const { return _posMax; }
+        inline Point posMin() const { return posMin_; }
+        inline Point posMax() const { return posMax_; }
+
+    private:
+        Point posMin_;    // Position of minimum corner
+        Point posMax_;    // Position of maximum corner
     };
 
 }  // namespace spica

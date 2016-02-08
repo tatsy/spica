@@ -74,15 +74,16 @@ namespace spica {
         }
     }
 
-    LightSample AreaLight::sample(const Vector3D& v, Stack<double>& rands) const {
+    LightSample AreaLight::sample(const Point& v, Stack<double>& rands) const {
         // Randomly choose point on the triangle
-        Vector3D p, n;
+        Point p;
+        Normal n;
         sampleOnLight(&p, &n, rands);
 
         // Compute PDF
         Vector3D dir = (p - v).normalized();
         double dist2 = (p - v).squaredNorm();
-        const double dot1 = Vector3D::dot(n, -dir);
+        const double dot1 = vect::dot(n, -dir);
         double pdf = 0.0;
         if (dot1 > EPS) {
             pdf = 1.0 / (INV_PI * (dot1 / dist2) * area());
@@ -103,7 +104,7 @@ namespace spica {
         return Photon(p, flux, dir, n);
     }
 
-    void AreaLight::sampleOnLight(Vector3D* pos, Vector3D* nrm, Stack<double>& rands) const {
+    void AreaLight::sampleOnLight(Point* pos, Normal* nrm, Stack<double>& rands) const {
         Assertion(!_samplePdf.empty(), "Light PDFs are not computed!!");
 
         // Randomly choose triangle

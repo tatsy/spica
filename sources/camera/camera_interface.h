@@ -8,78 +8,70 @@
 #include <cstdio>
 
 #include "../math/vector3d.h"
+#include "../core/point3d.h"
+#include "../core/normal3d.h"
 #include "../core/stack.h"
 #include "../renderer/ray.h"
 
 namespace spica {
 
     class SPICA_EXPORTS CameraSample {
-    private:
-        Ray    _ray;
-        double _pdf;
-        Vector3D _posSensor;
-        Vector3D _posObjplene;
-        Vector3D _posLens;
-
     public:
         CameraSample()
-            : _ray()
-            , _pdf(0.0)
-            , _posSensor()
-            , _posObjplene() 
-            , _posLens() {
+            : ray_{}
+            , pdf_{ 0.0 }
+            , posSensor_{}
+            , posObjplene_{} 
+            , posLens_{} {
         }
 
         CameraSample(const Ray& ray, double pdf,
-                     const Vector3D& posSensor = Vector3D(0.0, 0.0, 0.0),
-                     const Vector3D& posObjplane = Vector3D(0.0, 0.0, 0.0),
-                     const Vector3D& posLens = Vector3D(0.0, 0.0, 0.0))
-            : _ray(ray)
-            , _pdf(pdf)
-            , _posSensor(posSensor)
-            , _posObjplene(posObjplane)
-            , _posLens(posLens) {
+                     const Point& posSensor   = Point(0.0, 0.0, 0.0),
+                     const Point& posObjplane = Point(0.0, 0.0, 0.0),
+                     const Point& posLens     = Point(0.0, 0.0, 0.0))
+            : ray_{ ray }
+            , pdf_{ pdf }
+            , posSensor_{ posSensor }
+            , posObjplene_{ posObjplane }
+            , posLens_{ posLens } {
         }
 
         CameraSample(const CameraSample& cs)
-            : _ray(cs._ray)
-            , _pdf(cs._pdf)
-            , _posSensor(cs._posSensor)
-            , _posObjplene(cs._posObjplene)
-            , _posLens(cs._posLens) {
+            : ray_{ cs.ray_ }
+            , pdf_{ cs.pdf_ }
+            , posSensor_{ cs.posSensor_ }
+            , posObjplene_{ cs.posObjplene_ }
+            , posLens_{ cs.posLens_ } {
         }
 
         ~CameraSample() {
         }
 
         CameraSample& operator=(const CameraSample& cs) {
-            this->_ray = cs._ray;
-            this->_pdf = cs._pdf;
-            this->_posSensor = cs._posSensor;
-            this->_posObjplene = cs._posObjplene;
-            this->_posLens = cs._posLens;
+            this->ray_ = cs.ray_;
+            this->pdf_ = cs.pdf_;
+            this->posSensor_ = cs.posSensor_;
+            this->posObjplene_ = cs.posObjplene_;
+            this->posLens_ = cs.posLens_;
             return *this;
         }
         
-        inline const Ray& ray() const { return _ray; }
-        inline double     pdf() const { return _pdf; }
-        inline const Vector3D& posSensor() const { return _posSensor; }
-        inline const Vector3D& posObjplane() const { return _posObjplene; }
-        inline const Vector3D& posLens() const { return _posLens; }
+        inline const Ray& ray() const { return ray_; }
+        inline double     pdf() const { return pdf_; }
+        inline const Point& posSensor() const { return posSensor_; }
+        inline const Point& posObjplane() const { return posObjplene_; }
+        inline const Point& posLens() const { return posLens_; }
+
+    private:
+        Ray    ray_;
+        double pdf_;
+        Point  posSensor_;
+        Point  posObjplene_;
+        Point  posLens_;
     };
 
     //! Interface class for cameras
     class SPICA_EXPORTS ICamera {
-    protected:
-        Vector3D _center;
-        Vector3D _direction;
-        Vector3D _up;
-        Vector3D _unitU;
-        Vector3D _unitV;
-        int _imageW;
-        int _imageH;
-        double _sensitivity;
-
     public:
         ICamera()
             : _center()
@@ -92,7 +84,7 @@ namespace spica {
             , _sensitivity(0.0) {
         }
 
-        ICamera(const Vector3D& center,
+        ICamera(const Point& center,
                 const Vector3D& direction,
                 const Vector3D& up,
                 int imageW, int imageH,
@@ -125,12 +117,23 @@ namespace spica {
         virtual ICamera* clone() const = 0;
         virtual CameraSample sample(double px, double py, Stack<double>& rstack) const = 0;
 
-        inline virtual Vector3D center()    const { return _center; }
+        inline virtual Point    center()    const { return _center; }
         inline virtual Vector3D direction() const { return _direction; }
         inline virtual Vector3D up() const { return _up; }
         inline int imageW() const { return _imageW; }
         inline int imageH() const { return _imageH; }
         inline virtual double sensitivity() const { return _sensitivity; }
+
+    protected:
+        Point _center;
+        Vector3D _direction;
+        Vector3D _up;
+        Vector3D _unitU;
+        Vector3D _unitV;
+        int _imageW;
+        int _imageH;
+        double _sensitivity;
+
     };
 
 }  // namespace spica

@@ -6,6 +6,8 @@
 #define _SPICA_LIGHT_INTERFACE_
 
 #include "../core/forward_decl.h"
+#include "../core/point3d.h"
+#include "../core/normal3d.h"
 #include "../math/vector3d.h"
 #include "../core/spectrum.h"
 #include "../core/stack.h"
@@ -14,8 +16,8 @@ namespace spica {
 
     class SPICA_EXPORTS LightSample {
     private:
-        Vector3D _pos{0.0, 0.0, 0.0};  /** Position.      */
-        Vector3D _nrm{0.0, 0.0, 0.0};  /** Normal.        */
+        Point    _pos{0.0, 0.0, 0.0};  /** Position.      */
+        Normal   _nrm{0.0, 0.0, 0.0};  /** Normal.        */
         Vector3D _dir{0.0, 0.0, 0.0};  /** Out direction. */
         Spectrum _emt{0.0, 0.0, 0.0};  /** Emission.      */
         double   _pdf = 0.0;           /** Sample PDF.    */
@@ -24,7 +26,7 @@ namespace spica {
         LightSample() {
         }
 
-        LightSample(const Vector3D& p, const Vector3D& n, const Vector3D& dir, const Spectrum& e, double pdf)
+        LightSample(const Point& p, const Normal& n, const Vector3D& dir, const Spectrum& e, double pdf)
             : _pos{p}
             , _nrm{n}
             , _dir{dir}
@@ -49,8 +51,8 @@ namespace spica {
             return *this;
         }
 
-        inline Vector3D position() const { return _pos; }
-        inline Vector3D normal()   const { return _nrm; }
+        inline Point    position() const { return _pos; }
+        inline Normal   normal()   const { return _nrm; }
         inline Vector3D dir()      const { return _dir; }
         inline Spectrum Le()       const { return _emt; }
         inline double   pdf()      const { return _pdf; }
@@ -94,7 +96,7 @@ namespace spica {
 
         LightType type() const { return type_; }
 
-        virtual LightSample sample(const Vector3D& v, Stack<double>& rands) const = 0;
+        virtual LightSample sample(const Point& v, Stack<double>& rands) const = 0;
         virtual Photon samplePhoton(Stack<double>& rands) const = 0;
 
         virtual Spectrum directLight(const Vector3D& dir) const = 0;

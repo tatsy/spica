@@ -15,4 +15,5 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/quaternion.h
     ${CMAKE_CURRENT_LIST_DIR}/matrix4x4.h
     ${CMAKE_CURRENT_LIST_DIR}/transform.h
+    ${CMAKE_CURRENT_LIST_DIR}/vect_math.h
     PARENT_SCOPE)

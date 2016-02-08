@@ -74,7 +74,7 @@ namespace spica {
         }
 
         bool operator()(const IndexedTriangle& t1, const IndexedTriangle& t2) const {
-            return t1.tri.gravity().get(dim) < t2.tri.gravity().get(dim);
+            return t1.tri.gravity()[dim] < t2.tri.gravity()[dim];
         }
     };
 

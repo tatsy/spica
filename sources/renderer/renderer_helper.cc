@@ -34,14 +34,14 @@ namespace spica {
 
         bool checkTotalReflection(const bool into,
                                   const Vector3D& in,
-                                  const Vector3D& n,
+                                  const Normal& n,
                                   const Vector3D& on,
                                   Vector3D* reflectDir,
                                   Vector3D* transmitDir,
                                   double* fresnelRe,
                                   double* fresnelTr) {
 
-            *reflectDir = Vector3D::reflect(in, n).normalized();
+            *reflectDir = vect::reflect(in, n).normalized();
 
             // Snell's rule
             const double nnt = into ? kIorVaccum / kIorObject 
@@ -63,7 +63,7 @@ namespace spica {
             const double b = kIorObject + kIorVaccum;
             const double R0 = (a * a) / (b * b);
 
-            const double c = 1.0 - (into ? -ddn : Vector3D::dot(*transmitDir, n));
+            const double c = 1.0 - (into ? -ddn : vect::dot(*transmitDir, n));
             *fresnelRe = R0 + (1.0 - R0) * (c * c * c * c * c);
             *fresnelTr = (1.0 - (*fresnelRe)) * (nnt * nnt);
 
@@ -114,13 +114,13 @@ namespace spica {
         }
 
         Spectrum directLight(const Scene& scene,
-                          const Vector3D& pos,
+                          const Point& pos,
                           const Vector3D& in,
-                          const Vector3D& normal,
+                          const Normal& normal,
                           const BSDF& bsdf,
                           Stack<double>& rstk) {
-            const bool      into = Vector3D::dot(normal, in) < 0.0;
-            const Vector3D  orientNormal = into ? normal : -normal;
+            const bool   into = vect::dot(normal, in) < 0.0;
+            const Normal orientNormal = into ? normal : -normal;
 
             if (bsdf.type() & BsdfType::Lambertian) {
                 LightSample Ls = scene.sampleLight(pos, rstk);
@@ -128,7 +128,7 @@ namespace spica {
                     Intersection isect;
                     if (scene.intersect(Ray(pos, -Ls.dir()), &isect)) {
                         if ((isect.position() - Ls.position()).norm() < EPS) {
-                            double dot = Vector3D::dot(normal, -Ls.dir());
+                            double dot = vect::dot(normal, -Ls.dir());
                             return Ls.Le() * std::abs(dot) * Ls.pdf();
                         }
                     }

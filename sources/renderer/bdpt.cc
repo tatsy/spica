@@ -61,9 +61,9 @@ namespace spica {
         /* Struct for storing traced vertices
          */
         struct Vertex {
-            Vector3D position;
-            Vector3D objectNormal;
-            Vector3D orientNormal;
+            Point position;
+            Normal objectNormal;
+            Normal orientNormal;
             Spectrum reflectance;
             Spectrum emission;
             ObjectType objtype;
@@ -71,9 +71,9 @@ namespace spica {
             Spectrum throughput;
             int objectID;
 
-            Vertex(const Vector3D& position_,
-                   const Vector3D & orientNormal_,
-                   const Vector3D& objectNormal_,
+            Vertex(const Point& position_,
+                   const Normal& orientNormal_,
+                   const Normal& objectNormal_,
                    const Spectrum& reflectance_,
                    const Spectrum& emission_,
                    const ObjectType objtype_,
@@ -97,8 +97,8 @@ namespace spica {
         // Sample functions
         // --------------------------------------------------
 
-        double sample_hemisphere_pdf_omega(const Vector3D& normal, const Vector3D& direction) {
-            return std::max(normal.dot(direction), 0.0) * INV_PI;
+        double sample_hemisphere_pdf_omega(const Normal& normal, const Vector3D& direction) {
+            return std::max(vect::dot(normal, direction), 0.0) * INV_PI;
         }
 
         // --------------------------------------------------
@@ -124,8 +124,9 @@ namespace spica {
                 pdf = sample_hemisphere_pdf_omega(fromVert.orientNormal, normalizedTo);
             } else if (fromVert.objtype == ObjectType::Lens) {
                 const Ray testRay(nextVert.position, -normalizedTo);
-                Vector3D positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor;
-                const double lensT = camera.intersectLens(testRay, positionOnLens, positionOnObjplane, positionOnSensor, uvOnSensor);
+                Point positionOnLens, positionOnObjplane, positionOnSensor;
+                Vector3D uvOnSensor;
+                const double lensT = camera.intersectLens(testRay, &positionOnLens, &positionOnObjplane, &positionOnSensor, &uvOnSensor);
                 if (EPS < lensT) {
                     const Vector3D x0xI = positionOnSensor - positionOnLens;
                     const Vector3D x0xV = positionOnObjplane - positionOnLens;
@@ -141,8 +142,8 @@ namespace spica {
                 if (bsdf.type() == BsdfType::Refractive) {
                     if (prevFromVertex != nullptr) {
                         const Vector3D intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalized();
-                        const bool isIncoming = intoFromVertexDir.dot(fromVert.objectNormal) < 0.0;
-                        const Vector3D fromNewOrientNormal = isIncoming ? fromVert.objectNormal : -fromVert.objectNormal;
+                        const bool isIncoming = vect::dot(intoFromVertexDir, fromVert.objectNormal) < 0.0;
+                        const Normal fromNewOrientNormal = isIncoming ? fromVert.objectNormal : -fromVert.objectNormal;
 
                         Vector3D reflectdir, transdir;
                         double fresnelRe, fresnelTr;
@@ -152,7 +153,7 @@ namespace spica {
                         if (totalReflection) {
                             pdf = 1.0;
                         } else {
-                            pdf = fromNewOrientNormal.dot(normalizedTo) > 0.0 ? reflectProb : 1.0 - reflectProb;
+                            pdf = vect::dot(fromNewOrientNormal, normalizedTo) > 0.0 ? reflectProb : 1.0 - reflectProb;
                         }
                     }
                 } else {
@@ -160,8 +161,8 @@ namespace spica {
                 }
             }
 
-            const Vector3D nextNewOrientNormal = to.dot(nextVert.objectNormal) < 0.0 ? nextVert.objectNormal : -nextVert.objectNormal;
-            return pdf * (-1.0 * normalizedTo).dot(nextNewOrientNormal) / to.dot(to);
+            const Normal nextNewOrientNormal = vect::dot(to, nextVert.objectNormal) < 0.0 ? nextVert.objectNormal : -nextVert.objectNormal;
+            return pdf * vect::dot(-normalizedTo, nextNewOrientNormal) / to.dot(to);
         }
 
         double calcMISWeight(const Scene& scene, const DoFCamera& camera, const double totalPdfA, const std::vector<Vertex>& eyeVerts, const std::vector<Vertex>& lightVerts, const int nEyeVerts, const int nLightVerts) {

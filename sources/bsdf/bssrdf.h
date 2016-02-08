@@ -16,9 +16,9 @@ namespace spica {
     class SPICA_EXPORTS BSSRDFBase {
     public:
         virtual ~BSSRDFBase() {}
-        virtual double Ft(const Vector3D& nornal, const Vector3D& in) const;
+        virtual double Ft(const Normal& nornal, const Vector3D& in) const;
         virtual double Fdr() const;
-        virtual Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const = 0;
+        virtual Spectrum operator()(const Point& v1, const Point& v2) const = 0;
         virtual BSSRDFBase* clone() const = 0;
 
     protected:
@@ -53,7 +53,7 @@ namespace spica {
 
     public:
         static BSSRDF factory(const Spectrum& sigma_a, const Spectrum& sigmap_s, double eta = 1.3);
-        Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const override;
+        Spectrum operator()(const Point& v1, const Point& v2) const override;
         BSSRDFBase* clone() const override;
     };
 
@@ -72,7 +72,7 @@ namespace spica {
 
         static BSSRDF factory(const double eta, const std::vector<double>& distances, const std::vector<Spectrum>& colors);
         BSSRDF factory() const;
-        Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const override;
+        Spectrum operator()(const Point& v1, const Point& v2) const override;
         BSSRDFBase* clone() const override;
 
         int numIntervals() const;
@@ -100,7 +100,7 @@ namespace spica {
         CustomBSSRDF();
         virtual ~CustomBSSRDF();
         virtual BSSRDF factory();
-        virtual Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const override = 0;
+        virtual Spectrum operator()(const Point& v1, const Point& v2) const override = 0;
         virtual BSSRDFBase* clone() const override = 0;
     };
  
@@ -121,9 +121,9 @@ namespace spica {
         BSSRDF& operator=(const BSSRDF& bssrdf);
         BSSRDF& operator=(BSSRDF&& bssrdf);
 
-        double Ft(const Vector3D& normal, const Vector3D& in) const;
+        double Ft(const Normal& normal, const Vector3D& in) const;
         double Fdr() const;
-        Spectrum operator()(const Vector3D& v1, const Vector3D& v2) const;
+        Spectrum operator()(const Point& v1, const Point& v2) const;
 
     private:
         explicit BSSRDF(const BSSRDFBase* ptr);

@@ -7,6 +7,8 @@
 
 #include <type_traits>
 
+#include "../math/vect_math.h"
+
 namespace spica {
 
     template <class T>
@@ -14,10 +16,15 @@ namespace spica {
     public:
         Normal3_();
         Normal3_(T x, T y, T z);
+        Normal3_(const Vector3_<T>& v);
         Normal3_(const Normal3_<T>& n);
         ~Normal3_();
 
         Normal3_<T>& operator=(const Normal3_<T>& n);
+
+        Normal3_<T> operator-() const;
+
+        explicit operator Vector3_<T>() const;
 
         inline T x() const { return x_; }
         inline T y() const { return y_; }
@@ -26,7 +33,7 @@ namespace spica {
     private:
         T x_, y_, z_;
 
-        static_assert(std::is_arithmetic<T>(), "Template type must be arithmetic!!");
+        static_assert(std::is_arithmetic<T>::value, "Template type must be arithmetic!!");
     };
 
     using Normal3D = Normal3_<double>;

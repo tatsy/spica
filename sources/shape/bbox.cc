@@ -11,20 +11,20 @@ namespace spica {
 
     BBox::BBox()
         : IShape{ShapeType::BBox}
-        , _posMin{ INFTY,  INFTY,  INFTY}
-        , _posMax{-INFTY, -INFTY, -INFTY} {
+        , posMin_{  INFTY,  INFTY,  INFTY }
+        , posMax_{ -INFTY, -INFTY, -INFTY } {
     }
 
     BBox::BBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
         : IShape{ShapeType::BBox}
-        , _posMin{minX, minY, minZ}
-        , _posMax{maxX, maxY, maxZ} {
+        , posMin_{ minX, minY, minZ }
+        , posMax_{ maxX, maxY, maxZ } {
     }
 
-    BBox::BBox(const Vector3D& posMin, const Vector3D& posMax)
+    BBox::BBox(const Point& posMin, const Point& posMax)
         : IShape{ShapeType::BBox}
-        , _posMin{posMin}
-        , _posMax{posMax} {
+        , posMin_{ posMin }
+        , posMax_{ posMax } {
     }
 
     BBox::BBox(const BBox& box) 
@@ -37,8 +37,8 @@ namespace spica {
 
     BBox& BBox::operator=(const BBox& box) {
         IShape::operator=(box);
-        this->_posMin = box._posMin;
-        this->_posMax = box._posMax;
+        this->posMin_ = box.posMin_;
+        this->posMax_ = box.posMax_;
         return *this;
     }
 
@@ -50,14 +50,14 @@ namespace spica {
         return retval;
     }
 
-    void BBox::merge(const Vector3D& v) {
-        _posMin = Vector3D::minimum(_posMin, v);
-        _posMax = Vector3D::maximum(_posMax, v);
+    void BBox::merge(const Point& v) {
+        posMin_ = std::max(posMin_, v); //Vector3D::minimum(posMin_, v);
+        posMax_ = Point::maximum(posMax_, v);
     }
 
     void BBox::merge(const BBox& box) {
-        _posMin = Vector3D::minimum(_posMin, box._posMin);
-        _posMax = Vector3D::maximum(_posMax, box._posMax);
+        posMin_ = Point::minimum(posMin_, box.posMin_);
+        posMax_ = Point::maximum(posMax_, box.posMax_);
     }
 
     BBox BBox::merge(const BBox& b1, const BBox& b2) {
@@ -72,14 +72,14 @@ namespace spica {
         }
     }
 
-    bool BBox::inside(const Vector3D& v) const {
-        return (_posMin.x() <= v.x() && v.x() <= _posMax.x()) &&
-               (_posMin.y() <= v.y() && v.y() <= _posMax.y()) &&
-               (_posMin.z() <= v.z() && v.z() <= _posMax.z());
+    bool BBox::inside(const Point& v) const {
+        return (posMin_.x() <= v.x() && v.x() <= posMax_.x()) &&
+               (posMin_.y() <= v.y() && v.y() <= posMax_.y()) &&
+               (posMin_.z() <= v.z() && v.z() <= posMax_.z());
     }
 
     int BBox::maximumExtent() const {
-        const Vector3D g = _posMax - _posMin;
+        const Vector3D g = posMax_ - posMin_;
         const double gx = std::abs(g.x());
         const double gy = std::abs(g.y());
         const double gz = std::abs(g.z());
@@ -89,7 +89,7 @@ namespace spica {
     }
 
     double BBox::area() const {
-        const Vector3D g = _posMin - _posMax;
+        const Vector3D g = posMin_ - posMax_;
         const double gx = std::abs(g.x());
         const double gy = std::abs(g.y());
         const double gz = std::abs(g.z());
@@ -97,12 +97,12 @@ namespace spica {
     }
 
     bool BBox::intersect(const Ray& ray, double* tMin, double* tMax) const {
-        double xMin = (_posMin.x() - ray.origin().x()) * ray.invdir().x();
-        double yMin = (_posMin.y() - ray.origin().y()) * ray.invdir().y();
-        double zMin = (_posMin.z() - ray.origin().z()) * ray.invdir().z();
-        double xMax = (_posMax.x() - ray.origin().x()) * ray.invdir().x();
-        double yMax = (_posMax.y() - ray.origin().y()) * ray.invdir().y();
-        double zMax = (_posMax.z() - ray.origin().z()) * ray.invdir().z();
+        double xMin = (posMin_.x() - ray.origin().x()) * ray.invdir().x();
+        double yMin = (posMin_.y() - ray.origin().y()) * ray.invdir().y();
+        double zMin = (posMin_.z() - ray.origin().z()) * ray.invdir().z();
+        double xMax = (posMax_.x() - ray.origin().x()) * ray.invdir().x();
+        double yMax = (posMax_.y() - ray.origin().y()) * ray.invdir().y();
+        double zMax = (posMax_.z() - ray.origin().z()) * ray.invdir().z();
         
         if (xMin > xMax) std::swap(xMin, xMax);
         if (yMin > yMax) std::swap(yMin, yMax);

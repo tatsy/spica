@@ -12,7 +12,7 @@ namespace spica {
         , _halfTangent(0.0) {
     }
 
-    PerspectiveCamera::PerspectiveCamera(const Vector3D& center,
+    PerspectiveCamera::PerspectiveCamera(const Point& center,
                                          const Vector3D& direction,
                                          const Vector3D& up,
                                          double fov, int imageW, int imageH,

@@ -24,9 +24,19 @@ namespace spica {
     class Vector2_;
     using Vector2D = Vector2_<double, void>;
 
-    template <class T, class Enable>
+    template <class T>
     class Vector3_;
-    using Vector3D = Vector3_<double, void>;
+    using Vector3D = Vector3_<double>;
+
+    template <class T>
+    class Point3_;
+    using Point3D = Point3_<double>;
+    using Point = Point3D;
+
+    template <class T>
+    class Normal3_;
+    using Normal3D = Normal3_<double>;
+    using Normal = Normal3D;
 
     // Scene
     class Scene;

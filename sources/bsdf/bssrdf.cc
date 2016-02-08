@@ -6,7 +6,10 @@
 #include <string>
 #include <algorithm>
 
+#include "../math/vect_math.h"
 #include "../math/vector3d.h"
+#include "../core/point3d.h"
+#include "../core/normal3d.h"
 #include "../renderer/renderer_constants.h"
 
 namespace spica {
@@ -15,9 +18,9 @@ namespace spica {
     // BSSRDF base class
     // ------------------------------------------------------------
 
-    double BSSRDFBase::Ft(const Vector3D& normal, const Vector3D& in) const {
+    double BSSRDFBase::Ft(const Normal& normal, const Vector3D& in) const {
         const double nnt = kIorObject / kIorVaccum;
-        const double ddn = in.dot(normal);
+        const double ddn = vect::dot(in, normal);
         const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
         if (cos2t < 0.0) return 0.0;
@@ -28,7 +31,7 @@ namespace spica {
         const double b = kIorObject + kIorVaccum;
         const double R0 = (a * a) / (b * b);
 
-        const double c  = 1.0 - Vector3D::dot(refractDir, -normal);
+        const double c  = 1.0 - vect::dot(refractDir, -normal);
         const double Re = R0 + (1.0 - R0) * pow(c, 5.0);
         return 1.0 - Re;
     }
@@ -90,7 +93,7 @@ namespace spica {
         return BSSRDF(new DipoleBSSRDF(sigma_a, sigmap_s, eta));
     }
 
-    Spectrum DipoleBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+    Spectrum DipoleBSSRDF::operator()(const Point& v1, const Point& v2) const {
         const double d2 = (v1 - v2).squaredNorm();
         const Spectrum dpos = Spectrum::sqrt(d2 + _zpos * _zpos);
         const Spectrum dneg = Spectrum::sqrt(d2 + _zneg * _zneg);
@@ -159,7 +162,7 @@ namespace spica {
         return std::move(BSSRDF(new DiffuseBSSRDF(*this)));
     }
 
-    Spectrum DiffuseBSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+    Spectrum DiffuseBSSRDF::operator()(const Point& v1, const Point& v2) const {
         const double d = (v1 - v2).norm();
         if (d < 0.0 || d > _distances[_distances.size() - 1]) return Spectrum(0.0, 0.0, 0.0);
         const int idx = std::lower_bound(_distances.begin(), _distances.end(), d) - _distances.begin();
@@ -288,7 +291,7 @@ namespace spica {
         return *this;
     }
 
-    double BSSRDF::Ft(const Vector3D& normal, const Vector3D& in) const {
+    double BSSRDF::Ft(const Normal& normal, const Vector3D& in) const {
         nullCheck();
         return _ptr->Ft(normal, in);
     }
@@ -298,7 +301,7 @@ namespace spica {
         return _ptr->Fdr();
     }
 
-    Spectrum BSSRDF::operator()(const Vector3D& v1, const Vector3D& v2) const {
+    Spectrum BSSRDF::operator()(const Point& v1, const Point& v2) const {
         nullCheck();
         return _ptr->operator()(v1, v2);
     }

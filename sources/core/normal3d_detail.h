@@ -22,6 +22,13 @@ namespace spica {
     }
 
     template <class T>
+    Normal3_<T>::Normal3_(const Vector3_<T>& v)
+        : x_{ v.x() }
+        , y_{ v.y() }
+        , z_{ v.z() } {
+    }
+
+    template <class T>
     Normal3_<T>::Normal3_(const Normal3_<T>& n)
         : x_{ n.x_ }
         , y_{ n.y_ }
@@ -33,11 +40,21 @@ namespace spica {
     }
 
     template <class T>
-    Normal3_<T> Normal3_<T>::operator=(const Normal3_<T>& n) {
+    Normal3_<T>& Normal3_<T>::operator=(const Normal3_<T>& n) {
         x_ = n.x_;
         y_ = n.y_;
         z_ = n.z_;
         return *this;
+    }
+
+    template <class T>
+    Normal3_<T>::operator Vector3_<T>() const {
+        return { x_, y_, z_ };
+    }
+
+    template <class T>
+    Normal3_<T> Normal3_<T>::operator-() const {
+        return { -x_, -y_, -z_ };
     }
 
 }  // namespace spica

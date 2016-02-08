@@ -13,22 +13,13 @@
 
 #include "../core/common.h"
 
-template <class T>
-using is_arith_t = typename std::enable_if<std::is_arithmetic<T>::value>::type;
-
 namespace spica {
-
-    template <class T, class Enable = void>
-    class Vector3_;
 
     /** Three-dimensional vector.
      *  @ingroup math_module
      */
     template <class T>
-    class Vector3_<T, is_arith_t<T> > {
-    protected:
-        T _x, _y, _z;
-
+    class Vector3_ {
     public:
         /** The Vector3D constructor.
          */
@@ -91,13 +82,6 @@ namespace spica {
         static Vector3_ minimum(const Vector3_& v1, const Vector3_& v2);
         static Vector3_ maximum(const Vector3_& v1, const Vector3_& v2);
 
-        /** Compute reflection vector of v w.r.t n
-         *  @param v incident direction
-         *  @param n normal of hitpoint
-         *  @return reflected direction
-         */
-        static Vector3_ reflect(const Vector3_& v, const Vector3_& n);
-
         T get(int d) const;
 
         std::string toString() const;
@@ -126,6 +110,11 @@ namespace spica {
          */
         inline T& zRef() { return _z; }
 
+    protected:
+        T _x, _y, _z;
+
+        static_assert(std::is_arithmetic<T>::value, "Template type must be arithmetic!!");
+
     };  // class Vector3D
 
     using Vector3D = Vector3_<double>;
@@ -133,60 +122,55 @@ namespace spica {
 }  // namespace spica
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator+(const spica::Vector3_<T, is_arith_t<T> >& v1,
-          const spica::Vector3_<T, is_arith_t<T> >& v2);
+spica::Vector3_<T>
+operator+(const spica::Vector3_<T>& v1, const spica::Vector3_<T>& v2);
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator-(const spica::Vector3_<T, is_arith_t<T> >& v1,
-          const spica::Vector3_<T, is_arith_t<T> >& v2);
+spica::Vector3_<T>
+operator-(const spica::Vector3_<T>& v1, const spica::Vector3_<T>& v2);
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator+(const spica::Vector3_<T, is_arith_t<T> >& v, T x);
+spica::Vector3_<T>
+operator+(const spica::Vector3_<T>& v, T x);
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator+(T x, const spica::Vector3_<T, is_arith_t<T> >& v);
+spica::Vector3_<T>
+operator+(T x, const spica::Vector3_<T>& v);
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator-(const spica::Vector3_<T, is_arith_t<T> >& v, T x);
+spica::Vector3_<T>
+operator-(const spica::Vector3_<T>& v, T x);
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator-(T x, const spica::Vector3_<T, is_arith_t<T> >& v);
+spica::Vector3_<T>
+operator-(T x, const spica::Vector3_<T>& v);
 
 /** Element-wise multiplication
  */
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator*(const spica::Vector3_<T, is_arith_t<T> >& u,
-          const spica::Vector3_<T, is_arith_t<T> >& v);
+spica::Vector3_<T>
+operator*(const spica::Vector3_<T>& u, const spica::Vector3_<T>& v);
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator*(const spica::Vector3_<T, is_arith_t<T> >& v, double s);
+spica::Vector3_<T>
+operator*(const spica::Vector3_<T>& v, double s);
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator*(double s, const spica::Vector3_<T, is_arith_t<T> >& v);
+spica::Vector3_<T>
+operator*(double s, const spica::Vector3_<T>& v);
 
 /** Element-wise division
  */
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator/(const spica::Vector3_<T, is_arith_t<T> >& u,
-          const spica::Vector3_<T, is_arith_t<T> >& v);
+spica::Vector3_<T>
+operator/(const spica::Vector3_<T>& u, const spica::Vector3_<T>& v);
 
 template <class T>
-spica::Vector3_<T, is_arith_t<T> >
-operator/(const spica::Vector3_<T, is_arith_t<T> >& v, double s);
+spica::Vector3_<T>
+operator/(const spica::Vector3_<T>& v, double s);
 
 template <class T>
-std::ostream& operator<<(std::ostream& os,
-                         const spica::Vector3_<T, is_arith_t<T> >& v);
+std::ostream& operator<<(std::ostream& os, const spica::Vector3_<T>& v);
 
 // Include implementation header
 #include "vector3d_detail.h"

@@ -8,7 +8,7 @@
 #include <array>
 
 #include "shape_interface.h"
-#include "../math/vector3d.h"
+#include "../core/point3d.h"
 
 namespace spica {
 
@@ -16,34 +16,34 @@ namespace spica {
      *  @ingroup shape_module
      */
     class SPICA_EXPORTS Triangle : public IShape {
-    private:
-        std::array<Vector3D, 3> _points;
-
     public:
         Triangle();
-        Triangle(const Vector3D& p0, const Vector3D& p1, const Vector3D& p2);
+        Triangle(const Point& p0, const Point& p1, const Point& p2);
         Triangle(const Triangle& tri);
         ~Triangle();
 
         Triangle& operator=(const Triangle& tri);
 
-        Vector3D gravity() const;
+        Point gravity() const;
 
         /** Get a vertex with ID in [0, 1, 2]
          */
-        Vector3D get(int id) const;
+        Point get(int id) const;
 
         /** Get a vertex with ID in [0, 1, 2]
          */
-        Vector3D operator[](int id) const;
+        Point operator[](int id) const;
 
-        Vector3D normal() const;
+        Normal normal() const;
 
         bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 
         double area() const override;
 
         Trimesh triangulate() const override;
+
+    private:
+        std::array<Point, 3> points_;
     };
 
 }  // namespace spica

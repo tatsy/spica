@@ -7,6 +7,7 @@
 
 #include "../core/common.h"
 #include "../math/vector3d.h"
+#include "../core/normal3d.h"
 #include "../core/spectrum.h"
 
 namespace spica {
@@ -22,8 +23,8 @@ namespace spica {
         AbstractBSDF() {}
         virtual ~AbstractBSDF() {}
         virtual const Spectrum& reflectance() const = 0;
-        virtual void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const = 0;
-        virtual double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const = 0;
+        virtual void sample(const Vector3D& in, const Normal& normal, double rand1, double rand2, Vector3D* out, double* pdf) const = 0;
+        virtual double pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const = 0;
         virtual AbstractBSDF* clone() const = 0;
     };
 
@@ -37,8 +38,8 @@ namespace spica {
         // Public methods
         static BSDF factory(const Spectrum& reflectance);
         const Spectrum& reflectance() const override;
-        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
-        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
+        void sample(const Vector3D& in, const Normal& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        double pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const override;
         AbstractBSDF* clone() const override;
 
     private:
@@ -58,8 +59,8 @@ namespace spica {
         // Public methods
         static BSDF factory(const Spectrum& reflectance);
         const Spectrum& reflectance() const override;
-        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
-        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
+        void sample(const Vector3D& in, const Normal& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        double pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const override;
         AbstractBSDF* clone() const override;
 
     private:
@@ -79,8 +80,8 @@ namespace spica {
         // Public methods
         static BSDF factory(const Spectrum& reflectance, const double n = 32);
         const Spectrum& reflectance() const override;
-        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
-        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
+        void sample(const Vector3D& in, const Normal& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        double pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const override;
         AbstractBSDF* clone() const override;
 
     private:
@@ -101,8 +102,8 @@ namespace spica {
         // Public methods
         static BSDF factory(const Spectrum& reflectance);
         const Spectrum& reflectance() const override;
-        void sample(const Vector3D& in, const Vector3D& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
-        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const override;
+        void sample(const Vector3D& in, const Normal& normal, double rand1, double rand2, Vector3D* out, double* pdf) const override;
+        double pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const override;
         AbstractBSDF* clone() const override;
 
     private:

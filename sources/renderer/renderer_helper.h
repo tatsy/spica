@@ -19,8 +19,8 @@ namespace spica {
 
         SPICA_EXPORTS bool checkTotalReflection(const bool isIncoming,
                                                 const Vector3D& in,
-                                                const Vector3D& normal,
-                                                const Vector3D& orientNormal,
+                                                const Normal& normal,
+                                                const Normal& orientNormal,
                                                 Vector3D* reflectDir,
                                                 Vector3D* refractDir,
                                                 double* fresnelRef,
@@ -39,7 +39,7 @@ namespace spica {
         SPICA_EXPORTS Spectrum directLight(const Scene& scene,
                                            const Vector3D& pos,
                                            const Vector3D& in,
-                                           const Vector3D& normal, 
+                                           const Normal& normal, 
                                            const BSDF& bsdf,
                                            Stack<double>& rstk);
 

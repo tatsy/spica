@@ -70,7 +70,7 @@ namespace spica {
             *normal = disk.normal();
         }
 
-        void onTriangle(const Triangle& tri, Vector3D* position, Vector3D* normal, double r1, double r2) {
+        void onTriangle(const Triangle& tri, Point* position, Normal* normal, double r1, double r2) {
             if (r1 + r2 >= 1.0) {
                 r1 = 1.0 - r1;
                 r2 = 1.0 - r2;

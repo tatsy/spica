@@ -34,7 +34,7 @@ namespace spica {
             double height;          // # of sensors along y-axis
             double cellW;           // Width of one sensor cell
             double cellH;           // Height of one sensor cell
-            Vector3D center;        // Center position of the sensor
+            Point    center;        // Center position of the sensor
             Vector3D direction;     // Direction of the sensor
             Vector3D up;            // Up direction of the sensor
             Vector3D unitU;         // Unit vector of u-axis
@@ -50,10 +50,10 @@ namespace spica {
         struct Lens {
             double focalLength;     // Focal length
             double radius;          // Lens radius
-            Vector3D center;         // Center position
+            Point    center;         // Center position
             Vector3D unitU;          // Unit vector of u-axis
             Vector3D unitV;          // Unit vector of v-axis
-            Vector3D normal;         // Lens normal
+            Normal   normal;         // Lens normal
 
             // Area of lens
             double area() const {
@@ -69,8 +69,8 @@ namespace spica {
         struct ObjectPlane {
             double width;       // Width of the object plane
             double height;      // Height of the object plane
-            Vector3D center;     // Center position
-            Vector3D normal;     // Normal of the object plane
+            Point    center;     // Center position
+            Normal   normal;     // Normal of the object plane
             Vector3D unitU;      // Unit vector of u-axis
             Vector3D unitV;      // Unit vector of v-axis
         };
@@ -91,7 +91,7 @@ namespace spica {
         DoFCamera();
         DoFCamera(int    imageWidth,
                   int    imageHeight,
-                  const  Vector3D& sensorCenter,
+                  const  Point& sensorCenter,
                   const  Vector3D& sensorDir,
                   const  Vector3D& sensorUp,
                   double sensorSize,
@@ -108,7 +108,7 @@ namespace spica {
 
         ICamera* clone() const override;
 
-        double PImageToPAx1(const double PImage, const Vector3D& x0xV, const Vector3D& x0x1, const Vector3D& orientNormal) const;
+        double PImageToPAx1(const double PImage, const Vector3D& x0xV, const Vector3D& x0x1, const Normal& orientNormal) const;
 
         /* Return distance to the intersecting point on the lens
          * @param[in] ray: a ray casted to lens
@@ -116,17 +116,19 @@ namespace spica {
          * @param[out] positionOnObjplane: hit point on object plane
          * @param[out] uvOnSensor: uv coordinate on the sensor
          */
-        double intersectLens(const Ray& ray, Vector3D& positionOnLens, Vector3D& positonOnObjplane, Vector3D& positionOnSensor, Vector3D& uvOnSensor) const;
+        double intersectLens(const Ray& ray, Point* positionOnLens, Point* positonOnObjplane, Point* positionOnSensor, Vector3D* uvOnSensor) const;
 
         double contribSensitivity(const Vector3D& x0xV, const Vector3D& x0xI, const Vector3D& x0x1) const;
 
-        void samplePoints(const int imageX, const int imageY, Random& rng, Vector3D& positionOnSensor, Vector3D& positionOnObjplane, Vector3D& positionOnLens, double& PImage, double& PLens) const;
+        void samplePoints(const int imageX, const int imageY, Random& rng,
+                          Point* positionOnSensor, Point* positionOnObjplane, Point* positionOnLens,
+                          double* PImage, double* PLens) const;
 
         CameraSample sample(double imageX, double imageY, Stack<double>& rseq) const override;
 
         inline double distSL() const { return distSensorToLens_; }
         
-        inline Vector3D center()    const override { return sensor_.center; }
+        inline Point    center()    const override { return sensor_.center; }
         inline Vector3D direction() const override { return sensor_.direction; }
         inline Vector3D up()        const override { return sensor_.up; }
 
@@ -140,13 +142,13 @@ namespace spica {
 
         inline Vector3D lensU() const { return lens_.unitU; }
         inline Vector3D lensV() const { return lens_.unitV; }
-        inline Vector3D lensCenter() const { return lens_.center; }
-        inline Vector3D lensNormal() const { return lens_.normal; }
+        inline Point    lensCenter() const { return lens_.center; }
+        inline Normal   lensNormal() const { return lens_.normal; }
         inline double  lensRadius() const { return lens_.radius; }
         inline double  lensArea()   const { return lens_.area(); }
         inline double  focalLength() const { return lens_.focalLength; }
 
-        inline Vector3D objplaneCenter() const { return objplane_.center; }
+        inline Point objplaneCenter() const { return objplane_.center; }
         inline double  objplaneW() const { return objplane_.width; }
         inline double  objplaneH() const { return objplane_.height; }
         inline Vector3D objplaneU() const { return objplane_.unitU; }

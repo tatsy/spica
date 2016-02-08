@@ -9,10 +9,10 @@ namespace spica {
     Ray::Ray() {
     }
 
-    Ray::Ray(const Vector3D& origin, const Vector3D& direction)
-        : _origin{origin}
-        , _direction{direction}
-        , _invdir{} {
+    Ray::Ray(const Point& origin, const Vector3D& direction)
+        : origin_{ origin }
+        , direction_{ direction }
+        , invdir_{} {
         Assertion(std::abs(1.0 - direction.norm()) < EPS,
                   "Direction must be unit vector!!");
         calcInvdir();
@@ -27,16 +27,16 @@ namespace spica {
     }
 
     Ray& Ray::operator=(const Ray& ray) {
-        this->_origin    = ray._origin;
-        this->_direction = ray._direction;
-        this->_invdir    = ray._invdir;
+        this->origin_    = ray.origin_;
+        this->direction_ = ray.direction_;
+        this->invdir_    = ray.invdir_;
         return *this;
     }
 
     void Ray::calcInvdir() {
-        _invdir.xRef() = (_direction.x() == 0.0) ? INFTY : 1.0 / _direction.x();
-        _invdir.yRef() = (_direction.y() == 0.0) ? INFTY : 1.0 / _direction.y();
-        _invdir.zRef() = (_direction.z() == 0.0) ? INFTY : 1.0 / _direction.z();
+        invdir_.xRef() = (direction_.x() == 0.0) ? INFTY : 1.0 / direction_.x();
+        invdir_.yRef() = (direction_.y() == 0.0) ? INFTY : 1.0 / direction_.y();
+        invdir_.zRef() = (direction_.z() == 0.0) ? INFTY : 1.0 / direction_.z();
     }
 
     Hitpoint::Hitpoint() {

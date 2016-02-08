@@ -123,6 +123,8 @@ namespace spica {
     }
 
     Matrix4x4& Matrix4x4::operator=(const Matrix4x4& mat) {
+        if (this == &mat) return *this;
+
         memcpy(m, mat.m, sizeof(m));
         return *this;
     }
@@ -171,7 +173,6 @@ namespace spica {
             }
         }
         ss << "]";
-        printf("gugug\n");
         return std::move(ss.str());
     }
 
@@ -192,7 +193,6 @@ spica::Matrix4x4 operator*(const spica::Matrix4x4& m1, const spica::Matrix4x4& m
 }
 
 std::ostream& operator<<(std::ostream& os, const spica::Matrix4x4& mat) {
-    printf("Hello\n");
-    // os << mat.toString();
+    os << mat.toString();
     return os;
 }

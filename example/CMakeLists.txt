@@ -6,6 +6,7 @@ if (${SPICA_BUILD_EXAMPLE} STREQUAL "ON")
 
   function (generate_example example_name)
     add_executable(${example_name} "${example_name}_example.cc")
+    add_dependencies(${example_name} ${SPICA_TARGET_NAME})
     target_link_libraries(${example_name} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
 
     if (MSVC)

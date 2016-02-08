@@ -1,3 +1,6 @@
+set(SPICA_TARGET_NAME spica_renderer CACHE INTERNAL "")
+set(BUILD_TARGET ${SPICA_TARGET_NAME})
+
 if(MSVC)
   find_package(OpenMP)
   if (OPENMP_FOUND)
@@ -37,11 +40,12 @@ process_subdirectory(camera)
 process_subdirectory(scenes)
 process_subdirectory(accel)
 
-add_library(spica_renderer SHARED ${ALL_SOURCES} ${ALL_HEADERS})
+add_library(${BUILD_TARGET} SHARED ${ALL_SOURCES} ${ALL_HEADERS})
+set(SPICA_LIBS ${LIB_PREFIX}${BUILD_TARGET}${LIB_SUFFIX} CACHE INTERNAL "")
 
 if (MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
-  set_property(TARGET spica_renderer APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
+  set_property(TARGET ${BUILD_TARGET} APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
 endif()
 
 # Build viewer

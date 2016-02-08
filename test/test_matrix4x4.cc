@@ -174,3 +174,11 @@ TEST_F(Matrix4x4Test, EqualAndNotEqual) {
     EXPECT_TRUE(m1 == m2);
     EXPECT_FALSE(m1 != m2);
 }
+
+TEST_F(Matrix4x4Test, InvalidAccess) {
+    Matrix4x4 m;
+    ASSERT_DEATH(m(0, 4), "");
+    ASSERT_DEATH(m(4, 0), "");
+    ASSERT_DEATH(m(-1, 0), "");
+    ASSERT_DEATH(m(0, -1), "");
+}

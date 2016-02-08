@@ -27,6 +27,8 @@ namespace spica {
     }
 
     Transform& Transform::operator=(const Transform& t) {
+        if (this == &t) return *this;
+
         this->m_ = t.m_;
         this->mInv_ = t.mInv_;
         return *this;
@@ -43,8 +45,8 @@ namespace spica {
     bool Transform::isIdentity() const {
         return (m_(0, 0) == 1.0 && m_(0, 1) == 0.0 && m_(0, 2) == 0.0 && m_(0, 3) == 0.0 &&
                 m_(1, 0) == 0.0 && m_(1, 1) == 1.0 && m_(1, 2) == 0.0 && m_(1, 3) == 0.0 &&
-                m_(2, 0) == 0.0 && m_(2, 1) == 1.0 && m_(2, 2) == 0.0 && m_(2, 3) == 0.0 &&
-                m_(3, 0) == 0.0 && m_(3, 1) == 1.0 && m_(3, 2) == 0.0 && m_(3, 3) == 0.0);
+                m_(2, 0) == 0.0 && m_(2, 1) == 0.0 && m_(2, 2) == 1.0 && m_(2, 3) == 0.0 &&
+                m_(3, 0) == 0.0 && m_(3, 1) == 0.0 && m_(3, 2) == 0.0 && m_(3, 3) == 1.0);
     }
 
 }  // namespace spica

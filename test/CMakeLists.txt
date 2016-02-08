@@ -37,6 +37,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_vector2d.cc
       test_vector3d.cc
       test_matrix4x4.cc
+      test_transform.cc
       test_quaternion.cc
       test_image.cc
       test_color.cc
@@ -56,8 +57,9 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
 
   add_definitions(-DGTEST_LANG_CXX11)
   add_executable(${TEST_NAME} ${SOURCE_FILES})
+  add_dependencies(${TEST_NAME} spica_renderer)
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARIES})
-  target_link_libraries(${TEST_NAME} "${LIB_PREFIX}spica_renderer${LIB_SUFFIX}")
+  target_link_libraries(${TEST_NAME} ${SPICA_LIBS})
 
   if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")

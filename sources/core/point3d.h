@@ -61,6 +61,9 @@ spica::Point3_<T> operator*(const spica::Point3_<T>& p, T s);
 template <class T>
 spica::Point3_<T> operator*(T s, const spica::Point3_<T>& p);
 
+template <class T>
+spica::Point3_<T> operator/(const spica::Point3_<T>& p, T s);
+
 #include "point3d_detail.h"
 
 #endif  // _SPICA_POINT3D_H_

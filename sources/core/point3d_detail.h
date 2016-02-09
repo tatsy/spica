@@ -146,4 +146,11 @@ spica::Point3_<T> operator*(T s, const spica::Point3_<T>& p) {
     return ret;
 }
 
+template <class T>
+spica::Point3_<T> operator/(const spica::Point3_<T>& p, T s) {
+    spica::Point3_<T> ret = p;
+    ret *= s;
+    return ret;
+}
+
 #endif  // _SPICA_POINT3D_DETAIL_H_

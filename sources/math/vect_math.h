@@ -62,10 +62,4 @@ spica::Vector3_<T> operator-(const spica::Point3_<T>& p1, const spica::Point3_<T
     return { p1.x() - p2.x(), p1.y() - p2.y(), p1.z() - p2.z() };
 }
 
-template <class T>
-spica::Point3_<T> operator/(spica::Point3_<T>& p, T s) {
-    Assertion(s != 0.0, "Zero division!!");
-    return p * (1.0 / s);
-}
-
 #endif  // _SPICA_VECT_MATH_H_

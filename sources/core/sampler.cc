@@ -17,15 +17,15 @@ namespace spica {
 
     namespace sampler {
 
-        void onHemisphere(const Vector3D& normal, Vector3D* direction) {
+        void onHemisphere(const Normal& normal, Vector3D* direction) {
             double r1 = rng.nextReal();
             double r2 = rng.nextReal();
             onHemisphere(normal, direction, r1, r2);
         }
 
-        void onHemisphere(const Vector3D& normal, Vector3D* direction, double r1, double r2) {
+        void onHemisphere(const Normal& normal, Vector3D* direction, double r1, double r2) {
             Vector3D u, v, w;
-            w = normal;
+            w = static_cast<Vector3D>(normal);
             helper::calcLocalCoords(w, &u, &v);
 
             const double t = 2.0 * PI * r1;
@@ -34,13 +34,13 @@ namespace spica {
             *direction = (u * cos(t) * z2s + v * sin(t) * z2s + w * sqrt(1.0 - z2)).normalized();        
         }
 
-        void onSphere(const Sphere& sphere, Vector3D* position, Vector3D* normal) {
+        void onSphere(const Sphere& sphere, Point* position, Normal* normal) {
             double r1 = rng.nextReal();
             double r2 = rng.nextReal();
             onSphere(sphere, position, normal, r1, r2);
         }
 
-        void onSphere(const Sphere& sphere, Vector3D* position, Vector3D* normal, double r1, double r2) {
+        void onSphere(const Sphere& sphere, Point* position, Normal* normal, double r1, double r2) {
             double s = 2.0 * r1 - 1.0;
             double c = sqrt(1.0 - s * s);
             double p = 2.0 * PI * r2;
@@ -48,17 +48,17 @@ namespace spica {
             double y = c * sin(p);
             double z = s;
 
-            *normal = Vector3D(x, y, z);
-            *position = sphere.radius() * Vector3D(x, y, z) + sphere.center();
+            *normal = Normal(x, y, z);
+            *position = sphere.radius() * Point(x, y, z) + sphere.center();
         }
 
-        void onDisk(const Disk& disk, Vector3D* position, Vector3D* normal) {
+        void onDisk(const Disk& disk, Point* position, Normal* normal) {
             double r0 = sqrt(rng.nextReal());
             double r1 = rng.nextReal() * (2.0 * PI);
             double rx = disk.radius() * r0 * cos(r1);
             double ry = disk.radius() * r0 * sin(r1);
             Vector3D u, v, w;
-            w = disk.normal();
+            w = static_cast<Vector3D>(disk.normal());
             if (std::abs(w.x()) > EPS) {
                 u = Vector3D::cross(Vector3D(0.0, 1.0, 0.0), w).normalized();
             } else {
@@ -79,27 +79,27 @@ namespace spica {
             (*normal) = tri.normal();
         }
 
-        void onTriangle(const Triangle& tri, Vector3D* position, Vector3D* normal) {
+        void onTriangle(const Triangle& tri, Point* position, Normal* normal) {
             double r1 = rng.nextReal();
             double r2 = rng.nextReal();
             onTriangle(tri, position, normal, r1, r2);
         }
 
-        void onQuad(const Quad& quad, Vector3D* position, Vector3D* normal, double r1, double r2) {
+        void onQuad(const Quad& quad, Point* position, Normal* normal, double r1, double r2) {
             // TODO: this sampler can properly work only for rectangles and squares
-            Vector3D e1 = quad[1] - quad[0];
-            Vector3D e2 = quad[3] - quad[0];
+            const Vector3D e1 = quad[1] - quad[0];
+            const Vector3D e2 = quad[3] - quad[0];
             *position = quad[0] + r1 * e1 + r2 * e2;
             *normal = quad.normal();
         }
 
-        void onQuad(const Quad& quad, Vector3D* position, Vector3D* normal) {
+        void onQuad(const Quad& quad, Point* position, Normal* normal) {
             double r1 = rng.nextReal();
             double r2 = rng.nextReal();
             onQuad(quad, position, normal, r1, r2);            
         }
 
-        void on(const IShape* primitive, Vector3D* position, Vector3D* normal, double r1, double r2) {
+        void on(const IShape* primitive, Point* position, Normal* normal, double r1, double r2) {
             if (typeid(*primitive) == typeid(Quad)) {
                 const Quad* quad = reinterpret_cast<const Quad*>(primitive);
                 onQuad(*quad, position, normal, r1, r2);
@@ -112,7 +112,7 @@ namespace spica {
             }
         }
 
-        void on(const IShape* primitive, Vector3D* position, Vector3D* normal) {
+        void on(const IShape* primitive, Point* position, Normal* normal) {
             if (typeid(*primitive) == typeid(Sphere)) {
                 const Sphere* sphere = reinterpret_cast<const Sphere*>(primitive);
                 onSphere(*sphere, position, normal);
@@ -128,11 +128,11 @@ namespace spica {
             }
         }
 
-        void poissonDisk(const std::vector<Triangle>& triangles, const double minDist, std::vector<Vector3D>* points, std::vector<Vector3D>* normals) {
+        void poissonDisk(const std::vector<Triangle>& triangles, const double minDist, std::vector<Point>* points, std::vector<Normal>* normals) {
             // Sample random points on trimesh
             BBox bbox;
-            std::vector<Vector3D> candPoints;
-            std::vector<Vector3D> candNormals;
+            std::vector<Point> candPoints;
+            std::vector<Normal> candNormals;
             for (int i = 0; i < triangles.size(); i++) {
                 const Triangle& tri = triangles[i];
                 const double A = tri.area();
@@ -144,7 +144,7 @@ namespace spica {
                         u = 1.0 - u;
                         v = 1.0 - v;
                     }
-                    Vector3D p = tri[0] + u * (tri[1] - tri[0]) + v * (tri[2] - tri[0]);
+                    Point p = tri[0] + u * (tri[1] - tri[0]) + v * (tri[2] - tri[0]);
                     candPoints.push_back(p);
                     candNormals.push_back(tri.normal());
                     bbox.merge(p);
@@ -168,7 +168,7 @@ namespace spica {
             Vector3D marginv(2.0 * minDist, 2.0 * minDist, 2.0 * minDist);
             while (!que.empty()) {
                 int id = que.pop();
-                Vector3D v = candPoints[id];
+                Point v = candPoints[id];
                 const std::vector<int>& cellvs = hashgrid[v];
 
                 bool accept = true;
@@ -180,8 +180,8 @@ namespace spica {
                 }
 
                 if (accept) {
-                    Vector3D boxMin = v - marginv;
-                    Vector3D boxMax = v + marginv;
+                    Point boxMin = v - marginv;
+                    Point boxMax = v + marginv;
                     hashgrid.add(id, boxMin, boxMax);
                     sampledIDs.push_back(id);
                 }

@@ -35,7 +35,7 @@ namespace spica {
         bool checkTotalReflection(const bool into,
                                   const Vector3D& in,
                                   const Normal& n,
-                                  const Vector3D& on,
+                                  const Normal& on,
                                   Vector3D* reflectDir,
                                   Vector3D* transmitDir,
                                   double* fresnelRe,
@@ -46,7 +46,7 @@ namespace spica {
             // Snell's rule
             const double nnt = into ? kIorVaccum / kIorObject 
                                     : kIorObject / kIorVaccum;
-            const double ddn = in.dot(on);
+            const double ddn = vect::dot(in, on);
             const double cos2t = 1.0 - nnt * nnt * (1.0 - ddn * ddn);
 
             if (cos2t < 0.0) {
@@ -57,7 +57,7 @@ namespace spica {
                 return true;
             }
 
-            *transmitDir = (in * nnt - n * (into ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
+            *transmitDir = (in * nnt - Vector3D(n) * (into ? 1.0 : -1.0) * (ddn * nnt + sqrt(cos2t))).normalized();
 
             const double a = kIorObject - kIorVaccum;
             const double b = kIorObject + kIorVaccum;
@@ -71,7 +71,7 @@ namespace spica {
         }
 
         Spectrum radiance(const Scene& scene, const RenderParameters& params,
-                       const Ray& ray, Stack<double>& rands, int bounces) {
+                          const Ray& ray, Stack<double>& rands, int bounces) {
             if (bounces >= params.bounceLimit()) {
                 return Spectrum(0.0, 0.0, 0.0);
             }

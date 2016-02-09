@@ -13,7 +13,7 @@ namespace {
             Triangle tri = trimesh.getTriangle(i);
             Hitpoint hpTemp;
             if (tri.intersect(ray, &hpTemp)) {
-                if (hitpoint->distance() > hpTemp.distance() && Vector3D::dot(ray.direction(), tri.normal()) < 0.0) {
+                if (hitpoint->distance() > hpTemp.distance() && vect::dot(ray.direction(), tri.normal()) < 0.0) {
                     *hitpoint = hpTemp;
                     ret = true;
                 }
@@ -41,11 +41,11 @@ TEST_F(TrimeshTest, InvalidLoad) {
 }
 
 TEST_F(TrimeshTest, VertexFaceIdInstance) {
-    std::vector<Vector3D> vertices;
-    vertices.push_back(Vector3D(-10.0, 0.0, -10.0));
-    vertices.push_back(Vector3D(-10.0, 0.0,  10.0));
-    vertices.push_back(Vector3D( 10.0, 0.0, -10.0));
-    vertices.push_back(Vector3D( 10.0, 0.0,  10.0));
+    std::vector<Point> vertices;
+    vertices.push_back(Point(-10.0, 0.0, -10.0));
+    vertices.push_back(Point(-10.0, 0.0,  10.0));
+    vertices.push_back(Point( 10.0, 0.0, -10.0));
+    vertices.push_back(Point( 10.0, 0.0,  10.0));
     std::vector<Triplet> indices = { Triplet(0, 1, 3), Triplet(3, 2, 0) };
     
     Trimesh trimesh(vertices, indices);
@@ -109,7 +109,7 @@ TEST_F(TrimeshTest, BoxIntersection) {
     Trimesh trimesh(kDataDirectory + "box.ply");
     trimesh.buildAccel(AccelType::QBVH);
 
-    Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
+    Ray ray(Point(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
     Hitpoint hitpoint;
     EXPECT_TRUE(trimesh.intersect(ray, &hitpoint));
     EXPECT_EQ(99.5, hitpoint.distance());
@@ -121,7 +121,7 @@ TEST_F(TrimeshTest, BunnyIntersection) {
     Trimesh trimesh(kDataDirectory + "bunny.ply");
     trimesh.buildAccel(AccelType::KdTree);
 
-    Ray ray(Vector3D(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
+    Ray ray(Point(0.0, 0.0, 100.0), Vector3D(0.0, 0.0, -1.0));
 
     Hitpoint hpGT;
     bool isHit = trimeshIsectGT(trimesh, ray, &hpGT);
@@ -159,8 +159,8 @@ TEST_F(TrimeshTest, RandomKdTreeIntersection) {
     trimesh.buildAccel(AccelType::KdTree);
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
-        Vector3D to    = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Point from   = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
+        Point to     = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
         Vector3D dir = (to - from).normalized();
         Ray ray(from, dir);
 
@@ -186,8 +186,8 @@ TEST_F(TrimeshTest, RandomQVBHIntersection) {
     trimesh.buildAccel(AccelType::QBVH);
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
-        Vector3D to    = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Point from  = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 0.0);
+        Point to    = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
         Vector3D dir = (to - from).normalized();
         Ray ray(from, dir);
 

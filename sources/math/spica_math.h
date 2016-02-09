@@ -13,5 +13,6 @@
 #include "matrix4x4.h"
 #include "transform.h"
 #include "quaternion.h"
+#include "vect_math.h"
 
 #endif  // _SPICA_MATH_H_

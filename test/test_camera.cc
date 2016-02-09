@@ -48,7 +48,7 @@ protected:
 
     int imageW;
     int imageH;
-    Vector3D center;
+    Point center;
     Vector3D direction;
     Vector3D up;
     double sensorSize;
@@ -83,27 +83,29 @@ TEST_F(DoFCameraTest, InstanceTest) {
 
 TEST_F(DoFCameraTest, LensIntersection) {
     // Intersect
-    Vector3D posOnLens, posOnObjplane, posOnSensor, uvOnSensor;
-    Ray ray(Vector3D(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 1.0));
-    EXPECT_EQ(80.0, camera.intersectLens(ray, posOnLens, posOnObjplane, posOnSensor, uvOnSensor));
-    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 80.0), posOnLens);
-    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 100.0), posOnSensor);
-    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 0.0), posOnObjplane);
+    Point posOnLens, posOnObjplane, posOnSensor;
+    Vector3D uvOnSensor;
+    Ray ray(Point(0.0, 0.0, 0.0), Vector3D(0.0, 0.0, 1.0));
+    EXPECT_EQ(80.0, camera.intersectLens(ray, &posOnLens, &posOnObjplane, &posOnSensor, &uvOnSensor));
+    EXPECT_EQ_VEC(Point(0.0, 0.0, 80.0), posOnLens);
+    EXPECT_EQ_VEC(Point(0.0, 0.0, 100.0), posOnSensor);
+    EXPECT_EQ_VEC(Point(0.0, 0.0, 0.0), posOnObjplane);
     EXPECT_EQ_VEC(Vector3D(imageW / 2.0, imageH / 2.0, 0.0), uvOnSensor);
 
     // Not intersect
-    ray = Ray(Vector3D(0.0, 0.0, 0.0), Vector3D(0.0, 1.0, 0.0));
-    EXPECT_EQ(-INFTY, camera.intersectLens(ray, posOnLens, posOnObjplane, posOnSensor, uvOnSensor));
+    ray = Ray(Point(0.0, 0.0, 0.0), Vector3D(0.0, 1.0, 0.0));
+    EXPECT_EQ(-INFTY, camera.intersectLens(ray, &posOnLens, &posOnObjplane, &posOnSensor, &uvOnSensor));
 }
 
 TEST_F(DoFCameraTest, SampleTest) {
     const int numSample = 100;
     Random rng = Random();
 
-    Vector3D posOnLens, posOnObjplane, posOnSensor, uvOnSensor;
+    Point posOnLens, posOnObjplane, posOnSensor;
+    Vector3D uvOnSensor;
     double pImage, pLens;
     for (int i = 0; i < numSample; i++) {
-        camera.samplePoints(imageW / 2, imageH / 2, rng, posOnSensor, posOnObjplane, posOnLens, pImage, pLens);
+        camera.samplePoints(imageW / 2, imageH / 2, rng, &posOnSensor, &posOnObjplane, &posOnLens, &pImage, &pLens);
         EXPECT_EQ(80.0, posOnLens.z());
         EXPECT_EQ(100.0, posOnSensor.z());
         EXPECT_EQ(1.0 / camera.lensArea(), pLens);
@@ -132,7 +134,7 @@ TEST_F(PerspectiveCameraTest, DefaultInstance) {
 }
 
 TEST_F(PerspectiveCameraTest, Instance) {
-    Vector3D center(0.0, 0.0, 0.0);
+    Point    center(0.0, 0.0, 0.0);
     Vector3D direction(0.0, 0.0, 1.0);
     Vector3D up(0.0, 1.0, 0.0);
     const int width = 320;
@@ -168,7 +170,7 @@ TEST_F(OrthographicCameraTest, DefaultInstance) {
 }
 
 TEST_F(OrthographicCameraTest, Instance) {
-    Vector3D center(0.0, 0.0, 0.0);
+    Point    center(0.0, 0.0, 0.0);
     Vector3D direction(0.0, 0.0, 1.0);
     Vector3D up(0.0, 1.0, 0.0);
     const int width = 320;

@@ -15,13 +15,9 @@ namespace spica {
      *  @ingroup shape_module
      */
     class SPICA_EXPORTS Sphere : public IShape {
-    private:
-        Vector3D _center = { 0.0, 0.0, 0.0 };
-        double   _radius = 0.0;
-
     public:
         Sphere();
-        Sphere(const Vector3D& center, double radius);
+        Sphere(const Point& center, double radius);
         Sphere(const Sphere& sphere);
         ~Sphere();
 
@@ -38,8 +34,12 @@ namespace spica {
 
         Trimesh triangulate() const override;
 
-        inline Vector3D center() const { return _center; }
-        inline double   radius() const { return _radius; }
+        inline Point  center() const { return center_; }
+        inline double radius() const { return radius_; }
+
+    private:
+        Point  center_ = { 0.0, 0.0, 0.0 };
+        double radius_ = 0.0;
 
     };  // class Sphere
 

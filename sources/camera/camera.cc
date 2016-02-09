@@ -47,7 +47,7 @@ namespace spica {
 
     Camera Camera::asDoF(int imageWidth,
                          int imageHeight,
-                         const  Vector3D& sensorCenter,
+                         const  Point& sensorCenter,
                          const  Vector3D& sensorDir,
                          const  Vector3D& sensorUp,
                          double sensorSize,
@@ -71,7 +71,7 @@ namespace spica {
         return std::move(camera);
     }
 
-    Camera Camera::perspective(const Vector3D& center,
+    Camera Camera::perspective(const Point& center,
                                const Vector3D& direction,
                                const Vector3D& up,
                                double fov, int imageW, int imageH,
@@ -86,7 +86,7 @@ namespace spica {
         return std::move(camera);
     }
 
-    Camera Camera::ortho(const Vector3D& center,
+    Camera Camera::ortho(const Point& center,
                          const Vector3D& direction,
                          const Vector3D& up,
                          const Rect& rect,

@@ -65,7 +65,7 @@ namespace spica {
          *  @param[in] v: Previous hit point.
          *  @param[in] rands: Random numbers.
          */
-        LightSample sample(const Vector3D& v, Stack<double>& rands) const;
+        LightSample sample(const Point& v, Stack<double>& rands) const;
 
         /** Sample photon.
          *  @param[in] rands: Random numbers.

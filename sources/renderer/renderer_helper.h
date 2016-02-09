@@ -37,7 +37,7 @@ namespace spica {
                                         const Ray& ray, Stack<double>& rands, int bounces);
 
         SPICA_EXPORTS Spectrum directLight(const Scene& scene,
-                                           const Vector3D& pos,
+                                           const Point& pos,
                                            const Vector3D& in,
                                            const Normal& normal, 
                                            const BSDF& bsdf,

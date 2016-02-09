@@ -13,6 +13,8 @@
 #include <memory>
 
 #include "../math/vector3d.h"
+#include "../core/point3d.h"
+#include "../core/normal3d.h"
 #include "../core/spectrum.h"
 
 namespace spica {
@@ -65,17 +67,17 @@ namespace spica {
 
         const Spectrum& reflectance() const;
 
-        void sample(const Vector3D& in, const Vector3D& normal, 
+        void sample(const Vector3D& in, const Normal& normal, 
                     double rand1, double rand2,
                     Vector3D* out, double* pdf) const;
 
-        double pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const;
+        double pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const;
 
         Spectrum evalBSSRDF(const Vector3D& in, 
-                         const Vector3D& pos,
-                         const Vector3D& normal,
-                         const SubsurfaceIntegrator& integr,
-                         double* refPdf) const;
+                            const Point& pos,
+                            const Normal& normal,
+                            const SubsurfaceIntegrator& integr,
+                            double* refPdf) const;
 
         BsdfType type() const;
         void setBssrdf(const BSSRDF& bssrdf);

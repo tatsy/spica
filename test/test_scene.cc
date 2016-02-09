@@ -13,8 +13,8 @@ protected:
 
     virtual void SetUp() {
         nTrial = 100;
-        s1 = Sphere(Vector3D(0.0, 0.0, 0.0), 5.0);
-        s2 = Sphere(Vector3D(0.0, 10.0, 0.0), 2.0);
+        s1 = Sphere(Point(0.0, 0.0, 0.0), 5.0);
+        s2 = Sphere(Point(0.0, 10.0, 0.0), 2.0);
         scene.addShape(s1, LambertianBRDF::factory(Spectrum(0.3, 0.5, 0.7)));
         scene.setAreaLight(s2, Spectrum(32.0, 32.0, 32.0));
     }
@@ -35,12 +35,12 @@ TEST_F(SceneTest, InstanceTest) {
 
 TEST_F(SceneTest, AccelNotPrepared) {
     Intersection isect;
-    Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
+    Ray ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
     ASSERT_DEATH(scene.intersect(ray, &isect), "");
 }
 
 TEST_F(SceneTest, BoundingSphere) {
-    Camera cam = Camera::perspective(Vector3D{0.0, 0.0, 100.0},
+    Camera cam = Camera::perspective(Point{0.0, 0.0, 100.0},
                                      Vector3D{0.0, 0.0, -1.0},
                                      Vector3D{0.0, 1.0, 0.0},
                                      45.0,
@@ -67,13 +67,13 @@ TEST_F(SceneTest, BBVHIntersectionTest) {
     scene.computeAccelerator();
 
     Intersection isect;
-    Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0).normalized());
+    Ray ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0).normalized());
     EXPECT_TRUE(scene.intersect(ray, &isect));
 
     EXPECT_NE(isect.objectID(), -1);
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), isect.position());
 
-    ray = Ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
+    ray = Ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
     EXPECT_FALSE(scene.intersect(ray, &isect));
     EXPECT_EQ(isect.objectID(), -1);
 }
@@ -83,13 +83,13 @@ TEST_F(SceneTest, QBVHIntersectionTest) {
     scene.computeAccelerator();
 
     Intersection isect;
-    Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0).normalized());
+    Ray ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0).normalized());
     EXPECT_TRUE(scene.intersect(ray, &isect));
 
     EXPECT_NE(isect.objectID(), -1);
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), isect.position());
 
-    ray = Ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
+    ray = Ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
     EXPECT_FALSE(scene.intersect(ray, &isect));
     EXPECT_EQ(isect.objectID(), -1);
 }
@@ -99,13 +99,13 @@ TEST_F(SceneTest, KdTreeIntersectionTest) {
     scene.computeAccelerator();
 
     Intersection isect;
-    Ray ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
+    Ray ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
     EXPECT_TRUE(scene.intersect(ray, &isect));
 
     EXPECT_NE(isect.objectID(), -1);
     EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), isect.position());
 
-    ray = Ray(Vector3D(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
+    ray = Ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
     EXPECT_FALSE(scene.intersect(ray, &isect));
     EXPECT_EQ(isect.objectID(), -1);
 }
@@ -123,8 +123,8 @@ TEST_F(SceneTest, QBVHvsKdTree) {
     Random rng = Random((unsigned int)time(NULL));
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
-        Vector3D to    = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Point from   = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Point to     = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
         Vector3D dir = (to - from).normalized();
         Ray ray(from, dir);
 
@@ -148,8 +148,8 @@ TEST_F(SceneTest, BBVHvsQBVH) {
     Random rng = Random();
 
     for (int i = 0; i < nTrial; i++) {
-        Vector3D from  = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
-        Vector3D to    = Vector3D(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Point  from  = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
+        Point  to    = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
         Vector3D dir = (to - from).normalized();
         Ray ray(from, dir);
 

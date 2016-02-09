@@ -8,7 +8,8 @@
 
 const double tol = 0.001;
 
-inline void EXPECT_EQ_VEC_(const Vector3D& expected, const Vector3D& actual) {
+template <class Vec1, class Vec2>
+inline void EXPECT_EQ_VEC_(const Vec1& expected, const Vec2& actual) {
     if (std::abs((expected).x() - (actual).x()) >= tol ||
         std::abs((expected).y() - (actual).y()) >= tol ||
         std::abs((expected).z() - (actual).z()) >= tol) {

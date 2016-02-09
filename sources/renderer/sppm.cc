@@ -24,8 +24,8 @@
 namespace spica {
 
     struct SPPMRenderer::SPPMPixel {
-        Vector3D position;
-        Vector3D normal;
+        Point position;
+        Normal normal;
         Spectrum flux;
         Spectrum weight;
         Spectrum emission;
@@ -34,7 +34,7 @@ namespace spica {
         double r2;
         int n;
 
-        explicit SPPMPixel(Vector3D pos = Vector3D())
+        explicit SPPMPixel(Point pos = Point())
             : position(pos)
             , normal()
             , flux()
@@ -199,8 +199,8 @@ namespace spica {
 
         // Set hit points to the grid
         for (int i = 0; i < numPoints; i++) {
-            Vector3D boxMin = pixels[i].position - iradv;
-            Vector3D boxMax = pixels[i].position + iradv;
+            Point boxMin = pixels[i].position - iradv;
+            Point boxMax = pixels[i].position + iradv;
             hashgrid.add(&pixels[i], boxMin, boxMax);
         }
     }
@@ -276,7 +276,7 @@ namespace spica {
                 Vector3D nextDir;
                 sampler::onHemisphere(photon.normal(), &nextDir);
                 Ray ray(photon.position(), nextDir);
-                Vector3D prevNormal = photon.normal();
+                Normal prevNormal = photon.normal();
 
                 tracePhotonsRec(scene, ray, params, flux, 0, rstk);
             }
@@ -313,9 +313,9 @@ namespace spica {
         const int    objectID = isect.objectID();
         const BSDF&  bsdf     = scene.getBsdf(objectID);
         const Spectrum& refl     = isect.color();
-        const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
-        const Vector3D orientNormal = into ?  isect.normal()
-                                           : -isect.normal();
+        const bool into = vect::dot(isect.normal(), ray.direction()) < 0.0;
+        const Normal orientNormal = into ?  isect.normal()
+                                         : -isect.normal();
 
         double photonPdf = 1.0;
         if (bsdf.type() & BsdfType::Lambertian) {
@@ -329,7 +329,7 @@ namespace spica {
             for (int i = 0; i < results.size(); i++) {
                 SPPMPixel* pixel = results[i];
                 Vector3D v = pixel->position - isect.position();
-                if (Vector3D::dot(pixel->normal, isect.normal()) > EPS &&
+                if (vect::dot(pixel->normal, isect.normal()) > EPS &&
                     (v.squaredNorm() <= pixel->r2)) {
                     const double g = (pixel->n * kAlpha + kAlpha) / 
                                      (pixel->n * kAlpha + 1.0);
@@ -389,10 +389,10 @@ namespace spica {
             const int       objectID = isect.objectID();
             const BSDF&     bsdf     = scene.getBsdf(objectID);
             const Spectrum& emission = scene.isLightCheck(objectID) ? scene.directLight(ray.direction()) : Spectrum(0.0, 0.0, 0.0);
-            const bool      into     = Vector3D::dot(isect.normal(),
-                                                     ray.direction()) < 0.0;
-            const Vector3D orientNormal = into ?  isect.normal()
-                                               : -isect.normal();
+            const bool      into     = vect::dot(isect.normal(),
+                                                 ray.direction()) < 0.0;
+            const Normal orientNormal = into ?  isect.normal()
+                                             : -isect.normal();
 
             if (bsdf.type() & BsdfType::Lambertian) {
                 // Ray hits diffuse object, return current weight

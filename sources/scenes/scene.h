@@ -75,7 +75,7 @@ namespace spica {
 
         /** Sample vertex on the light. This method consumes three random numbers.
          */
-        LightSample sampleLight(const Vector3D& v, Stack<double>& rands) const;
+        LightSample sampleLight(const Point& v, Stack<double>& rands) const;
 
         /** Sample photon.
          */

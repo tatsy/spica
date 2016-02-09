@@ -13,10 +13,10 @@ namespace spica {
         : IShape{ShapeType::Sphere} {
     }
 
-    Sphere::Sphere(const Vector3D& center, double radius)
-        : IShape{ShapeType::Sphere}
-        , _center{center}
-        , _radius{radius} {
+    Sphere::Sphere(const Point& center, double radius)
+        : IShape{ ShapeType::Sphere }
+        , center_{ center }
+        , radius_{ radius } {
     }
 
     Sphere::Sphere(const Sphere& sphere)
@@ -28,15 +28,15 @@ namespace spica {
     }
 
     Sphere& Sphere::operator=(const Sphere& sphere) {
-        this->_radius = sphere._radius;
-        this->_center = sphere._center;
+        this->radius_ = sphere.radius_;
+        this->center_ = sphere.center_;
         return *this;
     }
 
     bool Sphere::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        const Vector3D VtoC = _center - ray.origin();
+        const Vector3D VtoC = center_ - ray.origin();
         const double b = VtoC.dot(ray.direction());
-        const double D4 = b * b - VtoC.dot(VtoC) + _radius * _radius;
+        const double D4 = b * b - VtoC.dot(VtoC) + radius_ * radius_;
 
         if (D4 < 0.0) return false;
 
@@ -53,13 +53,13 @@ namespace spica {
         }
 
         hitpoint->setPosition(ray.origin() + hitpoint->distance() * ray.direction());
-        hitpoint->setNormal((hitpoint->position() - _center).normalized());
+        hitpoint->setNormal(Normal((hitpoint->position() - center_).normalized()));
 
         return true;
     }
 
     double Sphere::area() const {
-        return 4.0 * PI * _radius * _radius;
+        return 4.0 * PI * radius_ * radius_;
     }
 
     Trimesh Sphere::triangulate() const {
@@ -84,15 +84,15 @@ namespace spica {
                 double cp0 = cos(phi0);
                 double cp1 = cos(phi1);
 
-                Vector3D n00 = Vector3D(cp0 * st0, sp0 * st0, ct0);
-                Vector3D n01 = Vector3D(cp0 * st1, sp0 * st1, ct1);
-                Vector3D n10 = Vector3D(cp1 * st0, sp1 * st0, ct0);
-                Vector3D n11 = Vector3D(cp1 * st1, sp1 * st1, ct1);
+                Vector3D n00(cp0 * st0, sp0 * st0, ct0);
+                Vector3D n01(cp0 * st1, sp0 * st1, ct1);
+                Vector3D n10(cp1 * st0, sp1 * st0, ct0);
+                Vector3D n11(cp1 * st1, sp1 * st1, ct1);
 
-                VertexData v00(_center + _radius * n00, Spectrum{}, n00);
-                VertexData v01(_center + _radius * n01, Spectrum{}, n01);
-                VertexData v10(_center + _radius * n10, Spectrum{}, n10);
-                VertexData v11(_center + _radius * n11, Spectrum{}, n11);
+                VertexData v00(center_ + radius_ * n00, Spectrum{}, Normal(n00));
+                VertexData v01(center_ + radius_ * n01, Spectrum{}, Normal(n01));
+                VertexData v10(center_ + radius_ * n10, Spectrum{}, Normal(n10));
+                VertexData v11(center_ + radius_ * n11, Spectrum{}, Normal(n11));
 
                 const int idx = static_cast<int>(vertices.size());
                 vertices.push_back(v00);

@@ -85,11 +85,11 @@ namespace spica {
         }
 
         Sphere boundingSphere() {
-            Vector3D center;
+            Point center(0.0, 0.0, 0.0);
             for (int i = 0; i < _triangles.size(); i++) {
-                const Vector3D& v0 = _vertices[_triangles[i][0]].pos();
-                const Vector3D& v1 = _vertices[_triangles[i][1]].pos();
-                const Vector3D& v2 = _vertices[_triangles[i][2]].pos();
+                const Point& v0 = _vertices[_triangles[i][0]].pos();
+                const Point& v1 = _vertices[_triangles[i][1]].pos();
+                const Point& v2 = _vertices[_triangles[i][2]].pos();
                 center += (v0 + v1 + v2) / 3.0;
             }
             center /= _triangles.size();
@@ -97,7 +97,7 @@ namespace spica {
             double radius = 0.0;
             for (int i = 0; i < _triangles.size(); i++) {
                 for (int k = 0; k < 3; k++) {
-                    const Vector3D& v = _vertices[_triangles[i][k]].pos();
+                    const Point& v = _vertices[_triangles[i][k]].pos();
                     double d = (center - v).norm();
                     radius = std::max(radius, d);
                 }
@@ -135,9 +135,9 @@ namespace spica {
             Assertion(id >= 0 && id < _triangles.size(),
                       "Object index out of bounds");
 
-            const Vector3D& v0 = _vertices[_triangles[id][0]].pos();
-            const Vector3D& v1 = _vertices[_triangles[id][1]].pos();
-            const Vector3D& v2 = _vertices[_triangles[id][2]].pos();
+            const Point& v0 = _vertices[_triangles[id][0]].pos();
+            const Point& v1 = _vertices[_triangles[id][1]].pos();
+            const Point& v2 = _vertices[_triangles[id][2]].pos();
             return Triangle(v0, v1, v2);
         }
 
@@ -155,7 +155,7 @@ namespace spica {
             return _lighting.globalLight(dir);
         }
 
-        LightSample sampleLight(const Vector3D& v, Stack<double>& rands) const {
+        LightSample sampleLight(const Point& v, Stack<double>& rands) const {
             return _lighting.sample(v, rands);
         }
 
@@ -201,9 +201,9 @@ namespace spica {
 
             std::vector<Triangle> tris(_triangles.size());
             for (int i = 0; i < _triangles.size(); i++) {
-                const Vector3D& v0 = _vertices[_triangles[i][0]].pos();
-                const Vector3D& v1 = _vertices[_triangles[i][1]].pos();
-                const Vector3D& v2 = _vertices[_triangles[i][2]].pos();
+                const Point& v0 = _vertices[_triangles[i][0]].pos();
+                const Point& v1 = _vertices[_triangles[i][1]].pos();
+                const Point& v2 = _vertices[_triangles[i][2]].pos();
                 tris[i] = Triangle(v0, v1, v2);
             }
             _accel->construct(tris);
@@ -236,10 +236,10 @@ namespace spica {
                     color = getBsdf(triID).reflectance();
                 }
 
-                const Vector3D n0 = _vertices[_triangles[triID][0]].normal();
-                const Vector3D n1 = _vertices[_triangles[triID][1]].normal();
-                const Vector3D n2 = _vertices[_triangles[triID][2]].normal();
-                const Vector3D n  = (n0 + u * (n1 - n0) + v * (n2 - n0)).normalized();
+                const Normal n0 = _vertices[_triangles[triID][0]].normal();
+                const Normal n1 = _vertices[_triangles[triID][1]].normal();
+                const Normal n2 = _vertices[_triangles[triID][2]].normal();
+                const Normal n  = (n0 + u * (n1 - n0) + v * (n2 - n0)).normalized();
 
                 hitpoint.setNormal(n);
                 (*isect) = Intersection(triID, hitpoint, color);
@@ -368,7 +368,7 @@ namespace spica {
         return _impl->globalLight(dir);
     }
 
-    LightSample Scene::sampleLight(const Vector3D& v, Stack<double>& rands) const {
+    LightSample Scene::sampleLight(const Point& v, Stack<double>& rands) const {
         return _impl->sampleLight(v, rands);
     }
 

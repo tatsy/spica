@@ -5,8 +5,8 @@
 
 namespace spica {
 
-    template <class Ty>
-    HashGrid<Ty>::HashGrid()
+    template <class T>
+    HashGrid<T>::HashGrid()
         : _hashSize(-1)
         , _bbox()
         , _hashScale(0.0)
@@ -14,26 +14,26 @@ namespace spica {
     {
     }
 
-    template <class Ty>
-    HashGrid<Ty>::~HashGrid()
+    template <class T>
+    HashGrid<T>::~HashGrid()
     {
     }
 
-    template <class Ty>
-    void HashGrid<Ty>::construct(std::vector<Ty>& points, const int imageW, const int imageH) {
+    template <class T>
+    void HashGrid<T>::construct(std::vector<T>& points, const int imageW, const int imageH) {
         
     }
 
-    template <class Ty>
-    void HashGrid<Ty>::init(const int hashSize, const double hashScale, const BBox& bbox) {
+    template <class T>
+    void HashGrid<T>::init(const int hashSize, const double hashScale, const BBox& bbox) {
         this->_hashSize = hashSize;
         this->_hashScale = hashScale;
         this->_bbox = bbox;
         this->_data.resize(hashSize);
     }
 
-    template <class Ty>
-    void HashGrid<Ty>::add(const Ty& p, const Vector3D& boxMin, const Vector3D& boxMax) {
+    template <class T>
+    void HashGrid<T>::add(const T& p, const Point& boxMin, const Point& boxMax) {
         const Vector3D bMin = (boxMin - _bbox.posMin()) * _hashScale;
         const Vector3D bMax = (boxMax - _bbox.posMin()) * _hashScale;
 
@@ -53,19 +53,19 @@ namespace spica {
         }
     }
 
-    template <class Ty>
-    void HashGrid<Ty>::clear() {
+    template <class T>
+    void HashGrid<T>::clear() {
         _data.clear();
     }
 
-    template <class Ty>
-    unsigned int HashGrid<Ty>::hash(const int ix, const int iy, const int iz) const {
+    template <class T>
+    unsigned int HashGrid<T>::hash(const int ix, const int iy, const int iz) const {
         Assertion(_hashSize > 0, "hash size is not initialized");
         return (unsigned int)((ix * 73856093) ^ (iy * 19349663) ^ (iz * 83492791)) % _hashSize;
     }
 
-    template <class Ty>
-    const typename std::vector<Ty>& HashGrid<Ty>::operator[](const Vector3D& v) const {
+    template <class T>
+    const typename std::vector<T>& HashGrid<T>::operator[](const Point& v) const {
         Vector3D b = (v - _bbox.posMin()) * _hashScale;
         const int ix = std::abs(static_cast<int>(b.x()));
         const int iy = std::abs(static_cast<int>(b.y()));
@@ -73,7 +73,7 @@ namespace spica {
         return _data[hash(ix, iy, iz)];
     }
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_HASH_GRID_DETAIL_H_
 

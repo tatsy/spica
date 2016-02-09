@@ -51,7 +51,7 @@ namespace spica {
         objplane_.width = sensor_.width;
         objplane_.height = sensor_.height;
         objplane_.center = objplaneCenter;
-        objplane_.normal = sensorDir.normalized();
+        objplane_.normal = Normal(sensorDir.normalized());
         objplane_.unitU = sensor_.unitU;
         objplane_.unitV = sensor_.unitV;
         
@@ -60,7 +60,7 @@ namespace spica {
         lens_.center = sensorCenter + distSensorToLens * sensorDir;
         lens_.unitU = sensor_.unitU;
         lens_.unitV = sensor_.unitV;
-        lens_.normal = sensorDir.normalized();
+        lens_.normal = Normal(sensorDir.normalized());
 
         sensor_.sensitivity = sensorSensitivity / (sensor_.cellW * sensor_.cellH);
     }

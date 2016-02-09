@@ -93,7 +93,8 @@ namespace spica {
 
     Photon AreaLight::samplePhoton(Stack<double>& rands) const {
         // Randomly choose point on the triangle
-        Vector3D p, n;
+        Point p;
+        Normal n;
         sampleOnLight(&p, &n, rands);
 
         // Random direction sample (Lambertian surface)

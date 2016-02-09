@@ -35,13 +35,13 @@ TEST_F(VertexDataTest, Instance) {
     Random rng((unsigned int)time(0));
 
     for (int t = 0; t < trials; t++) {
-        Vector3D pos(rng.nextReal() * 2.0 - 1.0,
-                     rng.nextReal() * 2.0 - 1.0,
-                     rng.nextReal() * 2.0 - 1.0);
+        Point pos(rng.nextReal() * 2.0 - 1.0,
+                  rng.nextReal() * 2.0 - 1.0,
+                  rng.nextReal() * 2.0 - 1.0);
         RGBSpectrum color(rng.nextReal(), rng.nextReal(), rng.nextReal());
-        Vector3D normal(rng.nextReal() * 2.0 - 1.0,
-                        rng.nextReal() * 2.0 - 1.0,
-                        rng.nextReal() * 2.0 - 1.0);
+        Normal normal(rng.nextReal() * 2.0 - 1.0,
+                      rng.nextReal() * 2.0 - 1.0,
+                      rng.nextReal() * 2.0 - 1.0);
         Vector2D texcoord(rng.nextReal(), rng.nextReal());
 
         VertexData vd(pos, color, normal, texcoord);
@@ -70,11 +70,11 @@ TEST_F(VertexDataTest, Copy) {
     Random rng((unsigned int)time(0));
 
     for (int t = 0; t < trials; t++) {
-        Vector3D pos(rng.nextReal() * 2.0 - 1.0,
-            rng.nextReal() * 2.0 - 1.0,
-            rng.nextReal() * 2.0 - 1.0);
+        Point pos(rng.nextReal() * 2.0 - 1.0,
+                  rng.nextReal() * 2.0 - 1.0,
+                  rng.nextReal() * 2.0 - 1.0);
         RGBSpectrum color(rng.nextReal(), rng.nextReal(), rng.nextReal());
-        Vector3D normal(rng.nextReal() * 2.0 - 1.0,
+        Normal normal(rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0);
         Vector2D texcoord(rng.nextReal(), rng.nextReal());
@@ -107,11 +107,11 @@ TEST_F(VertexDataTest, Assign) {
     Random rng((unsigned int)time(0));
 
     for (int t = 0; t < trials; t++) {
-        Vector3D pos(rng.nextReal() * 2.0 - 1.0,
+        Point pos(rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0);
         RGBSpectrum color(rng.nextReal(), rng.nextReal(), rng.nextReal());
-        Vector3D normal(rng.nextReal() * 2.0 - 1.0,
+        Normal normal(rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0,
             rng.nextReal() * 2.0 - 1.0);
         Vector2D texcoord(rng.nextReal(), rng.nextReal());

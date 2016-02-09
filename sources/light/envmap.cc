@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "../core/common.h"
+#include "../core/normal3d.h"
 #include "../core/sampler.h"
 #include "../renderer/photon_map.h"
 
@@ -123,8 +124,10 @@ namespace spica {
         return _sphere.area();
     }
 
-    LightSample Envmap::sample(const Vector3D& vtx, Stack<double>& rands) const {
-        Vector3D pos, dir, nrm;
+    LightSample Envmap::sample(const Point& vtx, Stack<double>& rands) const {
+        Point pos;
+        Vector3D dir;
+        Normal nrm;
         Spectrum emt;
         double pdf;
         sampleOnLight(&pos, &dir, &nrm, &emt, &pdf, rands);
@@ -134,7 +137,9 @@ namespace spica {
     }
 
     Photon Envmap::samplePhoton(Stack<double>& rands) const {
-        Vector3D pos, dir, nrm;
+        Point pos;
+        Vector3D dir;
+        Normal nrm;
         Spectrum emt;
         double pdf;
         sampleOnLight(&pos, &dir, &nrm, &emt, &pdf, rands);
@@ -143,7 +148,7 @@ namespace spica {
         return Photon(pos, flux, dir, nrm);
     }
 
-    void Envmap::sampleOnLight(Vector3D* pos, Vector3D* dir, Vector3D* nrm, Spectrum* emt, double* pdf, Stack<double>& rands) const {
+    void Envmap::sampleOnLight(Point* pos, Vector3D* dir, Normal* nrm, Spectrum* emt, double* pdf, Stack<double>& rands) const {
         const int width  = IMPORTANCE_MAP_SIZE;
         const int height = IMPORTANCE_MAP_SIZE;
 
@@ -160,7 +165,7 @@ namespace spica {
         const double sintheta = (1.0 - v) * 2.0 - 1.0;
         const double costheta = sqrt(1.0 - sintheta * sintheta);
         (*dir) = Vector3D(costheta * cos(phi), sintheta, costheta * sin(phi));
-        (*nrm) = -(*dir);
+        (*nrm) = -Normal(*dir);
     
         (*pos) = _sphere.center() + (*dir) * _sphere.radius();
         

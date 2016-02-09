@@ -34,7 +34,7 @@ namespace spica {
         std::vector<double> look = elem.valueByKey("lookat").asDoubleList();
         std::vector<double> up   = elem.valueByKey("up").asDoubleList();
         (*camera) = Camera::asDoF(width, height,
-                                  Vector3D(cent[0], cent[1], cent[2]),
+                                  Point(cent[0], cent[1], cent[2]),
                                   Vector3D(look[0], look[1], look[2]),
                                   Vector3D(up[0],   up[1],   up[2]),
                                   elem.valueByKey("sensor-size").asDouble(),

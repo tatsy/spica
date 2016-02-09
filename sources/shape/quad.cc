@@ -9,14 +9,14 @@
 namespace spica {
     
     Quad::Quad()
-        : IShape{ShapeType::Quad}
+        : IShape{ ShapeType::Quad }
         , _points{} {
     }
 
-    Quad::Quad(const Vector3D& v0, const Vector3D& v1,
-               const Vector3D& v2, const Vector3D& v3)
-        : IShape{ShapeType::Quad}
-        , _points{v0, v1, v2, v3} {
+    Quad::Quad(const Point& v0, const Point& v1,
+               const Point& v2, const Point& v3)
+        : IShape{ ShapeType::Quad }
+        , _points{ v0, v1, v2, v3 } {
     }
 
     Quad::Quad(const Quad& quad)
@@ -48,13 +48,13 @@ namespace spica {
         return tr(0, 1, 2).area() + tr(0, 2, 3).area();
     }
 
-    Vector3D Quad::get(int id) const {
+    Point Quad::get(int id) const {
         Assertion(0 <= id && id <= 3,
                   "Point ID must be in between 0 and 3 !!");
         return _points[id];
     }
 
-    Vector3D Quad::operator[](int id) const {
+    Point Quad::operator[](int id) const {
         Assertion(0 <= id && id <= 3,
                   "Point ID must be in between 0 and 3 !!");
         return _points[id];        
@@ -67,7 +67,7 @@ namespace spica {
         return std::move(Trimesh{tris});
     }
 
-    Vector3D Quad::normal() const {
+    Normal Quad::normal() const {
         const Triangle t1 = tr(0, 1, 2);
         const Triangle t2 = tr(0, 2, 3);
         const double a1 = t1.area();

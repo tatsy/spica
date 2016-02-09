@@ -8,7 +8,7 @@
 #include <array>
 
 #include "shape_interface.h"
-#include "../math/vector3d.h"
+#include "../core/point3d.h"
 
 namespace spica {
 
@@ -17,11 +17,11 @@ namespace spica {
      */
     class SPICA_EXPORTS Quad : public IShape {
     private:
-        std::array<Vector3D, 4> _points;
+        std::array<Point, 4> _points;
 
     public:
         Quad();
-        Quad(const Vector3D& v0, const Vector3D& v1, const Vector3D& v2, const Vector3D& v3);
+        Quad(const Point& v0, const Point& v1, const Point& v2, const Point& v3);
         Quad(const Quad& quad);
         ~Quad();
 
@@ -33,10 +33,10 @@ namespace spica {
 
         Trimesh triangulate() const override;
 
-        Vector3D operator[](int id) const;
-        Vector3D get(int id) const;
+        Point operator[](int id) const;
+        Point get(int id) const;
 
-        Vector3D normal() const;
+        Normal normal() const;
 
     private:
         Triangle tr(int i, int j, int k) const;

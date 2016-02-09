@@ -63,7 +63,7 @@ namespace spica {
 
     struct QBVHAccel::BVHPrimitiveInfo {
         int primitiveNumber;
-        Vector3D centroid;
+        Point centroid;
         BBox bounds;
 
         BVHPrimitiveInfo(int pn, const BBox& b)
@@ -118,7 +118,7 @@ namespace spica {
         int dim;
         ComparePoint(int d) : dim(d) {}
         bool operator()(const BVHPrimitiveInfo &a, const BVHPrimitiveInfo &b) const {
-            return a.centroid.get(dim) < b.centroid.get(dim);
+            return a.centroid[dim] < b.centroid[dim];
         }
     };
 
@@ -134,7 +134,7 @@ namespace spica {
         }
 
         bool operator()(const BVHPrimitiveInfo& p) const {
-            int b = (int)(nBuckets * ((p.centroid.get(dim) - centroidBounds.posMin().get(dim)) / (centroidBounds.posMax().get(dim) - centroidBounds.posMin().get(dim))));
+            int b = (int)(nBuckets * ((p.centroid[dim] - centroidBounds.posMin()[dim]) / (centroidBounds.posMax()[dim] - centroidBounds.posMin()[dim])));
             if (b == nBuckets) {
                 b = nBuckets - 1;
             }
@@ -283,8 +283,8 @@ namespace spica {
                 const int nBuckets = 12;
                 BucketInfo buckets[nBuckets];
                 for (int i = start; i < end; i++) {
-                    int b = (int)(nBuckets * (buildData[i].centroid.get(dim) - centroidBounds.posMin().get(dim)) / 
-                                 (centroidBounds.posMax().get(dim) - centroidBounds.posMin().get(dim)));
+                    int b = (int)(nBuckets * (buildData[i].centroid[dim] - centroidBounds.posMin()[dim]) / 
+                                 (centroidBounds.posMax()[dim] - centroidBounds.posMin()[dim]));
                     if (b == nBuckets) {
                         b = nBuckets - 1;
                     }
@@ -369,8 +369,8 @@ namespace spica {
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 4; k++) {
                 if (c[k] != NULL) {
-                    bboxes[0][j][k] = c[k]->bounds.posMin().get(j);
-                    bboxes[1][j][k] = c[k]->bounds.posMax().get(j);
+                    bboxes[0][j][k] = c[k]->bounds.posMin()[j];
+                    bboxes[1][j][k] = c[k]->bounds.posMax()[j];
                 }
             }
         }

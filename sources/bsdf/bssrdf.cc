@@ -25,7 +25,7 @@ namespace spica {
 
         if (cos2t < 0.0) return 0.0;
 
-        Vector3D refractDir = (in * nnt + normal * (ddn * nnt + sqrt(cos2t))).normalized();
+        Vector3D refractDir = (in * nnt + Vector3D(normal) * (ddn * nnt + sqrt(cos2t))).normalized();
 
         const double a = kIorObject - kIorVaccum;
         const double b = kIorObject + kIorVaccum;

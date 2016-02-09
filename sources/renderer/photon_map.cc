@@ -23,8 +23,8 @@ namespace spica {
         , _normal{} {
     }
 
-    Photon::Photon(const Vector3D& position, const Spectrum& flux, 
-                   const Vector3D& direction, const Vector3D& normal)
+    Photon::Photon(const Point& position, const Spectrum& flux, 
+                   const Vector3D& direction, const Normal& normal)
         : _position{position}
         , _flux{flux}
         , _direction{direction}
@@ -48,7 +48,7 @@ namespace spica {
     }
 
     double Photon::get(int id) const {
-        return _position.get(id);
+        return _position[id];
     }
 
     double Photon::distance(const Photon& p1, const Photon& p2) {
@@ -150,9 +150,9 @@ namespace spica {
         printf("OK\n");
     }
 
-    Spectrum PhotonMap::evaluate(const Vector3D& position,
-                              const Vector3D& normal,
-                              int gatherPhotons, double gatherRadius) const {
+    Spectrum PhotonMap::evaluate(const Point& position,
+                                 const Normal& normal,
+                                 int gatherPhotons, double gatherRadius) const {
         // Find k-nearest neightbors
         Photon query(position, Spectrum(), Vector3D(), normal);
         std::vector<Photon> photons;
@@ -166,7 +166,7 @@ namespace spica {
         for (int i = 0; i < numPhotons; i++) {
             const Vector3D diff = query.position() - photons[i].position();
             const double dist = diff.norm();
-            const double dt   = Vector3D::dot(normal, diff) / dist;
+            const double dt   = vect::dot(normal, diff) / dist;
             if (std::abs(dt) < gatherRadius * gatherRadius * 0.01) {
                 validPhotons.push_back(photons[i]);
                 distances.push_back(dist);
@@ -228,8 +228,8 @@ namespace spica {
         const BSDF&     bsdf   = scene.getBsdf(objID);
         const Spectrum&    refl   = isect.color();
 
-        const bool into = Vector3D::dot(isect.normal(), ray.direction()) < 0.0;
-        const Vector3D orientNormal = (into ? 1.0 : -1.0) * isect.normal();
+        const bool into = vect::dot(isect.normal(), ray.direction()) < 0.0;
+        const Normal orientNormal = (into ? 1.0 : -1.0) * isect.normal();
 
         if (scene.isLightCheck(objID)) {
             return;

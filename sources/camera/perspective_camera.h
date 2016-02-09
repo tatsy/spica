@@ -21,7 +21,7 @@ namespace spica {
 
     public:
         PerspectiveCamera();
-        PerspectiveCamera(const Vector3D& center, const Vector3D& direction,
+        PerspectiveCamera(const Point& center, const Vector3D& direction,
                           const Vector3D& up, double fov,
                           int imageW, int imageH, double sensitivity);
         PerspectiveCamera(const PerspectiveCamera& camera);

@@ -81,7 +81,7 @@ namespace spica {
                 float tt[2];
                 for (size_t i = 0; i < numVerts; i++) {
                     ifs.read((char*)ff, sizeof(float) * 3);
-                    trimesh->setVertex(i, Vector3D(ff[0], ff[1], ff[2]));
+                    trimesh->setVertex(i, Point(ff[0], ff[1], ff[2]));
                     
                     if (trimesh->isTextured()) {
                         ifs.read((char*)tt, sizeof(float) * 2);
@@ -129,7 +129,7 @@ namespace spica {
         std::stringstream ss;
         std::string line;
 
-        std::vector<Vector3D> vertices;
+        std::vector<Point> vertices;
         std::vector<Vector2D> texcoords;
         std::vector<Triplet>  vertIDs;
         std::vector<Triplet>  texIDs;

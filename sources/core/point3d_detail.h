@@ -5,6 +5,10 @@
 #ifndef _SPICA_POINT3D_DETAIL_H_
 #define _SPICA_POINT3D_DETAIL_H_
 
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
 namespace spica {
 
     template <class T>
@@ -19,6 +23,13 @@ namespace spica {
         : x_{ x }
         , y_{ y }
         , z_{ z } {
+    }
+
+    template <class T>
+    Point3_<T>::Point3_(const Vector3_<T>& v)
+        : x_{ v.x() }
+        , y_{ v.y() }
+        , z_{ v.z() } {
     }
 
     template <class T>
@@ -59,6 +70,39 @@ namespace spica {
     }
 
     template <class T>
+    Point3_<T>& Point3_<T>::operator+=(const Point3_<T>& p) {
+        this->x_ += p.x_;
+        this->y_ += p.y_;
+        this->z_ += p.z_;
+        return *this;
+    }
+
+    //template <class T>
+    //Point3_<T>& Point3_<T>::operator-=(const Point3_<T>& p) {
+    //    this->x_ -= p.x_;
+    //    this->y_ -= p.y_;
+    //    this->z_ -= p.z_;
+    //    return *this;
+    //}
+
+    template <class T>
+    Point3_<T>& Point3_<T>::operator*=(T s) {
+        this->x_ *= s;
+        this->y_ *= s;
+        this->z_ *= s;
+        return *this;
+    }
+
+    template <class T>
+    Point3_<T>& Point3_<T>::operator/=(T s) {
+        Assertion(s != 0.0, "Zero division!!");
+        this->x_ /= s;
+        this->y_ /= s;
+        this->z_ /= s;
+        return *this;
+    }
+
+    template <class T>
     T Point3_<T>::operator[](int i) const {
         Assertion(i >= 0 && i <= 2, "Index out of bounds!!");
         if (i == 0) return x_;
@@ -66,6 +110,40 @@ namespace spica {
         return z_;
     }
 
+    template <class T>
+    Point3_<T>::operator Vector3_<T>() const {
+        return { x_, y_, z_ };
+    }
+
+    template <class T>
+    std::string Point3_<T>::toString() const {
+        std::stringstream ss;
+        ss << std::fixed;
+        ss << std::setprecision(8);
+        ss << "(" << x_ << ", " << y_ << ", " << z_ << ")";
+        return std::move(ss.str());
+    }
+
 }  // namespace spica
+
+template <class T>
+std::ostream& operator<<(std::ostream& os, const spica::Point3_<T>& p) {
+    os << p.toString();
+    return os;
+}
+
+template <class T>
+spica::Point3_<T> operator*(const spica::Point3_<T>& p, T s) {
+    spica::Point3_<T> ret = p;
+    ret *= s;
+    return ret;
+}
+
+template <class T>
+spica::Point3_<T> operator*(T s, const spica::Point3_<T>& p) {
+    spica::Point3_<T> ret = p;
+    ret *= s;
+    return ret;
+}
 
 #endif  // _SPICA_POINT3D_DETAIL_H_

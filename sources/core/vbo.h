@@ -46,7 +46,7 @@ namespace spica {
         inline const unsigned int* indices() const { return &_indices[0]; }
 
     private:
-        void add(const Vector3D& v, const Vector3D& normal, const RGBSpectrum& color);
+        void add(const Point& v, const Normal& normal, const RGBSpectrum& color);
     };
 
     template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *&>

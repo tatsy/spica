@@ -7,14 +7,14 @@ using namespace spica;
 #include "test_macros.h"
 
 TEST(RendererHelperTest, TotalRefTest) {
-    Vector3D position(0.0, 0.0, 0.0);
+    Point position(0.0, 0.0, 0.0);
     Vector3D in = Vector3D(-1.0, 0.0, -1.0).normalized();
-    Vector3D normal(0.0, 1.0, 0.0);
+    Normal normal(0.0, 1.0, 0.0);
 
     Vector3D reflectDir, reflactDir;
     double fresnelRef, fresnelTransmit;
     EXPECT_FALSE(helper::checkTotalReflection(true, in, normal, normal, &reflectDir, &reflactDir, &fresnelRef, &fresnelTransmit));
 
-    Vector3D refdirExp = Vector3D::reflect(in, normal);
+    Vector3D refdirExp = vect::reflect(in, normal);
     EXPECT_EQ_VEC(refdirExp, reflectDir);
 }

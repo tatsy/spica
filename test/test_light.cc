@@ -10,10 +10,10 @@ protected:
 };
 
 TEST_F(AreaLightTest, Instance) {
-    const Vector3D v00(-10.0, 0.0, -10.0);
-    const Vector3D v01(-10.0, 0.0,  10.0);
-    const Vector3D v10( 10.0, 0.0, -10.0);
-    const Vector3D v11( 10.0, 0.0,  10.0);
+    const Point v00(-10.0, 0.0, -10.0);
+    const Point v01(-10.0, 0.0,  10.0);
+    const Point v10( 10.0, 0.0, -10.0);
+    const Point v11( 10.0, 0.0,  10.0);
     Quad quad(v00, v01, v11, v10);
     Lighting light = Lighting::asAreaLight(quad.triangulate(), Spectrum(32.0, 32.0, 32.0));
 
@@ -27,7 +27,7 @@ protected:
 };
 
 TEST_F(EnvmapTest, Instance) {
-    Sphere boundSphere(Vector3D(0.0, 0.0, 0.0), 10.0);
+    Sphere boundSphere(Point(0.0, 0.0, 0.0), 10.0);
     Image image = Image::fromFile(kDataDirectory + "cave_room.hdr");
     Lighting light = Lighting::asEnvmap(boundSphere, image);
     

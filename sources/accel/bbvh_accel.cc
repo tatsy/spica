@@ -11,7 +11,7 @@ namespace spica {
 
     struct BBVHAccel::BVHPrimitiveInfo {
         int primIdx;
-        Vector3D centroid;
+        Point centroid;
         BBox bounds;
 
         BVHPrimitiveInfo(int pid, const BBox& b)
@@ -62,7 +62,7 @@ namespace spica {
         ComparePoint(int d) : dim(d) {}
         bool operator()(const BVHPrimitiveInfo& a,
             const BVHPrimitiveInfo& b) const {
-            return a.centroid.get(dim) < b.centroid.get(dim);
+            return a.centroid[dim] < b.centroid[dim];
         }
     };
 
@@ -78,10 +78,10 @@ namespace spica {
         }
 
         bool operator()(const BVHPrimitiveInfo& p) const {
-            const double cmin = centroidBounds.posMin().get(dim);
-            const double cmax = centroidBounds.posMax().get(dim);
+            const double cmin = centroidBounds.posMin()[dim];
+            const double cmax = centroidBounds.posMax()[dim];
             const double inv = (1.0) / (std::abs(cmax - cmin) + EPS);
-            const double diff = std::abs(p.centroid.get(dim) - cmin);
+            const double diff = std::abs(p.centroid[dim] - cmin);
             int b = static_cast<int>(nBuckets * diff * inv);
             if (b >= nBuckets) {
                 b = nBuckets - 1;
@@ -164,12 +164,12 @@ namespace spica {
                 const int nBuckets = 16;
                 BucketInfo buckets[nBuckets];
 
-                const double cmin = centroidBounds.posMin().get(splitAxis);
-                const double cmax = centroidBounds.posMax().get(splitAxis);
+                const double cmin = centroidBounds.posMin()[splitAxis];
+                const double cmax = centroidBounds.posMax()[splitAxis];
                 const double idenom = 1.0 / (std::abs(cmax - cmin) + EPS);
                 for (int i = start; i < end; i++) {
-                    const double numer = buildData[i].centroid.get(splitAxis) -
-                                         centroidBounds.posMin().get(splitAxis);
+                    const double numer = buildData[i].centroid[splitAxis] -
+                                         centroidBounds.posMin()[splitAxis];
                     int b = static_cast<int>(nBuckets * std::abs(numer) * idenom);
                     if (b == nBuckets) {
                         b = nBuckets - 1;

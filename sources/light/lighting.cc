@@ -56,7 +56,7 @@ namespace spica {
         return std::move(l);
     }
 
-    LightSample Lighting::sample(const Vector3D& v, Stack<double>& rands) const {
+    LightSample Lighting::sample(const Point& v, Stack<double>& rands) const {
         Assertion(_ptr != nullptr, "Light pointer is null!!");
         return _ptr->sample(v, rands);
     }

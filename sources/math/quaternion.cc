@@ -4,6 +4,8 @@
 #include <cmath>
 
 #include "vector3d.h"
+#include "../core/point3d.h"
+#include "../core/normal3d.h"
 
 namespace spica {
 
@@ -64,6 +66,14 @@ namespace spica {
     Vector3D Quaternion::applyTo(const Vector3D& v) {
         Quaternion q{v};
         return ((*this) * q * (this->inverse())).toVector3D();
+    }
+
+    Point Quaternion::applyTo(const Point& p) {
+        return Point(applyTo(Vector3D(p)));
+    }
+
+    Normal Quaternion::applyTo(const Normal& n) {
+        return Normal(applyTo(Vector3D(n)));
     }
 
     double Quaternion::squaredNorm() const {

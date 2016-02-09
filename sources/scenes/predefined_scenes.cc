@@ -15,21 +15,21 @@ namespace spica {
         scene->clear();
 
         // Light
-        Vector3D l00(-5.0, 9.99, -5.0);
-        Vector3D l01(-5.0, 9.99,  5.0);
-        Vector3D l10( 5.0, 9.99, -5.0);
-        Vector3D l11( 5.0, 9.99,  5.0);
+        Point l00(-5.0, 9.99, -5.0);
+        Point l01(-5.0, 9.99,  5.0);
+        Point l10( 5.0, 9.99, -5.0);
+        Point l11( 5.0, 9.99,  5.0);
         scene->setAreaLight(Quad(l00, l10, l11, l01), 
                             Spectrum(32.0, 32.0, 32.0));
 
-        Vector3D v000(-10.0, -10.0, -10.0);
-        Vector3D v100( 10.0, -10.0, -10.0);
-        Vector3D v010(-10.0,  10.0, -10.0);
-        Vector3D v001(-10.0, -10.0,  50.0);
-        Vector3D v110( 10.0,  10.0, -10.0);
-        Vector3D v101( 10.0, -10.0,  50.0);
-        Vector3D v011(-10.0,  10.0,  50.0);
-        Vector3D v111( 10.0,  10.0,  50.0);
+        Point v000(-10.0, -10.0, -10.0);
+        Point v100( 10.0, -10.0, -10.0);
+        Point v010(-10.0,  10.0, -10.0);
+        Point v001(-10.0, -10.0,  50.0);
+        Point v110( 10.0,  10.0, -10.0);
+        Point v101( 10.0, -10.0,  50.0);
+        Point v011(-10.0,  10.0,  50.0);
+        Point v111( 10.0,  10.0,  50.0);
 
         Quad ceilWall(v010, v110, v111, v011);
         Quad floorWall(v000, v001, v101, v100);
@@ -43,11 +43,11 @@ namespace spica {
         scene->addShape(leftWall,  LambertianBRDF::factory(Spectrum(0.75, 0.25, 0.25)));
         scene->addShape(rightWall, LambertianBRDF::factory(Spectrum(0.25, 0.25, 0.75)));
 
-        scene->addShape(Sphere(Vector3D( 0.0, -7.0,  0.0), 3.0),
+        scene->addShape(Sphere(Point( 0.0, -7.0,  0.0), 3.0),
                         LambertianBRDF::factory(Spectrum(0.25, 0.75, 0.25)));
-        scene->addShape(Sphere(Vector3D(-5.0, -7.0, -5.0), 3.0),
+        scene->addShape(Sphere(Point(-5.0, -7.0, -5.0), 3.0),
                         SpecularBRDF::factory(Spectrum(0.999, 0.999, 0.999)));
-        scene->addShape(Sphere(Vector3D( 5.0, -7.0,  5.0), 3.0),
+        scene->addShape(Sphere(Point( 5.0, -7.0,  5.0), 3.0),
                         RefractiveBSDF::factory(Spectrum(0.999, 0.999, 0.999)));
 
         Trimesh texcube(kDataDirectory + "tex_cube.obj");
@@ -61,7 +61,7 @@ namespace spica {
         scene->finalize();
 
         (*camera) = Camera::asDoF(width, height, 
-                                  Vector3D(0.0, 0.0, 100.0),
+                                  Point(0.0, 0.0, 100.0),
                                   Vector3D(0.0, 0.0, -1.0),
                                   Vector3D(0.0, 1.0, 0.0),
                                   20.0,
@@ -244,18 +244,18 @@ namespace spica {
         //scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Spectrum(0.0, 0.0, 0.0)), Spectrum(32.0, 32.0, 32.0), true);
 
         // Back light
-        scene->setAreaLight(Sphere(Vector3D(5.0, 5.0, 5.0), 2.0),
+        scene->setAreaLight(Sphere(Point(5.0, 5.0, 5.0), 2.0),
                             Spectrum(64.0, 64.0, 64.0));
 
         // Walls
-        Vector3D v000(-10.0, -10.0, -10.0);
-        Vector3D v100( 10.0, -10.0, -10.0);
-        Vector3D v010(-10.0,  10.0, -10.0);
-        Vector3D v001(-10.0, -10.0,  50.0);
-        Vector3D v110( 10.0,  10.0, -10.0);
-        Vector3D v101( 10.0, -10.0,  50.0);
-        Vector3D v011(-10.0,  10.0,  50.0);
-        Vector3D v111( 10.0,  10.0,  50.0);
+        Point v000(-10.0, -10.0, -10.0);
+        Point v100( 10.0, -10.0, -10.0);
+        Point v010(-10.0,  10.0, -10.0);
+        Point v001(-10.0, -10.0,  50.0);
+        Point v110( 10.0,  10.0, -10.0);
+        Point v101( 10.0, -10.0,  50.0);
+        Point v011(-10.0,  10.0,  50.0);
+        Point v111( 10.0,  10.0,  50.0);
 
         Quad ceilWall(v010, v110, v111, v011);
         Quad floorWall(v000, v001, v101, v100);
@@ -287,7 +287,7 @@ namespace spica {
         scene->finalize();
 
         (*camera) = Camera::asDoF(width, height, 
-                                  Vector3D(0.0, 0.0, 100.0),
+                                  Point(0.0, 0.0, 100.0),
                                   Vector3D(0.0, 0.0, -1.0),
                                   Vector3D(0.0, 1.0, 0.0),
                                   20.0,
@@ -316,12 +316,12 @@ namespace spica {
             for (int j = 0; j <= tiles; j++) {
                 double ii = (i - tiles / 2) * tileSize;
                 double jj = (j - tiles / 2) * tileSize;
-                Vector3D p00(ii, -10.0, jj);
-                Vector3D p01(ii + tileSize, -10.0, jj);
-                Vector3D p10(ii, -10.0, jj + tileSize);
-                Vector3D p11(ii + tileSize, -10.0, jj + tileSize);
+                Point p00(ii, -10.0, jj);
+                Point p01(ii + tileSize, -10.0, jj);
+                Point p10(ii, -10.0, jj + tileSize);
+                Point p11(ii + tileSize, -10.0, jj + tileSize);
                 Spectrum color = (i + j) % 2 == 0 ? Spectrum(0.9, 0.9, 0.9) 
-                                               : Spectrum(0.2, 0.2, 0.2);
+                                                  : Spectrum(0.2, 0.2, 0.2);
                 BSDF bsdf = (i + j) % 2 == 0 ? LambertianBRDF::factory(color)
                                              : LambertianBRDF::factory(color); 
                 scene->addShape(Triangle(p00, p11, p01), bsdf);
@@ -335,8 +335,8 @@ namespace spica {
         kittenBsdf.setBssrdf(bssrdf);
         scene->addShape(kitten, kittenBsdf);
 
-        Vector3D eye(0.0, 10.0, 100.0);
-        (*camera) = Camera::asDoF(width, height, eye, -eye.normalized(),
+        Point eye(0.0, 10.0, 100.0);
+        (*camera) = Camera::asDoF(width, height, eye, -Vector3D(eye).normalized(),
                                   Vector3D(0.0, 1.0, 0.0),
                                   20.0,
                                   42.0,

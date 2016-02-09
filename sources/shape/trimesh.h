@@ -42,7 +42,7 @@ namespace spica {
          *  @param vertices: Vertices to form trimesh
          *  @param faceIDs: Face IDs (stating from 0)
          */
-        Trimesh(const std::vector<Vector3D>& vertices,
+        Trimesh(const std::vector<Point>& vertices,
                 const std::vector<Triplet>& faceIDs);
 
         /** Constructor.
@@ -151,11 +151,11 @@ namespace spica {
         /** Get the vertex with specified ID.
          *  @param[in] vertexID: ID of the vertex.
          */
-        const Vector3D& getVertex(int vertexID) const;
+        const Point& getVertex(int vertexID) const;
 
         /** Assign a vertex position to the specified ID.
          */
-        void setVertex(int vertexID, const Vector3D& v);
+        void setVertex(int vertexID, const Point& v);
 
         /** Get the vertex with specified ID.
          */
@@ -186,7 +186,7 @@ namespace spica {
         /** Get the normal of a face with specified ID.
          *  @param[in] faceID: ID of the triangle to get a normal.
          */
-        Vector3D getNormal(int faceID) const;
+        Normal getNormal(int faceID) const;
 
         /** Get the number of vertices
          */

@@ -62,6 +62,8 @@ namespace spica {
         /** Apply transformation of quaternion to the vector.
          */
         Vector3D applyTo(const Vector3D& v);
+        Point    applyTo(const Point& p);
+        Normal   applyTo(const Normal& n);
 
         /** Squared norm.
          */

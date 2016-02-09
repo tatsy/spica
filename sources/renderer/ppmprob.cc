@@ -164,9 +164,9 @@ namespace spica {
         const BSDF& bsdf = scene.getBsdf(objID);
 
         const Spectrum emission = scene.isLightCheck(objID) ? scene.directLight(ray.direction()) : Spectrum(0.0, 0.0, 0.0);
-        const bool into = Vector3D::dot(ray.direction(), isect.normal()) < 0.0;
-        const Vector3D orientNormal = into ?  isect.normal() 
-                                           : -isect.normal();
+        const bool into = vect::dot(ray.direction(), isect.normal()) < 0.0;
+        const Normal orientNormal = into ?  isect.normal() 
+                                         : -isect.normal();
 
         // Russian roulette
         const Spectrum& refl = isect.color();

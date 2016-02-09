@@ -13,7 +13,7 @@ TEST(RayTest, DefaultInstanceTest) {
 }
 
 TEST(RayTest, InstanceTest) {
-    Vector3D orig(1.0, 2.0, 3.0);
+    Point orig(1.0, 2.0, 3.0);
     Vector3D dir(1.0, 0.0, 0.0);
     Ray ray(orig, dir);
     
@@ -25,7 +25,7 @@ TEST(RayTest, InstanceTest) {
 }
 
 TEST(RayTest, CopyTest) {
-    Vector3D orig(1.0, 2.0, 3.0);
+    Point orig(1.0, 2.0, 3.0);
     Vector3D dir(1.0, 0.0, 0.0);
     Ray ray(orig, dir);
 

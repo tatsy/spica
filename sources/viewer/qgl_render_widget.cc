@@ -75,8 +75,8 @@ namespace spica {
 
         if (camera.imageW() == 0 || camera.imageH() == 0) return;
 
-        const Vector3D eye = camera.center();
-        const Vector3D lookTo = eye + camera.direction();
+        const Point eye = camera.center();
+        const Point lookTo = eye + camera.direction();
         const Vector3D up = camera.up();
 
         QMatrix4x4 projMat, viewMat, modelMat, normalMat;

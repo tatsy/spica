@@ -46,8 +46,8 @@ namespace spica {
                           int bounces) const;
 
         Spectrum directSample(const Scene& scene, const int triID,
-                              const Vector3D& in, const Vector3D& v,
-                              const Vector3D& n, const Spectrum& refl,
+                              const Vector3D& in, const Point& v,
+                              const Normal& n, const Spectrum& refl,
                               int bounces, Stack<double>& rands) const;
     };
 }

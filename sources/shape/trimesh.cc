@@ -40,7 +40,7 @@ namespace spica {
         load(filename);
     }
 
-    Trimesh::Trimesh(const std::vector<Vector3D>& vertices,
+    Trimesh::Trimesh(const std::vector<Point>& vertices,
                      const std::vector<Triplet>& faceIDs) 
         : Trimesh{} {
 
@@ -127,9 +127,9 @@ namespace spica {
     void Trimesh::buildAccel(AccelType accelType) {
         std::vector<Triangle> triangles(_faces.size());
         for (unsigned int i = 0; i < _faces.size(); i++) {
-            Vector3D p0 = _vertices[_faces[i][0]].pos();
-            Vector3D p1 = _vertices[_faces[i][1]].pos();
-            Vector3D p2 = _vertices[_faces[i][2]].pos();
+            Point p0 = _vertices[_faces[i][0]].pos();
+            Point p1 = _vertices[_faces[i][1]].pos();
+            Point p2 = _vertices[_faces[i][2]].pos();
             triangles[i] = Triangle(p0, p1, p2);
         }
 
@@ -146,12 +146,12 @@ namespace spica {
         const int numVerts = static_cast<int>(_vertices.size());
         const int numFaces = static_cast<int>(_faces.size());
         std::vector<int> faceCount(numVerts, 0);
-        std::vector<Vector3D> normals(numVerts, Vector3D(0.0, 0.0, 0.0));
+        std::vector<Normal> normals(numVerts, Normal(0.0, 0.0, 0.0));
         for (int i = 0; i < numFaces; i++) {
-            const Vector3D v0  = _vertices[_faces[i][0]].pos();
-            const Vector3D v1  = _vertices[_faces[i][1]].pos();
-            const Vector3D v2  = _vertices[_faces[i][2]].pos();
-            const Vector3D nrm = Triangle(v0, v1, v2).normal();
+            const Point v0  = _vertices[_faces[i][0]].pos();
+            const Point v1  = _vertices[_faces[i][1]].pos();
+            const Point v2  = _vertices[_faces[i][2]].pos();
+            const Normal nrm = Triangle(v0, v1, v2).normal();
             for (int k = 0; k < 3; k++) {
                 normals[_faces[i][k]] += nrm;
                 faceCount[_faces[i][k]] += 1;
@@ -191,7 +191,7 @@ namespace spica {
             const double newx = _vertices[i].pos().x() * scaleX;
             const double newy = _vertices[i].pos().y() * scaleY;
             const double newz = _vertices[i].pos().z() * scaleZ;
-            _vertices[i].setPosition(Vector3D(newx, newy, newz));
+            _vertices[i].setPosition(Point(newx, newy, newz));
         }
     }
 
@@ -203,8 +203,8 @@ namespace spica {
                          const Vector3D& origin) {
         translate(-origin);                
         for (int i = 0; i < _vertices.size(); i++) {
-            const Vector3D& pos = _vertices[i].pos();
-            const Vector3D& nrm = _vertices[i].normal();
+            const Point& pos = _vertices[i].pos();
+            const Normal& nrm = _vertices[i].normal();
             Quaternion rot = Quaternion::rotation(axis, theta);
             _vertices[i].setPosition(rot.applyTo(pos));
             _vertices[i].setNormal(rot.applyTo(nrm));
@@ -227,8 +227,8 @@ namespace spica {
         const double scaleAll = std::min(scaleX, std::min(scaleY, scaleZ));
         this->scale(scaleAll);
 
-        const Vector3D prevCenter = (orgBox.posMin() + orgBox.posMax()) * (0.5 * scaleAll);
-        const Vector3D toCenter = (bbox.posMin() + bbox.posMax()) * 0.5;
+        const Point prevCenter = (orgBox.posMin() + orgBox.posMax()) * (0.5 * scaleAll);
+        const Point toCenter = (bbox.posMin() + bbox.posMax()) * 0.5;
         this->translate(toCenter - prevCenter);
     }
 
@@ -236,12 +236,12 @@ namespace spica {
         return _faces;
     }
 
-    const Vector3D& Trimesh::getVertex(int id) const {
+    const Point& Trimesh::getVertex(int id) const {
         Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _vertices[id].pos();
     }
 
-    void Trimesh::setVertex(int id, const Vector3D& v) {
+    void Trimesh::setVertex(int id, const Point& v) {
         Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds!!");
         _vertices[id].setPosition(v);
     }
@@ -276,16 +276,16 @@ namespace spica {
         return _vertices[id].color();
     }
 
-    Vector3D Trimesh::getNormal(int id) const {
+    Normal Trimesh::getNormal(int id) const {
         Assertion(id >= 0 && id < _vertices.size(), "Vertex index out of bounds");
         return _vertices[id].normal();
     }
 
     Triangle Trimesh::getTriangle(int id) const {
         Assertion(id >= 0 && id < _faces.size(), "Triangle index out of bounds");
-        const Vector3D& p0 = _vertices[_faces[id][0]].pos();
-        const Vector3D& p1 = _vertices[_faces[id][1]].pos();
-        const Vector3D& p2 = _vertices[_faces[id][2]].pos();
+        const Point& p0 = _vertices[_faces[id][0]].pos();
+        const Point& p1 = _vertices[_faces[id][1]].pos();
+        const Point& p2 = _vertices[_faces[id][2]].pos();
         return Triangle(p0, p1, p2);
     }
 

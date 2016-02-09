@@ -65,27 +65,27 @@ namespace spica {
         return _ptr->reflectance();
     }
 
-    void BSDF::sample(const Vector3D& in, const Vector3D& normal,
+    void BSDF::sample(const Vector3D& in, const Normal& normal,
                       double rand1, double rand2,
                       Vector3D* out, double* pdf) const {
         _ptr->sample(in, normal, rand1, rand2, out, pdf);
     }
 
-    double BSDF::pdf(const Vector3D& in, const Vector3D& normal, const Vector3D& out) const {
+    double BSDF::pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const {
         return _ptr->pdf(in, normal, out);    
     }
 
     Spectrum BSDF::evalBSSRDF(const Vector3D& in, 
-                             const Vector3D& pos,
-                             const Vector3D& normal,
-                             const SubsurfaceIntegrator& integr,
-                             double* refPdf) const {
+                              const Point& pos,
+                              const Normal& normal,
+                              const SubsurfaceIntegrator& integr,
+                              double* refPdf) const {
         // Transmitted radiance
         Spectrum transRad{};
 
         // Fresnel reflection
-        const Vector3D orientN = in.dot(normal) < 0.0 ? normal : -normal;
-        const bool into = normal.dot(orientN) > 0.0;
+        const Normal orientN = vect::dot(in, normal) < 0.0 ? normal : -normal;
+        const bool into = vect::dot(normal, orientN) > 0.0;
         Vector3D refdir, transdir;
         double fresnelRe, fresnelTr;
         if (helper::checkTotalReflection(into, in, normal, orientN,

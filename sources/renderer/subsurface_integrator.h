@@ -12,8 +12,8 @@
 namespace spica {
 
     struct IrradiancePoint {
-        Vector3D pos;
-        Vector3D normal;
+        Point pos;
+        Normal normal;
         double area;
         Spectrum irad;
 
@@ -25,7 +25,7 @@ namespace spica {
         {
         }
 
-        IrradiancePoint(const Vector3D& pos_, const Vector3D& normal_,
+        IrradiancePoint(const Point& pos_, const Normal& normal_,
                         const double area_, const Spectrum& irad_)
             : pos(pos_)
             , normal(normal_)
@@ -91,7 +91,7 @@ namespace spica {
             void construct(SubsurfaceIntegrator* parent,
                            std::vector<IrradiancePoint>& ipoints);
 
-            Spectrum iradSubsurface(const Vector3D& pos, const BSSRDF& Rd) const;
+            Spectrum iradSubsurface(const Point& pos, const BSSRDF& Rd) const;
 
         private:
             void release();
@@ -99,7 +99,7 @@ namespace spica {
             OctreeNode* constructRec(std::vector<IrradiancePoint>& pointers,
                                      const BBox& bbox);
 
-            Spectrum iradSubsurfaceRec(OctreeNode* node, const Vector3D& pos,
+            Spectrum iradSubsurfaceRec(OctreeNode* node, const Point& pos,
                                     const BSSRDF& Rd) const;
         };
 
@@ -121,11 +121,11 @@ namespace spica {
         void construct(const Scene& scene,
                        const RenderParameters& params);
 
-        Spectrum irradiance(const Vector3D& p, const BSDF& bsdf) const;
+        Spectrum irradiance(const Point& p, const BSDF& bsdf) const;
 
     private:
-        void buildOctree(const std::vector<Vector3D>& points,
-                         const std::vector<Vector3D>& normals,
+        void buildOctree(const std::vector<Point>& points,
+                         const std::vector<Normal>& normals,
                          const RenderParameters& params);
     };
 

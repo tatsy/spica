@@ -5,6 +5,7 @@
 #ifndef _SPICA_NORMAL3D_H_
 #define _SPICA_NORMAL3D_H_
 
+#include <string>
 #include <type_traits>
 
 #include "../math/vect_math.h"
@@ -16,19 +17,27 @@ namespace spica {
     public:
         Normal3_();
         Normal3_(T x, T y, T z);
-        Normal3_(const Vector3_<T>& v);
+        explicit Normal3_(const Vector3_<T>& v);
         Normal3_(const Normal3_<T>& n);
         ~Normal3_();
 
         Normal3_<T>& operator=(const Normal3_<T>& n);
-
         Normal3_<T> operator-() const;
-
+        Normal3_<T> operator+=(const Normal3_<T>& n);
+        Normal3_<T> operator-=(const Normal3_<T>& n);
+        Normal3_<T> operator*=(T s);
+        Normal3_<T> operator/=(T s);
         explicit operator Vector3_<T>() const;
 
         inline T x() const { return x_; }
         inline T y() const { return y_; }
         inline T z() const { return z_; }
+
+        double norm() const;
+        double squaredNorm() const;
+        Normal3_<T> normalized() const;
+
+        std::string toString() const;
         
     private:
         T x_, y_, z_;
@@ -40,6 +49,25 @@ namespace spica {
     using Normal   = Normal3D;
 
 }  // namespace spica
+
+template <class T>
+std::ostream& operator<<(std::ostream& os, const spica::Normal3_<T>& n);
+
+template <class T>
+spica::Normal3_<T> operator+(const spica::Normal3_<T>& n1, const spica::Normal3_<T>& n2);
+
+template <class T>
+spica::Normal3_<T> operator-(const spica::Normal3_<T>& n1, const spica::Normal3_<T>& n2);
+
+template <class T>
+spica::Normal3_<T> operator*(const spica::Normal3_<T>& n, T s);
+
+template <class T>
+spica::Normal3_<T> operator*(T s, const spica::Normal3_<T>& n);
+
+template <class T>
+spica::Normal3_<T> operator/(const spica::Normal3_<T>& n, T s);
+
 
 #include "normal3d_detail.h"
 

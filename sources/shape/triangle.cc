@@ -44,7 +44,7 @@ namespace spica {
     Normal Triangle::normal() const {
         const Vector3D e1 = points_[1] - points_[0];
         const Vector3D e2 = points_[2] - points_[0];
-        return Vector3D::cross(e1, e2).normalized();
+        return Normal(Vector3D::cross(e1, e2).normalized());
     }
 
     Point Triangle::gravity() const {

@@ -99,12 +99,12 @@ namespace spica {
             return node;
         }
 
-        Vector3D posMid = (bbox.posMin() + bbox.posMax()) * 0.5;
+        Point posMid = (bbox.posMin() + bbox.posMax()) * 0.5;
 
         const int numPoints = static_cast<int>(ipoints.size());
         std::vector<std::vector<IrradiancePoint> > childPoints(8);
         for (int i = 0; i < numPoints; i++) {
-            const Vector3D& v = ipoints[i].pos;
+            const Point& v = ipoints[i].pos;
             int id = (v.x() < posMid.x() ? 0 : 4) + 
                      (v.y() < posMid.y() ? 0 : 2) + 
                      (v.z() < posMid.z() ? 0 : 1);
@@ -124,8 +124,8 @@ namespace spica {
         node->isLeaf = false;
 
         // Accumulate child nodes
-        node->pt.pos = Vector3D(0.0, 0.0, 0.0);
-        node->pt.normal = Vector3D(0.0, 0.0, 0.0);
+        node->pt.pos    = Point(0.0, 0.0, 0.0);
+        node->pt.normal = Normal(0.0, 0.0, 0.0);
         node->pt.area = 0.0;
 
         double weight = 0.0;
@@ -155,14 +155,14 @@ namespace spica {
     }
 
     Spectrum SubsurfaceIntegrator::
-          Octree::iradSubsurface(const Vector3D& pos,
+          Octree::iradSubsurface(const Point& pos,
                                  const BSSRDF& bssrdf) const {
         return iradSubsurfaceRec(_root, pos, bssrdf);
     }
 
     Spectrum SubsurfaceIntegrator::
           Octree::iradSubsurfaceRec(OctreeNode* node,
-                                    const Vector3D& pos,
+                                    const Point& pos,
                                     const BSSRDF& bssrdf) const {
         if (node == NULL) return Spectrum(0.0, 0.0, 0.0);
 
@@ -218,8 +218,8 @@ namespace spica {
         if (_triangles.empty()) return;
 
         // Poisson disk sampling
-        std::vector<Vector3D> points;
-        std::vector<Vector3D> normals;
+        std::vector<Point> points;
+        std::vector<Normal> normals;
         sampler::poissonDisk(_triangles, _radius, &points, &normals);
 
         // Cast photons to compute irradiance at sample points
@@ -229,8 +229,8 @@ namespace spica {
         buildOctree(points, normals, params);
     }
 
-    void SubsurfaceIntegrator::buildOctree(const std::vector<Vector3D>& points,
-                                           const std::vector<Vector3D>& normals,
+    void SubsurfaceIntegrator::buildOctree(const std::vector<Point>& points,
+                                           const std::vector<Normal>& normals,
                                            const RenderParameters& params) {
         // Compute irradiance on each sampled point
         const int numPoints = static_cast<int>(points.size());
@@ -256,8 +256,8 @@ namespace spica {
         std::cout << "Octree constructed !!" << std::endl;
     }
 
-    Spectrum SubsurfaceIntegrator::irradiance(const Vector3D& p,
-                                           const BSDF& bsdf) const {
+    Spectrum SubsurfaceIntegrator::irradiance(const Point& p,
+                                              const BSDF& bsdf) const {
         Assertion(bsdf._bssrdf != NULL,
                   "Specified object does not have BSSRDF !!");
         const Spectrum Mo = _octree.iradSubsurface(p, *bsdf._bssrdf);

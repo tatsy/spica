@@ -51,7 +51,7 @@ namespace spica {
     }
 
     void BBox::merge(const Point& v) {
-        posMin_ = std::max(posMin_, v); //Vector3D::minimum(posMin_, v);
+        posMin_ = Point::minimum(posMin_, v);
         posMax_ = Point::maximum(posMax_, v);
     }
 

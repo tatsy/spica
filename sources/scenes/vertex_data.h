@@ -5,6 +5,8 @@
 #ifndef _SPICA_VERTEX_DATA_H_
 #define _SPICA_VERTEX_DATA_H_
 
+#include "../core/point3d.h"
+#include "../core/normal3d.h"
 #include "../math/vector2d.h"
 #include "../math/vector3d.h"
 #include "../core/spectrum.h"
@@ -13,9 +15,9 @@ namespace spica {
 
     class VertexData {
     private:
-        Vector3D _pos;
+        Point    _pos;
         Spectrum _color;
-        Vector3D _normal;
+        Normal   _normal;
         Vector2D _texcoord;
         bool     _isTextured;
 
@@ -28,9 +30,9 @@ namespace spica {
             , _isTextured(false) {
         }
 
-        explicit VertexData(const Vector3D& pos,
+        explicit VertexData(const Point& pos,
                             const Spectrum& color = Spectrum(),
-                            const Vector3D& normal = Vector3D(0.0, 0.0, 0.0),
+                            const Normal& normal = Normal(0.0, 0.0, 0.0),
                             const Vector2D& texcoord = Vector2D(INFTY, INFTY))
             : _pos(pos)
             , _color(color)
@@ -63,15 +65,15 @@ namespace spica {
             return *this;
         }
 
-        inline const Vector3D& pos() const { return _pos; }
+        inline const Point& pos() const { return _pos; }
         inline const Spectrum& color() const { return _color; }
-        inline const Vector3D& normal() const { return _normal; }
+        inline const Normal& normal() const { return _normal; }
         inline const Vector2D& texcoord() const { return _texcoord; }
         inline bool isTextured() const { return _isTextured; }
 
-        inline void setPosition(const Vector3D& pos) { _pos = pos; }
+        inline void setPosition(const Point& pos) { _pos = pos; }
         inline void setColor(const Spectrum& color) { _color = color; }
-        inline void setNormal(const Vector3D& nrm) { _normal = nrm; }
+        inline void setNormal(const Normal& nrm) { _normal = nrm; }
         inline void setTexcoord(const Vector2D& texcoord) { _texcoord = texcoord; }
     };
 

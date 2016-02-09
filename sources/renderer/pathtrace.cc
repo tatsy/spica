@@ -191,8 +191,8 @@ namespace spica {
     }
 
     Spectrum PathRenderer::directSample(const Scene& scene, const int triID,
-                                        const Vector3D& in, const Vector3D& v,
-                                        const Vector3D& n, const Spectrum& refl,
+                                        const Vector3D& in, const Point& v,
+                                        const Normal& n, const Spectrum& refl,
                                         int bounces, Stack<double>& rstk) const {
         const BSDF& bsdf = scene.getBsdf(triID);
         if (bsdf.type() & BsdfType::Scatter) {
@@ -215,7 +215,7 @@ namespace spica {
 
                             double weight = powerHeuristic(1, lightPdf, 1, bsdfPdf);
 
-                            double dot = std::abs(Vector3D::dot(n, -Ls.dir()));
+                            double dot = std::abs(vect::dot(n, -Ls.dir()));
                             Ld += (refl * dot * Ls.Le()) * weight / lightPdf; 
                         }
                     }
@@ -231,8 +231,8 @@ namespace spica {
                 if (scene.intersect(sampleRay, &lightIsect)) {
                     if (scene.isLightCheck(lightIsect.objectID())) {
                         const double dist2 = (lightIsect.position() - v).squaredNorm();
-                        const double dot0  = Vector3D::dot(n, nextdir);
-                        const double dot1  = Vector3D::dot(lightIsect.normal(), -nextdir);
+                        const double dot0  = vect::dot(n, nextdir);
+                        const double dot1  = vect::dot(lightIsect.normal(), -nextdir);
                         if (dot0 > EPS && dot1 > EPS) {
                             // PDFs are computed for polar coordinate system
                             double jacob = dot1 / dist2;

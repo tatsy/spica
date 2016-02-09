@@ -61,7 +61,7 @@ namespace spica {
          */
         static Camera asDoF(int imageWidth,
                             int imageHeight,
-                            const  Vector3D& sensorCenter,
+                            const  Point& sensorCenter,
                             const  Vector3D& sensorDir,
                             const  Vector3D& sensorUp,
                             double sensorSize,
@@ -79,7 +79,7 @@ namespace spica {
          * @param imageH Image height
          * @param sensitivity Camera sensor sensitivity
          */
-        static Camera perspective(const Vector3D& center,
+        static Camera perspective(const Point& center,
                                   const Vector3D& direction,
                                   const Vector3D& up,
                                   double fov, int imageW, int imageH,
@@ -94,7 +94,7 @@ namespace spica {
          * @param imageH Image height
          * @param sensitivity Camera sensor sensitivity
          */
-        static Camera ortho(const Vector3D& center,
+        static Camera ortho(const Point& center,
                             const Vector3D& direction,
                             const Vector3D& up,
                             const Rect& rect,

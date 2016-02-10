@@ -77,14 +77,6 @@ namespace spica {
         return *this;
     }
 
-    //template <class T>
-    //Point3_<T>& Point3_<T>::operator-=(const Point3_<T>& p) {
-    //    this->x_ -= p.x_;
-    //    this->y_ -= p.y_;
-    //    this->z_ -= p.z_;
-    //    return *this;
-    //}
-
     template <class T>
     Point3_<T>& Point3_<T>::operator*=(T s) {
         this->x_ *= s;
@@ -133,6 +125,28 @@ std::ostream& operator<<(std::ostream& os, const spica::Point3_<T>& p) {
 }
 
 template <class T>
+spica::Point3_<T> operator+(const spica::Point3_<T>& p1, const spica::Point3_<T>& p2) {
+    spica::Point3_<T> ret = p1;
+    ret += p2;
+    return ret;
+}
+
+template <class T>
+spica::Point3_<T> operator+(const spica::Point3_<T>& p, const spica::Vector3_<T>& v) {
+    return { p.x() + v.x(), p.y() + v.y(), p.z() + v.z() };
+}
+
+template <class T>
+spica::Point3_<T> operator-(const spica::Point3_<T>& p, const spica::Vector3_<T>& v) {
+    return { p.x() - v.x(), p.y() - v.y(), p.z() - v.z() };
+}
+
+template <class T>
+spica::Vector3_<T> operator-(const spica::Point3_<T>& p1, const spica::Point3_<T>& p2) {
+    return { p1.x() - p2.x(), p1.y() - p2.y(), p1.z() - p2.z() };
+}
+
+template <class T>
 spica::Point3_<T> operator*(const spica::Point3_<T>& p, T s) {
     spica::Point3_<T> ret = p;
     ret *= s;
@@ -149,7 +163,7 @@ spica::Point3_<T> operator*(T s, const spica::Point3_<T>& p) {
 template <class T>
 spica::Point3_<T> operator/(const spica::Point3_<T>& p, T s) {
     spica::Point3_<T> ret = p;
-    ret *= s;
+    ret /= s;
     return ret;
 }
 

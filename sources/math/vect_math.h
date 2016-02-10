@@ -41,25 +41,4 @@ namespace vect {
 
 }  // namespace spica
 
-// Point-Vector binary operation
-template <class T>
-spica::Point3_<T> operator+(const spica::Point3_<T>& p, const spica::Vector3_<T>& v) {
-    return { p.x() + v.x(), p.y() + v.y(), p.z() + v.z() };
-}
-
-template <class T>
-spica::Point3_<T> operator+(const spica::Point3_<T>& p1, const spica::Point3_<T>& p2) {
-    return { p1.x() + p2.x(), p1.y() + p2.y(), p1.z() + p2.z() };
-}
-
-template <class T>
-spica::Point3_<T> operator-(const spica::Point3_<T>& p, const spica::Vector3_<T>& v) {
-    return { p.x() - v.x(), p.y() - v.y(), p.z() - v.z() };
-}
-
-template <class T>
-spica::Vector3_<T> operator-(const spica::Point3_<T>& p1, const spica::Point3_<T>& p2) {
-    return { p1.x() - p2.x(), p1.y() - p2.y(), p1.z() - p2.z() };
-}
-
 #endif  // _SPICA_VECT_MATH_H_

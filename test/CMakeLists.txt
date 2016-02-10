@@ -34,6 +34,8 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_macros.h
       test_stack.cc
       test_geometry.cc
+      test_point3d.cc
+      test_normal3d.cc
       test_vector2d.cc
       test_vector3d.cc
       test_matrix4x4.cc

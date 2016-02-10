@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "common.h"
+#include "../math/vector3d.h"
 
 namespace spica {
 
@@ -29,7 +30,6 @@ namespace spica {
 
         Point3_<T>& operator=(const Point3_<T>& p);
         Point3_<T>& operator+=(const Point3_<T>& p);
-        // Point3_<T>& operator-=(const Point3_<T>& p);
         Point3_<T>& operator*=(T s);
         Point3_<T>& operator/=(T s);
         T operator[](int i) const;
@@ -54,6 +54,18 @@ namespace spica {
 
 template <class T>
 std::ostream& operator<<(std::ostream& os, const spica::Point3_<T>& p);
+
+template <class T>
+spica::Point3_<T> operator+(const spica::Point3_<T>& p1, const spica::Point3_<T>& p2);
+
+template <class T>
+spica::Point3_<T> operator+(const spica::Point3_<T>& p, const spica::Vector3_<T>& v);
+
+template <class T>
+spica::Point3_<T> operator-(const spica::Point3_<T>& p, const spica::Vector3_<T>& v);
+
+template <class T>
+spica::Vector3_<T> operator-(const spica::Point3_<T>& p1, const spica::Point3_<T>& p2);
 
 template <class T>
 spica::Point3_<T> operator*(const spica::Point3_<T>& p, T s);

@@ -9,12 +9,12 @@
 namespace spica {
 
     Triangle::Triangle()
-        : IShape{ ShapeType::Triangle }
+        : Shape{ ShapeType::Triangle }
         , points_{} {
     }
 
     Triangle::Triangle(const Point& p0, const Point& p1, const Point& p2)
-        : IShape{ ShapeType::Triangle }
+        : Shape{ ShapeType::Triangle }
         , points_{ p0, p1, p2 } {
     }
 

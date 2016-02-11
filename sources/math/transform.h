@@ -26,6 +26,8 @@ namespace spica {
         bool operator==(const Transform& t);
         bool operator!=(const Transform& t);
 
+        Vector3D apply(const Vector3D& v) const;
+
         bool isIdentity() const;
 
         Transform inverted() const;

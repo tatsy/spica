@@ -40,7 +40,6 @@ namespace spica {
         Point    origin_     = { 0.0, 0.0, 0.0 };
         Vector3D direction_  = { 0.0, 0.0, 0.0 };
         Vector3D invdir_     = { INFTY, INFTY, INFTY };
-
     };
 
     class SPICA_EXPORTS Hitpoint {

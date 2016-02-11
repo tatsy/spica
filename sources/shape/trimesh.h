@@ -12,7 +12,7 @@
 
 #include "../core/forward_decl.h"
 #include "../core/triplet.h"
-#include "../shape/shape_interface.h"
+#include "../shape/shape.h"
 #include "../scenes/vertex_data.h"
 #include "../accel/accel.h"
 
@@ -21,7 +21,7 @@ namespace spica {
     /** Triangle mesh class
      *  @ingroup shape_module
      */
-    class SPICA_EXPORTS Trimesh : public IShape {
+    class SPICA_EXPORTS Trimesh : public Shape {
     private:
         std::vector<VertexData> _vertices;
         std::vector<Triplet>    _faces;

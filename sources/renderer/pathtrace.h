@@ -37,18 +37,18 @@ namespace spica {
         Spectrum tracePath(const Scene& scene, const Camera& camera,
                            const RenderParameters& params,
                            const double pixelX, const double pixelY,
-                           Stack<double>& rands);
+                           Sampler& sampler);
 
         Spectrum radiance(const Scene& scene,
                           const RenderParameters& params,
                           const Ray& ray,
-                          Stack<double>& rstack,
+                          Sampler& sampler,
                           int bounces) const;
 
         Spectrum directSample(const Scene& scene, const int triID,
                               const Vector3D& in, const Point& v,
                               const Normal& n, const Spectrum& refl,
-                              int bounces, Stack<double>& rands) const;
+                              int bounces, const std::shared_ptr<Sampler>& sampler) const;
     };
 }
 

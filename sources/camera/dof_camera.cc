@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "dof_camera.h"
 #include "../core/common.h"
+#include "../core/point2d.h"
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
 #include "../math/vect_math.h"
@@ -160,12 +161,9 @@ namespace spica {
         (*PLens)  = 1.0 / lens_.area();
     }
 
-    CameraSample DoFCamera::sample(const double imageX, const double imageY, Stack<double>& rstk) const {
-        const double uOnPixel = rstk.pop();
-        const double vOnPixel = rstk.pop();
-
-        const double uOnSensor = ((imageX + uOnPixel) / _imageW - 0.5);
-        const double vOnSensor = ((imageY + vOnPixel) / _imageH - 0.5);
+    CameraSample DoFCamera::sample(const double imageX, const double imageY, const Point2D& rands) const {
+        const double uOnSensor = imageX / _imageW;
+        const double vOnSensor = imageY / _imageH;
         const Point  posSensor = sensor_.center + (uOnSensor * sensor_.width) * sensor_.unitU + (vOnSensor * sensor_.height) * sensor_.unitV;
 
         const double ratio = lens_.focalLength / distSensorToLens_;
@@ -173,8 +171,8 @@ namespace spica {
         const double vOnObjplane = -ratio * vOnSensor;
         const Point  posObjectPlane = objplane_.center + (uOnObjplane * objplane_.width) * objplane_.unitU + (vOnObjplane * objplane_.height) * objplane_.unitV;
 
-        const double r0 = sqrt(rstk.pop());
-        const double r1 = 2.0 * PI * rstk.pop();
+        const double r0 = sqrt(rands[0]);
+        const double r1 = 2.0 * PI * rands[1];
         const double uOnLens = r0 * cos(r1);
         const double vOnLens = r0 * sin(r1);
         const Point  posLens = lens_.center + (uOnLens * lens_.radius) * lens_.unitU + (vOnLens * lens_.radius) * lens_.unitV;

@@ -10,12 +10,11 @@
 #include "render_parameters.h"
 
 #include "../core/common.h"
-#include "../core/sampler.h"
+#include "../core/sampling.h"
 
 #include "../image/tmo.h"
 
 #include "../camera/dof_camera.h"
-#include "../light/lighting.h"
 #include "../bsdf/bsdf.h"
 
 #include "../random/random_sampler.h"

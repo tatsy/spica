@@ -16,11 +16,11 @@ namespace spica {
     }  // anonymous namespace
 
     Disk::Disk() 
-        : IShape{ShapeType::Disk} {
+        : Shape{ShapeType::Disk} {
     }
 
     Disk::Disk(const Point& center, const Normal& normal, double radius)
-        : IShape{ ShapeType::Disk }
+        : Shape{ ShapeType::Disk }
         , center_{ center }
         , normal_{ normal }
         , radius_{ radius } {

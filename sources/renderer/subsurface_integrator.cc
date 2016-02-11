@@ -10,10 +10,10 @@
 #include "renderer_helper.h"
 #include "render_parameters.h"
 
-#include "../core/sampler.h"
+#include "../core/sampling.h"
 #include "../bsdf/bsdf.h"
 #include "../bsdf/bssrdf.h"
-#include "../random/random_sampler.h"
+#include "../random/sampler.h"
 
 namespace spica {
 

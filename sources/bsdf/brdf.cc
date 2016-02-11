@@ -1,7 +1,8 @@
 #define SPICA_API_EXPORT
 #include "brdf.h"
 
-#include "../core/sampler.h"
+#include "../core/sampling.h"
+#include "../core/point2d.h"
 
 #include "bsdf.h"
 #include "../math/vect_math.h"
@@ -23,11 +24,14 @@ namespace spica {
         return reflectance_;
     }
 
-    void LambertianBRDF::sample(const Vector3D& in, const Normal& normal, double rand1, double rand2, Vector3D* out, double* pdf) const {
+    Spectrum LambertianBRDF::sample(const Vector3D& in, const Normal& normal,
+                                const Point2D& rands, Vector3D* out,
+                                double* pdf) const {
         const Normal orieintingNormal = vect::dot(in, normal) < 0.0 ? normal : -normal;
 
         (*pdf) = 1.0;
-        sampler::onHemisphere(orieintingNormal, out, rand1, rand2);
+        sampleUniformHemisphere(orieintingNormal, out, rands);
+        return reflectance_;
     }
 
     double LambertianBRDF::pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const {
@@ -55,11 +59,11 @@ namespace spica {
         return reflectance_;
     }
 
-    void SpecularBRDF::sample(const Vector3D& in, const Normal& normal, const double rand1, const double rand2, Vector3D* out, double* pdf) const {
+    Spectrum SpecularBRDF::sample(const Vector3D& in, const Normal& normal, const Point2D& rands, Vector3D* out, double* pdf) const {
         const Normal orieintingNormal = vect::dot(in, normal) < 0.0 ? normal : -normal;
-
         (*pdf) = 1.0;
         (*out) = vect::reflect(in, orieintingNormal);
+        return reflectance_;
     }
 
     double SpecularBRDF::pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const {
@@ -92,7 +96,7 @@ namespace spica {
         return reflectance_;
     }
 
-    void PhongBRDF::sample(const Vector3D& in, const Normal& normal, const double rand1, const double rand2, Vector3D* out, double* pdf) const {
+    Spectrum PhongBRDF::sample(const Vector3D& in, const Normal& normal, const Point2D& rands, Vector3D* out, double* pdf) const {
         const Normal orieintingNormal = vect::dot(in, normal) < 0.0 ? normal : -normal;
 
         const Vector3D refDir = vect::reflect(in, orieintingNormal);
@@ -101,11 +105,13 @@ namespace spica {
         w = refDir;
         helper::calcLocalCoords(w, &u, &v);
 
-        const double theta = acos(pow(rand1, 1.0 / (coeff_ + 1.0)));
-        const double phi   = 2.0 * PI * rand2;
+        const double theta = acos(pow(rands[0], 1.0 / (coeff_ + 1.0)));
+        const double phi   = 2.0 * PI * rands[1];
 
         (*pdf) = 1.0;
         (*out) = (u * sin(theta) * cos(phi) + w * cos(theta) + v * sin(theta) * sin(phi)).normalized();
+
+        return reflectance_;
     }
 
     double PhongBRDF::pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const {
@@ -135,7 +141,7 @@ namespace spica {
         return reflectance_;
     }
 
-    void RefractiveBSDF::sample(const Vector3D& in, const Normal& normal, double rand1, double rand2, Vector3D* out, double* pdf) const {
+    Spectrum RefractiveBSDF::sample(const Vector3D& in, const Normal& normal, const Point2D& rands, Vector3D* out, double* pdf) const {
         const Normal orientN = vect::dot(in, normal) < 0.0 ? normal : -normal;
         const bool into = vect::dot(normal, orientN) > 0.0;
 
@@ -152,7 +158,7 @@ namespace spica {
             (*pdf) = 1.0;
         } else {
             const double probability = 0.25 + 0.5 * fresnelRe;
-            if (rand1 < probability) {
+            if (rands[0] < probability) {
                 (*pdf) = probability / fresnelRe;
                 (*out) = reflectdir;
             } else {
@@ -160,6 +166,7 @@ namespace spica {
                 (*out) = transmitdir;
             }
         }
+        return reflectance_;
     }
 
     double RefractiveBSDF::pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const {

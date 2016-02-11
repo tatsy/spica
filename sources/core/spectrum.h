@@ -18,6 +18,7 @@ namespace spica {
     public:
         /** The RGBSpectrum constructor. */
         RGBSpectrum();
+        RGBSpectrum(double l);
         /** The RGBSpectrum constructor
          *  @param red: Red component.
          *  @param green: Green component.
@@ -64,6 +65,7 @@ namespace spica {
                                  const RGBSpectrum& lo = RGBSpectrum(0.0, 0.0, 0.0),
                                  const RGBSpectrum& hi = RGBSpectrum(INFTY, INFTY, INFTY));
 
+        bool  isBlack() const;
         double dot(const RGBSpectrum& RGBSpectrum) const;
         double norm() const;
         double squaredNorm() const;
@@ -91,6 +93,11 @@ namespace spica {
             if (i == 0) return r_;
             if (i == 1) return g_;
             return b_;            
+        }
+
+        /** Convert to RGB spcetrum. */
+        inline RGBSpectrum toRGB() const {
+            return { r_, g_, b_ };
         }
 
         /** Covert to string. */

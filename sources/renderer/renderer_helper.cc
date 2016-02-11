@@ -5,12 +5,11 @@
 #include <algorithm>
 
 #include "../core/spectrum.h"
-#include "../core/sampler.h"
+#include "../core/sampling.h"
 
 #include "../math/vector3d.h"
 
 #include "../renderer/ray.h"
-#include "../light/lighting.h"
 
 #include "../bsdf/bsdf.h"
 #include "../scenes/scene.h"

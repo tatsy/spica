@@ -7,17 +7,18 @@
 
 #include "../core/common.h"
 #include "../core/spectrum.h"
-#include "../core/sampler.h"
+#include "../core/sampling.h"
+#include "../core/interaction.h"
+
 #include "../image/image.h"
 #include "../image/tmo.h"
 
 #include "../math/vector3d.h"
 
 #include "../random/halton.h"
-#include "../random/random_sampler.h"
+#include "../random/sampler.h"
 
 #include "../scenes/scene.h"
-#include "../light/lighting.h"
 
 #include "renderer_helper.h"
 #include "render_parameters.h"
@@ -41,21 +42,19 @@ namespace spica {
         _integrator->initialize(scene);
 
         // Prepare random number generators
-        auto samplers = std::vector<RandomSampler>(kNumThreads);
+        std::vector<Sampler > samplers;
         for (int i = 0; i < kNumThreads; i++) {
             switch (params.randomType()) {
             case RandomType::MT19937:
-                samplers[i] = RandomSampler::useMersenne((unsigned int)time(0) + i);
+                samplers.push_back(Random::createSampler((unsigned int)time(0) + i));
                 break;
 
             case RandomType::Halton:
-                samplers[i] = RandomSampler::useHalton(300, true, (unsigned int)time(0) + i);
+                samplers.push_back(Halton::createSampler(300, true, (unsigned int)time(0) + i));
                 break;
 
             default:
-                std::cerr << "[ERROR] Unknown random number generator type!!"
-                          << std::endl;
-                std::abort();
+                FatalError("[ERROR] Unknown random number generator type!!");
             }
         }
 
@@ -84,9 +83,8 @@ namespace spica {
                         Stack<double> rstk;
                         const int y = tasks[threadID][t];
                         for (int x = 0; x < width; x++) {
-                            samplers[threadID].request(&rstk, 300);
                             buffer.pixel(width - x - 1, y) +=
-                                tracePath(scene, camera, params, x, y, rstk);
+                                tracePath(scene, camera, params, x, y, samplers[t]);
                         }
                     }
                 }
@@ -112,30 +110,96 @@ namespace spica {
     Spectrum PathRenderer::tracePath(const Scene& scene, const Camera& camera, 
                                      const RenderParameters& params,
                                      const double pixelX, const double pixelY,
-                                     Stack<double>& rands) {
-        CameraSample camSample = camera.sample(pixelX, pixelY, rands);
+                                     Sampler& sampler) {
+        CameraSample camSample = camera.sample(pixelX, pixelY, sampler.get2D());
         const Ray ray = camSample.ray();
 
-        return radiance(scene, params, ray, rands, 0) * (camera.sensitivity() / camSample.pdf());
+        return radiance(scene, params, ray, sampler, 0) * (camera.sensitivity() / camSample.pdf());
     }
 
     Spectrum PathRenderer::radiance(const Scene& scene,
-                                const RenderParameters& params,
-                                const Ray& ray, Stack<double>& rstack,
-                                int bounces) const {
-        if (bounces >= params.bounceLimit()) {
-            return RGBSpectrum(0.0, 0.0, 0.0);
+                                    const RenderParameters& params,
+                                    const Ray& r,
+                                    Sampler& sampler,
+                                    int depth) const {
+        Ray ray(r);
+        Spectrum L(0.0);
+        Spectrum beta(0.0);
+        bool specularBounce = false;
+        int bounces;
+        for (bounces = 0; ; bounces++) {
+            SurfaceInteraction isect;
+            bool isIntersect = scene.intersect(ray, &isect);
+
+            // Sample Le which contributes without any loss
+            if (bounces == 0 || specularBounce) {
+                if (isIntersect) {
+                    L += beta * isect.Le(-ray.direction());
+                } else {
+                    for (const auto& light : scene.lights()) {
+                        L += beta * light->Le(ray);
+                    }
+                }
+            }
+
+            if (!isIntersect || bounces >= params.bounceLimit()) break;
+
+            // Process BxDF
+            Vector3D wo = -ray.direction();
+            Vector3D wi;
+            double pdf;
+            Spectrum ref = isect.bsdf().sample(ray.direction(), isect.normal(), 
+                                               sampler.get2D(), &wi, &pdf);
+
+            if (ref.isBlack() || pdf == 0.0) break;
+
+            beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+            specularBounce = (isect.bsdf().type() & BsdfType::Specular) != 0;
+
+            ray = isect.nextRay(wi);
+
+            // Account for BSSRDF
+            /*
+            if (bsdf.type() & BsdfType::Bssrdf) {
+                Assertion(_integrator != nullptr,
+                            "Subsurface intergrator is NULL !!");
+
+                double refPdf = 1.0;
+                bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
+                                            isect.pos(),
+                                            isect.normal(),
+                                            *_integrator,
+                                            &refPdf);
+                pdf *= refPdf;
+            }
+            */
+
+
+            // Russian roulette
+            if (bounces > 3) {
+                double continueProbability = std::min(0.95, beta.luminance());
+                if (sampler.get1D() > continueProbability) break;
+                beta /= continueProbability;
+            }
         }
 
-        Intersection isect;
-        if (!scene.intersect(ray, &isect)) {
-            return scene.globalLight(ray.direction());
+        return L;
+
+// ----------------------------------------------------------------------------
+
+        /*
+        if (bounces >= params.bounceLimit()) {
+            return RGBSpectrum(0.0);
         }
+
+        SurfaceInteraction intr;
+        //if (!scene.intersect(ray, &intr)) {
+        //    return Spectrum(0.0);
+        //}
 
         // Get intersecting material
-        const int objectID     = isect.objectID();
-        const BSDF& bsdf       = scene.getBsdf(objectID);
-        const Spectrum& refl      = isect.color();
+        const BSDF& bsdf       = intr.bsdf();
+        const Spectrum& refl   = intr.color();
 
         // Russian roulette
         double roulette = max3(refl.red(), refl.green(), refl.blue());
@@ -180,8 +244,8 @@ namespace spica {
         const Spectrum nextrad = radiance(scene, params, nextray,
                                           rstack, bounces + 1);            
 
-
         return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
+         */
     }
 
     double powerHeuristic(int nf, double f, int ng, double g) {
@@ -190,6 +254,7 @@ namespace spica {
         return (ff * ff) / (ff * ff + gg * gg);
     }
 
+    /*
     Spectrum PathRenderer::directSample(const Scene& scene, const int triID,
                                         const Vector3D& in, const Point& v,
                                         const Normal& n, const Spectrum& refl,
@@ -264,5 +329,6 @@ namespace spica {
         }
         return Spectrum(0.0, 0.0, 0.0);
     }
+    */
 
 }  // namespace spica

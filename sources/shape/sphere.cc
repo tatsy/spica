@@ -10,11 +10,11 @@
 namespace spica {
 
     Sphere::Sphere()
-        : IShape{ShapeType::Sphere} {
+        : Shape{ShapeType::Sphere} {
     }
 
     Sphere::Sphere(const Point& center, double radius)
-        : IShape{ ShapeType::Sphere }
+        : Shape{ ShapeType::Sphere }
         , center_{ center }
         , radius_{ radius } {
     }

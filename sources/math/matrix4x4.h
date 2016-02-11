@@ -9,6 +9,7 @@
 #include <string>
 
 #include "../core/common.h"
+#include "../math/vector3d.h"
 
 namespace spica {
 
@@ -38,6 +39,8 @@ namespace spica {
                   double t10, double t11, double t12, double t13,
                   double t20, double t21, double t22, double t23,
                   double t30, double t31, double t32, double t33);
+
+        Vector3D apply(const Vector3D& v) const;
 
         /**
          * Return the transposed matrix of the current instance.

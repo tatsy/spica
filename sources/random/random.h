@@ -10,12 +10,12 @@
 
 namespace spica {
 
-    class RandomSampler;
+    class Sampler;
 
     /** Random number generator with Mersenne twister.
      *  @ingroup random_module
      */
-    class SPICA_EXPORTS Random : public RandomBase {
+    class SPICA_EXPORTS Random : public RandomInterface {
     private:
         static const int N = 624;
         static const int M = 397;
@@ -43,13 +43,11 @@ namespace spica {
          */
         double normal();
 
-        /** Request specified amount of random numbers.
-         */
-        void request(Stack<double>* rands, const int numRequested) override;
+        double get1D() override;
 
         /** Factory method for RandomSampler.
          */
-        static RandomSampler factory(unsigned int seed = 0);
+        static Sampler createSampler(unsigned int seed = 0);
 
     private:
         void init_genrand(unsigned int s);

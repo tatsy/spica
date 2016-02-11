@@ -1,6 +1,8 @@
 #define SPICA_API_EXPORT
 #include "transform.h"
 
+#include "vector3d.h"
+
 namespace spica {
 
     Transform::Transform()
@@ -45,6 +47,10 @@ namespace spica {
 
     bool Transform::operator!=(const Transform& t) {
         return m_ != t.m_ || mInv_ != t.mInv_;
+    }
+
+    Vector3D Transform::apply(const Vector3D& v) const {
+        return m_.apply(v);   
     }
 
     bool Transform::isIdentity() const {

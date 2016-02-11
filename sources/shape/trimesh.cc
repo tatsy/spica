@@ -20,7 +20,6 @@
 
 #include "../renderer/ray.h"
 
-#include "shape_interface.h"
 #include "bbox.h"
 #include "triangle.h"
 #include "meshio.h"
@@ -28,7 +27,7 @@
 namespace spica {
 
     Trimesh::Trimesh()
-        : IShape{ShapeType::Triangle}
+        : Shape{ShapeType::Triangle}
         , _vertices{}
         , _faces{}
         , _accel{}
@@ -71,7 +70,7 @@ namespace spica {
 
     Trimesh::Trimesh(const std::vector<VertexData>& vertices,
                      const std::vector<Triplet>& faceIDs)
-        : IShape{ShapeType::Trimesh}
+        : Shape{ShapeType::Trimesh}
         , _vertices{vertices}
         , _faces{faceIDs} {
     }

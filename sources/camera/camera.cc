@@ -41,8 +41,8 @@ namespace spica {
         return *this;
     }
 
-    CameraSample Camera::sample(double px, double py, Stack<double>& rstack) const {
-        return _ptr->sample(px, py, rstack);
+    CameraSample Camera::sample(double px, double py, const Point2D& rands) const {
+        return _ptr->sample(px, py, rands);
     }
 
     Camera Camera::asDoF(int imageWidth,

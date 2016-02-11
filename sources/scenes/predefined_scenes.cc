@@ -5,10 +5,11 @@
 #include "../image/image.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
+#include "../light/spica_light.h"
 #include "../bsdf/bsdf.h"
 #include "../bsdf/brdf.h"
 #include "../bsdf/bssrdf.h"
-#include "../shape/shape.h"
+#include "../shape/spica_shape.h"
 
 namespace spica {
     void cornellBox(Scene* scene, Camera* camera, const int width, const int height) {
@@ -19,8 +20,7 @@ namespace spica {
         Point l01(-5.0, 9.99,  5.0);
         Point l10( 5.0, 9.99, -5.0);
         Point l11( 5.0, 9.99,  5.0);
-        scene->setAreaLight(Quad(l00, l10, l11, l01), 
-                            Spectrum(32.0, 32.0, 32.0));
+        scene->addLight(std::make_shared<AreaLight>(Quad(l00, l10, l11, l01), Transform(), Spectrum(32.0, 32.0, 32.0)));
 
         Point v000(-10.0, -10.0, -10.0);
         Point v100( 10.0, -10.0, -10.0);
@@ -57,7 +57,7 @@ namespace spica {
         texcube.translate(Vector3D(-5.0, 0.0, 5.0));
         scene->addShape(texcube, LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
 
-        scene->setAccelType(AccelType::QBVH);
+        // scene->setAccelType(AccelType::QBVH);
         scene->finalize();
 
         (*camera) = Camera::asDoF(width, height, 
@@ -234,6 +234,7 @@ namespace spica {
     }
     */
 
+/*
     void kittenBox(Scene* scene, Camera* camera, const int width, const int height) {
         scene->clear(); 
 
@@ -350,5 +351,6 @@ namespace spica {
 
         scene->finalize();
     }
+    */
 
 }  // namespace spica

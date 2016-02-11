@@ -5,7 +5,7 @@
 #ifndef _SPICA_BBOX_H_
 #define _SPICA_BBOX_H_
 
-#include "shape_interface.h"
+#include "shape.h"
 #include "triangle.h"
 #include "../renderer/ray.h"
 #include "../core/point3d.h"
@@ -15,7 +15,7 @@ namespace spica {
     /** AABB (Axis-Aligned Bounding Box) class
      *  @ingroup shape_module
      */
-    class SPICA_EXPORTS BBox : public IShape {
+    class SPICA_EXPORTS BBox : public Shape {
     public:
         BBox();
         BBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);

@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "random_sampler.h"
+#include "sampler.h"
 
 namespace spica {
 
@@ -105,23 +105,13 @@ namespace spica {
         delete[] permute;
     }
 
-    void Halton::request(Stack<double>* rstk, const int numRequested) {
-        Assertion(numRequested <= dims, "Requested samples are too many !!");
-
-        rstk->clear();
-
-        int* p = permute;
-        for (int i = 0; i < numRequested; i++) {
-            rstk->push(radicalInverse(numUsedSamples, bases[i], p));
-            p += bases[i];
-        }
-        numUsedSamples++;
+    double Halton::get1D() {
+        // TODO: Must be revised.
+        return 0.0;
     }
 
-    RandomSampler Halton::factory(int dim, bool isPermute, unsigned int seed) {
-        RandomSampler rand;
-        rand._rng.reset(new Halton(dim, isPermute, seed));
-        return std::move(rand);
+    Sampler Halton::createSampler(int dim, bool isPermute, unsigned int seed) {
+        return { new Halton(dim, isPermute, seed) };
     }
 
     double Halton::radicalInverse(int n, int base, const int* p) const {

@@ -7,7 +7,7 @@
 
 #include <array>
 
-#include "shape_interface.h"
+#include "shape.h"
 #include "../core/point3d.h"
 
 namespace spica {
@@ -15,7 +15,7 @@ namespace spica {
     /** Triangle class
      *  @ingroup shape_module
      */
-    class SPICA_EXPORTS Triangle : public IShape {
+    class SPICA_EXPORTS Triangle : public Shape {
     public:
         Triangle();
         Triangle(const Point& p0, const Point& p1, const Point& p2);

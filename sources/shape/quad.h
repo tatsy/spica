@@ -7,7 +7,7 @@
 
 #include <array>
 
-#include "shape_interface.h"
+#include "shape.h"
 #include "../core/point3d.h"
 
 namespace spica {
@@ -15,7 +15,7 @@ namespace spica {
     /** Quadrangle class
      *  @ingroup shape_module
      */
-    class SPICA_EXPORTS Quad : public IShape {
+    class SPICA_EXPORTS Quad : public Shape {
     private:
         std::array<Point, 4> _points;
 

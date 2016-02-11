@@ -9,7 +9,7 @@
 
 #include "renderer_helper.h"
 
-#include "../core/sampler.h"
+#include "../core/sampling.h"
 
 #include "../image/tmo.h"
 

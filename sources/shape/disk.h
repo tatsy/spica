@@ -5,7 +5,7 @@
 #ifndef _SPICA_DISK_H_
 #define _SPICA_DISK_H_
 
-#include "shape_interface.h"
+#include "shape.h"
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
 
@@ -14,7 +14,7 @@ namespace spica {
     /** Disk class
      *  @ingroup shape_module
      */
-    class SPICA_EXPORTS Disk : public IShape {
+    class SPICA_EXPORTS Disk : public Shape {
     public:
         Disk();
         Disk(const Point& center, const Normal& normal, double radius);

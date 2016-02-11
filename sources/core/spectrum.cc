@@ -13,6 +13,12 @@ namespace spica {
         , b_{ 0.0 } {
     }
 
+    RGBSpectrum::RGBSpectrum(double l)
+        : r_{ l }
+        , g_{ l }
+        , b_{ l } {
+    }
+
     RGBSpectrum::RGBSpectrum(double red, double green, double blue)
         : r_{ red }
         , g_{ green }
@@ -96,6 +102,10 @@ namespace spica {
 
     RGBSpectrum RGBSpectrum::operator-() const {
         return RGBSpectrum(-this->r_, -this->g_, -this->b_);
+    }
+
+    bool RGBSpectrum::isBlack() const {
+        return r_ == 0.0 && g_ == 0.0 && b_ == 0.0;
     }
 
     double RGBSpectrum::dot(const RGBSpectrum& color) const {

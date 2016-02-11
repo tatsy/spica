@@ -11,19 +11,14 @@ namespace spica {
 
 namespace vect {
 
-    template <class T>
-    double dot(const spica::Vector3_<T>& v, const spica::Normal3_<T>& n) {
-        return v.x() * n.x() + v.y() * n.y() + v.z() * n.z();
+    template <class Vec1, class Vec2>
+    double dot(const Vec1& v1, const Vec2& v2) {
+        return v1.x() * v2.x() + v1.y() * v2.y() + v1.z() * v2.z();
     }
 
-    template <class T>
-    double dot(const spica::Normal3_<T>& n, const spica::Vector3_<T>& v) {
-        return dot(v, n);
-    }
-
-    template <class T>
-    double dot(const spica::Normal3_<T>& n1, const spica::Normal3_<T>& n2) {
-        return n1.x() * n2.x() + n1.y() * n2.y() + n1.z() * n2.z();
+    template <class Vec1, class Vec2>
+    double absDot(const Vec1& v1, const Vec2& v2) {
+        return std::abs(dot(v1, v2));
     }
 
     /** 

@@ -65,10 +65,10 @@ namespace spica {
         return _ptr->reflectance();
     }
 
-    void BSDF::sample(const Vector3D& in, const Normal& normal,
-                      double rand1, double rand2,
+    Spectrum BSDF::sample(const Vector3D& in, const Normal& normal,
+                      const Point2D& rands,
                       Vector3D* out, double* pdf) const {
-        _ptr->sample(in, normal, rand1, rand2, out, pdf);
+        return _ptr->sample(in, normal, rands, out, pdf);
     }
 
     double BSDF::pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const {

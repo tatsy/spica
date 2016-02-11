@@ -124,7 +124,7 @@ namespace spica {
                           Point* positionOnSensor, Point* positionOnObjplane, Point* positionOnLens,
                           double* PImage, double* PLens) const;
 
-        CameraSample sample(double imageX, double imageY, Stack<double>& rseq) const override;
+        CameraSample sample(double imageX, double imageY, const Point2D& rands) const override;
 
         inline double distSL() const { return distSensorToLens_; }
         

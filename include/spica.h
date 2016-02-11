@@ -9,7 +9,7 @@
 #include "../sources/core/vbo.h"
 #include "../sources/core/path.h"
 #include "../sources/core/timer.h"
-#include "../sources/core/sampler.h"
+#include "../sources/core/sampling.h"
 #include "../sources/core/spica_dirs.h"
 
 

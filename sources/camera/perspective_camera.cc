@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+#include "../core/point2d.h"
+
 namespace spica {
 
     PerspectiveCamera::PerspectiveCamera()
@@ -42,9 +44,9 @@ namespace spica {
         return *this;
     }
 
-    CameraSample PerspectiveCamera::sample(double px, double py, Stack<double>& rstk) const {
-        const Vector3D vecU = _halfTangent * _aspect * (2.0 * px / _imageW - 1.0) * _unitU;
-        const Vector3D vecV = _halfTangent * (2.0 * py / _imageH - 1.0) * _unitV;
+    CameraSample PerspectiveCamera::sample(double px, double py, const Point2D& rands) const {
+        const Vector3D vecU = _halfTangent * _aspect * (2.0 * (px + rands[0] - 0.5) / _imageW - 1.0) * _unitU;
+        const Vector3D vecV = _halfTangent * (2.0 * (py + rands[1] - 0.5) / _imageH - 1.0) * _unitV;
         Vector3D dir = _direction + vecU + vecV;
         return CameraSample(Ray(_center, dir), 1.0);
     }

@@ -8,8 +8,10 @@
 #include "../core/forward_decl.h"
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
-#include "../math/vector3d.h"
 #include "../core/spectrum.h"
+#include "../math/vector3d.h"
+#include "../math/transform.h"
+#include "../core/uncopyable.h"
 #include "../core/stack.h"
 
 namespace spica {
@@ -58,8 +60,9 @@ namespace spica {
         inline double   pdf()      const { return _pdf; }
     };
 
-    /** Light type enumerator.
-     *  @ingroup light_module
+    /** 
+     * Light type enumerator.
+     * @ingroup light_module
      */
     enum class LightType {
         None      = 0x00,  /**< Light type not specified. */
@@ -70,42 +73,41 @@ namespace spica {
     /**
      * The base class for the lights.
      */
-    class SPICA_EXPORTS Light {
+    class SPICA_EXPORTS Light : public Uncopyable {
     public:
-        Light(LightType type) : type_{ type } {}
+        Light(LightType type, const Transform& light2World, int numSamples = 1);
+        virtual ~Light();
 
-        Light(const Light& light)
-            : type_{ light.type_ } {
-        }
+        LightType type() const;
 
-        Light(Light&& light)
-            : type_{ light.type_ } {
-        }
+        /**
+         * Sample incident radiance (Li) at the intersecting point.
+         * @param[in] pObj: The intersecting point.
+         * @param[in] rands: A pair of real random numbers.
+         * @return Sampled incident randiance.
+         */
+        virtual Spectrum sampleLi(const Interaction& pObj, const Point2D& rands,
+                                  Vector3D* dir, double* pdf, VisibilityTester* vis) const = 0;
 
-        virtual ~Light() {}
+        /**
+         * Compute PDF for the incident direction.
+         * @param[in] isect: The intersecting point.
+         * @param[in] inDir: Incident direction.
+         * @return PDF (probability density).
+         */
+        virtual double pdfLi(const Interaction& pObj, const Vector3D& dir) const = 0;
 
-        Light& operator=(const Light& light) {
-            type_ = light.type_;
-            return *this;
-        }
+        virtual Spectrum Le(const Ray& ray) const;
+        virtual Spectrum power() const = 0;
 
-        Light& operator=(Light&& light) {
-            type_ = light.type_;
-            return *this;
-        }
-
-        LightType type() const { return type_; }
-
-        virtual LightSample sample(const Point& v, Stack<double>& rands) const = 0;
-        virtual Photon samplePhoton(Stack<double>& rands) const = 0;
-
-        virtual Spectrum directLight(const Vector3D& dir) const = 0;
-        virtual Spectrum globalLight(const Vector3D& dir) const = 0;
-        virtual double area() const = 0;
         virtual Light* clone() const = 0;
 
-    private:
-        LightType type_ = LightType::None;
+    protected:
+        const LightType type_;
+        const int numSamples_;
+
+        const Transform lightToWorld_;
+        const Transform worldToLight_;
     };
 
 }  // spica

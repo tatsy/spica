@@ -31,7 +31,7 @@ namespace spica {
         OrthographicCamera(const OrthographicCamera& camera);
         OrthographicCamera& operator=(const OrthographicCamera& camera);
 
-        CameraSample sample(double px, double py, Stack<double>& stk) const override;
+        CameraSample sample(double px, double py, const Point2D& rands) const override;
         ICamera* clone() const override;
 
         inline Rect rect() const { return _rect; }

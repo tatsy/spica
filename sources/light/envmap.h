@@ -7,12 +7,13 @@
 
 #include <vector>
 
-#include "light_interface.h"
+#include "light.h"
 
 #include "../core/spectrum.h"
-#include "../image/image.h"
+#include "../image/mipmap.h"
 #include "../math/vector3d.h"
 #include "../shape/sphere.h"
+#include "../core/sampling.h"
 
 namespace spica {
 
@@ -22,71 +23,28 @@ namespace spica {
      *  @ingroup light_module
      */
     class SPICA_EXPORTS Envmap : public Light {
-    private:
-        Sphere _sphere;
-        Image _image;
-        Image _lowres;
-        Image _importance;
-        std::vector<double> _pdf;
-        std::vector<double> _cdf;
-        static const int IMPORTANCE_MAP_SIZE = 64;
-
     public:
         /** The Envmap constructor. */
-        Envmap();
+        Envmap(const Image& texmap, const Transform& lightToWorld,
+               const Spectrum& L, int numSamples);
 
-        /** The Envmap constructor.
-         *  @param[in] boundSphere: Bounding sphere of the scene used for mapping the enviroment map texture.
-         *  @param[in] filename: File name of the HDR image for enviroment map.
-         */
-        Envmap(const Sphere& boundSphere, const std::string& filename);
+        virtual ~Envmap();
 
-        /** The Envmap constructor.
-         *  @param[in] boundSphere: Bounding sphere of the scene used for mapping the enviroment map texture.
-         *  @param[in] image: HDR image for enviroment map.
-         */
-        Envmap(const Sphere& boundSphere, const Image& image);
+        Spectrum sampleLi(const Interaction& pObj, const Point2D& rands,
+                          Vector3D* dir, double* pdf, VisibilityTester* vis) const override;
 
-        /** The Envmap constructor (copy).
-         */
-        Envmap(const Envmap& envmap);
+        double pdfLi(const Interaction& pObj, const Vector3D& dir) const override;
 
-        /** The Envmap constructor (move).
-         */
-        Envmap(Envmap&& envmap);
-
-        /** The Envmap destructor.
-         */
-        ~Envmap();
-
-        Envmap& operator=(const Envmap& envmap);
-        Envmap& operator=(Envmap&& envmap);
-
-        void resize(int width, int height);
-
-        /** Direct light sampling.
-         *  @details This method is usually called for direct light sampling.
-         */
-        Spectrum directLight(const Vector3D& dir) const override;
-
-        /** Global light sampling.
-         *  @details This method is usually called when the ray does not intersect anything.
-         */
-        Spectrum globalLight(const Vector3D& dir) const override;
-
-        double area() const override;
-
-        LightSample sample(const Point& v, Stack<double>& rands) const override;
-        Photon samplePhoton(Stack<double>& rands) const override;
-
-        const Image& getImage() const;
+        Spectrum Le(const Ray& ray) const override;
+        Spectrum power() const override;
 
         Light* clone() const override;
 
     private:
-        void createImportanceMap();
-        void createLowResolution();
-        void sampleOnLight(Point* pos, Vector3D* dir, Normal* nrm, Spectrum* emt, double* pdf, Stack<double>& rands) const;
+        const MipMap texmap_;
+        Vector3D worldCenter_;
+        double   worldRadius_;
+        Distribution2D distrib_;
     };
 
 }  // namespace spica

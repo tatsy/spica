@@ -10,7 +10,7 @@
 #include "render_parameters.h"
 
 #include "../scenes/scene.h"
-#include "../core/sampler.h"
+#include "../core/sampling.h"
 #include "../image/tmo.h"
 #include "../camera/camera.h"
 #include "../light/lighting.h"

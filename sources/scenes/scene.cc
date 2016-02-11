@@ -8,8 +8,7 @@
 #include "../accel/accel.h"
 #include "../camera/camera.h"
 
-#include "../light/lighting.h"
-#include "../light//envmap.h"
+#include "../light/envmap.h"
 
 #include "../bsdf/bsdf.h"
 #include "../bsdf/brdf.h"
@@ -32,12 +31,11 @@ namespace spica {
         std::vector<TriangleData> _triangles;
 
         std::vector<unsigned int> _bsdfIds;
-        std::vector<unsigned int> _lightIds;
+        std::vector<std::shared_ptr<Light> > lights;
 
         std::vector<BSDF>       _bsdfs;
         std::shared_ptr<IAccel> _accel;
 
-        Lighting  _lighting;
         AccelType _accelType;
 
         std::shared_ptr<Image> _texture;
@@ -47,10 +45,9 @@ namespace spica {
             : _vertices{}
             , _triangles{}
             , _bsdfIds{}
-            , _lightIds{}
+            , lights{}
             , _bsdfs{}
             , _accel{}
-            , _lighting{}
             , _accelType{AccelType::QBVH}
             , _texture{} {
         }
@@ -67,10 +64,8 @@ namespace spica {
             this->_vertices  = std::move(impl._vertices);
             this->_triangles = std::move(impl._triangles);
             this->_bsdfIds   = std::move(impl._bsdfIds);
-            this->_lightIds  = std::move(impl._lightIds);
             this->_bsdfs     = std::move(impl._bsdfs);
             this->_accel     = std::move(impl._accel);
-            this->_lighting  = std::move(impl._lighting);
             this->_accelType = impl._accelType;
             this->_texture   = impl._texture;
             return *this;
@@ -80,7 +75,7 @@ namespace spica {
             _vertices.clear();
             _triangles.clear();
             _bsdfIds.clear();
-            _lightIds.clear();
+            lights.clear();
             _bsdfs.clear();
         }
 
@@ -103,81 +98,6 @@ namespace spica {
                 }
             }
             return Sphere(center, radius);
-        }
-
-        void setEnvmap(const Image& image) {
-            const Sphere& shape = this->boundingSphere();
-            Trimesh tris = shape.triangulate();
-            const int newTris = static_cast<int>(tris.numFaces());
-            const int nowTris = static_cast<int>(_triangles.size());
-            _lighting = Lighting::asEnvmap(shape, image);
-        }
-
-        Image getEnvmap() {
-            switch(_lighting.type()) {
-            case LightType::Area: {
-                return std::move(Image(1024, 1024));
-                break;
-            }
-
-            case LightType::Envmap: {
-                Envmap* envmap = reinterpret_cast<Envmap*>(_lighting.ptr());
-                return envmap->getImage();
-                break;
-            }
-            default:
-                FatalError("Unknown ligting type!!");
-            }
-            return Image{};
-        }
-
-        Triangle getTriangle(int id) const {
-            Assertion(id >= 0 && id < _triangles.size(),
-                      "Object index out of bounds");
-
-            const Point& v0 = _vertices[_triangles[id][0]].pos();
-            const Point& v1 = _vertices[_triangles[id][1]].pos();
-            const Point& v2 = _vertices[_triangles[id][2]].pos();
-            return Triangle(v0, v1, v2);
-        }
-
-        const BSDF& getBsdf(int id) const {
-            Assertion(id >= 0 && id < _bsdfIds.size(),
-                      "Object index out of boudns");
-            return _bsdfs[_bsdfIds[id]];
-        }
-
-        Spectrum directLight(const Vector3D& dir) const {
-            return _lighting.directLight(dir);
-        }
-
-        Spectrum globalLight(const Vector3D& dir) const {
-            return _lighting.globalLight(dir);
-        }
-
-        LightSample sampleLight(const Point& v, Stack<double>& rands) const {
-            return _lighting.sample(v, rands);
-        }
-
-        Photon samplePhoton(Stack<double>& rands) const {
-            return _lighting.samplePhoton(rands);
-        }
-
-        double lightArea() const {
-            return _lighting.area();
-        }
-
-        LightType lightType() const {
-            return _lighting.type();
-        }
-
-        void setAccelType(AccelType type) {
-            this->_accelType = type;
-        }
-
-        bool isLightCheck(int id) const {
-            auto it = std::lower_bound(_lightIds.cbegin(), _lightIds.cend(), id);
-            return it != _lightIds.cend() && (*it) == id;
         }
 
         void computeAccelerator() {
@@ -233,7 +153,7 @@ namespace spica {
                     const int ty = uv.y() * (_texture->height() - 1);
                     color = _texture->pixel(tx, ty);
                 } else {
-                    color = getBsdf(triID).reflectance();
+                    //color = getBsdf(triID).reflectance();
                 }
 
                 const Normal n0 = _vertices[_triangles[triID][0]].normal();
@@ -249,52 +169,13 @@ namespace spica {
             return triID != -1;
         }
 
-        bool isTextured(int triID) const {
-            Assertion(triID >= 0 && triID < _triangles.size(), "Triangle index out of bounds!!");
-            return _triangles[triID].isTextured();
-        }
-
-        int numTriangles() const {
-            return static_cast<int>(_triangles.size());
-        }
-
         void addShape(const std::vector<Triangle>& tris, const BSDF& bsdf) {
             addTriangles(tris);
             addBsdf(bsdf, tris.size());
         }
 
-        void addShape(const Trimesh& shape, const BSDF& bsdf) {
-            // Copy triangles
-            std::vector<Triplet> trip = shape.getIndices();
-            for (int i = 0; i < trip.size(); i++) {
-                const int vid = _vertices.size();
-                for (int k = 0; k < 3; k++) {
-                    _vertices.push_back(shape.getVertexData(trip[i][k]));
-                }
-                _triangles.emplace_back(vid, vid + 1, vid + 2, shape.isTextured());
-            }
-
-            _texture = shape._texture;
-
-            // Update BSDF ids
-            addBsdf(bsdf, trip.size());
-        }
-
-        void setAreaLight(const Trimesh& tris, const Spectrum& emission) {
-            addTriangles(tris);
-
-            // Set as area light
-            _lighting = Lighting::asAreaLight(tris, emission);
-
-            // If new object is a light, store triangle indices
-            const int newTris = static_cast<int>(tris.numFaces());
-            const int nowTris = static_cast<int>(_triangles.size()) - newTris;
-            for (int i = 0; i < newTris; i++) {
-                _lightIds.push_back(nowTris + i);
-            }
-
-            // Add empty BSDF
-            addBsdf(LambertianBRDF::factory(Spectrum(0.0, 0.0, 0.0)), newTris);
+        void addLight(const std::shared_ptr<Light>& light) {
+            lights.push_back(light);
         }
 
     private:
@@ -344,144 +225,8 @@ namespace spica {
         return _impl->boundingSphere();
     }
 
-    void Scene::setEnvmap(const Image& image) {
-        _impl->setEnvmap(image);
-    }
-
-    Image Scene::getEnvmap() const {
-        return std::move(_impl->getEnvmap());
-    }
-
-    Triangle Scene::getTriangle(int id) const {
-        return _impl->getTriangle(id);
-    }
-
-    const BSDF& Scene::getBsdf(int id) const {
-        return _impl->getBsdf(id);
-    }
-
-    Spectrum Scene::directLight(const Vector3D& dir) const {
-        return _impl->directLight(dir);
-    }
-
-    Spectrum Scene::globalLight(const Vector3D& dir) const {
-        return _impl->globalLight(dir);
-    }
-
-    LightSample Scene::sampleLight(const Point& v, Stack<double>& rands) const {
-        return _impl->sampleLight(v, rands);
-    }
-
-    Photon Scene::samplePhoton(Stack<double>& rands) const {
-        return _impl->samplePhoton(rands);
-    }
-
-    double Scene::lightArea() const {
-        return _impl->lightArea();
-    }
-
-    LightType Scene::lightType() const {
-        return _impl->lightType();
-    }
-
-    void Scene::setAccelType(AccelType type) {
-        _impl->setAccelType(type);
-    }
-
-    bool Scene::isLightCheck(int id) const {
-        return _impl->isLightCheck(id);
-    }
-
-    void Scene::computeAccelerator() {
-        _impl->computeAccelerator();
-    }
-
-    void Scene::finalize() {
-        _impl->finalize();
-    }
-
-    bool Scene::intersect(const Ray& ray, Intersection* isect) const {
-        return _impl->intersect(ray, isect);
-    }
-
-    bool Scene::isTextured(int triID) const {
-        return _impl->isTextured(triID);
-    }
-
-    int Scene::numTriangles() const {
-        return _impl->numTriangles();
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::addShape(const BBox& shape, const BSDF& bsdf) {
-        _impl->addShape(shape.triangulate(), bsdf);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::addShape(const Disk& shape, const BSDF& bsdf) {
-        _impl->addShape(shape.triangulate(), bsdf);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::addShape(const Quad& shape, const BSDF& bsdf) {
-        _impl->addShape(shape.triangulate(), bsdf);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::addShape(const Sphere& shape, const BSDF& bsdf) {
-        _impl->addShape(shape.triangulate(), bsdf);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::addShape(const Triangle& shape, const BSDF& bsdf) {
-        _impl->addShape(shape.triangulate(), bsdf);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::addShape(const Trimesh& shape, const BSDF& bsdf) {
-        _impl->addShape(shape, bsdf);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::setAreaLight(const BBox& shape, const Spectrum& emission) {
-        _impl->setAreaLight(shape.triangulate(), emission);    
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::setAreaLight(const Disk& shape, const Spectrum& emission) {
-        _impl->setAreaLight(shape.triangulate(), emission);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::setAreaLight(const Quad& shape, const Spectrum& emission) {
-        _impl->setAreaLight(shape.triangulate(), emission);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::setAreaLight(const Sphere& shape, const Spectrum& emission) {
-        _impl->setAreaLight(shape.triangulate(), emission);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::setAreaLight(const Triangle& shape, const Spectrum& emission) {
-        _impl->setAreaLight(shape.triangulate(), emission);
-    }
-
-    template <>
-    SPICA_EXPORTS
-    void Scene::setAreaLight(const Trimesh& shape, const Spectrum& emission) {
-        _impl->setAreaLight(shape.triangulate(), emission);
+    void Scene::addLight(const std::shared_ptr<Light>& light) {
+        _impl->addLight(light);
     }
 
 }  // namespace spica

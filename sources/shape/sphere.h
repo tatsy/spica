@@ -5,7 +5,7 @@
 #ifndef SPICA_SPHERE_H_
 #define SPICA_SPHERE_H_
 
-#include "shape_interface.h"
+#include "shape.h"
 #include "../math/vector3d.h"
 #include "../renderer/ray.h"
 
@@ -14,7 +14,7 @@ namespace spica {
     /** Sphere class
      *  @ingroup shape_module
      */
-    class SPICA_EXPORTS Sphere : public IShape {
+    class SPICA_EXPORTS Sphere : public Shape {
     public:
         Sphere();
         Sphere(const Point& center, double radius);

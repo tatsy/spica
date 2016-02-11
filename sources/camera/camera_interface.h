@@ -115,7 +115,7 @@ namespace spica {
         }
 
         virtual ICamera* clone() const = 0;
-        virtual CameraSample sample(double px, double py, Stack<double>& rstack) const = 0;
+        virtual CameraSample sample(double px, double py, const Point2D& rands) const = 0;
 
         inline virtual Point    center()    const { return _center; }
         inline virtual Vector3D direction() const { return _direction; }

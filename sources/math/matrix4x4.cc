@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <cstring>
 
+#include "vector3d.h"
+
 namespace spica {
     
     Matrix4x4::Matrix4x4() {
@@ -41,6 +43,17 @@ namespace spica {
         m[3][1] = t31;
         m[3][2] = t32;
         m[3][3] = t33;
+    }
+
+    Vector3D Matrix4x4::apply(const Vector3D& v) const {
+        double vv[4] = { v.x(), v.y(), v.z(), 1.0 };
+        double ret[3] = { 0.0, 0.0, 0.0 };
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 4; j++) {
+                ret[i] += m[i][j] * vv[j];
+            }
+        }
+        return { ret[0], ret[1], ret[2] };
     }
 
     Matrix4x4 Matrix4x4::transposed() const {

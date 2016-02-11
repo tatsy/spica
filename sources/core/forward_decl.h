@@ -7,7 +7,6 @@ namespace spica {
 
     // Core module
     class RGBSpectrum;
-    class Image;
     class VertexData;
     class TriangleData;
 
@@ -19,6 +18,10 @@ namespace spica {
     using Rect = Rect_<int, void>;
     using RectF = Rect_<double, void>;
 
+    // Image module
+    class Image;
+    class MipMap;
+
     // Math module
     template <class T, class Enable>
     class Vector2_;
@@ -29,6 +32,10 @@ namespace spica {
     using Vector3D = Vector3_<double>;
 
     template <class T>
+    class Point2_;
+    using Point2D = Point2_<double>;
+
+    template <class T>
     class Point3_;
     using Point3D = Point3_<double>;
     using Point = Point3D;
@@ -37,6 +44,9 @@ namespace spica {
     class Normal3_;
     using Normal3D = Normal3_<double>;
     using Normal = Normal3D;
+
+    class Matrix4x4;
+    class Transform;
 
     // Scene
     class Scene;
@@ -51,6 +61,7 @@ namespace spica {
     class Ray;
     class Hitpoint;
     class Intersection;
+    class Interaction;
     class RenderParameters;
     class Photon;
     class SubsurfaceIntegrator;
@@ -75,6 +86,7 @@ namespace spica {
     enum class LightType;
     class Lighting;
     class LightSample;
+    class VisibilityTester;
 
     // BSDF module
     class BSDF;
@@ -83,7 +95,7 @@ namespace spica {
     // Random module
     class Random;
     class Halton;
-    class RandomSampler;
+    class Sampler;
 
 }  // namespace spica
 

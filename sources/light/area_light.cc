@@ -1,135 +1,50 @@
 #define SPICA_API_EXPORT
 #include "area_light.h"
 
-#include "../core/sampler.h"
+#include "../shape/shape.h"
+#include "../shape/visibility_tester.h"
+#include "../core/sampling.h"
+#include "../core/interaction.h"
 #include "../renderer/photon_map.h"
 
 namespace spica {
 
-    AreaLight::AreaLight()
-        : Light{LightType::Area}
-        , _emittance{}
-        , _triangles{}
-        , _samplePdf{}
-        , _totalArea{0.0} {
-    }
-
-    AreaLight::AreaLight(const Trimesh& tris, const Spectrum& emittance)
-        : Light{LightType::Area}
-        , _emittance{emittance}
-        , _triangles{}
-        , _samplePdf{}
-        , _totalArea{} {
-        for (int i = 0; i < tris.numFaces(); i++) {
-            _triangles.push_back(tris.getTriangle(i));
-        }
-        calcSamplePdf();
+    AreaLight::AreaLight(const std::shared_ptr<Shape>& shape,
+                         const Transform& lightToWorld,
+                         const Spectrum& Lemit,
+                         int numSamples)
+        : Light{ LightType::Area, lightToWorld, numSamples }
+        , shape_{ shape }
+        , Lemit_{ Lemit } {
     }
 
     AreaLight::~AreaLight() {
     }
 
-    AreaLight::AreaLight(const AreaLight& l)
-        : AreaLight{} {
-        this->operator=(l);
+    Spectrum AreaLight::L(const Interaction& pLight, const Vector3D& dir) const {
+        return vect::dot(pLight.normal(), dir) > 0.0 ? Lemit_ : Spectrum();                
     }
 
-    AreaLight::AreaLight(AreaLight&& l)
-        : AreaLight{} {
-        this->operator=(std::move(l));
+    Spectrum AreaLight::sampleLi(const Interaction& pObj, const Point2D& rands,
+                                 Vector3D* dir, double* pdf,
+                                 VisibilityTester* vis) const {
+        Interaction pLight = shape_->sample(pObj, rands);
+        *dir = (pLight.pos() - pObj.pos()).normalized();
+        *pdf = shape_->pdf(pObj, *dir);
+        *vis = VisibilityTester(pObj, pLight);
+        return L(pLight, -(*dir));
     }
 
-    AreaLight& AreaLight::operator=(const AreaLight& l) {
-        Light::operator=(l);
-        this->_emittance = l._emittance;
-        this->_triangles = l._triangles;
-        this->_samplePdf = l._samplePdf;
-        this->_totalArea = l._totalArea;
-        return *this;
+    double AreaLight::pdfLi(const Interaction& pObj, const Vector3D& dir) const {
+        return shape_->pdf(pObj, dir);
     }
 
-    AreaLight& AreaLight::operator=(AreaLight&& l) {
-        Light::operator=(std::move(l));
-        this->_emittance = l._emittance;
-        this->_triangles = std::move(l._triangles);
-        this->_samplePdf = std::move(l._samplePdf);
-        this->_totalArea = l._totalArea;
-        return *this;
-    }
-
-    void AreaLight::calcSamplePdf() {
-        if (_triangles.empty()) return;
-        _samplePdf.resize(_triangles.size());
-
-        _totalArea = 0.0;
-        for (int i = 0; i < _triangles.size(); i++) {
-            const double A = _triangles[i].area();
-            _samplePdf[i] = A;
-            _totalArea += A;
-        }
-
-        _samplePdf[0] /= _totalArea;
-        for (int i = 1; i < _triangles.size(); i++) {
-            _samplePdf[i] = _samplePdf[i - 1] + _samplePdf[i] / _totalArea;
-        }
-    }
-
-    LightSample AreaLight::sample(const Point& v, Stack<double>& rands) const {
-        // Randomly choose point on the triangle
-        Point p;
-        Normal n;
-        sampleOnLight(&p, &n, rands);
-
-        // Compute PDF
-        Vector3D dir = (p - v).normalized();
-        double dist2 = (p - v).squaredNorm();
-        const double dot1 = vect::dot(n, -dir);
-        double pdf = 0.0;
-        if (dot1 > EPS) {
-            pdf = 1.0 / (INV_PI * (dot1 / dist2) * area());
-        }
-        return LightSample(p, n, -dir, _emittance, pdf);
-    }
-
-    Photon AreaLight::samplePhoton(Stack<double>& rands) const {
-        // Randomly choose point on the triangle
-        Point p;
-        Normal n;
-        sampleOnLight(&p, &n, rands);
-
-        // Random direction sample (Lambertian surface)
-        Vector3D dir;
-        sampler::onHemisphere(n, &dir, rands.pop(), rands.pop());
-
-        Spectrum flux = PI * _emittance * area();
-        return Photon(p, flux, dir, n);
-    }
-
-    void AreaLight::sampleOnLight(Point* pos, Normal* nrm, Stack<double>& rands) const {
-        Assertion(!_samplePdf.empty(), "Light PDFs are not computed!!");
-
-        // Randomly choose triangle
-        const int id = std::lower_bound(_samplePdf.begin(), _samplePdf.end(), rands.pop()) - _samplePdf.begin();
-        const Triangle& tri = _triangles[id];
-
-        // Randomly choose point on the triangle
-        sampler::onTriangle(tri, pos, nrm, rands.pop(), rands.pop());            
-    }
-
-    Spectrum AreaLight::directLight(const Vector3D& dir) const {
-        return _emittance;
-    }
-
-    Spectrum AreaLight::globalLight(const Vector3D& dir) const {
-        return Spectrum{};
-    }
-
-    double AreaLight::area() const {
-        return _totalArea;
+    Spectrum AreaLight::power() const {
+        return Lemit_ * area() * PI;
     }
 
     Light* AreaLight::clone() const {
-        return new AreaLight(*this);
+        return new AreaLight(shape_, lightToWorld_, Lemit_, numSamples_);
     }
 
 }  // namespace spica

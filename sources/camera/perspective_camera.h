@@ -29,7 +29,7 @@ namespace spica {
 
         PerspectiveCamera& operator=(const PerspectiveCamera& camera);
 
-        CameraSample sample(double px, double py, Stack<double>& stk) const override;
+        CameraSample sample(double px, double py, const Point2D& rands) const override;
         ICamera* clone() const override;
 
         inline double fov() const { return _fov; }

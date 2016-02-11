@@ -10,19 +10,19 @@
 namespace spica {
 
     BBox::BBox()
-        : IShape{ShapeType::BBox}
+        : Shape{ShapeType::BBox}
         , posMin_{  INFTY,  INFTY,  INFTY }
         , posMax_{ -INFTY, -INFTY, -INFTY } {
     }
 
     BBox::BBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ)
-        : IShape{ShapeType::BBox}
+        : Shape{ShapeType::BBox}
         , posMin_{ minX, minY, minZ }
         , posMax_{ maxX, maxY, maxZ } {
     }
 
     BBox::BBox(const Point& posMin, const Point& posMax)
-        : IShape{ShapeType::BBox}
+        : Shape{ShapeType::BBox}
         , posMin_{ posMin }
         , posMax_{ posMax } {
     }
@@ -36,7 +36,7 @@ namespace spica {
     }
 
     BBox& BBox::operator=(const BBox& box) {
-        IShape::operator=(box);
+        Shape::operator=(box);
         this->posMin_ = box.posMin_;
         this->posMax_ = box.posMax_;
         return *this;

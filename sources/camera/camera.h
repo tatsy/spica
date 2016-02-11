@@ -55,7 +55,7 @@ namespace spica {
         Camera& operator=(const Camera&);
         Camera& operator=(Camera&& camera);
 
-        CameraSample sample(double px, double py, Stack<double>& rstack) const;
+        CameraSample sample(double px, double py, const Point2D& rands) const;
 
         /** Instantiate Camera by DoF camera.
          */

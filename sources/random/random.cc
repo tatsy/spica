@@ -58,7 +58,7 @@ Thanks!
 
 #include "../core/common.h"
 
-#include "random_sampler.h"
+#include "sampler.h"
 
 namespace spica {
 
@@ -92,11 +92,8 @@ namespace spica {
         return sqrt(-2.0 * log(r1)) * sin(2.0 * PI * r2);
     }
 
-    void Random::request(Stack<double>* rands, const int numRequested) {
-        rands->clear();
-        for (int i = 0; i < numRequested; i++) {
-            rands->push(nextReal());
-        }
+    double Random::get1D() {
+        return genrand_real2();
     }
 
     /* initializes mt[N] with a seed */
@@ -151,10 +148,8 @@ namespace spica {
         return y;
     }
 
-    RandomSampler Random::factory(unsigned int seed) {
-        RandomSampler rand;
-        rand._rng.reset(new Random(seed));
-        return std::move(rand);
+    Sampler Random::createSampler(unsigned int seed) {
+        return { new Random(seed) };
     }
 
     /* generates a random number on [0,0x7fffffff]-interval */

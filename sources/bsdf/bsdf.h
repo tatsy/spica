@@ -67,9 +67,8 @@ namespace spica {
 
         const Spectrum& reflectance() const;
 
-        void sample(const Vector3D& in, const Normal& normal, 
-                    double rand1, double rand2,
-                    Vector3D* out, double* pdf) const;
+        Spectrum sample(const Vector3D& in, const Normal& normal, 
+                        const Point2D& rands, Vector3D* out, double* pdf) const;
 
         double pdf(const Vector3D& in, const Normal& normal, const Vector3D& out) const;
 

@@ -6,10 +6,10 @@
 #define _SPICA_AREA_LIGHT_H_
 
 #include <vector>
+#include <memory>
 
-#include "light_interface.h"
-
-#include "../shape/triangle.h"
+#include "light.h"
+#include "../shape/shape.h"
 
 namespace spica {
 
@@ -17,33 +17,32 @@ namespace spica {
      *  @ingroup light_module
      */
     class SPICA_EXPORTS AreaLight : public Light {
-    private:
-        Spectrum _emittance;
-        std::vector<Triangle> _triangles;
-        std::vector<double>   _samplePdf;
-        double _totalArea;
-
     public:
-        AreaLight();
-        AreaLight(const Trimesh& triangles, const Spectrum& emittance);
-        AreaLight(const AreaLight& l);
-        AreaLight(AreaLight&& l);
+        AreaLight(const std::shared_ptr<Shape>& shape,
+                  const Transform& lightToWorld,
+                  const Spectrum& Lemit,
+                  int numSamples = 1);
 
-        ~AreaLight();
+        virtual ~AreaLight();
 
-        AreaLight& operator=(const AreaLight& l);
-        AreaLight& operator=(AreaLight&& l);
+        Spectrum L(const Interaction& pLight, const Vector3D& dir) const;
 
-        LightSample sample(const Point& v, Stack<double>& rands) const override;
-        Photon samplePhoton(Stack<double>& rands) const override;
-        Spectrum directLight(const Vector3D& dir) const override;
-        Spectrum globalLight(const Vector3D& dir) const override;
-        double area() const override;
+        Spectrum sampleLi(const Interaction& isect, const Point2D& rands,
+                          Vector3D* dir, double* pdf,
+                          VisibilityTester* vis) const override;
+
+        double pdfLi(const Interaction& pObj, const Vector3D& dir) const override;
+
+        Spectrum power() const override;
         Light* clone() const override;
 
-    private:
-        void calcSamplePdf();
-        void sampleOnLight(Point* pos, Normal* nrm, Stack<double>& rands) const;
+        inline double area() const {
+            return shape_->area();
+        }
+
+    protected:
+        std::shared_ptr<Shape> shape_;
+        const Spectrum Lemit_;
     };
 
 }  // namespace spica

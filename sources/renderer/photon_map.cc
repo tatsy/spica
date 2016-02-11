@@ -4,11 +4,10 @@
 #include <ctime>
 #include <fstream>
 
-#include "../core/sampler.h"
+#include "../core/sampling.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
-#include "../light/lighting.h"
-#include "../random/random_sampler.h"
+#include "../random/sampler.h"
 #include "../random/random.h"
 #include "../random/halton.h"
 

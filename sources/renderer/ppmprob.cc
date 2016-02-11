@@ -12,13 +12,11 @@
 
 #include "../image/tmo.h"
 
-#include "../core/sampler.h"
+#include "../core/sampling.h"
 
 #include "../random/random_sampler.h"
 #include "../random/random.h"
 #include "../random/halton.h"
-
-#include "../light/lighting.h"
 
 namespace spica {
 

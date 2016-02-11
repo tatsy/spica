@@ -9,13 +9,13 @@
 namespace spica {
     
     Quad::Quad()
-        : IShape{ ShapeType::Quad }
+        : Shape{ ShapeType::Quad }
         , _points{} {
     }
 
     Quad::Quad(const Point& v0, const Point& v1,
                const Point& v2, const Point& v3)
-        : IShape{ ShapeType::Quad }
+        : Shape{ ShapeType::Quad }
         , _points{ v0, v1, v2, v3 } {
     }
 

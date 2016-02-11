@@ -8,7 +8,7 @@
 #include <vector>
 #include <type_traits>
 
-#include "../shape/shape.h"
+#include "../shape/spica_shape.h"
 
 extern void* enabler;
 
@@ -34,7 +34,7 @@ namespace spica {
         /** Assignment operator. */
         VBO& operator=(const VBO& vbo);
 
-        template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *& = enabler>
+        template <class T, typename std::enable_if<std::is_base_of<Shape, T>::value>::type *& = enabler>
         void add(const T& shape, const RGBSpectrum& color);
         void add(const Trimesh& shape);
 
@@ -49,7 +49,7 @@ namespace spica {
         void add(const Point& v, const Normal& normal, const RGBSpectrum& color);
     };
 
-    template <class T, typename std::enable_if<std::is_base_of<IShape, T>::value>::type *&>
+    template <class T, typename std::enable_if<std::is_base_of<Shape, T>::value>::type *&>
     void VBO::add(const T& shape, const RGBSpectrum& color) {        
         const Trimesh tris = shape.triangulate();
         const int triID = _vertices.size() / 3;

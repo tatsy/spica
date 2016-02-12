@@ -246,7 +246,7 @@ namespace spica {
 
         void poissonDisk(const std::vector<Triangle>& triangles, const double minDist, std::vector<Point>* points, std::vector<Normal>* normals) {
             // Sample random points on trimesh
-            BBox bbox;
+            Bound3d bbox;
             std::vector<Point> candPoints;
             std::vector<Normal> candNormals;
             for (int i = 0; i < triangles.size(); i++) {

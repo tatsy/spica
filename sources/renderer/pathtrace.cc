@@ -134,7 +134,7 @@ namespace spica {
             // Sample Le which contributes without any loss
             if (bounces == 0 || specularBounce) {
                 if (isIntersect) {
-                    L += beta * isect.Le(-ray.direction());
+                    L += beta * isect.Le(-ray.dir());
                 } else {
                     for (const auto& light : scene.lights()) {
                         L += beta * light->Le(ray);
@@ -145,10 +145,10 @@ namespace spica {
             if (!isIntersect || bounces >= params.bounceLimit()) break;
 
             // Process BxDF
-            Vector3D wo = -ray.direction();
+            Vector3D wo = -ray.dir();
             Vector3D wi;
             double pdf;
-            Spectrum ref = isect.bsdf().sample(ray.direction(), isect.normal(), 
+            Spectrum ref = isect.bsdf().sample(ray.dir(), isect.normal(), 
                                                sampler.get2D(), &wi, &pdf);
 
             if (ref.isBlack() || pdf == 0.0) break;
@@ -165,7 +165,7 @@ namespace spica {
                             "Subsurface intergrator is NULL !!");
 
                 double refPdf = 1.0;
-                bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
+                bssrdfRad = bsdf.evalBSSRDF(ray.dir(),
                                             isect.pos(),
                                             isect.normal(),
                                             *_integrator,
@@ -217,7 +217,7 @@ namespace spica {
         double pdf = 1.0;
 
         // Sample next direction
-        bsdf.sample(ray.direction(), isect.normal(), 
+        bsdf.sample(ray.dir(), isect.normal(), 
                     rstack.pop(), rstack.pop(), &nextdir, &pdf);
 
         // Account for BSSRDF
@@ -226,7 +226,7 @@ namespace spica {
                       "Subsurface intergrator is NULL !!");
 
             double refPdf = 1.0;
-            bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
+            bssrdfRad = bsdf.evalBSSRDF(ray.dir(),
                                         isect.position(),
                                         isect.normal(),
                                         *_integrator,
@@ -235,7 +235,7 @@ namespace spica {
         }
 
         // Sample direct lighting
-        Spectrum directrad = directSample(scene, objectID, ray.direction(),
+        Spectrum directrad = directSample(scene, objectID, ray.dir(),
                                           isect.position(), isect.normal(),
                                           refl, bounces, rstack);
 

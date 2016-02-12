@@ -7,6 +7,7 @@
 
 #include "../core/common.h"
 #include "../core/spectrum.h"
+#include "../core/point2d.h"
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
 #include "../math/vector3d.h"
@@ -41,7 +42,7 @@ namespace spica {
     public:
         SurfaceInteraction();
         SurfaceInteraction(const Point& p, const Normal& n, const Vector3D& dir,
-                           const BSDF& bsdf);
+                           const Point2D& uv);
         SurfaceInteraction(const SurfaceInteraction& intr);
         virtual ~SurfaceInteraction();
 
@@ -49,10 +50,11 @@ namespace spica {
 
         Spectrum Le(const Vector3D& w) const;
 
-        inline const BSDF& bsdf() const { return bsdf_; }
+        inline const BSDF* bsdf() const { return bsdf_; }
     
     private:
-        BSDF bsdf_;
+        Point2D uv_;
+        BSDF*   bsdf_;
     };
 
 }  // namespace spica

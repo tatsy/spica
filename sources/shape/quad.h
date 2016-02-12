@@ -27,11 +27,12 @@ namespace spica {
 
         Quad& operator=(const Quad& quad);
 
-        bool intersect(const Ray& ray, Hitpoint* hitpoint) const override;
+        bool intersect(const Ray& ray, double* tHit,
+                       SurfaceInteraction* isect) const override;
 
         double area() const override;
 
-        Trimesh triangulate() const override;
+        std::vector<Triangle> triangulate() const override;
 
         Point operator[](int id) const;
         Point get(int id) const;

@@ -71,11 +71,11 @@ namespace spica {
             node->left = nullptr;
             node->right = nullptr;
             node->triangle = triangles[start];
-            node->bbox = BBox::fromTriangle(triangles[start].tri);
+            node->bbox = Bound3d::fromTriangle(triangles[start].tri);
             return node;
         }
 
-        BBox bounds;
+        Bound3d bounds;
         for (int i = start; i < end; i++) {
             bounds.merge(triangles[i].tri);
         }

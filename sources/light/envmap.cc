@@ -84,7 +84,7 @@ namespace spica {
     }
 
     Spectrum Envmap::Le(const Ray& ray) const {
-        Vector3D dir = worldToLight_.apply(ray.direction()).normalized();
+        Vector3D dir = worldToLight_.apply(ray.dir()).normalized();
         Point2D st(sphericalPhi(dir) * (0.5 * INV_PI), sphericalTheta(dir) * INV_PI);
         return Spectrum(texmap_.lookup(st));
     }

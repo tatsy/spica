@@ -15,42 +15,55 @@
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 
+#include "../math/transform.h"
+
 namespace spica {
     
-    /** Shape types
-     *  @ingroup shape_module
-     *  @brief Enumerator for shape types.
-     */
-    enum class ShapeType : int {
-        None,      /**< None         */
-        BBox,      /**< Bounding Box */
-        Disk,      /**< Disk         */
-        Plane,     /**< Plane        */
-        Quad,      /**< Quad         */
-        Sphere,    /**< Sphere       */
-        Triangle,  /**< Triangle     */
-        Trimesh,   /**< Trimesh      */
-    };
+/** Shape types
+ *  @ingroup shape_module
+ *  @brief Enumerator for shape types.
+ */
+enum class ShapeType : int {
+    None,      /**< None         */
+    Disk,      /**< Disk         */
+    Plane,     /**< Plane        */
+    Quad,      /**< Quad         */
+    Sphere,    /**< Sphere       */
+    Triangle,  /**< Triangle     */
+    Trimesh,   /**< Trimesh      */
+};
     
-    /** Abstract shape class.
-     *  @ingroup shape_module
-     */
-    class SPICA_EXPORTS Shape {
-    public:
-        Shape(ShapeType type) : type_{ type } {}
-        virtual ~Shape() {}
-        virtual bool intersect(const Ray& ray, Hitpoint* hitpoint) const = 0;
+/** Abstract shape class.
+    *  @ingroup shape_module
+    */
+class SPICA_EXPORTS Shape {
+public:
+    // Public methods
+    Shape(const Transform& objectToWorld, ShapeType type)
+        : objectToWorld_{ objectToWorld }
+        , worldToObject_{ objectToWorld.inverted() }
+        , type_{ type } {
+    }
 
-        virtual Interaction sample(const Interaction& isect, const Point2D& rands);
-        virtual double pdf(const Interaction& pObj, const Vector3D& dir);
+    virtual ~Shape() {}
+    virtual bool intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) const = 0;
 
-        virtual double area() const = 0;
-        virtual Trimesh triangulate() const = 0;
-        inline ShapeType type() const { return type_; }
+    virtual Interaction sample(const Interaction& isect, const Point2D& rands);
+    virtual double pdf(const Interaction& pObj, const Vector3D& dir);
 
-    protected:
-        ShapeType type_;
-    };
+    Bound3d worldBound() const;
+    Bound3d objectBound() const;
+
+    virtual double area() const = 0;
+    virtual std::vector<Triangle> triangulate() const = 0;
+    inline ShapeType type() const { return type_; }
+
+protected:
+    // Protected fields
+    const Transform objectToWorld_, worldToObject_;
+    ShapeType type_;
+
+};  // class Shape
 
 }  // namespace spica
 

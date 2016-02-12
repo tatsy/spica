@@ -6,7 +6,7 @@
 #define _SPICA_SUBSURFACE_INTEGRATOR_H_
 
 #include "../core/forward_decl.h"
-#include "../shape/bbox.h"
+#include "../core/bound3d.h"
 #include "photon_map.h"
 
 namespace spica {
@@ -59,7 +59,7 @@ namespace spica {
     private:
         struct OctreeNode {
             IrradiancePoint pt;
-            BBox bbox;
+            Bound3d bbox;
             OctreeNode* children[8];
             bool isLeaf;
 
@@ -97,7 +97,7 @@ namespace spica {
             void release();
             void deleteNode(OctreeNode* node);
             OctreeNode* constructRec(std::vector<IrradiancePoint>& pointers,
-                                     const BBox& bbox);
+                                     const Bound3d& bbox);
 
             Spectrum iradSubsurfaceRec(OctreeNode* node, const Point& pos,
                                     const BSSRDF& Rd) const;

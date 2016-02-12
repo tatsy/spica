@@ -5,16 +5,17 @@
 #include <functional>
 #include <algorithm>
 
-#include "../shape/bbox.h"
+#include "../core/bound3d.h"
+#include "../core/interaction.h"
 
 namespace spica {
 
     struct BBVHAccel::BVHPrimitiveInfo {
         int primIdx;
         Point centroid;
-        BBox bounds;
+        Bound3d bounds;
 
-        BVHPrimitiveInfo(int pid, const BBox& b)
+        BVHPrimitiveInfo(int pid, const Bound3d& b)
             : primIdx(pid)
             , centroid()
             , bounds(b) {
@@ -24,7 +25,7 @@ namespace spica {
 
     struct BBVHAccel::BucketInfo {
         int count;
-        BBox bounds;
+        Bound3d bounds;
         BucketInfo()
             : count(0)
             , bounds() {
@@ -32,19 +33,19 @@ namespace spica {
     };
 
     struct BBVHAccel::BBvhNode {
-        BBox bounds;
+        Bound3d bounds;
         BBvhNode* left;
         BBvhNode* right;
         int splitAxis;
         int triIdx;
 
-        void initLeaf(const BBox& b, int tid) {
+        void initLeaf(const Bound3d& b, int tid) {
             this->bounds = bounds;
             this->splitAxis = -1;
             this->triIdx = tid;
         }
 
-        void initFork(const BBox& b, BBvhNode* l, BBvhNode* r, int axis) {
+        void initFork(const Bound3d& b, BBvhNode* l, BBvhNode* r, int axis) {
             this->bounds = b;
             this->left  = l;
             this->right = r;
@@ -68,9 +69,9 @@ namespace spica {
 
     struct BBVHAccel::CompareToBucket {
         int splitBucket, nBuckets, dim;
-        const BBox& centroidBounds;
+        const Bound3d& centroidBounds;
 
-        CompareToBucket(int split, int num, int d, const BBox& b)
+        CompareToBucket(int split, int num, int d, const Bound3d& b)
             : splitBucket(split)
             , nBuckets(num)
             , dim(d)
@@ -91,10 +92,10 @@ namespace spica {
     };
 
     BBVHAccel::BBVHAccel()
-        : IAccel{AccelType::BBVH}
-        , _root(nullptr)
-        , _tris()
-        , _nodes() {
+        : AccelInterface{ AccelType::BBVH }
+        , _root{ nullptr }
+        , _tris{}
+        , _nodes{} {
     }
 
     BBVHAccel::~BBVHAccel() {
@@ -113,6 +114,10 @@ namespace spica {
         _nodes.shrink_to_fit();
     }
 
+    Bound3d BBVHAccel::worldBound() const {
+        return _nodes.empty() ? Bound3d() : _nodes[0]->bounds;
+    }
+
     void BBVHAccel::construct(const std::vector<Triangle>& triangles) {
         // Deallocate previous tree
         release();
@@ -121,7 +126,7 @@ namespace spica {
 
         std::vector<BVHPrimitiveInfo> buildData;
         for (int i = 0; i < _tris.size(); i++) {
-            const BBox b = BBox::fromTriangle(_tris[i]);
+            const Bound3d b = _tris[i].worldBound();
             buildData.emplace_back(i, b);
         }
 
@@ -136,9 +141,9 @@ namespace spica {
         BBvhNode* node = new BBvhNode();
         _nodes.emplace_back(node);
 
-        BBox bounds;
+        Bound3d bounds;
         for (int i = start; i < end; i++) {
-            bounds.merge(buildData[i].bounds);
+            bounds = Bound3d::merge(bounds, buildData[i].bounds);
         }
 
         int nprims = end - start;
@@ -147,9 +152,9 @@ namespace spica {
             node->initLeaf(bounds, buildData[start].primIdx);
         } else {
             // Fork node
-            BBox centroidBounds;
+            Bound3d centroidBounds;
             for (int i = start; i < end; i++) {
-                centroidBounds.merge(buildData[i].centroid);
+                centroidBounds = Bound3d::merge(centroidBounds, buildData[i].centroid);
             }
 
             int splitAxis = centroidBounds.maximumExtent();
@@ -181,14 +186,14 @@ namespace spica {
 
                 double bucketCost[nBuckets - 1] = {0};
                 for (int i = 0; i < nBuckets - 1; i++) {
-                    BBox b0, b1;
+                    Bound3d b0, b1;
                     int cnt0 = 0, cnt1 = 0;
                     for (int j = 0; j <= i; j++) {
-                        b0.merge(buckets[j].bounds);
+                        b0 = Bound3d::merge(b0, buckets[j].bounds);
                         cnt0 += buckets[j].count;
                     }
                     for (int j = i + 1; j < nBuckets; j++) {
-                        b1.merge(buckets[j].bounds);
+                        b1 = Bound3d::merge(b1, buckets[j].bounds);
                         cnt1 += buckets[j].count;
                     }
                     bucketCost[i] += 0.125 + (cnt0 * b0.area() + cnt1 * b1.area()) / bounds.area();
@@ -218,11 +223,11 @@ namespace spica {
         return std::move(node);
     }
 
-    int BBVHAccel::intersect(const Ray& ray, Hitpoint* hpoint) const {
+    bool BBVHAccel::intersect(const Ray& ray, SurfaceInteraction* isect) const {
         std::stack<BBvhNode*> nodeStack;
         nodeStack.push(_root);
 
-        int hitID = -1;
+        double minDist = ray.maxDist();
         while (!nodeStack.empty()) {
             BBvhNode* node = nodeStack.top();
             nodeStack.pop();
@@ -230,25 +235,25 @@ namespace spica {
             if (node->isLeaf()) {
                 // Leaf
                 const Triangle& tri = _tris[node->triIdx];
-                Hitpoint temp;
-                if (tri.intersect(ray, &temp)) {
-                    if (temp.distance() < hpoint->distance()) {
-                        (*hpoint) = temp;
-                        hitID = node->triIdx;
+                double tHit;
+                SurfaceInteraction temp;
+                if (tri.intersect(ray, &tHit, &temp)) {
+                    if (tHit < minDist) {
+                        *isect = temp;
                     }
                 }
             } else {
                 // Fork
                 double tmin = INFTY, tmax = INFTY;
                 if (node->bounds.intersect(ray, &tmin, &tmax)) {
-                    if (tmin < hpoint->distance()) {
+                    if (tmin < minDist) {
                         if (node->left ) nodeStack.push(node->left);
                         if (node->right) nodeStack.push(node->right);
                     }
                 }
             }
         }
-        return hitID;
+        return minDist < ray.maxDist();
     }
 
 }  // namespace spica

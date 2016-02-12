@@ -94,9 +94,9 @@ namespace spica {
     }
 
     double plane_intersection(const Normal& normal, const Point& pos, const Ray& ray) {
-        const double dn = vect::dot(ray.direction(), normal);
+        const double dn = vect::dot(ray.dir(), normal);
         if (std::abs(dn) > EPS) {
-            const double t = vect::dot(pos - ray.origin(), normal) / dn;
+            const double t = vect::dot(pos - ray.org(), normal) / dn;
             return t;
         }
         return -INFTY;
@@ -105,10 +105,10 @@ namespace spica {
     double DoFCamera::intersectLens(const Ray& ray, Point* positionOnLens, Point* positionOnObjplane, Point* positionOnSensor, Vector3D* uvOnSensor) const {
         const double distToLens = plane_intersection(lens_.normal, lens_.center, ray);
         if (EPS < distToLens) {
-            (*positionOnLens) = ray.origin() + distToLens * ray.direction();
-            if (((*positionOnLens) - lens_.center).norm() < lens_.radius && vect::dot(lens_.normal, ray.direction()) <= 0.0) {
+            (*positionOnLens) = ray.org() + distToLens * ray.dir();
+            if (((*positionOnLens) - lens_.center).norm() < lens_.radius && vect::dot(lens_.normal, ray.dir()) <= 0.0) {
                 const double objplaneT = plane_intersection(objplane_.normal, objplane_.center, ray);
-                (*positionOnObjplane) = ray.origin() + objplaneT * ray.direction();
+                (*positionOnObjplane) = ray.org() + objplaneT * ray.dir();
                 const double uOnObjplane = ((*positionOnObjplane) - objplane_.center).dot(objplane_.unitU) / objplane_.width;
                 const double vOnObjplane = ((*positionOnObjplane) - objplane_.center).dot(objplane_.unitV) / objplane_.height;
 

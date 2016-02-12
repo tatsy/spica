@@ -6,7 +6,6 @@
 #define _SPICA_SHAPE_HEADERS_H_
 
 #include "shape.h"
-#include "bbox.h"
 #include "triangle.h"
 #include "trimesh.h"
 #include "quad.h"

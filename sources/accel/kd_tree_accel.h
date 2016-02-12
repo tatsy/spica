@@ -9,6 +9,7 @@
 
 #include "accel_interface.h"
 #include "../core/common.h"
+#include "../core/uncopyable.h"
 #include "../shape/bbox.h"
 
 namespace spica {
@@ -18,8 +19,8 @@ namespace spica {
      */
     class SPICA_EXPORTS KdTreeAccel : public IAccel {
     private:
-        struct KdTreeNode : private spica::Uncopyable {
-            BBox bbox;
+        struct KdTreeNode : private Uncopyable {
+            Bound3d bbox;
             IndexedTriangle triangle;
             KdTreeNode* left;
             KdTreeNode* right;
@@ -43,6 +44,7 @@ namespace spica {
         KdTreeAccel();
         ~KdTreeAccel();
         
+        Bound3d worldBound() const override;
         void construct(const std::vector<Triangle>& triangles) override;
         int  intersect(const Ray& ray, Hitpoint* hitpoint) const override;
 

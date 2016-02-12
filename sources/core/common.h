@@ -152,12 +152,6 @@ do { \
 // -----------------------------------------------------------------------------
 
 #if defined(_WIN32) || defined(__WIN32__)
-    #define align_attrib(typ, siz) __declspec(align(siz)) typ
-#else
-    #define align_attrib(typ, siz) typ __attribute__((aligned(siz)))
-#endif
-
-#if defined(_WIN32) || defined(__WIN32__)
 inline void* align_alloc(size_t size, size_t alignsize) {
     return _aligned_malloc(size, alignsize);
 }

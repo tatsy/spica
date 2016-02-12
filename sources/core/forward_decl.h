@@ -13,10 +13,18 @@ namespace spica {
     template <class T>
     class Stack;
 
+    class MemoryArena;
+
     template <class T, class Enable>
     class Rect_;
     using Rect = Rect_<int, void>;
     using RectF = Rect_<double, void>;
+
+    template <class T>
+    class Bound3_;
+    using Bound3i = Bound3_<int>;
+    using Bound3f = Bound3_<float>;
+    using Bound3d = Bound3_<double>;
 
     // Image module
     class Image;
@@ -62,6 +70,7 @@ namespace spica {
     class Hitpoint;
     class Intersection;
     class Interaction;
+    class SurfaceInteraction;
     class RenderParameters;
     class Photon;
     class SubsurfaceIntegrator;
@@ -73,7 +82,6 @@ namespace spica {
     class QBVHAccel;
     
     // Shape module
-    class BBox;
     class Disk;
     class Plane;
     class Quad;
@@ -82,11 +90,16 @@ namespace spica {
     class Triangle;
     class Trimesh;
 
-    // Lighting module
+    // Light module
     enum class LightType;
-    class Lighting;
+    class Light;
+    class AreaLight;
+    class Envmap;
     class LightSample;
     class VisibilityTester;
+
+    // Material module
+    class Material;
 
     // BSDF module
     class BSDF;

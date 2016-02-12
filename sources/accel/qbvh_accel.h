@@ -12,45 +12,44 @@
 
 namespace spica {
 
-    /** Quad BVH accelerator class
-     *  @ingroup accel_module
-     */
-    class SPICA_EXPORTS QBVHAccel : public IAccel {
-    private:
+/** 
+ * Quad BVH accelerator class
+ * @ingroup accel_module
+ */
+class SPICA_EXPORTS QBVHAccel : public AccelInterface {
+public:
+    QBVHAccel();
+    virtual ~QBVHAccel();
 
-        struct BVHPrimitiveInfo;
-        struct SIMDTrianglePack;
+    Bound3d worldBound() const override;
+    void construct(const std::vector<Triangle>& triangles) override;
+    bool intersect(const Ray& ray, SurfaceInteraction* isect) const override;
 
-        struct BVHBuildNode;
-        struct ComparePoint;
-        struct CompareToBucket;
-        struct SIMDBVHNode;
-        union Children;
+private:
+    // Private internal classes
+    struct BVHPrimitiveInfo;
+    struct SIMDTrianglePack;
+    struct BVHBuildNode;
+    struct ComparePoint;
+    struct CompareToBucket;
+    struct SIMDBVHNode;
+    union Children;
 
-        BVHBuildNode* _root;
+    // Private methods
+    void release();
+    void collapse2QBVH(BVHBuildNode* node);
+    BVHBuildNode* constructRec(std::vector<BVHPrimitiveInfo>& buildData,
+                                int start, int end, int* totalNodes,
+                                std::vector<int>& orderedPrims);
 
-        std::vector<Triangle>  _triangles;
-        std::vector<int> _ordered;
-        std::vector<SIMDTrianglePack*> _simdTris;
-        std::vector<SIMDBVHNode*> _simdNodes;
+    // Private fields
+    BVHBuildNode* root_;
+    std::vector<Triangle>  triangles_;
+    std::vector<int> ordered_;
+    std::vector<SIMDTrianglePack*> simdTris_;
+    std::vector<SIMDBVHNode*> simdNodes_;
 
-    public:
-        QBVHAccel();
-        ~QBVHAccel();
-
-        void construct(const std::vector<Triangle>& triangles) override;
-
-        int intersect(const Ray& ray, Hitpoint* hitpoint) const override;
-
-    private:
-        void release();
-        
-        BVHBuildNode* constructRec(std::vector<BVHPrimitiveInfo>& buildData,
-                                   int start, int end, int* totalNodes,
-                                   std::vector<int>& orderedPrims);
-
-        void collapse2QBVH(BVHBuildNode* node);
-   };
+};  // class QBVHAccel
 
 }  // namespace spica
 

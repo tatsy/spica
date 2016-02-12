@@ -67,8 +67,6 @@ namespace spica {
 
     // Renderer module
     class Ray;
-    class Hitpoint;
-    class Intersection;
     class Interaction;
     class SurfaceInteraction;
     class RenderParameters;

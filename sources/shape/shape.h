@@ -46,16 +46,19 @@ public:
     }
 
     virtual ~Shape() {}
-    virtual bool intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) const = 0;
+    virtual bool intersect(const Ray& ray, double* tHit,
+                           SurfaceInteraction* isect) const = 0;
 
-    virtual Interaction sample(const Interaction& isect, const Point2D& rands);
-    virtual double pdf(const Interaction& pObj, const Vector3D& dir);
+    virtual Interaction sample(const Interaction& isect,
+                               const Point2D& rands) const;
+    virtual double pdf(const Interaction& pObj, const Vector3D& dir) const;
 
-    Bound3d worldBound() const;
-    Bound3d objectBound() const;
+    virtual Bound3d worldBound() const = 0;
+    virtual Bound3d objectBound() const = 0;
 
     virtual double area() const = 0;
     virtual std::vector<Triangle> triangulate() const = 0;
+
     inline ShapeType type() const { return type_; }
 
 protected:

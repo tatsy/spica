@@ -62,6 +62,8 @@ namespace spica {
          */
         Vector3_& operator/=(double s);
 
+        T operator[](int i) const;
+
         bool operator==(const Vector3_& v) const;
         bool operator!=(const Vector3_& v) const;
 

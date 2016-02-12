@@ -35,6 +35,8 @@ public:
     //! Merge two bounds.
     static Bound3_<T> merge(const Bound3_<T>& b1, const Bound3_<T>& b2);
 
+    Bound3_<T>& merge(const Point3_<T>& p);
+
     T area() const;
 
     inline Point3_<T> posMin() const { return posMin_; }

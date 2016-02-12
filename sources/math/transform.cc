@@ -49,8 +49,26 @@ namespace spica {
         return m_ != t.m_ || mInv_ != t.mInv_;
     }
 
+    Point3D Transform::apply(const Point3D& p) const {
+        return Point3D(apply(Vector3D(p)));
+    }
+
     Vector3D Transform::apply(const Vector3D& v) const {
-        return m_.apply(v);   
+        double vs[4] = { v[0], v[1], v[2], 1.0 };
+        
+        double ret[3] = { 0.0, 0.0, 0.0 };
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 4; j++) {
+                ret[i] += m_(i, j) * vs[j]; 
+            }
+        }
+        return { ret[0], ret[1], ret[2] };   
+    }
+
+    Bound3d Transform::apply(const Bound3d& b) const {
+        Point3D posMin = apply(b.posMin());
+        Point3D posMax = apply(b.posMax());
+        return { posMin, posMax };
     }
 
     bool Transform::isIdentity() const {

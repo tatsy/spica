@@ -61,6 +61,11 @@ Triangle& Triangle::operator=(const Triangle& t) {
     return *this;
 }
 
+const Point3D& Triangle::operator[](int i) const {
+    Assertion(i >= 0 && i <= 2, "Index out of bounds!!");
+    return points_[i];
+}
+
 bool Triangle::intersect(const Ray& ray, double* tHit,
                          SurfaceInteraction* isect) const {
     const Vector3D e1 = points_[1] - points_[0];

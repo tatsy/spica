@@ -45,17 +45,6 @@ namespace spica {
         m[3][3] = t33;
     }
 
-    Vector3D Matrix4x4::apply(const Vector3D& v) const {
-        double vv[4] = { v.x(), v.y(), v.z(), 1.0 };
-        double ret[3] = { 0.0, 0.0, 0.0 };
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 4; j++) {
-                ret[i] += m[i][j] * vv[j];
-            }
-        }
-        return { ret[0], ret[1], ret[2] };
-    }
-
     Matrix4x4 Matrix4x4::transposed() const {
         return Matrix4x4(m[0][0], m[1][0], m[2][0], m[3][0],
                          m[0][1], m[1][1], m[2][1], m[3][1],

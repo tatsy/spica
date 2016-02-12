@@ -6,6 +6,7 @@
 #define _SPICA_MESHIO_H_
 
 #include <string>
+#include <vector>
 
 #include "../core/common.h"
 #include "../core/forward_decl.h"

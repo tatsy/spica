@@ -35,6 +35,7 @@ public:
     ~Triangle();
 
     Triangle& operator=(const Triangle& t);
+    const Point3D& operator[](int i) const;
 
     bool intersect(const Ray& ray, double* tHit,
                    SurfaceInteraction* isect) const override;
@@ -47,6 +48,9 @@ public:
 
     double area() const override;
     std::vector<Triangle> triangulate() const override;
+
+    const Normal3D& normal(int i) const;
+    const Point2D&  uv(int i) const;
 
 private:
     // Private fields

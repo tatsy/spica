@@ -19,7 +19,8 @@ namespace spica {
 class SPICA_EXPORTS Disk : public Shape {
 public:
     Disk();
-    Disk(const Point& center, const Normal& normal, double radius);
+    Disk(const Point& center, const Normal& normal, double radius,
+         const Transform& objectToWorld = Transform());
     Disk(const Disk& disk);
     ~Disk();
 

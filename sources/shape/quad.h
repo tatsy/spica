@@ -12,36 +12,37 @@
 
 namespace spica {
 
-    /** Quadrangle class
-     *  @ingroup shape_module
-     */
-    class SPICA_EXPORTS Quad : public Shape {
-    private:
-        std::array<Point, 4> _points;
+/**
+ * Quadrangle class
+ * @ingroup shape_module
+ */
+class SPICA_EXPORTS Quad : public Shape {
+public:
+    // Public methods
+    Quad();
+    Quad(const Point& v0, const Point& v1, const Point& v2, const Point& v3,
+         const Transform& objectToWorld = Transform());
+    Quad(const Quad& quad);
+    ~Quad();
 
-    public:
-        Quad();
-        Quad(const Point& v0, const Point& v1, const Point& v2, const Point& v3);
-        Quad(const Quad& quad);
-        ~Quad();
+    Quad& operator=(const Quad& quad);
+    Point operator[](int id) const;
 
-        Quad& operator=(const Quad& quad);
+    bool intersect(const Ray& ray, double* tHit,
+                    SurfaceInteraction* isect) const override;
 
-        bool intersect(const Ray& ray, double* tHit,
-                       SurfaceInteraction* isect) const override;
+    double area() const override;
+    std::vector<Triangle> triangulate() const override;
 
-        double area() const override;
 
-        std::vector<Triangle> triangulate() const override;
+private:
+    // Private methods
+    Triangle tr(int i, int j, int k) const;
 
-        Point operator[](int id) const;
-        Point get(int id) const;
+    // Private fields
+    std::array<Point, 4> _points;
 
-        Normal normal() const;
-
-    private:
-        Triangle tr(int i, int j, int k) const;
-    };
+};  // class Quad
 
 }  // namespace spica
 

@@ -6,6 +6,7 @@
 #define _SPICA_TRANSFORM_H_
 
 #include "../core/common.h"
+#include "../core/bound3d.h"
 #include "matrix4x4.h"
 
 namespace spica {
@@ -26,7 +27,9 @@ namespace spica {
         bool operator==(const Transform& t);
         bool operator!=(const Transform& t);
 
+        Point3D  apply(const Point3D& p)  const;
         Vector3D apply(const Vector3D& v) const;
+        Bound3d  apply(const Bound3d& b)  const;
 
         bool isIdentity() const;
 

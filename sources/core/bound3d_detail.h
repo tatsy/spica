@@ -76,6 +76,13 @@ Bound3_<T> Bound3_<T>::merge(const Bound3_<T>& b1, const Bound3_<T>& b2) {
 }
 
 template <class T>
+Bound3_<T>& Bound3_<T>::merge(const Point3_<T>& p) {
+    posMin_ = Point3_<T>::minimum(p, posMin_);
+    posMax_ = Point3_<T>::maximum(p, posMax_);
+    return *this;
+}
+
+template <class T>
 T Bound3_<T>::area() const {
     Vector3_<T> diff = posMax_ - posMin_;
     const double xy = std::abs(diff.x() * diff.y());

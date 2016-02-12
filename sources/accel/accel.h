@@ -34,7 +34,7 @@ namespace spica {
         void setAccelType(AccelType type);
 
         void construct(const std::vector<Triangle>& triangles);
-        int  intersect(const Ray& ray, Hitpoint* hitpoint) const;
+        int  intersect(const Ray& ray, SurfaceInteraction* hitpoint) const;
 
         explicit operator bool() const;
     };

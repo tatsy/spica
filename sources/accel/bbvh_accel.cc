@@ -154,7 +154,7 @@ namespace spica {
             // Fork node
             Bound3d centroidBounds;
             for (int i = start; i < end; i++) {
-                centroidBounds = Bound3d::merge(centroidBounds, buildData[i].centroid);
+                centroidBounds.merge(buildData[i].centroid);
             }
 
             int splitAxis = centroidBounds.maximumExtent();
@@ -181,7 +181,7 @@ namespace spica {
                     }
 
                     buckets[b].count++;
-                    buckets[b].bounds.merge(buildData[i].bounds);
+                    buckets[b].bounds = Bound3d::merge(buckets[b].bounds, buildData[i].bounds);
                 }
 
                 double bucketCost[nBuckets - 1] = {0};

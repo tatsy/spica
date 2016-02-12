@@ -5,6 +5,8 @@
 #ifndef _SPICA_TRIPLET_H_
 #define _SPICA_TRIPLET_H_
 
+#include <array>
+
 #include "common.h"
 
 namespace spica {

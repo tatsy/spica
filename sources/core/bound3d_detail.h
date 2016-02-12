@@ -64,22 +64,39 @@ template <class T>
 bool Bound3_<T>::intersect(const Ray& ray, double* tNear, double* tFar) const {
     double t0 = 0.0, t1 = ray.maxDist();
     for (int i = 0; i < 3; i++) {
-        
+        double tt0 = (posMin_[i] - ray.org()[i]) / ray.invdir()[i];
+        double tt1 = (posMax_[i] - ray.org()[i]) / ray.invdir()[i];
+
+        if (tt0 > tt1) std::swap(t0, t1);
+
+        tt1 *= (1.0 + 2.0 * EPS);
+        t0 = std::max(t0, tt0);
+        t1 = std::min(t1, tt1);
+        if (t0 > t1) return false;
     }
+
+    if (tNear) *tNear = t0;
+    if (tFar)  *tFar  = t1;
+    return true;
 }
 
 template <class T>
 Bound3_<T> Bound3_<T>::merge(const Bound3_<T>& b1, const Bound3_<T>& b2) {
-    Bound3_<T> posMin = Point3_<T>::minimum(b1.posMin(), b2.posMin());
-    Bound3_<T> posMax = Point3_<T>::maximum(b1.posMax(), b2.posMax());
-    return { posMin, posMax };
+    Point3_<T> posMin = Point3_<T>::minimum(b1.posMin(), b2.posMin());
+    Point3_<T> posMax = Point3_<T>::maximum(b1.posMax(), b2.posMax());
+    return Bound3_<T>{ posMin, posMax };
 }
 
 template <class T>
-Bound3_<T>& Bound3_<T>::merge(const Point3_<T>& p) {
+void Bound3_<T>::merge(const Bound3_<T>& b) {
+    posMin_ = Point3_<T>::minimum(posMin_, b.posMin_);
+    posMax_ = Point3_<T>::maximum(posMax_, b.posMax_);
+}
+
+template <class T>
+void Bound3_<T>::merge(const Point3_<T>& p) {
     posMin_ = Point3_<T>::minimum(p, posMin_);
     posMax_ = Point3_<T>::maximum(p, posMax_);
-    return *this;
 }
 
 template <class T>

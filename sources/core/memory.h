@@ -45,7 +45,7 @@ public:
     template <class T, class... Args>
     T* allocate(const Args&... args) {
         T* ret = (T*)allocate(sizeof(T));
-        new (ret) T(args);
+        new (ret) T(args...);
         return ret;
     }
 

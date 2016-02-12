@@ -4,7 +4,6 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
 
  set(SOURCES ${SOURCES}
      ${CMAKE_CURRENT_LIST_DIR}/memory.cc
-     ${CMAKE_CURRENT_LIST_DIR}/vbo.cc
      ${CMAKE_CURRENT_LIST_DIR}/spectrum.cc
      ${CMAKE_CURRENT_LIST_DIR}/sampling.cc
      ${CMAKE_CURRENT_LIST_DIR}/primitive.cc
@@ -24,7 +23,6 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/bound3d_detail.h
      ${CMAKE_CURRENT_LIST_DIR}/normal3d.h
      ${CMAKE_CURRENT_LIST_DIR}/normal3d_detail.h
-     ${CMAKE_CURRENT_LIST_DIR}/vbo.h
      ${CMAKE_CURRENT_LIST_DIR}/path.h
      ${CMAKE_CURRENT_LIST_DIR}/rect.h
      ${CMAKE_CURRENT_LIST_DIR}/stack.h

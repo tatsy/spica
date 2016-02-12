@@ -19,7 +19,7 @@ namespace spica {
 
     class SPICA_EXPORTS Accelerator {
     private:
-        std::shared_ptr<IAccel> _ptr;
+        std::shared_ptr<AccelInterface> _ptr;
         AccelType _type;
 
     public:
@@ -34,7 +34,7 @@ namespace spica {
         void setAccelType(AccelType type);
 
         void construct(const std::vector<Triangle>& triangles);
-        int  intersect(const Ray& ray, SurfaceInteraction* hitpoint) const;
+        bool intersect(const Ray& ray, SurfaceInteraction* isect) const;
 
         explicit operator bool() const;
     };

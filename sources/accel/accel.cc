@@ -56,8 +56,8 @@ namespace spica {
         _ptr->construct(triangles);
     }
 
-    int Accelerator::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        return _ptr->intersect(ray, hitpoint);
+    bool Accelerator::intersect(const Ray& ray, SurfaceInteraction* isect) const {
+        return _ptr->intersect(ray, isect);
     }
 
     Accelerator::operator bool() const {

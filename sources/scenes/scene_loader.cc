@@ -87,9 +87,6 @@ namespace spica {
             }
             elem = elem.nextSibling();
         }
-
-        // Finalize the scene
-        scene->finalize();
     }
 
 }  // namespace spica

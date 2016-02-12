@@ -5,10 +5,12 @@
 #include <stack>
 #include <algorithm>
 
+#include "../core/interaction.h"
+
 namespace spica {
 
     KdTreeAccel::KdTreeAccel() 
-        : IAccel{AccelType::KdTree}
+        : AccelInterface{AccelType::KdTree}
         , _root{nullptr} {
     }
 
@@ -71,13 +73,13 @@ namespace spica {
             node->left = nullptr;
             node->right = nullptr;
             node->triangle = triangles[start];
-            node->bbox = Bound3d::fromTriangle(triangles[start].tri);
+            node->bbox = triangles[start].tri.worldBound();
             return node;
         }
 
         Bound3d bounds;
         for (int i = start; i < end; i++) {
-            bounds.merge(triangles[i].tri);
+            bounds.merge(triangles[i].tri.worldBound());
         }
         const int dim = bounds.maximumExtent();
 
@@ -95,9 +97,8 @@ namespace spica {
         return node;
     }
 
-    int KdTreeAccel::intersect(const Ray& ray, Hitpoint* hitpoint) const {
-        int tid = -1;
-
+    bool KdTreeAccel::intersect(const Ray& ray, SurfaceInteraction* isect) const {
+        double tHit = ray.maxDist();
         std::stack<KdTreeNode*> todoNode;
         todoNode.push(_root);
         while(!todoNode.empty()) {
@@ -105,11 +106,11 @@ namespace spica {
             todoNode.pop();
 
             if (node->isLeaf) {
-                Hitpoint hptemp;
-                if (node->triangle.tri.intersect(ray, &hptemp)) {
-                    if (hitpoint->distance() > hptemp.distance()) {
-                        *hitpoint = hptemp;
-                        tid = node->triangle.idx;
+                double tTemp = INFTY;
+                SurfaceInteraction iTemp;
+                if (node->triangle.tri.intersect(ray, &tTemp, &iTemp)) {
+                    if (tHit > tTemp) {
+                        *isect = iTemp;
                     }
                 }
             } else {
@@ -127,7 +128,7 @@ namespace spica {
                 }
             }
         }
-        return tid;
+        return tHit < ray.maxDist();
     }
 
 }  // namespace spica

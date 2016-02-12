@@ -5,13 +5,15 @@
 #ifndef _SPICA_INTERACTION_H_
 #define _SPICA_INTERACTION_H_
 
+#include <memory>
+
 #include "../core/common.h"
 #include "../core/spectrum.h"
 #include "../core/point2d.h"
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
 #include "../math/vector3d.h"
-#include "../bsdf/bsdf.h"
+#include "../bsdf/brdf.h"
 
 namespace spica {
 
@@ -31,11 +33,18 @@ namespace spica {
         inline const Point& pos() const { return pos_; }
         inline const Normal& normal() const { return normal_; }
         inline const Vector3D& dir() const { return dir_; }
+        inline const Point2D& uv() const { return uv_; }
+        inline double dudx() const { return dudx_; }
+        inline double dudy() const { return dudy_; }
+        inline double dvdx() const { return dvdx_; }
+        inline double dvdy() const { return dvdy_; }
 
     protected:
         Point    pos_;
         Normal   normal_;
         Vector3D dir_;
+        Point2D  uv_;
+        double dudx_, dudy_, dvdx_, dvdy_;
     };
 
     class SPICA_EXPORTS SurfaceInteraction : public Interaction {
@@ -50,11 +59,11 @@ namespace spica {
 
         Spectrum Le(const Vector3D& w) const;
 
-        inline const BSDF* bsdf() const { return bsdf_; }
+        inline std::unique_ptr<AbstractBSDF>& bsdf() { return bsdf_; }
     
     private:
         Point2D uv_;
-        BSDF*   bsdf_;
+        std::unique_ptr<AbstractBSDF> bsdf_;
     };
 
 }  // namespace spica

@@ -8,7 +8,6 @@
 #include <algorithm>
 
 #include "../core/common.h"
-#include "../shape/bbox.h"
 
 namespace spica {
 
@@ -207,7 +206,7 @@ void QBVHAccel::construct(const std::vector<Triangle>& triangles) {
 
     std::vector<BVHPrimitiveInfo> buildData;
     for (int i = 0; i < triangles.size(); i++) {
-        Bound3d b = Bound3d::fromTriangle(triangles[i]);
+        Bound3d b = triangles[i].worldBound();
         buildData.emplace_back(i, b);
     }
 
@@ -252,9 +251,9 @@ QBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
 
             simdt->idx[t] = firstPrimOffset + cnt;
             for (int k = 0; k < 3; k++) {
-                x[4 * k + t] = triangles_[idx].get(k).x();
-                y[4 * k + t] = triangles_[idx].get(k).y();
-                z[4 * k + t] = triangles_[idx].get(k).z();
+                x[4 * k + t] = triangles_[idx][k].x();
+                y[4 * k + t] = triangles_[idx][k].y();
+                z[4 * k + t] = triangles_[idx][k].z();
             }
         }
 
@@ -405,7 +404,7 @@ void QBVHAccel::collapse2QBVH(BVHBuildNode* node) {
     return;
 }
 
-bool QBVHAccel::intersect(const Ray& ray, SurfaceInteraction* hitpoint) const {
+bool QBVHAccel::intersect(const Ray& ray, SurfaceInteraction* isect) const {
     // ray for SIMD arthimetic
     __m128 simdOrig[3];  // origin
     __m128 simdIdir[3];  // inverse direction
@@ -461,14 +460,14 @@ bool QBVHAccel::intersect(const Ray& ray, SurfaceInteraction* hitpoint) const {
 
     int cnt = 0;
 
+    double tHit = ray.maxDist();
     while (todoNode >= 0) {
         Children item = nodeStack[todoNode--];
 
         if (item.node.flag == 0) {
             // This is fork node
             const SIMDBVHNode& node = *(simdNodes_[item.node.index]);
-            const float hdist = (float)hitpoint->distance();
-            alignas(16) float now_distance_f[4] = { hdist, hdist, hdist, hdist };
+            alignas(16) float now_distance_f[4] = { tHit, tHit, tHit, tHit };
             __m128 now_distance = _mm_load_ps(now_distance_f);
             const int HitMask = test_AABB(node.bboxes, simdOrig, simdIdir, sgn, simdZero, now_distance);
 
@@ -536,16 +535,14 @@ bool QBVHAccel::intersect(const Ray& ray, SurfaceInteraction* hitpoint) const {
             _mm_store_ps(t_f, t);
 
             for (int i = 0; i < 4; i++) {
-                if ((nohitmask & (1 << i)) == 0 && hitpoint->distance() > t_f[i]) {
+                if ((nohitmask & (1 << i)) == 0 && tHit > t_f[i]) {
                     tid = ordered_[s->idx[i]];
-                    hit = triangles_[tid].intersect(ray, hitpoint);
+                    hit = triangles_[tid].intersect(ray, &tHit, isect);
                 }
             }
         }
     }
-
-    if (!hit) tid = -1;
-    return tid;
+    return tHit < ray.maxDist();
 }
 
 }  // namespace spica

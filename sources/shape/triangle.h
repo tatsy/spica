@@ -49,6 +49,7 @@ public:
     double area() const override;
     std::vector<Triangle> triangulate() const override;
 
+    Point3D gravity() const;
     const Normal3D& normal(int i) const;
     const Point2D&  uv(int i) const;
 

@@ -13,14 +13,15 @@
 
 namespace spica {
     void cornellBox(Scene* scene, Camera* camera, const int width, const int height) {
-        scene->clear();
-
         // Light
         Point l00(-5.0, 9.99, -5.0);
         Point l01(-5.0, 9.99,  5.0);
         Point l10( 5.0, 9.99, -5.0);
         Point l11( 5.0, 9.99,  5.0);
-        scene->addLight(std::make_shared<AreaLight>(Quad(l00, l10, l11, l01), Transform(), Spectrum(32.0, 32.0, 32.0)));
+        auto lightMesh = std::make_shared<Quad>(l00, l01, l11, l10);
+        auto light = std::make_shared<AreaLight>(lightMesh,
+                                                Transform(),
+                                                Spectrum(32.0, 32.0, 32.0));
 
         Point v000(-10.0, -10.0, -10.0);
         Point v100( 10.0, -10.0, -10.0);
@@ -37,6 +38,7 @@ namespace spica {
         Quad leftWall(v000, v010, v011, v001);
         Quad rightWall(v100, v101, v111, v110);
 
+        /*
         scene->addShape(floorWall, LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
         scene->addShape(ceilWall,  LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
         scene->addShape(backWall,  LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
@@ -69,6 +71,7 @@ namespace spica {
                                   58.0,
                                   1.0,
                                   90.0);
+         */
     }
 
     /*

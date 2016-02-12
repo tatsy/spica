@@ -40,7 +40,7 @@ Ray Interaction::nextRay(const Vector3D& wi) const {
 
 SurfaceInteraction::SurfaceInteraction(const Point& pos, const Normal& nrm,
                                        const Vector3D& wo, const Point2D& uv)
-    : Interaction{ pos, nrm, dir }
+    : Interaction{ pos, nrm, wo }
     , uv_{ uv } {
 }
 

@@ -10,50 +10,50 @@
 #include "accel_interface.h"
 #include "../core/common.h"
 #include "../core/uncopyable.h"
-#include "../shape/bbox.h"
 
 namespace spica {
 
-    /** K-D tree accelerator class
-     * @ingroup accel_module
-     */
-    class SPICA_EXPORTS KdTreeAccel : public IAccel {
-    private:
-        struct KdTreeNode : private Uncopyable {
-            Bound3d bbox;
-            IndexedTriangle triangle;
-            KdTreeNode* left;
-            KdTreeNode* right;
-            bool isLeaf;
+/**
+ * K-D tree accelerator class
+ * @ingroup accel_module
+ */
+class SPICA_EXPORTS KdTreeAccel : public AccelInterface {
+private:
+    struct KdTreeNode {
+        Bound3d bbox;
+        IndexedTriangle triangle;
+        KdTreeNode* left;
+        KdTreeNode* right;
+        bool isLeaf;
 
-            KdTreeNode()
-                : bbox()
-                , triangle()
-                , left(nullptr)
-                , right(nullptr)
-                , isLeaf(false) {
-            }
+        KdTreeNode()
+            : bbox()
+            , triangle()
+            , left(nullptr)
+            , right(nullptr)
+            , isLeaf(false) {
+        }
 
-            ~KdTreeNode() {
-            }
-        };
-
-        KdTreeNode* _root;          // tree root
-
-    public:
-        KdTreeAccel();
-        ~KdTreeAccel();
-        
-        Bound3d worldBound() const override;
-        void construct(const std::vector<Triangle>& triangles) override;
-        int  intersect(const Ray& ray, Hitpoint* hitpoint) const override;
-
-    private:
-        void release();
-        void deleteNode(KdTreeNode* node);
-        KdTreeNode* copyNode(KdTreeNode* node);
-        KdTreeNode* constructRec(std::vector<IndexedTriangle>& triangles, int start, int end);
+        ~KdTreeNode() {
+        }
     };
+
+    KdTreeNode* _root;          // tree root
+
+public:
+    KdTreeAccel();
+    ~KdTreeAccel();
+        
+    Bound3d worldBound() const override;
+    void construct(const std::vector<Triangle>& triangles) override;
+    bool intersect(const Ray& ray, SurfaceInteraction* isect) const override;
+
+private:
+    void release();
+    void deleteNode(KdTreeNode* node);
+    KdTreeNode* copyNode(KdTreeNode* node);
+    KdTreeNode* constructRec(std::vector<IndexedTriangle>& triangles, int start, int end);
+};
 
 }  // namespace spica
 

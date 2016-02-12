@@ -148,13 +148,13 @@ namespace spica {
             Vector3D wo = -ray.dir();
             Vector3D wi;
             double pdf;
-            Spectrum ref = isect.bsdf().sample(ray.dir(), isect.normal(), 
+            Spectrum ref = isect.bsdf()->sample(ray.dir(), isect.normal(), 
                                                sampler.get2D(), &wi, &pdf);
 
             if (ref.isBlack() || pdf == 0.0) break;
 
             beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
-            specularBounce = (isect.bsdf().type() & BsdfType::Specular) != 0;
+            specularBounce = (isect.bsdf()->type() & BsdfType::Specular) != 0;
 
             ray = isect.nextRay(wi);
 

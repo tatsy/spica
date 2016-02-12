@@ -8,6 +8,9 @@
 #include "../core/common.h"
 #include "../core/triplet.h"
 #include "../core/path.h"
+#include "../shape/triangle.h"
+#include "../math/vector2d.h"
+#include "../core/point3d.h"
 
 #include "../image/image.h"
 

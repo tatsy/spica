@@ -8,6 +8,7 @@
 #include <type_traits>
 
 #include "../core/point3d.h"
+#include "../renderer/ray.h"
 
 namespace spica {
 
@@ -35,7 +36,8 @@ public:
     //! Merge two bounds.
     static Bound3_<T> merge(const Bound3_<T>& b1, const Bound3_<T>& b2);
 
-    Bound3_<T>& merge(const Point3_<T>& p);
+    void merge(const Bound3_<T>& b);
+    void merge(const Point3_<T>& p);
 
     T area() const;
 

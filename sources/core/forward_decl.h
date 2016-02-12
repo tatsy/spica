@@ -75,7 +75,7 @@ namespace spica {
 
     // Accelerator module
     enum class AccelType;
-    class IAccel;
+    class AccelInterface;
     class KdTreeAccel;
     class QBVHAccel;
     
@@ -98,6 +98,10 @@ namespace spica {
 
     // Material module
     class Material;
+
+    // Texture module
+    template <class T>
+    class Texture;
 
     // BSDF module
     class BSDF;

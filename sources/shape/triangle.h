@@ -9,17 +9,28 @@
 
 #include "../core/common.h"
 #include "../core/forward_decl.h"
+#include "../core/point2d.h"
+#include "../core/point3d.h"
+#include "../core/normal3d.h"
 
 #include "shape.h"
 
 namespace spica {
 
-class Triangle : public Shape {
+class SPICA_EXPORTS Triangle : public Shape {
 public:
     // Public methods
     Triangle();
     Triangle(const Point3D& p0, const Point3D& p1, const Point3D& p2,
              const Transform& objectToWorld = Transform());
+    Triangle(const Point3D& p0, const Point3D& p1, const Point3D& p2,
+             const Normal3D& n0, const Normal3D& n1, const Normal3D& n2,
+             const Transform& objectToWorld = Transform());
+    Triangle(const Point3D& p0, const Point3D& p1, const Point3D& p2,
+             const Normal3D& n0, const Normal3D& n1, const Normal3D& n2,
+             const Point2D& uv0, const Point2D& uv1, const Point2D& uv2,
+             const Transform& objectToWorld = Transform());
+    Triangle(const Triangle& t);
 
     ~Triangle();
 
@@ -30,7 +41,6 @@ public:
 
     Interaction sample(const Interaction& isect,
                        const Point2D& rands) const override;
-    double pdf(const Interaction& pObj, const Vector3D& dir) const override;
 
     Bound3d worldBound() const override;
     Bound3d objectBound() const override;

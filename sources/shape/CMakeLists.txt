@@ -1,4 +1,5 @@
 set(SOURCES ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/shape.cc
     ${CMAKE_CURRENT_LIST_DIR}/quad.cc
     ${CMAKE_CURRENT_LIST_DIR}/disk.cc
     ${CMAKE_CURRENT_LIST_DIR}/sphere.cc

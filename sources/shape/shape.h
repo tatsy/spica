@@ -30,7 +30,6 @@ enum class ShapeType : int {
     Quad,      /**< Quad         */
     Sphere,    /**< Sphere       */
     Triangle,  /**< Triangle     */
-    Trimesh,   /**< Trimesh      */
 };
     
 /** Abstract shape class.
@@ -39,18 +38,20 @@ enum class ShapeType : int {
 class SPICA_EXPORTS Shape {
 public:
     // Public methods
-    Shape(const Transform& objectToWorld, ShapeType type)
-        : objectToWorld_{ objectToWorld }
-        , worldToObject_{ objectToWorld.inverted() }
-        , type_{ type } {
-    }
+    Shape();
+    Shape(const Transform& objectToWorld, ShapeType type);
+    Shape(const Shape& s);
 
-    virtual ~Shape() {}
+    virtual ~Shape();
+
+    Shape& operator=(const Shape& s);
+
     virtual bool intersect(const Ray& ray, double* tHit,
                            SurfaceInteraction* isect) const = 0;
 
     virtual Interaction sample(const Interaction& isect,
-                               const Point2D& rands) const;
+                               const Point2D& rands) const = 0;
+    virtual double pdf(const Interaction& pObj) const;
     virtual double pdf(const Interaction& pObj, const Vector3D& dir) const;
 
     virtual Bound3d worldBound() const = 0;
@@ -63,7 +64,7 @@ public:
 
 protected:
     // Protected fields
-    const Transform objectToWorld_, worldToObject_;
+    Transform objectToWorld_, worldToObject_;
     ShapeType type_;
 
 };  // class Shape

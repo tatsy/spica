@@ -1,5 +1,3 @@
-#include "point2d.h"
-
 #include "common.h"
 
 namespace spica {
@@ -59,6 +57,13 @@ namespace spica {
     }
 
     template <class T>
+    Point2_<T>& Point2_<T>::operator*=(T s) {
+        this->x_ *= s;
+        this->y_ *= s;
+        return *this;
+    }
+
+    template <class T>
     std::string Point2_<T>::toString() const {
         std::stringstream ss;
         ss << std::fixed;
@@ -86,5 +91,19 @@ template <class T>
 spica::Point2_<T> operator-(const spica::Point2_<T>& p1, const spica::Point2_<T>& p2) {
     spica::Point2_<T> ret = p1;
     ret -= p2;
+    return ret;
+}
+
+template <class T>
+spica::Point2_<T> operator*(const spica::Point2_<T>& p, T s) {
+    spica::Point2_<T> ret = p;
+    ret *= s;
+    return ret;
+}
+
+template <class T>
+spica::Point2_<T> operator*(T s, const spica::Point2_<T>& p) {
+    spica::Point2_<T> ret = p;
+    ret *= s;
     return ret;
 }

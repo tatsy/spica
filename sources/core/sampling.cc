@@ -131,6 +131,27 @@ double Distribution2D::pdf(const Point2D& p) const {
     return pCond_[iv](iv) / pMarg_.integral();
 }
 
+Point2D sampleConcentricDisk(const Point2D& rands) {
+    Point2D uOffset = 2.0 * rands - Vector2D(1.0, 1.0);
+    if (uOffset.x() == 0.0 && uOffset.y() == 0.0) return Point2D(0.0, 0.0);
+
+    double theta, r;
+    if (std::abs(uOffset.x()) > std::abs(uOffset.y())) {
+        r = uOffset.x();
+        theta = PI * (uOffset.y() / uOffset.x()) / 4.0;
+    } else {
+        r = uOffset.y();
+        theta = (PI / 2.0) - PI * (uOffset.x() / uOffset.x()) / 4.0;
+    }
+    return r * Point2D(std::cos(theta), std::sin(theta));
+}
+
+Vector3D sampleCosineHemisphere(const Point2D& rands) {
+    Point2D d = sampleConcentricDisk(rands);
+    double z = std::sqrt(std::max(0.0, 1.0 - d.x() * d.x() - d.y() * d.y()));
+    return Vector3D{ d.x(), d.y(), z };
+}
+
 void sampleUniformHemisphere(const Normal& normal, Vector3D* direction, const Point2D& rands) {
     Vector3D u, v, w;
     w = static_cast<Vector3D>(normal);

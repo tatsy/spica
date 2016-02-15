@@ -56,8 +56,9 @@ private:
 
 };  // class Distribution2D
 
+SPICA_EXPORTS Point2D  sampleConcentricDisk(const Point2D& rands);
+SPICA_EXPORTS Vector3D sampleCosineHemisphere(const Point2D& rands);
 SPICA_EXPORTS void sampleUniformHemisphere(const Normal& normal, Vector3D* direction, const Point2D& rands);
-
 
 SPICA_EXPORTS
 void samplePoissonDisk(const std::vector<Triangle>& triangles,

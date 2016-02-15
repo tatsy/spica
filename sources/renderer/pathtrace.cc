@@ -154,7 +154,7 @@ namespace spica {
             if (ref.isBlack() || pdf == 0.0) break;
 
             beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
-            specularBounce = (isect.bsdf()->type() & BsdfType::Specular) != 0;
+            specularBounce = (isect.bsdf()->type() & BxDFType::Specular) != 0;
 
             ray = isect.nextRay(wi);
 

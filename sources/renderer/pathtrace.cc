@@ -18,6 +18,9 @@
 #include "../random/halton.h"
 #include "../random/sampler.h"
 
+#include "../bxdf/bsdf.h"
+#include "../bxdf/bxdf.h"
+
 #include "../scenes/scene.h"
 
 #include "renderer_helper.h"
@@ -148,13 +151,12 @@ namespace spica {
             Vector3D wo = -ray.dir();
             Vector3D wi;
             double pdf;
-            Spectrum ref = isect.bsdf()->sample(ray.dir(), isect.normal(), 
-                                               sampler.get2D(), &wi, &pdf);
+            Spectrum ref = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdf);
 
             if (ref.isBlack() || pdf == 0.0) break;
 
             beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
-            specularBounce = (isect.bsdf()->type() & BxDFType::Specular) != 0;
+            specularBounce = (isect.bsdf()->hasType() & BxDFType::Specular) != 0;
 
             ray = isect.nextRay(wi);
 

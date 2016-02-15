@@ -50,10 +50,32 @@ bool Disk::intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) co
 
     *tHit = vect::dot(normal_, center_ - ray.org()) / dt;
     Point3D pos = ray.org() + (*tHit) * ray.dir();
-    if ((pos - center_).squaredNorm() > radius_ * radius_) return false;
+    Vector3D p2c = pos - center_;
+    const double r = p2c.norm();
+    if (r > radius_) return false;
 
-    *isect = SurfaceInteraction(pos, normal_, ray.dir(), Point2D());
+    Vector3D uVec, vVec;
+    vect::coordinateSystem(Vector3D(normal_), &uVec, &vVec);
+    const double theta = atan2(vect::dot(vVec, p2c), vect::dot(uVec, p2c)); 
+    const double u = r / radius_;
+    const double v = (theta + PI) / (2.0 * PI);
+
+    const double cosTheta = cos(theta);
+    const double sinTheta = sin(theta);
+    const Vector3D dpdu = radius_ * (uVec * cosTheta + vVec * sinTheta);
+    const Vector3D dpdv = 2.0 * PI * r * (-uVec * sinTheta + vVec * cosTheta);
+
+    *isect = SurfaceInteraction(pos, Point2D(u, v), -ray.dir(), dpdu, dpdv, Normal(0.0, 0.0, 0.0), Normal(0.0, 0.0, 0.0), this);
     return true;
+}
+
+Bound3d Disk::objectBound() const {
+    Bound3d b;
+    Vector3D u, v;
+    vect::coordinateSystem(Vector3D(normal_), &u, &v);
+    b.merge(center_ + radius_ * u);
+    b.merge(center_ + radius_ * v);
+    return b;
 }
 
 double Disk::area() const {

@@ -5,7 +5,6 @@
 #include "../shape/visibility_tester.h"
 #include "../core/sampling.h"
 #include "../core/interaction.h"
-#include "../renderer/photon_map.h"
 
 namespace spica {
 

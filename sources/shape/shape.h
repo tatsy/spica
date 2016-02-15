@@ -54,7 +54,7 @@ public:
     virtual double pdf(const Interaction& pObj) const;
     virtual double pdf(const Interaction& pObj, const Vector3D& dir) const;
 
-    virtual Bound3d worldBound() const = 0;
+    virtual Bound3d worldBound() const;
     virtual Bound3d objectBound() const = 0;
 
     virtual double area() const = 0;

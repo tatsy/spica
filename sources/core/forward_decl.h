@@ -10,6 +10,9 @@ namespace spica {
     class VertexData;
     class TriangleData;
 
+    class Primitive;
+    class GeometricPrimitive;
+
     template <class T>
     class Stack;
 

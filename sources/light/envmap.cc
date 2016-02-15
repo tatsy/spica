@@ -10,92 +10,78 @@
 #include "../core/normal3d.h"
 #include "../core/sampling.h"
 #include "../shape/visibility_tester.h"
-#include "../renderer/photon_map.h"
 
 namespace spica {
 
-    namespace {
-
-        double sphericalPhi(const Vector3D& dir) {
-            double p = atan2(dir.y(), dir.x());
-            return p < 0.0 ? p + 2.0 * PI : p;
+Envmap::Envmap(const Image& texmap, const Transform& lightToWorld,
+                const Spectrum& L, int numSamples)
+    : Light{ LightType::Envmap, lightToWorld, numSamples }
+    , texmap_{ texmap, ImageWrap::Repeat }
+    , worldCenter_{}
+    , worldRadius_{}
+    , distrib_{} {
+    const int width  = texmap.width();
+    const int height = texmap.height();
+    std::vector<double> gray(width * height);
+    for (int y = 0; y < height; y++) {
+        double v = static_cast<double>(y) / height;
+        double sint = sin(PI * (v + 0.5)) / height;
+        for (int x = 0; x < width; x++) {
+            double u = static_cast<double>(x) / width;
+            // TODO: Better to use mipmap, i.e. interpolated gray value
+            gray[y * width + x] = texmap(x, y).luminance();
+            gray[y * width + x] *= sint;
         }
-
-        double sphericalTheta(const Vector3D& dir) {
-            return acos(clamp(dir.z(), -1.0, 1.0));
-        }
-
-    }  // anonymous namespace
-
-    Envmap::Envmap(const Image& texmap, const Transform& lightToWorld,
-                   const Spectrum& L, int numSamples)
-        : Light{ LightType::Envmap, lightToWorld, numSamples }
-        , texmap_{ texmap, ImageWrap::Repeat }
-        , worldCenter_{}
-        , worldRadius_{}
-        , distrib_{} {
-        const int width  = texmap.width();
-        const int height = texmap.height();
-        std::vector<double> gray(width * height);
-        for (int y = 0; y < height; y++) {
-            double v = static_cast<double>(y) / height;
-            double sint = sin(PI * (v + 0.5)) / height;
-            for (int x = 0; x < width; x++) {
-                double u = static_cast<double>(x) / width;
-                // TODO: Better to use mipmap, i.e. interpolated gray value
-                gray[y * width + x] = texmap(x, y).luminance();
-                gray[y * width + x] *= sint;
-            }
-        }
-        distrib_ = Distribution2D(gray, width, height);
     }
+    distrib_ = Distribution2D(gray, width, height);
+}
 
-    Envmap::~Envmap() {
-    }
+Envmap::~Envmap() {
+}
 
-    Spectrum Envmap::sampleLi(const Interaction& pObj, const Point2D& rands,
-                              Vector3D* dir, double* pdf, VisibilityTester* vis) const {
-        double mapPdf;
-        Point2D uv = distrib_.sample(rands, &mapPdf);
-        if (mapPdf == 0.0) return Spectrum();
+Spectrum Envmap::sampleLi(const Interaction& pObj, const Point2D& rands,
+                            Vector3D* dir, double* pdf, VisibilityTester* vis) const {
+    double mapPdf;
+    Point2D uv = distrib_.sample(rands, &mapPdf);
+    if (mapPdf == 0.0) return Spectrum();
 
-        const double theta = uv[1] * PI;
-        const double phi   = uv[0] * (2.0 * PI);
-        const double cosTheta = cos(theta);
-        const double sinTheta = sin(theta);
-        const double cosPhi   = cos(phi);
-        const double sinPhi   = sin(phi);
-        *dir = lightToWorld_.apply(Vector3D(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
-        *pdf = sinTheta == 0.0 ? 0.0 : mapPdf / (2.0 * PI * PI * sinTheta);
+    const double theta = uv[1] * PI;
+    const double phi   = uv[0] * (2.0 * PI);
+    const double cosTheta = cos(theta);
+    const double sinTheta = sin(theta);
+    const double cosPhi   = cos(phi);
+    const double sinPhi   = sin(phi);
+    *dir = lightToWorld_.apply(Vector3D(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
+    *pdf = sinTheta == 0.0 ? 0.0 : mapPdf / (2.0 * PI * PI * sinTheta);
 
-        Interaction pLight(pObj.pos() + (*dir) * (2.0 * worldRadius_));
-        *vis = VisibilityTester(pObj, pLight);
+    Interaction pLight(pObj.pos() + (*dir) * (2.0 * worldRadius_));
+    *vis = VisibilityTester(pObj, pLight);
         
-        return Spectrum(texmap_.lookup(uv));
-    }
+    return Spectrum(texmap_.lookup(uv));
+}
 
-    double Envmap::pdfLi(const Interaction&, const Vector3D& d) const {
-        Vector3D dir = worldToLight_.apply(d);
-        double theta = sphericalTheta(dir);
-        double phi   = sphericalPhi(dir);
-        double sinTheta = sin(theta);
-        if (sinTheta == 0.0) return 0.0;
-        return distrib_.pdf(Point2D(phi * (0.5 * INV_PI), theta * INV_PI)) / (2.0 * PI * PI * sinTheta);
-    }
+double Envmap::pdfLi(const Interaction&, const Vector3D& d) const {
+    Vector3D dir = worldToLight_.apply(d);
+    double theta = vect::sphericalTheta(dir);
+    double phi   = vect::sphericalPhi(dir);
+    double sinTheta = sin(theta);
+    if (sinTheta == 0.0) return 0.0;
+    return distrib_.pdf(Point2D(phi * (0.5 * INV_PI), theta * INV_PI)) / (2.0 * PI * PI * sinTheta);
+}
 
-    Spectrum Envmap::Le(const Ray& ray) const {
-        Vector3D dir = worldToLight_.apply(ray.dir()).normalized();
-        Point2D st(sphericalPhi(dir) * (0.5 * INV_PI), sphericalTheta(dir) * INV_PI);
-        return Spectrum(texmap_.lookup(st));
-    }
+Spectrum Envmap::Le(const Ray& ray) const {
+    Vector3D dir = worldToLight_.apply(ray.dir()).normalized();
+    Point2D st(vect::sphericalPhi(dir) * (0.5 * INV_PI), vect::sphericalTheta(dir) * INV_PI);
+    return Spectrum(texmap_.lookup(st));
+}
 
-    Spectrum Envmap::power() const {
-        return PI * worldRadius_ * worldRadius_ * Spectrum(texmap_.lookup(Point2D(0.5, 0.5), 0.5));
-    }
+Spectrum Envmap::power() const {
+    return PI * worldRadius_ * worldRadius_ * Spectrum(texmap_.lookup(Point2D(0.5, 0.5), 0.5));
+}
 
-    Light* Envmap::clone() const {
-        // TODO: doushiyoukana??
-        return nullptr;
-    }
+Light* Envmap::clone() const {
+    // TODO: doushiyoukana??
+    return nullptr;
+}
 
 }  // namespace spica

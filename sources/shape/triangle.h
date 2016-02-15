@@ -43,7 +43,6 @@ public:
     Interaction sample(const Interaction& isect,
                        const Point2D& rands) const override;
 
-    Bound3d worldBound() const override;
     Bound3d objectBound() const override;
 
     double area() const override;

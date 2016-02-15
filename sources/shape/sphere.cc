@@ -5,6 +5,7 @@
 
 #include "../core/common.h"
 #include "../core/interaction.h"
+#include "../core/bound3d.h"
 
 namespace spica {
 
@@ -34,6 +35,7 @@ Sphere& Sphere::operator=(const Sphere& sphere) {
 
 bool Sphere::intersect(const Ray& ray, double* tHit,
                         SurfaceInteraction* isect) const {
+    // Compute intersection
     const Vector3D VtoC = center_ - ray.org();
     const double b = VtoC.dot(ray.dir());
     const double D4 = b * b - VtoC.dot(VtoC) + radius_ * radius_;
@@ -54,10 +56,44 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
 
     Point  pos = ray.org() + (*tHit) * ray.dir();
     Normal nrm = Normal(pos - center_).normalized();
+
+    // Compute differential geometries
+    const double phi   = vect::sphericalPhi(nrm);
+    const double theta = vect::sphericalTheta(nrm);
+    const double cosPhi = cos(phi);
+    const double sinPhi = sin(phi);
+    const double u = phi / (2.0 * PI);
+    const double v = (theta + PI / 2.0) / PI;
+    const Vector3D dpdu = { -2.0 * PI * pos.y(), 2.0 * PI * pos.x(), 0.0 };
+    const Vector3D dpdv = PI * Vector3D(cosPhi * pos.z(), sinPhi * pos.z(), -radius_ * sin(theta));
+
+    Vector3D d2pdudu = - (2.0 * PI) * (2.0 * PI) * Vector3D(pos.x(), pos.y(), 0.0);
+    Vector3D d2pdudv = PI * pos.z() * (2.0 * PI) * Vector3D(-sinPhi, cosPhi, 0.0);
+    Vector3D d2pdvdv = -PI * PI * pos;
+
+    // Fundamental forms
+    const double E = Vector3D::dot(dpdu, dpdu);
+    const double F = Vector3D::dot(dpdu, dpdv);
+    const double G = Vector3D::dot(dpdv, dpdv);
+    const Vector3D N = Vector3D::cross(dpdu, dpdv).normalized();
+    const double e = Vector3D::dot(N, d2pdudu);
+    const double f = Vector3D::dot(N, d2pdudv);
+    const double g = Vector3D::dot(N, d2pdvdv);
+
+    double invEGF2 = 1.0 / (E * G - F * F);
+    Normal3D dndu = Normal3D((F * f - G * e) * invEGF2 * dpdu + (F * e - E * f) * invEGF2 * dpdv);
+    Normal3D dndv = Normal3D((F * g - G * f) * invEGF2 * dpdu + (F * f - E * g) * invEGF2 * dpdv);
+
     Vector3D dir = ray.dir();
-    *isect = SurfaceInteraction(pos, nrm, dir, Point2D());
+    *isect = SurfaceInteraction(pos, Point2D(u, v), -ray.dir(), dpdu, dpdv, dndu, dndv, this);
 
     return true;
+}
+
+Bound3d Sphere::objectBound() const {
+    const Point3D posMin = center_ - Vector3D(radius_, radius_, radius_);
+    const Point3D posMax = center_ + Vector3D(radius_, radius_, radius_);
+    return { posMin, posMax };
 }
 
 double Sphere::area() const {

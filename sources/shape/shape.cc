@@ -47,4 +47,8 @@ double Shape::pdf(const Interaction& pObj, const Vector3D& wi) const {
     return ret;
 }
 
+Bound3d Shape::worldBound() const {
+    return objectToWorld_.apply(worldBound());
+}
+
 }  // namespace spica

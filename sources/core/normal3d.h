@@ -38,6 +38,8 @@ namespace spica {
         Normal3_<T> normalized() const;
 
         std::string toString() const;
+
+        using type = T;
         
     private:
         T x_, y_, z_;

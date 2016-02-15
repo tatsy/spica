@@ -5,7 +5,7 @@
 #ifndef _SPICA_PHOTON_MAP_H_
 #define _SPICA_PHOTON_MAP_H_
 
-#include "../bsdf/bsdf.h"
+// #include "../bsdf/bsdf.h"
 
 #include "../core/spectrum.h"
 #include "../core/kdtree.h"

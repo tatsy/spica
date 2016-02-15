@@ -28,6 +28,8 @@ public:
 
     bool intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) const override;
 
+    Bound3d objectBound() const override;
+
     double area() const override;
 
     std::vector<Triangle> triangulate() const override;

@@ -41,6 +41,8 @@ namespace spica {
 
         std::string toString() const;
 
+        using type = T;
+
     private:
         T x_, y_, z_;
 

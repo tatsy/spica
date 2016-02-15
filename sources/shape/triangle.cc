@@ -85,15 +85,36 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
     if (v < 0.0 || u + v > 1.0) return false;
 
     *tHit = Vector3D::dot(e2, qVec) * invdet;
-    if (*tHit > EPS) {
-        Point3D pos = ray.org() + (*tHit) * ray.dir();
-        Normal  nrm = (1.0 - u - v) * normals_[0] + u * normals_[1] + v * normals_[2];
-        Point2D uv  = (1.0 - u - v) * uvs_[0] + u * uvs_[1] + v * uvs_[2];
-        *isect = SurfaceInteraction(pos, nrm, ray.dir(), uv);
-        return true;
+    if (*tHit <= EPS) return false;
+
+    Point3D pos = ray.org() + (*tHit) * ray.dir();
+    Normal  nrm = (1.0 - u - v) * normals_[0] + u * normals_[1] + v * normals_[2];
+    Point2D uv  = (1.0 - u - v) * uvs_[0] + u * uvs_[1] + v * uvs_[2];
+
+    const Point2D duv01 = uvs_[1] - uvs_[0];
+    const Point2D duv02 = uvs_[2] - uvs_[0];
+    const double detUV = duv01.x() * duv02.y() - duv01.y() * duv02.x();
+    
+    Vector3D dpdu, dpdv;
+    Normal   dndu, dndv;
+    if (detUV == 0.0) {
+        Warning("Zero triangle area!!");
+    } else {
+        const double invdet = 1.0 / detUV;
+        const double invM[2][2] = { {  duv02.y(), -duv01.y() },
+                                    { -duv02.x(),  duv01.x() } };
+        const Vector3D dp01 = points_[1] - points_[0];
+        const Vector3D dp02 = points_[2] - points_[0];
+        const Normal   dn01 = normals_[1] - normals_[0];
+        const Normal   dn02 = normals_[2] - normals_[0];
+        dpdu = invM[0][0] * dp01 + invM[0][1] * dp02;
+        dpdv = invM[1][0] * dp01 + invM[1][1] * dp02;
+        dndu = invM[0][0] * dn01 + invM[0][1] * dn02;
+        dndv = invM[1][0] * dn01 + invM[1][1] * dn02;
     }
 
-    return false;
+    *isect = SurfaceInteraction(pos, uv, -ray.dir(), dpdu, dpdv, dndu, dndv, this);
+    return true;
 }
 
 Interaction Triangle::sample(const Interaction& isect,
@@ -113,11 +134,6 @@ Interaction Triangle::sample(const Interaction& isect,
     Point3D pos = points_[0] + u0 * e1 + u1 * e2;
     Normal  nrm = (1.0 - u0 - u1) * normals_[0] + u0 * normals_[1] + u1 * normals_[2];
     return Interaction{ pos, nrm };
-}
-
-Bound3d Triangle::worldBound() const {
-    // TODO: Implement!!
-    return {};
 }
 
 Bound3d Triangle::objectBound() const {

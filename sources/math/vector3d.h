@@ -112,6 +112,8 @@ namespace spica {
          */
         inline T& zRef() { return _z; }
 
+        using type = T;
+
     protected:
         T _x, _y, _z;
 

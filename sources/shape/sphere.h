@@ -25,7 +25,9 @@ public:
     Sphere& operator=(const Sphere& sphere);
 
     bool intersect(const Ray& ray, double* tHit,
-                    SurfaceInteraction* isect) const override;
+                   SurfaceInteraction* isect) const override;
+
+    Bound3d objectBound() const override;
 
     double area() const override;
 

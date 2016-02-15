@@ -201,5 +201,4 @@ inline T min3(T a, T b, T c) {
     return std::min(a, std::min(b, c));
 }
 
-
 #endif  // _SPICA_COMMON_H_

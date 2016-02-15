@@ -84,7 +84,7 @@ double Disk::area() const {
 
 std::vector<Triangle> Disk::triangulate() const {
     Vector3D u, v;
-    helper::calcLocalCoords(static_cast<Vector3D>(normal_), &u, &v);
+    vect::coordinateSystem(Vector3D(normal_), &u, &v);
 
     std::vector<Triangle> retval;
     for (int i = 0; i < kSubdivDisk; i++) {

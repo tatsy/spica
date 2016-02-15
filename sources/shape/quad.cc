@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "quad.h"
 
+#include "../core/interaction.h"
 #include "../renderer/ray.h"
 #include "../math/vector3d.h"
 
@@ -10,14 +11,14 @@ namespace spica {
     
 Quad::Quad()
     : Shape{ Transform(), ShapeType::Quad }
-    , _points{} {
+    , points_{} {
 }
 
 Quad::Quad(const Point& v0, const Point& v1,
             const Point& v2, const Point& v3,
             const Transform& objectToWorld)
     : Shape{ objectToWorld, ShapeType::Quad }
-    , _points{ v0, v1, v2, v3 } {
+    , points_{ v0, v1, v2, v3 } {
 }
 
 Quad::Quad(const Quad& quad)
@@ -30,14 +31,14 @@ Quad::~Quad() {
 
 Quad& Quad::operator=(const Quad& quad) {
     Shape::operator=(quad);
-    this->_points = quad._points;
+    this->points_ = quad.points_;
     return *this;
 }
 
 Point Quad::operator[](int id) const {
     Assertion(0 <= id && id <= 3,
                 "Point ID must be in between 0 and 3 !!");
-    return _points[id];        
+    return points_[id];
 }
 
 
@@ -53,6 +54,11 @@ bool Quad::intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) co
     return false;
 }
 
+Interaction Quad::sample(const Interaction& isect, const Point2D& rands) const {
+    // TODO: Implement
+    return {};
+}
+
 double Quad::area() const {
     return tr(0, 1, 2).area() + tr(0, 2, 3).area();
 }
@@ -64,8 +70,16 @@ std::vector<Triangle> Quad::triangulate() const {
     return std::move(tris);
 }
 
+Bound3d Quad::objectBound() const {
+    Bound3d b;
+    for (int i = 0; i < 4; i++) {
+        b.merge(points_[i]);
+    }
+    return b;
+}
+
 Triangle Quad::tr(int i, int j, int k) const {
-    return Triangle(_points[i], _points[j], _points[k]);
+    return Triangle(points_[i], points_[j], points_[k]);
 }
 
 }  // namespace spica

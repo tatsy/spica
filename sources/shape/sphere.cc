@@ -6,6 +6,7 @@
 #include "../core/common.h"
 #include "../core/interaction.h"
 #include "../core/bound3d.h"
+#include "../shape/triangle.h"
 
 namespace spica {
 
@@ -126,10 +127,10 @@ std::vector<Triangle> Sphere::triangulate() const {
             Vector3D n10(cp1 * st0, sp1 * st0, ct0);
             Vector3D n11(cp1 * st1, sp1 * st1, ct1);
 
-            Vector3D v00 = center_ + radius_ * n00;
-            Vector3D v01 = center_ + radius_ * n01;
-            Vector3D v10 = center_ + radius_ * n10;
-            Vector3D v11 = center_ + radius_ * n11;
+            Point3D v00 = center_ + radius_ * n00;
+            Point3D v01 = center_ + radius_ * n01;
+            Point3D v10 = center_ + radius_ * n10;
+            Point3D v11 = center_ + radius_ * n11;
 
             if (i != nTheta - 1) {
                 tris.emplace_back(v00, v01, v11, Normal(n00), Normal(n01), Normal(n11));

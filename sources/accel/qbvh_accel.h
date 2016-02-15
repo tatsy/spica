@@ -21,7 +21,6 @@ public:
     QBVHAccel();
     virtual ~QBVHAccel();
 
-    Bound3d worldBound() const override;
     void construct(const std::vector<Triangle>& triangles) override;
     bool intersect(const Ray& ray, SurfaceInteraction* isect) const override;
 

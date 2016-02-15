@@ -36,15 +36,10 @@
 // BSDF
 // --------------------------------------------
 
-#include "../sources/bsdf/bsdf.h"
-#include "../sources/bsdf/brdf.h"
-#include "../sources/bsdf/bssrdf.h"
-
 // --------------------------------------------
 // Lights
 // --------------------------------------------
 
-#include "../sources/light/lighting.h"
 #include "../sources/light/area_light.h"
 #include "../sources/light/envmap.h"
 
@@ -66,11 +61,11 @@
 
 #include "../sources/renderer/renderer_interface.h"
 #include "../sources/renderer/pathtrace.h"
-#include "../sources/renderer/bdpt.h"
-#include "../sources/renderer/mlt.h"
-#include "../sources/renderer/ppmprob.h"
-#include "../sources/renderer/sppm.h"
-#include "../sources/renderer/subsurface_integrator.h"
+// #include "../sources/renderer/bdpt.h"
+// #include "../sources/renderer/mlt.h"
+// #include "../sources/renderer/ppmprob.h"
+// #include "../sources/renderer/sppm.h"
+// #include "../sources/renderer/subsurface_integrator.h"
 
 // --------------------------------------------
 // Scenes

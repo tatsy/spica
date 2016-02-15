@@ -26,11 +26,12 @@ public:
 class SPICA_EXPORTS GeometricPrimitive : public Primitive {
 public:
     // Public methods
-    virtual Bound3d worldBound() const override;
-    virtual bool intersect(const Ray& ray, SurfaceInteraction* isect) const override;
     GeometricPrimitive(const std::shared_ptr<Shape>& shape,
                        const std::shared_ptr<Material>& material,
                        const std::shared_ptr<AreaLight>& areaLight);
+
+    virtual Bound3d worldBound() const override;
+    virtual bool intersect(const Ray& ray, SurfaceInteraction* isect) const override;
 
     const std::shared_ptr<const AreaLight>& areaLight() const override;
     const std::shared_ptr<const Material>&  material()  const override;

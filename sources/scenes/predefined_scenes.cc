@@ -6,9 +6,6 @@
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
 #include "../light/spica_light.h"
-#include "../bsdf/bsdf.h"
-#include "../bsdf/brdf.h"
-#include "../bsdf/bssrdf.h"
 #include "../shape/spica_shape.h"
 
 namespace spica {

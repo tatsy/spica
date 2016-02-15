@@ -153,4 +153,8 @@ std::vector<Triangle> Triangle::triangulate() const {
     return std::move(tris);
 }
 
+Point3D Triangle::gravity() const {
+    return (points_[0] + points_[1] + points_[2]) / 3.0;
+}
+
 }  // namespace spica

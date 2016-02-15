@@ -4,6 +4,8 @@
 #include "../core/interaction.h"
 #include "../math/vect_math.h"
 
+#include "bxdf.h"
+
 namespace spica {
 
 BSDF::BSDF(const SurfaceInteraction& isect, double eta)
@@ -16,6 +18,16 @@ BSDF::BSDF(const SurfaceInteraction& isect, double eta)
 void BSDF::add(BxDF* b) {
     Assertion(nBxDFs < maxBxDFs_, "Number of BxDF is over size limit!!");
     bxdfs_[nBxDFs++] = b;
+}
+
+int BSDF::numComponents(BxDFType type) const {
+    int ret = 0;
+    for (int i = 0; i < nBxDFs; i++) {
+        if (bxdfs_[i]->type() & type) {
+            ret++;
+        }
+    }
+    return ret;
 }
 
 Vector3D BSDF::worldToLocal(const Vector3D& v) const {

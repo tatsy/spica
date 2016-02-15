@@ -37,6 +37,9 @@ public:
     AccelInterface(AccelType type) : type_{ type } {}
     virtual ~AccelInterface() {}
     virtual void construct(const std::vector<Triangle>& triangles) = 0;
+    virtual Bound3d worldBound() const override {
+        return worldBound_;
+    }
 
 protected:
     // Protected internal classes

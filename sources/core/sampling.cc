@@ -132,7 +132,7 @@ double Distribution2D::pdf(const Point2D& p) const {
 }
 
 Point2D sampleConcentricDisk(const Point2D& rands) {
-    Point2D uOffset = 2.0 * rands - Vector2D(1.0, 1.0);
+    Point2D uOffset = 2.0 * rands - Point2D(1.0, 1.0);
     if (uOffset.x() == 0.0 && uOffset.y() == 0.0) return Point2D(0.0, 0.0);
 
     double theta, r;
@@ -155,7 +155,7 @@ Vector3D sampleCosineHemisphere(const Point2D& rands) {
 void sampleUniformHemisphere(const Normal& normal, Vector3D* direction, const Point2D& rands) {
     Vector3D u, v, w;
     w = static_cast<Vector3D>(normal);
-    helper::calcLocalCoords(w, &u, &v);
+    vect::coordinateSystem(w, &u, &v);
 
     const double t = 2.0 * PI * rands[0];
     const double z2 = rands[1];
@@ -167,6 +167,7 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
     Random rng((unsigned int)time(0));
 
     // Sample random points on trimesh
+    /*
     Bound3d bbox;
     std::vector<Point> candPoints;
     std::vector<Normal> candNormals;
@@ -232,6 +233,7 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
         points->push_back(candPoints[*it]);
         normals->push_back(candNormals[*it]);
     }
+    */
 }
 
 }  // namespace spica

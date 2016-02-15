@@ -36,7 +36,7 @@ namespace spica {
         
     protected:
         Image _result;
-        std::unique_ptr<SubsurfaceIntegrator> _integrator;
+        // std::unique_ptr<SubsurfaceIntegrator> _integrator;
         RendererType _type;
 
     public:

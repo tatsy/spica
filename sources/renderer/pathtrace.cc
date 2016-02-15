@@ -25,7 +25,7 @@
 
 #include "renderer_helper.h"
 #include "render_parameters.h"
-#include "subsurface_integrator.h"
+// #include "subsurface_integrator.h"
 
 namespace spica {
 
@@ -42,7 +42,7 @@ namespace spica {
         const int height = camera.imageH();
 
         // Preparation for accouting for BSSRDF
-        _integrator->initialize(scene);
+        // _integrator->initialize(scene);
 
         // Prepare random number generators
         std::vector<Sampler > samplers;
@@ -77,7 +77,7 @@ namespace spica {
         buffer.fill(RGBSpectrum(0.0, 0.0, 0.0));
         for (int i = 0; i < params.samplePerPixel(); i++) {
             if (i % kNumThreads == 0) {
-                _integrator->construct(scene, params);
+                // _integrator->construct(scene, params);
             }
 
             for (int t = 0; t < taskPerThread; t++) {
@@ -156,7 +156,7 @@ namespace spica {
             if (ref.isBlack() || pdf == 0.0) break;
 
             beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
-            specularBounce = (isect.bsdf()->hasType() & BxDFType::Specular) != 0;
+            specularBounce = isect.bsdf()->hasType(BxDFType::Specular);
 
             ray = isect.nextRay(wi);
 

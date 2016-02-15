@@ -4,6 +4,7 @@
 #include "../renderer/ray.h"
 #include "../core/primitive.h"
 #include "../math/vector3d.h"
+#include "../bxdf/bsdf.h"
 #include "../light/area_light.h"
 
 namespace spica {

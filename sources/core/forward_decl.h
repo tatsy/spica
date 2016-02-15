@@ -108,6 +108,7 @@ namespace spica {
 
     // BSDF module
     class BSDF;
+    class BxDF;
     class BSSRDF;
 
     // Random module

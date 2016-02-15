@@ -32,9 +32,8 @@ public:
                     SurfaceInteraction* isect) const override;
 
     Interaction sample(const Interaction& isect,
-                       const Point2D& rands) const;
+                       const Point2D& rands) const override;
 
-    Bound3d worldBound() const override;
     Bound3d objectBound() const override;
 
     double area() const override;
@@ -46,7 +45,7 @@ private:
     Triangle tr(int i, int j, int k) const;
 
     // Private fields
-    std::array<Point, 4> _points;
+    std::array<Point, 4> points_;
 
 };  // class Quad
 

@@ -194,10 +194,6 @@ void QBVHAccel::release() {
     simdTris_.clear();
 }
 
-Bound3d QBVHAccel::worldBound() const {
-    return worldBound_;
-}
-
 void QBVHAccel::construct(const std::vector<Triangle>& triangles) {
     // Destruct previos tree
     release();

@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "primitive.h"
 
+#include "../core/interaction.h"
 #include "../shape/shape.h"
 #include "../material/material.h"
 
@@ -29,12 +30,24 @@ void Aggregate::setScatterFuncs(SurfaceInteraction* intr,
 // GeometricPrimitive method definitions
 // -----------------------------------------------------------------------------
 
+GeometricPrimitive::GeometricPrimitive(const std::shared_ptr<Shape>& shape,
+                                       const std::shared_ptr<Material>& material,
+                                       const std::shared_ptr<AreaLight>& areaLight)
+    : shape_{ shape }
+    , material_{ material_ }
+    , areaLight_{ areaLight } {    
+}
+
 Bound3d GeometricPrimitive::worldBound() const {
     return shape_->worldBound();
 }
 
 bool GeometricPrimitive::intersect(const Ray& ray, SurfaceInteraction* isect) const {
-    
+    double tHit;
+    if (!shape_->intersect(ray, &tHit, isect)) return false;
+
+    isect->setPrimitive(this);
+    return true;
 }
 
 const std::shared_ptr<const Material>& GeometricPrimitive::material() const {

@@ -30,6 +30,7 @@ namespace spica {
 
         virtual Ray nextRay(const Vector3D& wi) const;
 
+        inline virtual bool isSurfaceInteraction() const { return false; }
         inline const Point&    pos()    const { return pos_; }
         inline const Normal&   normal() const { return normal_; }
         inline const Vector3D& wo()     const { return wo_; }
@@ -56,6 +57,7 @@ namespace spica {
         void setScatterFuncs(const Ray& ray, MemoryArena& arena);
         Spectrum Le(const Vector3D& w) const;
 
+        inline bool isSurfaceInteraction() const override { return true; }
         inline const Point2D& uv() const { return uv_; }
         inline const Vector3D& dpdu() const { return dpdu_; }
         inline const Vector3D& dpdv() const { return dpdv_; }
@@ -66,7 +68,7 @@ namespace spica {
         inline double dvdx() const { return dvdx_; }
         inline double dvdy() const { return dvdy_; }
 
-        inline BSDF* bsdf() { return bsdf_; }
+        inline BSDF* bsdf() const { return bsdf_; }
         inline void setBSDF(BSDF* bsdf) { bsdf_ = bsdf; }
         inline void setPrimitive(const Primitive* prim) { primitive_ = prim; }
     

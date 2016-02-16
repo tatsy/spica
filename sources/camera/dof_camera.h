@@ -13,7 +13,7 @@
 #include "../random/random.h"
 #include "../random/halton.h"
 
-#include "../renderer/ray.h"
+#include "../core/ray.h"
 
 namespace spica {
 

@@ -1,7 +1,7 @@
 #define SPICA_API_EXPORT
 #include "interaction.h"
 
-#include "../renderer/ray.h"
+#include "../core/ray.h"
 #include "../core/primitive.h"
 #include "../math/vector3d.h"
 #include "../bxdf/bsdf.h"

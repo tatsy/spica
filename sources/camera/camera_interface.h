@@ -11,7 +11,7 @@
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
 #include "../core/stack.h"
-#include "../renderer/ray.h"
+#include "../core/ray.h"
 
 namespace spica {
 

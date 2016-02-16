@@ -23,7 +23,7 @@ void BSDF::add(BxDF* b) {
 int BSDF::numComponents(BxDFType type) const {
     int ret = 0;
     for (int i = 0; i < nBxDFs_; i++) {
-        if (bxdfs_[i]->type() & type) {
+        if ((bxdfs_[i]->type() & type) != BxDFType::None) {
             ret++;
         }
     }
@@ -48,9 +48,9 @@ Spectrum BSDF::f(const Vector3D& wiWorld, const Vector3D& woWorld,
     bool reflect = vect::dot(wiWorld, normal_) * vect::dot(woWorld, normal_) > 0.0;
     Spectrum ret(0.0);
     for (int i = 0; i < nBxDFs_; i++) {
-        if ((bxdfs_[i]->type() & type) &&
-            ((reflect && (bxdfs_[i]->type() & BxDFType::Reflection)) ||
-             (!reflect && (bxdfs_[i]->type() & BxDFType::Transmission)))) {
+        if (((bxdfs_[i]->type() & type) != BxDFType::None) &&
+            ((reflect && ((bxdfs_[i]->type() & BxDFType::Reflection) != BxDFType::None)) ||
+             (!reflect && ((bxdfs_[i]->type() & BxDFType::Transmission) != BxDFType::None)))) {
             ret += bxdfs_[i]->f(wo, wi);
         }
     }
@@ -65,7 +65,7 @@ Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
     BxDF* bxdf = nullptr;
     int count = comps;
     for (int i = 0; i < nBxDFs_; i++) {
-        if (bxdfs_[i]->type() & type && count-- == 0) {
+        if ((bxdfs_[i]->type() & type) != BxDFType::None && count-- == 0) {
             bxdf = bxdfs_[i];
             break;
         }
@@ -79,22 +79,22 @@ Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
 
     *wiWorld = localToWorld(wi);
 
-    if (!(bxdf->type() & BxDFType::Specular) && matchComps > 1) {
+    if ((bxdf->type() & BxDFType::Specular) == BxDFType::None && matchComps > 1) {
         for (int i = 0; i < nBxDFs_; i++) {
-            if (bxdfs_[i] != bxdf && (bxdfs_[i]->type() & type)) {
+            if (bxdfs_[i] != bxdf && (bxdfs_[i]->type() & type) != BxDFType::None) {
                 *pdf += bxdfs_[i]->pdf(wo, wi);
             }
         }
     }
     if (matchComps > 1) *pdf /= matchComps;
 
-    if (!(bxdf->type() & BxDFType::Specular) && matchComps > 1) {
+    if ((bxdf->type() & BxDFType::Specular) == BxDFType::None && matchComps > 1) {
         ret = Spectrum(0.0);
         for (int i = 0; i < nBxDFs_; i++) {
             bool reflect = vect::dot(*wiWorld, normal_) * vect::dot(woWorld, normal_) > 0.0;
-            if ((bxdfs_[i]->type() & type) &&
-                ((reflect && bxdfs_[i]->type() & BxDFType::Reflection) ||
-                 (!reflect && bxdfs_[i]->type() & BxDFType::Transmission))) {
+            if ((bxdfs_[i]->type() & type) != BxDFType::None &&
+                ((reflect && (bxdfs_[i]->type() & BxDFType::Reflection) != BxDFType::None) ||
+                 (!reflect && (bxdfs_[i]->type() & BxDFType::Transmission) != BxDFType::None))) {
 
             }
         }
@@ -108,7 +108,7 @@ double BSDF::pdf(const Vector3D& woWorld, const Vector3D& wiWorld, BxDFType type
     double pdf = 0.0;
     int matchComps = 0;
     for (int i = 0; i < nBxDFs_; i++) {
-        if (bxdfs_[i]->type() & type) {
+        if ((bxdfs_[i]->type() & type) != BxDFType::None) {
             pdf += bxdfs_[i]->pdf(wo, wi);
             matchComps++;
         }
@@ -118,7 +118,7 @@ double BSDF::pdf(const Vector3D& woWorld, const Vector3D& wiWorld, BxDFType type
 
 bool BSDF::hasType(BxDFType type) const {
     for (int i = 0; i < nBxDFs_; i++) {
-        if (bxdfs_[i]->type() & type) return true;
+        if ((bxdfs_[i]->type() & type) != BxDFType::None) return true;
     }
     return false;
 }

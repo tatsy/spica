@@ -2,7 +2,7 @@
 #include "shape.h"
 
 #include "../core/interaction.h"
-#include "../renderer/ray.h"
+#include "../core/ray.h"
 
 namespace spica {
 

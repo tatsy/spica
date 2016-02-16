@@ -25,8 +25,12 @@ inline BxDFType operator|(BxDFType t1, BxDFType t2) {
     return static_cast<BxDFType>(static_cast<int>(t1) | static_cast<int>(t2));
 }
 
-inline bool operator&(BxDFType t1, BxDFType t2) {
-    return (static_cast<int>(t1) & static_cast<int>(t2)) != 0;
+inline BxDFType operator&(BxDFType t1, BxDFType t2) {
+    return static_cast<BxDFType>(static_cast<int>(t1) & static_cast<int>(t2));
+}
+
+inline BxDFType operator~(BxDFType t) {
+    return static_cast<BxDFType>(~static_cast<int>(t));
 }
 
 /**

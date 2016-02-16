@@ -8,7 +8,7 @@
 
 #include "point2d.h"
 #include "interaction.h"
-#include "../renderer/renderer_helper.h"
+#include "../integrator/renderer_helper.h"
 
 namespace spica {
 

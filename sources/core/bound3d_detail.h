@@ -5,7 +5,7 @@
 #ifndef _SPICA_BOUND3D_DETAIL_H_
 #define _SPICA_BOUND3D_DETAIL_H_
 
-#include "../renderer/ray.h"
+#include "ray.h"
 
 namespace spica {
 

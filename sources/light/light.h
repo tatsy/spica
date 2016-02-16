@@ -102,6 +102,8 @@ namespace spica {
 
         virtual Light* clone() const = 0;
 
+        inline virtual bool isDelta() const { return false; }
+
     protected:
         const LightType type_;
         const int numSamples_;

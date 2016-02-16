@@ -21,7 +21,6 @@ namespace spica {
     }
 
     Spectrum AreaLight::L(const Interaction& pLight, const Vector3D& w) const {
-        std::cout << w << std::endl;
         return vect::dot(pLight.normal(), w) > 0.0 ? Lemit_ : Spectrum(0.0);                
     }
 
@@ -29,6 +28,7 @@ namespace spica {
                                  Vector3D* dir, double* pdf,
                                  VisibilityTester* vis) const {
         Interaction pLight = shape_->sample(pObj, rands);
+        std::cout << pLight.pos() << std::endl;
         *dir = (pLight.pos() - pObj.pos()).normalized();
         *pdf = shape_->pdf(pObj, *dir);
         *vis = VisibilityTester(pObj, pLight);

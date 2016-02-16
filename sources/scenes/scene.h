@@ -35,7 +35,7 @@ public:
 
     inline const Bound3d& worldBound() const { return worldBound_; }
 
-    inline const std::vector<std::shared_ptr<Light> > lights() const {
+    inline const std::vector<std::shared_ptr<Light> >& lights() const {
         return lights_;
     }
 

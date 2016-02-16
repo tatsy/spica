@@ -8,6 +8,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/sampling.cc
      ${CMAKE_CURRENT_LIST_DIR}/primitive.cc
      ${CMAKE_CURRENT_LIST_DIR}/interaction.cc
+     ${CMAKE_CURRENT_LIST_DIR}/ray.cc
      PARENT_SCOPE)
 
  set(HEADERS ${HEADERS}
@@ -31,6 +32,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/sampling.h
      ${CMAKE_CURRENT_LIST_DIR}/primitive.h
      ${CMAKE_CURRENT_LIST_DIR}/interaction.h
+     ${CMAKE_CURRENT_LIST_DIR}/ray.h
      ${CMAKE_CURRENT_LIST_DIR}/timer.h
      ${CMAKE_CURRENT_LIST_DIR}/axis_comparable.h
      ${CMAKE_CURRENT_LIST_DIR}/kdtree.h

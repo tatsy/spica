@@ -2,7 +2,7 @@
 #include "quad.h"
 
 #include "../core/interaction.h"
-#include "../renderer/ray.h"
+#include "../core/ray.h"
 #include "../math/vector3d.h"
 
 #include "triangle.h"

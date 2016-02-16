@@ -6,7 +6,7 @@
 #define _SPICA_H_
 
 #include "../sources/core/common.h"
-#include "../sources/core/vbo.h"
+// #include "../sources/core/vbo.h"
 #include "../sources/core/path.h"
 #include "../sources/core/timer.h"
 #include "../sources/core/sampling.h"
@@ -56,11 +56,11 @@
 // Renderers
 // --------------------------------------------
 
-#include "../sources/renderer/render_parameters.h"
-#include "../sources/renderer/renderer_helper.h"
+#include "../sources/integrator/render_parameters.h"
+#include "../sources/integrator/renderer_helper.h"
 
-#include "../sources/renderer/renderer_interface.h"
-#include "../sources/renderer/pathtrace.h"
+#include "../sources/integrator/renderer_interface.h"
+#include "../sources/integrator/pathtrace.h"
 // #include "../sources/renderer/bdpt.h"
 // #include "../sources/renderer/mlt.h"
 // #include "../sources/renderer/ppmprob.h"

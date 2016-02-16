@@ -7,8 +7,8 @@
 
 #include <type_traits>
 
-#include "../core/point3d.h"
-#include "../renderer/ray.h"
+#include "point3d.h"
+#include "ray.h"
 
 namespace spica {
 

@@ -24,6 +24,7 @@
 
 #include "../scenes/scene.h"
 
+#include "integrator.h"
 #include "renderer_helper.h"
 #include "render_parameters.h"
 // #include "subsurface_integrator.h"
@@ -148,8 +149,6 @@ Spectrum PathRenderer::radiance(const Scene& scene,
 
         if (!isIntersect || bounces >= params.bounceLimit()) break;
 
-        return Spectrum(1.0);
-
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
             ray = isect.nextRay(ray.dir());
@@ -157,7 +156,9 @@ Spectrum PathRenderer::radiance(const Scene& scene,
             continue;
         }
 
-        if (isect.bsdf()->numComponents(BxDFType::All & ~BxDFType::Specular)) {
+        if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
+            Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
+            L += Ld;
         }
 
         // Process BxDF
@@ -170,9 +171,6 @@ Spectrum PathRenderer::radiance(const Scene& scene,
 
         beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
         specularBounce = isect.bsdf()->hasType(BxDFType::Specular);
-
-        std::cout << "bounces: " << bounces << std::endl;
-        std::cout << "dir: " << ray.dir() << std::endl;
 
         // Account for BSSRDF
         /*
@@ -196,6 +194,10 @@ Spectrum PathRenderer::radiance(const Scene& scene,
             if (sampler.get1D() > continueProbability) break;
             beta /= continueProbability;
         }
+    }
+
+    if (!L.isBlack()) {
+        std::cout << "Yeah!!" << std::endl;
     }
     return L;
 
@@ -260,12 +262,6 @@ Spectrum PathRenderer::radiance(const Scene& scene,
 
     return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
     */
-}
-
-double powerHeuristic(int nf, double f, int ng, double g) {
-    const double ff = nf * f;
-    const double gg = ng * g;
-    return (ff * ff) / (ff * ff + gg * gg);
 }
 
 /*

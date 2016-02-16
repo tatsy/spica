@@ -1,7 +1,7 @@
 #ifndef _SPICA_RENDERER_CONSTANTS_H_
 #define _SPICA_RENDERER_CONSTANTS_H_
 
-#include "ray.h"
+#include "../core/ray.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
 

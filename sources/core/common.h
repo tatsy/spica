@@ -77,7 +77,7 @@ static const double EPS = 1.0e-6;
 // ----------------------------------------------------------------------------
 // Parallel for
 // ----------------------------------------------------------------------------
-#ifdef _OPENMP
+#ifndef _OPENMP
     #include <omp.h>
     #if defined(_WIN32) || defined(__WIN32__)
         #define ompfor __pragma(omp parallel for) for

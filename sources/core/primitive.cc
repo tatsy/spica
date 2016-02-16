@@ -11,12 +11,12 @@ namespace spica {
 // Primitive method definitions
 // -----------------------------------------------------------------------------
 
-const std::shared_ptr<const AreaLight>& Aggregate::areaLight() const {
+const AreaLight* Aggregate::areaLight() const {
     Warning("Deprecated function!!");
     return nullptr;
 }
 
-const std::shared_ptr<const Material>& Aggregate::material() const {
+const Material* Aggregate::material() const {
     Warning("Deprecated function!!");
     return nullptr;
 }
@@ -33,29 +33,30 @@ void Aggregate::setScatterFuncs(SurfaceInteraction* intr,
 GeometricPrimitive::GeometricPrimitive(const std::shared_ptr<Shape>& shape,
                                        const std::shared_ptr<Material>& material,
                                        const std::shared_ptr<AreaLight>& areaLight)
-    : shape_{ shape }
-    , material_{ material_ }
-    , areaLight_{ areaLight } {    
+    : Primitive{}
+    , shape_{ shape }
+    , material_{ material }
+    , areaLight_{ areaLight } {
 }
 
 Bound3d GeometricPrimitive::worldBound() const {
     return shape_->worldBound();
 }
 
-bool GeometricPrimitive::intersect(const Ray& ray, SurfaceInteraction* isect) const {
+bool GeometricPrimitive::intersect(Ray& ray, SurfaceInteraction* isect) const {
     double tHit;
     if (!shape_->intersect(ray, &tHit, isect)) return false;
-
+    ray.setMaxDist(tHit);
     isect->setPrimitive(this);
     return true;
 }
 
-const std::shared_ptr<const Material>& GeometricPrimitive::material() const {
-    return material_;
+const Material* GeometricPrimitive::material() const {
+    return material_.get();
 }
 
-const std::shared_ptr<const AreaLight>& GeometricPrimitive::areaLight() const {
-    return areaLight_;
+const AreaLight* GeometricPrimitive::areaLight() const {
+    return areaLight_.get();
 }
 
 void GeometricPrimitive::setScatterFuncs(SurfaceInteraction* isect, MemoryArena& arena) const {

@@ -19,7 +19,7 @@ void LambertianMaterial::setScatterFuncs(SurfaceInteraction* intr,
                                          MemoryArena& arena) const {
     // if (bumpMap_) bump(intr, bumpMap_);
 
-    intr->bsdf().reset(arena.allocate<BSDF>(*intr));
+    intr->setBSDF(arena.allocate<BSDF>(*intr));
     Spectrum r = Spectrum::clamp(Kd_->evaluate(*intr));
     if (!r.isBlack()) {
         intr->bsdf()->add(arena.allocate<LambertianReflection>(r));

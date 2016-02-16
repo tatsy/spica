@@ -50,9 +50,10 @@ namespace spica {
         return ret;
     }
 
-    void KdTreeAccel::construct(const std::vector<Triangle>& triangles) {
+    void KdTreeAccel::construct() {
         release();
 
+        /*
         const int numTriangles = static_cast<int>(triangles.size());
         std::vector<IndexedTriangle> temp(numTriangles);
         for (int i = 0; i < numTriangles; i++) {
@@ -60,6 +61,7 @@ namespace spica {
             temp[i].idx = i;
         }
         _root = constructRec(temp, 0, temp.size());
+         */
     }
 
     KdTreeAccel::KdTreeNode* KdTreeAccel::constructRec(std::vector<IndexedTriangle>& triangles, int start, int end) {
@@ -97,7 +99,7 @@ namespace spica {
         return node;
     }
 
-    bool KdTreeAccel::intersect(const Ray& ray, SurfaceInteraction* isect) const {
+    bool KdTreeAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
         double tHit = ray.maxDist();
         std::stack<KdTreeNode*> todoNode;
         todoNode.push(_root);

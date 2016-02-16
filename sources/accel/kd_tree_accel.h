@@ -44,8 +44,8 @@ public:
     KdTreeAccel();
     virtual ~KdTreeAccel();
         
-    void construct(const std::vector<Triangle>& triangles) override;
-    bool intersect(const Ray& ray, SurfaceInteraction* isect) const override;
+    void construct() override;
+    bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
 
 private:
     void release();

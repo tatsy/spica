@@ -25,10 +25,13 @@ public:
     Scene();
     Scene(const std::shared_ptr<Primitive>& aggregate,
             const std::vector<std::shared_ptr<Light> >& lights);
+    Scene(Scene&& scene);
 
     virtual ~Scene();
 
-    bool intersect(const Ray& ray, SurfaceInteraction* isect) const;
+    Scene& operator=(Scene&& scene);
+
+    bool intersect(Ray& ray, SurfaceInteraction* isect) const;
 
     inline const Bound3d& worldBound() const { return worldBound_; }
 

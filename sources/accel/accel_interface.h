@@ -36,7 +36,7 @@ public:
     // Public methods
     AccelInterface(AccelType type) : type_{ type } {}
     virtual ~AccelInterface() {}
-    virtual void construct(const std::vector<Triangle>& triangles) = 0;
+    virtual void construct() = 0;
     virtual Bound3d worldBound() const override {
         return worldBound_;
     }

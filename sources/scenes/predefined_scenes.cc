@@ -8,6 +8,12 @@
 #include "../light/spica_light.h"
 #include "../shape/spica_shape.h"
 
+#include "../accel/bbvh_accel.h"
+#include "../accel/qbvh_accel.h"
+
+#include "../material/lambert.h"
+#include "../texture/constant.h"
+
 namespace spica {
     void cornellBox(Scene* scene, Camera* camera, const int width, const int height) {
         // Light
@@ -19,6 +25,7 @@ namespace spica {
         auto light = std::make_shared<AreaLight>(lightMesh,
                                                 Transform(),
                                                 Spectrum(32.0, 32.0, 32.0));
+        std::vector<std::shared_ptr<Light>> lights(1, light);
 
         Point v000(-10.0, -10.0, -10.0);
         Point v100( 10.0, -10.0, -10.0);
@@ -29,11 +36,46 @@ namespace spica {
         Point v011(-10.0,  10.0,  50.0);
         Point v111( 10.0,  10.0,  50.0);
 
-        Quad ceilWall(v010, v110, v111, v011);
-        Quad floorWall(v000, v001, v101, v100);
-        Quad backWall(v000, v100, v110, v010);
-        Quad leftWall(v000, v010, v011, v001);
-        Quad rightWall(v100, v101, v111, v110);
+        std::vector<std::shared_ptr<Primitive>> primitives;
+
+        // Light
+        auto lightKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+        auto lightMtrl = std::make_shared<LambertianMaterial>(lightKd); 
+        primitives.emplace_back(new GeometricPrimitive(lightMesh, lightMtrl, light));
+        
+        // Ceil
+        auto ceilWall = std::make_shared<Quad>(v010, v110, v111, v011);
+        auto ceilKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.75, 0.75, 0.75));
+        auto ceilMtrl = std::make_shared<LambertianMaterial>(ceilKd);
+        primitives.emplace_back(new GeometricPrimitive(ceilWall, ceilMtrl, nullptr));
+
+        // Floor
+        auto floorWall = std::make_shared<Quad>(v000, v001, v101, v100);
+        auto floorKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.75, 0.75, 0.75));
+        auto floorMtrl = std::make_shared<LambertianMaterial>(floorKd);
+        primitives.emplace_back(new GeometricPrimitive(floorWall, floorMtrl, nullptr));
+
+        // Back
+        auto backWall = std::make_shared<Quad>(v000, v100, v110, v010);
+        auto backKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.75, 0.75, 0.75));
+        auto backMtrl = std::make_shared<LambertianMaterial>(backKd);
+        primitives.emplace_back(new GeometricPrimitive(backWall, backMtrl, nullptr));
+
+        // Left
+        auto leftWall = std::make_shared<Quad>(v000, v010, v011, v001);
+        auto leftKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.75, 0.25, 0.25));
+        auto leftMtrl = std::make_shared<LambertianMaterial>(leftKd);
+        primitives.emplace_back(new GeometricPrimitive(leftWall, leftMtrl, nullptr));
+
+        // Right
+        auto rightWall = std::make_shared<Quad>(v100, v101, v111, v110);
+        auto rightKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.25, 0.25, 0.75));
+        auto rightMtrl = std::make_shared<LambertianMaterial>(rightKd);
+        primitives.emplace_back(new GeometricPrimitive(rightWall, rightMtrl, nullptr));
+
+        auto accel = std::make_shared<BBVHAccel>(primitives);
+
+        *scene = Scene(accel, lights);
 
         /*
         scene->addShape(floorWall, LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
@@ -58,6 +100,7 @@ namespace spica {
 
         // scene->setAccelType(AccelType::QBVH);
         scene->finalize();
+         */
 
         (*camera) = Camera::asDoF(width, height, 
                                   Point(0.0, 0.0, 100.0),
@@ -68,7 +111,6 @@ namespace spica {
                                   58.0,
                                   1.0,
                                   90.0);
-         */
     }
 
     /*

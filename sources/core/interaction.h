@@ -66,7 +66,8 @@ namespace spica {
         inline double dvdx() const { return dvdx_; }
         inline double dvdy() const { return dvdy_; }
 
-        inline std::unique_ptr<BSDF>& bsdf() { return bsdf_; }
+        inline BSDF* bsdf() { return bsdf_; }
+        inline void setBSDF(BSDF* bsdf) { bsdf_ = bsdf; }
         inline void setPrimitive(const Primitive* prim) { primitive_ = prim; }
     
     private:
@@ -77,7 +78,7 @@ namespace spica {
         double dudx_ = 0.0, dudy_ = 0.0, dvdx_ = 0.0, dvdy_ = 0.0;
         const Shape* shape_ = nullptr;
         const Primitive* primitive_ = nullptr;
-        std::unique_ptr<BSDF> bsdf_;
+        BSDF* bsdf_ = nullptr;
     };
 
 }  // namespace spica

@@ -15,31 +15,35 @@ namespace spica {
     *  @ingroup accel_module
     */
 class SPICA_EXPORTS BBVHAccel : public AccelInterface {
+public:
+    BBVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
+              int maxPrimsInNode = 1);
+    virtual ~BBVHAccel();
+
+    Bound3d worldBound() const override;
+    void construct();
+    bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
+
 private:
+    // Private internal classes
     struct BVHPrimitiveInfo;
     struct BucketInfo;
     struct BBvhNode;
     struct ComparePoint;
     struct CompareToBucket;
 
-private:
-    BBvhNode* _root;
-    std::vector<Triangle>     _tris;
-    std::vector<std::unique_ptr<BBvhNode> > _nodes;
-
-public:
-    BBVHAccel();
-    virtual ~BBVHAccel();
-
-    Bound3d worldBound() const override;
-    void construct(const std::vector<Triangle>& triangles) override;
-    bool intersect(const Ray& ray, SurfaceInteraction* isect) const override;
-
-private:
-    void release();
-
+    // Private methods
     BBvhNode* constructRec(std::vector<BVHPrimitiveInfo>& buildData,
                             int start, int end);
+
+    // Private fields
+    const int maxPrimInNode_;
+    std::vector<std::shared_ptr<Primitive>> primitives_;
+    BBvhNode* _root;
+    //std::vector<Triangle>     _tris;
+    std::vector<std::unique_ptr<BBvhNode> > _nodes;
+    //void release();
+
 };  // class BBVHAccel
 
 }  // namespace spica

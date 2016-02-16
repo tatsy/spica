@@ -95,7 +95,6 @@ SurfaceInteraction& SurfaceInteraction::operator=(const SurfaceInteraction& intr
 void SurfaceInteraction::computeDifferentials(const Ray& ray) {
     //if (ray.hasDifferential()) {
     //} else {
-
     dudx_ = dvdx_ = 0.0;
     dudy_ = dvdy_ = 0.0;
     dpdx_ = dpdy_ = Vector3D(0.0, 0.0, 0.0);
@@ -108,7 +107,7 @@ void SurfaceInteraction::setScatterFuncs(const Ray& ray, MemoryArena& arena) {
 }
 
 Spectrum SurfaceInteraction::Le(const Vector3D& w) const {
-    auto area = primitive_->areaLight().get();
+    const AreaLight* area = primitive_->areaLight();
     return area ? area->L(*this, w) : Spectrum(0.0);
 }
 

@@ -194,10 +194,11 @@ void QBVHAccel::release() {
     simdTris_.clear();
 }
 
-void QBVHAccel::construct(const std::vector<Triangle>& triangles) {
+void QBVHAccel::construct() {
     // Destruct previos tree
     release();
 
+    /*
     triangles_ = triangles;
 
     std::vector<BVHPrimitiveInfo> buildData;
@@ -212,6 +213,7 @@ void QBVHAccel::construct(const std::vector<Triangle>& triangles) {
     root_ = constructRec(buildData, 0, triangles.size(), &totalNodes, ordered_);
 
     collapse2QBVH(root_);
+     */
 }
     
 QBVHAccel::BVHBuildNode*
@@ -400,7 +402,7 @@ void QBVHAccel::collapse2QBVH(BVHBuildNode* node) {
     return;
 }
 
-bool QBVHAccel::intersect(const Ray& ray, SurfaceInteraction* isect) const {
+bool QBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
     // ray for SIMD arthimetic
     __m128 simdOrig[3];  // origin
     __m128 simdIdir[3];  // inverse direction

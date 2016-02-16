@@ -16,9 +16,9 @@ class SPICA_EXPORTS Primitive {
 public:
     virtual ~Primitive() {}
     virtual Bound3d worldBound() const = 0;
-    virtual bool    intersect(const Ray& ray, SurfaceInteraction* isect) const = 0;
-    virtual const   std::shared_ptr<const AreaLight>& areaLight() const = 0;
-    virtual const   std::shared_ptr<const Material>&  material()  const = 0;
+    virtual bool    intersect(Ray& ray, SurfaceInteraction* isect) const = 0;
+    virtual const   AreaLight* areaLight() const = 0;
+    virtual const   Material*  material()  const = 0;
     virtual void    setScatterFuncs(SurfaceInteraction* intr,
                                     MemoryArena& arena) const = 0;
 };  // class Primitive
@@ -31,25 +31,25 @@ public:
                        const std::shared_ptr<AreaLight>& areaLight);
 
     virtual Bound3d worldBound() const override;
-    virtual bool intersect(const Ray& ray, SurfaceInteraction* isect) const override;
+    virtual bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
 
-    const std::shared_ptr<const AreaLight>& areaLight() const override;
-    const std::shared_ptr<const Material>&  material()  const override;
+    const AreaLight* areaLight() const override;
+    const Material*  material()  const override;
     void setScatterFuncs(SurfaceInteraction* intr,
                          MemoryArena& arena) const override;
 
 private:
     // Private fields
-    std::shared_ptr<Shape> shape_;
-    std::shared_ptr<Material> material_;
-    std::shared_ptr<AreaLight> areaLight_;
+    std::shared_ptr<Shape>     shape_ = nullptr;
+    std::shared_ptr<Material>  material_ = nullptr;
+    std::shared_ptr<AreaLight> areaLight_ = nullptr;
 
 };  // class GeometricPrimitive
 
 class SPICA_EXPORTS Aggregate : public Primitive {
 public:
-    const std::shared_ptr<const AreaLight>& areaLight() const override;
-    const std::shared_ptr<const Material>&  material()  const override;
+    const AreaLight* areaLight() const override;
+    const Material*  material()  const override;
     void  setScatterFuncs(SurfaceInteraction* intr, 
                           MemoryArena& arena) const override;
 };  // class Aggregate

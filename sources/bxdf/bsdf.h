@@ -43,7 +43,7 @@ private:
     const double eta_;
     const Normal3D normal_;
     const Vector3D tangent_, binormal_;
-    int nBxDFs = 0;
+    int nBxDFs_ = 0;
     static constexpr int maxBxDFs_ = 8;
     BxDF *bxdfs_[maxBxDFs_];
 

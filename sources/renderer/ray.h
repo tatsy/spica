@@ -31,6 +31,7 @@ public:
     inline Vector3D dir()     const { return dir_; }
     inline Vector3D invdir()  const { return invdir_; }
     inline double   maxDist() const { return maxDist_; }
+    inline void     setMaxDist(double maxDist) { maxDist_ = maxDist; }
 
 private:
     // Private methods

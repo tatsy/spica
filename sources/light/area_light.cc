@@ -20,8 +20,9 @@ namespace spica {
     AreaLight::~AreaLight() {
     }
 
-    Spectrum AreaLight::L(const Interaction& pLight, const Vector3D& dir) const {
-        return vect::dot(pLight.normal(), dir) > 0.0 ? Lemit_ : Spectrum();                
+    Spectrum AreaLight::L(const Interaction& pLight, const Vector3D& w) const {
+        std::cout << w << std::endl;
+        return vect::dot(pLight.normal(), w) > 0.0 ? Lemit_ : Spectrum(0.0);                
     }
 
     Spectrum AreaLight::sampleLi(const Interaction& pObj, const Point2D& rands,

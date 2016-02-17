@@ -7,7 +7,6 @@
 
 #include "shape.h"
 #include "triangle.h"
-#include "quad.h"
 #include "disk.h"
 #include "sphere.h"
 

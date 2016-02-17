@@ -84,12 +84,9 @@ namespace spica {
     
     // Shape module
     class Disk;
-    class Plane;
-    class Quad;
     class Shape;
     class Sphere;
     class Triangle;
-    class Trimesh;
 
     // Light module
     enum class LightType;

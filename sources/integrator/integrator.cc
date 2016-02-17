@@ -41,7 +41,6 @@ Spectrum estimateDirectLight(const Interaction& intr,
     VisibilityTester vis;
     double lightPdf = 0.0, shadePdf = 0.0;
     Spectrum Li = light.sampleLi(intr, randLight, &wi, &lightPdf, &vis);
-    printf("lightPDF : %f\n", lightPdf);
     if (lightPdf > 0.0 && !Li.isBlack()) {
         Spectrum f;
         if (intr.isSurfaceInteraction()) {

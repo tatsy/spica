@@ -195,10 +195,6 @@ Spectrum PathRenderer::radiance(const Scene& scene,
             beta /= continueProbability;
         }
     }
-
-    if (!L.isBlack()) {
-        std::cout << "Yeah!!" << std::endl;
-    }
     return L;
 
 // ----------------------------------------------------------------------------

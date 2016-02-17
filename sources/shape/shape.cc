@@ -42,7 +42,7 @@ double Shape::pdf(const Interaction& pObj, const Vector3D& wi) const {
     SurfaceInteraction isect;
     if (!intersect(ray, &tHit, &isect)) return 0.0;
 
-    double ret = (pObj.pos() - isect.pos()).squaredNorm() / vect::absDot(isect.normal(), -wi) * area();
+    double ret = (pObj.pos() - isect.pos()).squaredNorm() / (vect::absDot(isect.normal(), -wi) * area());
     if (isinf(ret)) ret = 0.0;
     return ret;
 }

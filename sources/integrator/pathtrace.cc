@@ -39,7 +39,8 @@ PathRenderer::~PathRenderer() {
 }
 
 void PathRenderer::render(const Scene& scene, const Camera& camera,
-                            const RenderParameters& params) {
+                          const std::unique_ptr<Film>& film,
+                          const RenderParameters& params) {
     const int width  = camera.imageW();
     const int height = camera.imageH();
 
@@ -63,9 +64,6 @@ void PathRenderer::render(const Scene& scene, const Camera& camera,
         }
     }
 
-    // Vectors spanning screen
-    Image buffer = Image(width, height);
-
     // Distribute rendering tasks
     const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
     std::vector<std::vector<int> > tasks(kNumThreads);
@@ -75,8 +73,6 @@ void PathRenderer::render(const Scene& scene, const Camera& camera,
 
     // Trace rays
     int processed = 0;
-    _result.resize(width, height);
-    buffer.fill(RGBSpectrum(0.0, 0.0, 0.0));
     for (int i = 0; i < params.samplePerPixel(); i++) {
         if (i % kNumThreads == 0) {
             // _integrator->construct(scene, params);
@@ -88,8 +84,7 @@ void PathRenderer::render(const Scene& scene, const Camera& camera,
                     Stack<double> rstk;
                     const int y = tasks[threadID][t];
                     for (int x = 0; x < width; x++) {
-                        buffer.pixel(width - x - 1, y) +=
-                            tracePath(scene, camera, params, x, y, samplers[threadID]);
+                        film->addPixel(width - x - 1, y, tracePath(scene, camera, params, x, y, samplers[threadID]));
                     }
                 }
             }
@@ -122,11 +117,11 @@ Spectrum PathRenderer::tracePath(const Scene& scene, const Camera& camera,
     return radiance(scene, params, ray, sampler, 0) * (camera.sensitivity() / camSample.pdf());
 }
 
-Spectrum PathRenderer::radiance(const Scene& scene,
-                                const RenderParameters& params,
-                                const Ray& r,
-                                Sampler& sampler,
-                                int depth) const {
+Spectrum PathRenderer::Li(const Scene& scene,
+                          const RenderParameters& params,
+                          const Ray& r,
+                          Sampler& sampler,
+                          int depth) const {
     MemoryArena arena;
     Ray ray(r);
     Spectrum L(0.0);
@@ -200,145 +195,6 @@ Spectrum PathRenderer::radiance(const Scene& scene,
         }
     }
     return L;
-
-// ----------------------------------------------------------------------------
-
-    /*
-    if (bounces >= params.bounceLimit()) {
-        return RGBSpectrum(0.0);
-    }
-
-    SurfaceInteraction intr;
-    //if (!scene.intersect(ray, &intr)) {
-    //    return Spectrum(0.0);
-    //}
-
-    // Get intersecting material
-    const BSDF& bsdf       = intr.bsdf();
-    const Spectrum& refl   = intr.color();
-
-    // Russian roulette
-    double roulette = max3(refl.red(), refl.green(), refl.blue());
-    if (bounces < params.bounceStartRoulette()) {
-        roulette = 1.0;
-    } else {
-        if (roulette <= rstack.pop()) {
-            return Spectrum(0.0, 0.0, 0.0);
-        }
-    }
-
-    // Variables for next bounce
-    Spectrum bssrdfRad(0.0, 0.0, 0.0);
-    Vector3D nextdir;
-    double pdf = 1.0;
-
-    // Sample next direction
-    bsdf.sample(ray.dir(), isect.normal(), 
-                rstack.pop(), rstack.pop(), &nextdir, &pdf);
-
-    // Account for BSSRDF
-    if (bsdf.type() & BsdfType::Bssrdf) {
-        Assertion(_integrator != nullptr,
-                    "Subsurface intergrator is NULL !!");
-
-        double refPdf = 1.0;
-        bssrdfRad = bsdf.evalBSSRDF(ray.dir(),
-                                    isect.position(),
-                                    isect.normal(),
-                                    *_integrator,
-                                    &refPdf);
-        pdf *= refPdf;
-    }
-
-    // Sample direct lighting
-    Spectrum directrad = directSample(scene, objectID, ray.dir(),
-                                        isect.position(), isect.normal(),
-                                        refl, bounces, rstack);
-
-    // Compute next bounce
-    const Ray nextray(isect.position(), nextdir);
-    const Spectrum nextrad = radiance(scene, params, nextray,
-                                        rstack, bounces + 1);            
-
-    return (bssrdfRad + directrad + refl * nextrad / pdf) / roulette;
-    */
 }
-
-/*
-Spectrum PathRenderer::directSample(const Scene& scene, const int triID,
-                                    const Vector3D& in, const Point& v,
-                                    const Normal& n, const Spectrum& refl,
-                                    int bounces, Stack<double>& rstk) const {
-    const BSDF& bsdf = scene.getBsdf(triID);
-    if (bsdf.type() & BsdfType::Scatter) {
-        // Scattering surface
-        if (bounces == 0 && scene.isLightCheck(triID)) {
-            return scene.directLight(in);
-        } else {
-            Spectrum Ld(0.0, 0.0, 0.0);
-
-            // Sample light with multiple importance sampling
-            const LightSample Ls = scene.sampleLight(v, rstk);                
-            if (Ls.pdf() != 0.0) {
-                // Visibility check
-                Intersection isect;
-                if (scene.intersect(Ray(v, -Ls.dir()), &isect)) {
-                    if (scene.isLightCheck(isect.objectID())) {
-                        // PDFs are computed for polar coordinate system
-                        double lightPdf = Ls.pdf();
-                        double bsdfPdf  = bsdf.pdf(in, n, -Ls.dir());
-
-                        double weight = powerHeuristic(1, lightPdf, 1, bsdfPdf);
-
-                        double dot = std::abs(vect::dot(n, -Ls.dir()));
-                        Ld += (refl * dot * Ls.Le()) * weight / lightPdf; 
-                    }
-                }
-            }
-
-            // Sample BSDF with multiple importance sampling (only for area lights)
-            Vector3D nextdir;
-            double bsdfPdf;
-            bsdf.sample(in, n, rstk.pop(), rstk.pop(), &nextdir, &bsdfPdf);
-
-            Ray sampleRay(v, nextdir);
-            Intersection lightIsect;
-            if (scene.intersect(sampleRay, &lightIsect)) {
-                if (scene.isLightCheck(lightIsect.objectID())) {
-                    const double dist2 = (lightIsect.position() - v).squaredNorm();
-                    const double dot0  = vect::dot(n, nextdir);
-                    const double dot1  = vect::dot(lightIsect.normal(), -nextdir);
-                    if (dot0 > EPS && dot1 > EPS) {
-                        // PDFs are computed for polar coordinate system
-                        double jacob = dot1 / dist2;
-                        double lightPdf = 1.0 / (INV_PI * jacob * scene.lightArea());
-
-                        double weight = powerHeuristic(1, bsdfPdf, 1, lightPdf);
-
-                        Ld += (refl * dot0 * scene.directLight(nextdir)) * weight / bsdfPdf; 
-                    }
-                }
-            }
-            return Ld;
-        }
-    } else if (bsdf.type() & BsdfType::Dielectric) {
-        // Dielectric surface
-        double pdf;
-        Vector3D nextdir;
-        bsdf.sample(in, n, rstk.pop(), rstk.pop(), &nextdir, &pdf);
-            
-        Intersection isect;
-        if (scene.intersect(Ray(v, nextdir), &isect)) {
-            if (scene.isLightCheck(isect.objectID())) {
-                return (refl * scene.directLight(nextdir)) / pdf;
-            }
-        }
-    } else {
-        FatalError("Invalid BSDF detected: this is "
-                    "neigher scattering nor dielectric!!");
-    }
-    return Spectrum(0.0, 0.0, 0.0);
-}
-*/
 
 }  // namespace spica

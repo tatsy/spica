@@ -1,6 +1,7 @@
 set(SOURCES
     ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/image.cc
+    ${CMAKE_CURRENT_LIST_DIR}/film.cc
     ${CMAKE_CURRENT_LIST_DIR}/birateral.cc
     ${CMAKE_CURRENT_LIST_DIR}/tmo.cc
     ${CMAKE_CURRENT_LIST_DIR}/mipmap.cc
@@ -9,6 +10,7 @@ set(SOURCES
 set(HEADERS
     ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/image.h
+    ${CMAKE_CURRENT_LIST_DIR}/film.h
     ${CMAKE_CURRENT_LIST_DIR}/birateral.h
     ${CMAKE_CURRENT_LIST_DIR}/tmo.h
     ${CMAKE_CURRENT_LIST_DIR}/mipmap.h

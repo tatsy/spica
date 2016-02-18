@@ -35,7 +35,6 @@ namespace spica {
     class SPICA_EXPORTS IRenderer : private Uncopyable {
         
     protected:
-        Image _result;
         // std::unique_ptr<SubsurfaceIntegrator> _integrator;
         RendererType _type;
 
@@ -43,10 +42,10 @@ namespace spica {
         IRenderer(RendererType type);
         virtual ~IRenderer();
 
-        virtual void render(const Scene& scene, const Camera& camera, 
+        virtual void render(const Scene& scene, const Camera& camera,
+                            const std::unique_ptr<Film>& film,
                             const RenderParameters& params) = 0;
 
-        const Image& result() const { return _result; }
         inline RendererType type() const { return _type; }
     };
 

@@ -31,6 +31,7 @@ namespace spica {
 
     // Image module
     class Image;
+    class Film;
     class MipMap;
 
     // Math module

@@ -28,9 +28,11 @@ namespace spica {
         /** Rendering process.
          *  @param scene: The redering scene.
          *  @param camera: The camera for the scene.
+         *  @param filem: The film which stores the resulting image.
          *  @param params: The rendering parameters.
          */
         void render(const Scene& scene, const Camera& camera,
+                    const std::unique_ptr<Film>& film,
                     const RenderParameters& params) override;
 
     private:
@@ -39,16 +41,11 @@ namespace spica {
                            const double pixelX, const double pixelY,
                            Sampler& sampler);
 
-        Spectrum radiance(const Scene& scene,
-                          const RenderParameters& params,
-                          const Ray& ray,
-                          Sampler& sampler,
-                          int bounces) const;
-
-        Spectrum directSample(const Scene& scene, const int triID,
-                              const Vector3D& in, const Point& v,
-                              const Normal& n, const Spectrum& refl,
-                              int bounces, const std::shared_ptr<Sampler>& sampler) const;
+        Spectrum Li(const Scene& scene,
+                    const RenderParameters& params,
+                    const Ray& ray,
+                    Sampler& sampler,
+                    int bounces) const;
     };
 }
 

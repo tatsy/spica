@@ -152,7 +152,7 @@ Spectrum PathRenderer::radiance(const Scene& scene,
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
-            ray = isect.nextRay(ray.dir());
+            ray = isect.spawnRay(ray.dir());
             bounces--;
             continue;
         }
@@ -173,10 +173,8 @@ Spectrum PathRenderer::radiance(const Scene& scene,
         if (ref.isBlack() || pdf == 0.0) break;
 
         beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
-        specularBounce = isect.bsdf()->hasType(BxDFType::Specular);
-
         specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
-        ray = isect.nextRay(wi);
+        ray = isect.spawnRay(wi);
 
         // Account for BSSRDF
         /*

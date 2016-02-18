@@ -42,7 +42,7 @@ void GlassMaterial::setScatterFuncs(SurfaceInteraction* isect,
     if (isSpecular) {
         isect->bsdf()->add(arena.allocate<FresnelSpecular>(re, tr, 1.0, eta));
     } else {
-        // TODO: Implement!!
+        // TODO: Implement in the future!!
     }
 }
 

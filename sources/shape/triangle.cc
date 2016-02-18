@@ -1,7 +1,7 @@
 #define SPICA_API_EXPORT
 #include "triangle.h"
 
-#include "../core/bound3d.h"
+#include "../core/bounds3d.h"
 #include "../core/interaction.h"
 
 namespace spica {
@@ -85,7 +85,7 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
     if (v < 0.0 || u + v > 1.0) return false;
 
     *tHit = Vector3D::dot(e2, qVec) * invdet;
-    if (*tHit <= EPS) return false;
+    if (*tHit <= EPS || *tHit > ray.maxDist()) return false;
 
     Point3D pos = ray.org() + (*tHit) * ray.dir();
     Normal  nrm = (1.0 - u - v) * normals_[0] + u * normals_[1] + v * normals_[2];
@@ -136,10 +136,10 @@ Interaction Triangle::sample(const Interaction& isect,
     return Interaction{ pos, nrm };
 }
 
-Bound3d Triangle::objectBound() const {
+Bounds3d Triangle::objectBound() const {
     Point3D posMin = Point3D::minimum(points_[0], Point3D::minimum(points_[1], points_[2]));
     Point3D posMax = Point3D::maximum(points_[0], Point3D::maximum(points_[1], points_[2]));
-    return Bound3d{ posMin, posMax };
+    return Bounds3d{ posMin, posMax };
 }
 
 double Triangle::area() const {

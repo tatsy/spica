@@ -15,7 +15,7 @@ namespace spica {
 class SPICA_EXPORTS Primitive {
 public:
     virtual ~Primitive() {}
-    virtual Bound3d worldBound() const = 0;
+    virtual Bounds3d worldBound() const = 0;
     virtual bool    intersect(Ray& ray, SurfaceInteraction* isect) const = 0;
     virtual const   AreaLight* areaLight() const = 0;
     virtual const   Material*  material()  const = 0;
@@ -30,7 +30,7 @@ public:
                        const std::shared_ptr<Material>& material,
                        const std::shared_ptr<AreaLight>& areaLight);
 
-    virtual Bound3d worldBound() const override;
+    virtual Bounds3d worldBound() const override;
     virtual bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
 
     const AreaLight* areaLight() const override;

@@ -42,6 +42,8 @@ namespace spica {
             return { get1D(), get1D() };
         }
 
+        // virtual std::unique_ptr<Sampler> clone() const = 0;
+
     private:
         // Private methods
         Sampler(RandomInterface* rng)

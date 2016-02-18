@@ -41,8 +41,13 @@ Interaction& Interaction::operator=(const Interaction& intr) {
     return *this;
 }
 
-Ray Interaction::nextRay(const Vector3D& wi) const {
+Ray Interaction::spawnRay(const Vector3D& wi) const {
     return Ray(pos_, wi);
+}
+
+Ray Interaction::spawnRayTo(const Interaction& intr) const {
+    Vector3D d = intr.pos_ - pos_;
+    return Ray(pos_, d, std::max(0.0, d.norm() - EPS));
 }
 
 

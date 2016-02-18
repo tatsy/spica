@@ -20,7 +20,7 @@ namespace spica {
 class SPICA_EXPORTS KdTreeAccel : public AccelInterface {
 private:
     struct KdTreeNode {
-        Bound3d bbox;
+        Bounds3d bbox;
         IndexedTriangle triangle;
         KdTreeNode* left;
         KdTreeNode* right;

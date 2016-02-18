@@ -1,6 +1,9 @@
 #define SPICA_API_EXPORT
 #include "visibility_tester.h"
 
+#include "../core/interaction.h"
+#include "../scenes/scene.h"
+
 namespace spica {
 
     VisibilityTester::VisibilityTester()
@@ -15,8 +18,8 @@ namespace spica {
     }
 
     bool VisibilityTester::unoccluded(const Scene& scene) const {
-        // TODO: Implement!!    
-        return true;
+        SurfaceInteraction isect;
+        return !scene.intersect(p1_.spawnRayTo(p2_), &isect);
     }
 
 }  // namespace spica

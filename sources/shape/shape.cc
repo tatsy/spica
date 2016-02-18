@@ -37,7 +37,7 @@ double Shape::pdf(const Interaction& pObj) const {
 }
 
 double Shape::pdf(const Interaction& pObj, const Vector3D& wi) const {
-    Ray ray = pObj.nextRay(wi);
+    Ray ray = pObj.spawnRay(wi);
     double tHit;
     SurfaceInteraction isect;
     if (!intersect(ray, &tHit, &isect)) return 0.0;
@@ -47,7 +47,7 @@ double Shape::pdf(const Interaction& pObj, const Vector3D& wi) const {
     return ret;
 }
 
-Bound3d Shape::worldBound() const {
+Bounds3d Shape::worldBound() const {
     return objectToWorld_.apply(objectBound());
 }
 

@@ -134,7 +134,7 @@ namespace spica {
 
         Trimesh texcube(kDataDirectory + "tex_cube.obj");
         texcube.rotate(PI / 2.0, Vector3D(0.0, 1.0, 0.0));
-        texcube.fitToBound3d(Bound3d(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0));
+        texcube.fitToBounds3d(Bounds3d(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0));
         // texcube.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
         texcube.translate(Vector3D(-5.0, 0.0, 5.0));
         scene->addShape(texcube, LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));

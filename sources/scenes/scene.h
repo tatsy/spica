@@ -12,7 +12,7 @@
 #include "../core/forward_decl.h"
 
 #include "../core/primitive.h"
-#include "../core/bound3d.h"
+#include "../core/bounds3d.h"
 #include "../light/light.h"
 
 namespace spica {
@@ -33,7 +33,7 @@ public:
 
     bool intersect(Ray& ray, SurfaceInteraction* isect) const;
 
-    inline const Bound3d& worldBound() const { return worldBound_; }
+    inline const Bounds3d& worldBound() const { return worldBound_; }
 
     inline const std::vector<std::shared_ptr<Light> >& lights() const {
         return lights_;
@@ -42,7 +42,7 @@ public:
 private:
     std::shared_ptr<Primitive> aggregate_;
     std::vector<std::shared_ptr<Light> > lights_;
-    Bound3d worldBound_;
+    Bounds3d worldBound_;
 
 };  // class Scene
 

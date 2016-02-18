@@ -13,7 +13,7 @@
 
 #include "../core/uncopyable.h"
 #include "../core/primitive.h"
-#include "../core/bound3d.h"
+#include "../core/bounds3d.h"
 #include "../shape/triangle.h"
 
 namespace spica {
@@ -37,7 +37,7 @@ public:
     AccelInterface(AccelType type) : type_{ type } {}
     virtual ~AccelInterface() {}
     virtual void construct() = 0;
-    virtual Bound3d worldBound() const override {
+    virtual Bounds3d worldBound() const override {
         return worldBound_;
     }
 
@@ -48,7 +48,7 @@ protected:
 
     // Protected fields
     AccelType type_;
-    Bound3d   worldBound_;
+    Bounds3d   worldBound_;
 };
 
 struct AccelInterface::IndexedTriangle {

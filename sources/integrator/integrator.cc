@@ -1,8 +1,14 @@
 #define SPICA_API_EXPORT
 #include "integrator.h"
 
+#include "../core/timer.h"
+#include "../core/memory.h"
 #include "../core/interaction.h"
 #include "../core/ray.h"
+#include "../core/rect.h"
+#include "../core/point2d.h"
+
+#include "../camera/camera.h"
 #include "../scenes/scene.h"
 #include "../random/sampler.h"
 #include "../bxdf/bsdf.h"
@@ -88,7 +94,7 @@ Spectrum estimateDirectLight(const Interaction& intr,
             }
 
             SurfaceInteraction lightIsect;
-            Ray ray = intr.nextRay(wi);
+            Ray ray = intr.spawnRay(wi);
             Spectrum Tr(1.0);
             bool foundSurfaceInteraction = scene.intersect(ray, &lightIsect);
 

@@ -20,8 +20,8 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/point2d_detail.h
      ${CMAKE_CURRENT_LIST_DIR}/point3d.h
      ${CMAKE_CURRENT_LIST_DIR}/point3d_detail.h
-     ${CMAKE_CURRENT_LIST_DIR}/bound3d.h
-     ${CMAKE_CURRENT_LIST_DIR}/bound3d_detail.h
+     ${CMAKE_CURRENT_LIST_DIR}/bounds3d.h
+     ${CMAKE_CURRENT_LIST_DIR}/bounds3d_detail.h
      ${CMAKE_CURRENT_LIST_DIR}/normal3d.h
      ${CMAKE_CURRENT_LIST_DIR}/normal3d_detail.h
      ${CMAKE_CURRENT_LIST_DIR}/path.h

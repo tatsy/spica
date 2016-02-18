@@ -168,7 +168,7 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
 
     // Sample random points on trimesh
     /*
-    Bound3d bbox;
+    Bounds3d bbox;
     std::vector<Point> candPoints;
     std::vector<Normal> candNormals;
     for (int i = 0; i < triangles.size(); i++) {

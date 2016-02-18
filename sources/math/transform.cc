@@ -65,7 +65,7 @@ namespace spica {
         return { ret[0], ret[1], ret[2] };   
     }
 
-    Bound3d Transform::apply(const Bound3d& b) const {
+    Bounds3d Transform::apply(const Bounds3d& b) const {
         Point3D posMin = apply(b.posMin());
         Point3D posMax = apply(b.posMax());
         return { posMin, posMax };

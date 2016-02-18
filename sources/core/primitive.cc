@@ -39,7 +39,7 @@ GeometricPrimitive::GeometricPrimitive(const std::shared_ptr<Shape>& shape,
     , areaLight_{ areaLight } {
 }
 
-Bound3d GeometricPrimitive::worldBound() const {
+Bounds3d GeometricPrimitive::worldBound() const {
     return shape_->worldBound();
 }
 

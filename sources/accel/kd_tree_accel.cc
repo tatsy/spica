@@ -79,7 +79,7 @@ namespace spica {
             return node;
         }
 
-        Bound3d bounds;
+        Bounds3d bounds;
         for (int i = start; i < end; i++) {
             bounds.merge(triangles[i].tri.worldBound());
         }

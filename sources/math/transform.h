@@ -6,7 +6,7 @@
 #define _SPICA_TRANSFORM_H_
 
 #include "../core/common.h"
-#include "../core/bound3d.h"
+#include "../core/bounds3d.h"
 #include "matrix4x4.h"
 
 namespace spica {
@@ -29,7 +29,7 @@ namespace spica {
 
         Point3D  apply(const Point3D& p)  const;
         Vector3D apply(const Vector3D& v) const;
-        Bound3d  apply(const Bound3d& b)  const;
+        Bounds3d  apply(const Bounds3d& b)  const;
 
         bool isIdentity() const;
 

@@ -13,18 +13,18 @@
 namespace spica {
 
 template <class T>
-class Bound3_ {
+class Bounds3_ {
 public:
     // Public methods
-    Bound3_();
-    Bound3_(const Point3_<T>& posMin, const Point3_<T>& posMax);
-    Bound3_(const Bound3_<T>& b);
+    Bounds3_();
+    Bounds3_(const Point3_<T>& posMin, const Point3_<T>& posMax);
+    Bounds3_(const Bounds3_<T>& b);
 
-    virtual ~Bound3_();
+    virtual ~Bounds3_();
 
-    Bound3_<T>& operator=(const Bound3_<T>& b);
-    bool operator==(const Bound3_<T>& b) const;
-    bool operator!=(const Bound3_<T>& b) const;
+    Bounds3_<T>& operator=(const Bounds3_<T>& b);
+    bool operator==(const Bounds3_<T>& b) const;
+    bool operator!=(const Bounds3_<T>& b) const;
 
     //! Maximum extent: return 0 -> x, 1 -> y, 2 -> z.
     int maximumExtent() const;
@@ -34,9 +34,9 @@ public:
                    double* tFar = nullptr) const;
 
     //! Merge two bounds.
-    static Bound3_<T> merge(const Bound3_<T>& b1, const Bound3_<T>& b2);
+    static Bounds3_<T> merge(const Bounds3_<T>& b1, const Bounds3_<T>& b2);
 
-    void merge(const Bound3_<T>& b);
+    void merge(const Bounds3_<T>& b);
     void merge(const Point3_<T>& p);
 
     T area() const;
@@ -52,12 +52,12 @@ private:
     static_assert(std::is_arithmetic<T>::value, "Template type must be arithmetic!!");
 };
 
-using Bound3i = Bound3_<int>;
-using Bound3f = Bound3_<float>;
-using Bound3d = Bound3_<double>;
+using Bounds3i = Bounds3_<int>;
+using Bounds3f = Bounds3_<float>;
+using Bounds3d = Bounds3_<double>;
 
 }  // namespace spica
 
-#include "bound3d_detail.h"
+#include "bounds3d_detail.h"
 
 #endif  // _SPICA_BOUND3D_H_

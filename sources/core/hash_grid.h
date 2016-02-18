@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "../core/point3d.h"
-#include "../core/bound3d.h"
+#include "../core/bounds3d.h"
 
 namespace spica {
 
@@ -23,7 +23,7 @@ public:
     void construct(std::vector<T>& points, const int imageW = -1, const int imageH = -1);
 
     //! Initialize grid
-    void init(const int hashSize, const double hashScale, const Bound3d& bbox);
+    void init(const int hashSize, const double hashScale, const Bounds3d& bbox);
 
     //! Set point data for the cells inside the specifed bounding box
     void add(const T& p, const Point& boxMin, const Point& boxMax);
@@ -39,7 +39,7 @@ private:
 
     // Private fields
     int _hashSize;
-    Bound3d _bbox;
+    Bounds3d _bbox;
     double _hashScale;
     std::vector<std::vector<T> > _data;
 

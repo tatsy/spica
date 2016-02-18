@@ -44,7 +44,7 @@ static const int orderTable[] = {
 
 struct BucketInfo {
     int count;
-    Bound3d bounds;
+    Bounds3d bounds;
     BucketInfo() : count(0), bounds() { }
 };
 
@@ -63,9 +63,9 @@ int test_AABB(const __m128 bboxes[2][3], const __m128 org[3], const __m128 idir[
 struct QBVHAccel::BVHPrimitiveInfo {
     int primitiveNumber;
     Point centroid;
-    Bound3d bounds;
+    Bounds3d bounds;
 
-    BVHPrimitiveInfo(int pn, const Bound3d& b)
+    BVHPrimitiveInfo(int pn, const Bounds3d& b)
         : primitiveNumber(pn)
         , bounds(b) {
         centroid = (b.posMin() + b.posMax()) * 0.5;
@@ -80,7 +80,7 @@ struct QBVHAccel::SIMDTrianglePack {
 };
 
 struct QBVHAccel::BVHBuildNode {
-    Bound3d bounds;
+    Bounds3d bounds;
     BVHBuildNode* children[2];
     int splitAxis, firstPrimOffset, nPrimitives;
     int simdTrisIdx;
@@ -95,7 +95,7 @@ struct QBVHAccel::BVHBuildNode {
         children[0] = children[1] = nullptr;
     }
 
-    void InitLeaf(int first, int n, const Bound3d& b, const int asimdTrisIdx) {
+    void InitLeaf(int first, int n, const Bounds3d& b, const int asimdTrisIdx) {
         firstPrimOffset = first;
         nPrimitives = n;
         bounds = b;
@@ -106,7 +106,7 @@ struct QBVHAccel::BVHBuildNode {
     void InitInterior(int axis, BVHBuildNode* c0, BVHBuildNode* c1) {
         children[0] = c0;
         children[1] = c1;
-        bounds = Bound3d::merge(c0->bounds, c1->bounds);
+        bounds = Bounds3d::merge(c0->bounds, c1->bounds);
         splitAxis = axis;
         firstPrimOffset = -1;
         nPrimitives = 0;
@@ -123,9 +123,9 @@ struct QBVHAccel::ComparePoint {
 
 struct QBVHAccel::CompareToBucket {
     int splitBucket, nBuckets, dim;
-    const Bound3d& centroidBounds;
+    const Bounds3d& centroidBounds;
 
-    CompareToBucket(int split, int num, int d, const Bound3d& b)
+    CompareToBucket(int split, int num, int d, const Bounds3d& b)
         : centroidBounds(b)
         , splitBucket(split)
         , nBuckets(num)
@@ -203,7 +203,7 @@ void QBVHAccel::construct() {
 
     std::vector<BVHPrimitiveInfo> buildData;
     for (int i = 0; i < triangles.size(); i++) {
-        Bound3d b = triangles[i].worldBound();
+        Bounds3d b = triangles[i].worldBound();
         buildData.emplace_back(i, b);
     }
 
@@ -223,7 +223,7 @@ QBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
     (*totalNodes)++;
     BVHBuildNode* node = new BVHBuildNode();
 
-    Bound3d bbox;
+    Bounds3d bbox;
     for (int i = start; i < end; i++) {
         bbox.merge(buildData[i].bounds);
     }
@@ -269,7 +269,7 @@ QBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
         node->InitLeaf(firstPrimOffset, nPrimitives, bbox, simdTris_.size() - 1);
     } else {
         // This is fork node
-        Bound3d centroidBounds;
+        Bounds3d centroidBounds;
         for (int i = start; i < end; i++) {
             centroidBounds.merge(buildData[i].centroid);
         }
@@ -295,7 +295,7 @@ QBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
 
             float cost[nBuckets - 1] = {0};
             for (int i = 0; i < nBuckets - 1; i++) {
-                Bound3d b0, b1;
+                Bounds3d b0, b1;
                 int count0 = 0, count1 = 0;
                 for (int j = 0; j <= i; j++) {
                     b0.merge(buckets[j].bounds);

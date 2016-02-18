@@ -5,7 +5,7 @@
 
 #include "../core/common.h"
 #include "../core/interaction.h"
-#include "../core/bound3d.h"
+#include "../core/bounds3d.h"
 #include "../shape/triangle.h"
 
 namespace spica {
@@ -54,9 +54,11 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     } else {
         *tHit = t2;
     }
+    if (*tHit > ray.maxDist()) return false;
 
-    Point  pos = ray.org() + (*tHit) * ray.dir();
-    Normal nrm = Normal(pos - center_).normalized();
+    Point pWorld = ray.org() + Point((*tHit) * ray.dir());
+    Point pObj   = Point(pWorld - center_);
+    Normal nrm = Normal(pObj).normalized();
 
     // Compute differential geometries
     const double phi   = vect::sphericalPhi(nrm);
@@ -64,13 +66,13 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     const double cosPhi = cos(phi);
     const double sinPhi = sin(phi);
     const double u = phi / (2.0 * PI);
-    const double v = (theta + PI / 2.0) / PI;
-    const Vector3D dpdu = { -2.0 * PI * pos.y(), 2.0 * PI * pos.x(), 0.0 };
-    const Vector3D dpdv = PI * Vector3D(cosPhi * pos.z(), sinPhi * pos.z(), -radius_ * sin(theta));
+    const double v = theta  / PI;
+    const Vector3D dpdu = { -2.0 * PI * pObj.y(), 2.0 * PI * pObj.x(), 0.0 };
+    const Vector3D dpdv = -PI * Vector3D(cosPhi * pObj.z(), sinPhi * pObj.z(), -radius_ * sin(theta));
 
-    Vector3D d2pdudu = - (2.0 * PI) * (2.0 * PI) * Vector3D(pos.x(), pos.y(), 0.0);
-    Vector3D d2pdudv = PI * pos.z() * (2.0 * PI) * Vector3D(-sinPhi, cosPhi, 0.0);
-    Vector3D d2pdvdv = -PI * PI * pos;
+    Vector3D d2pdudu = - (2.0 * PI) * (2.0 * PI) * Vector3D(pObj.x(), pObj.y(), 0.0);
+    Vector3D d2pdudv = PI * pObj.z() * (2.0 * PI) * Vector3D(sinPhi, -cosPhi, 0.0);
+    Vector3D d2pdvdv = -PI * PI * pObj;
 
     // Fundamental forms
     const double E = Vector3D::dot(dpdu, dpdu);
@@ -85,9 +87,7 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     Normal3D dndu = Normal3D((F * f - G * e) * invEGF2 * dpdu + (F * e - E * f) * invEGF2 * dpdv);
     Normal3D dndv = Normal3D((F * g - G * f) * invEGF2 * dpdu + (F * f - E * g) * invEGF2 * dpdv);
 
-    Vector3D dir = ray.dir();
-    *isect = SurfaceInteraction(pos, Point2D(u, v), -ray.dir(), dpdu, dpdv, dndu, dndv, this);
-
+    *isect = SurfaceInteraction(pWorld, Point2D(u, v), -ray.dir(), dpdu, dpdv, dndu, dndv, this);
     return true;
 }
 
@@ -116,8 +116,6 @@ Interaction Sphere::sample(const Interaction& isect,
     Vector3D pObj = radius_ * nObj;
 
     return Interaction{ Point(pObj), Normal(nObj) };
-
-
 }
 
 double Sphere::pdf(const Interaction& pObj, const Vector3D& wi) const {
@@ -131,7 +129,7 @@ double Sphere::pdf(const Interaction& pObj, const Vector3D& wi) const {
     return 1.0 / (2.0 * PI * (1.0 - cosTheta));
 }
 
-Bound3d Sphere::objectBound() const {
+Bounds3d Sphere::objectBound() const {
     const Point3D posMin = center_ - Vector3D(radius_, radius_, radius_);
     const Point3D posMax = center_ + Vector3D(radius_, radius_, radius_);
     return { posMin, posMax };

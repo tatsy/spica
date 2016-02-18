@@ -25,7 +25,7 @@ namespace spica {
     }
 
     template <class T>
-    void HashGrid<T>::init(const int hashSize, const double hashScale, const Bound3d& bbox) {
+    void HashGrid<T>::init(const int hashSize, const double hashScale, const Bounds3d& bbox) {
         this->_hashSize = hashSize;
         this->_hashScale = hashScale;
         this->_bbox = bbox;

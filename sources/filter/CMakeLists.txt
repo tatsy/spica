@@ -1,0 +1,9 @@
+set(SOURCES ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/filter.cc
+    ${CMAKE_CURRENT_LIST_DIR}/box.cc
+    PARENT_SCOPE)
+
+set(HEADERS ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/box.h
+    PARENT_SCOPE)

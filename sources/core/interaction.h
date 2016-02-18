@@ -28,7 +28,8 @@ namespace spica {
 
         Interaction& operator=(const Interaction& intr);
 
-        virtual Ray nextRay(const Vector3D& wi) const;
+        virtual Ray spawnRay(const Vector3D& wi) const;
+        virtual Ray spawnRayTo(const Interaction& intr) const;
 
         inline virtual bool isSurfaceInteraction() const { return false; }
         inline const Point&    pos()    const { return pos_; }

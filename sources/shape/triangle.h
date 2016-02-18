@@ -43,7 +43,7 @@ public:
     Interaction sample(const Interaction& isect,
                        const Point2D& rands) const override;
 
-    Bound3d objectBound() const override;
+    Bounds3d objectBound() const override;
 
     double area() const override;
     std::vector<Triangle> triangulate() const override;

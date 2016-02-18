@@ -54,8 +54,8 @@ public:
     virtual double pdf(const Interaction& pObj) const;
     virtual double pdf(const Interaction& pObj, const Vector3D& dir) const;
 
-    virtual Bound3d worldBound() const;
-    virtual Bound3d objectBound() const = 0;
+    virtual Bounds3d worldBound() const;
+    virtual Bounds3d objectBound() const = 0;
 
     virtual double area() const = 0;
     virtual std::vector<Triangle> triangulate() const = 0;

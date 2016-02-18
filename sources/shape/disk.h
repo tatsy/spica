@@ -28,7 +28,7 @@ public:
 
     bool intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) const override;
 
-    Bound3d objectBound() const override;
+    Bounds3d objectBound() const override;
 
     double area() const override;
 

@@ -32,7 +32,7 @@ public:
 
     double pdf(const Interaction& pObj, const Vector3D& wi) const override;
 
-    Bound3d objectBound() const override;
+    Bounds3d objectBound() const override;
 
     double area() const override;
 

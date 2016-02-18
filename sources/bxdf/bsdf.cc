@@ -10,9 +10,9 @@ namespace spica {
 
 BSDF::BSDF(const SurfaceInteraction& isect, double eta)
     : eta_{ eta }
-    , normal_{ isect.normal() }
-    , tangent_{ isect.dpdu() }
-    , binormal_{ isect.dpdv() } {
+    , normal_{ isect.normal().normalized() }
+    , tangent_{ isect.dpdu().normalized() }
+    , binormal_{ isect.dpdv().normalized() } {
 }
 
 void BSDF::add(BxDF* b) {
@@ -61,6 +61,12 @@ Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
                       const Point2D& rands, double* pdf, BxDFType type,
                       BxDFType* sampledType) const {
     int matchComps = numComponents(type);
+    if (matchComps == 0) {
+        *pdf = 0.0;
+        if (sampledType) *sampledType = BxDFType::None;
+        return Spectrum(0.0);
+    }
+
     int comps = std::min((int)(rands[0] * matchComps), matchComps - 1);
 
     BxDF* bxdf = nullptr;
@@ -76,7 +82,13 @@ Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
     Point2D uRemapped(rands[0] * matchComps - comps, rands[1]);
 
     Vector3D wi, wo = worldToLocal(woWorld);
+    *pdf = 0.0;
+    if (sampledType) *sampledType = bxdf->type();
     Spectrum ret = bxdf->sample(wo, &wi, uRemapped, pdf, sampledType);
+    if (*pdf == 0.0) {
+        if (sampledType) *sampledType = BxDFType::None;
+        return Spectrum(0.0);
+    }
     *wiWorld = localToWorld(wi);
 
     if ((bxdf->type() & BxDFType::Specular) == BxDFType::None && matchComps > 1) {

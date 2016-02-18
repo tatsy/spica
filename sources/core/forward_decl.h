@@ -24,10 +24,10 @@ namespace spica {
     using RectF = Rect_<double, void>;
 
     template <class T>
-    class Bound3_;
-    using Bound3i = Bound3_<int>;
-    using Bound3f = Bound3_<float>;
-    using Bound3d = Bound3_<double>;
+    class Bounds3_;
+    using Bounds3i = Bounds3_<int>;
+    using Bounds3f = Bounds3_<float>;
+    using Bounds3d = Bounds3_<double>;
 
     // Image module
     class Image;
@@ -44,6 +44,7 @@ namespace spica {
 
     template <class T>
     class Point2_;
+    using Point2i = Point2_<int>;
     using Point2D = Point2_<double>;
 
     template <class T>

@@ -49,6 +49,8 @@ bool Disk::intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) co
     if (dt > -EPS) return false;
 
     *tHit = vect::dot(normal_, center_ - ray.org()) / dt;
+    if (*tHit > ray.maxDist()) return false;
+
     Point3D pos = ray.org() + (*tHit) * ray.dir();
     Vector3D p2c = pos - center_;
     const double r = p2c.norm();
@@ -69,8 +71,8 @@ bool Disk::intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) co
     return true;
 }
 
-Bound3d Disk::objectBound() const {
-    Bound3d b;
+Bounds3d Disk::objectBound() const {
+    Bounds3d b;
     Vector3D u, v;
     vect::coordinateSystem(Vector3D(normal_), &u, &v);
     b.merge(center_ + radius_ * u);

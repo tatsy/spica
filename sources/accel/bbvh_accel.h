@@ -20,7 +20,7 @@ public:
               int maxPrimsInNode = 1);
     virtual ~BBVHAccel();
 
-    Bound3d worldBound() const override;
+    Bounds3d worldBound() const override;
     void construct();
     bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
 

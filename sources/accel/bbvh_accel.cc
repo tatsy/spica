@@ -5,7 +5,7 @@
 #include <functional>
 #include <algorithm>
 
-#include "../core/bound3d.h"
+#include "../core/bounds3d.h"
 #include "../core/interaction.h"
 
 namespace spica {
@@ -13,9 +13,9 @@ namespace spica {
 struct BBVHAccel::BVHPrimitiveInfo {
     int primIdx;
     Point centroid;
-    Bound3d bounds;
+    Bounds3d bounds;
     BVHPrimitiveInfo() {}
-    BVHPrimitiveInfo(int pid, const Bound3d& b)
+    BVHPrimitiveInfo(int pid, const Bounds3d& b)
         : primIdx(pid)
         , centroid()
         , bounds(b) {
@@ -25,7 +25,7 @@ struct BBVHAccel::BVHPrimitiveInfo {
 
 struct BBVHAccel::BucketInfo {
     int count;
-    Bound3d bounds;
+    Bounds3d bounds;
     BucketInfo()
         : count(0)
         , bounds() {
@@ -33,19 +33,19 @@ struct BBVHAccel::BucketInfo {
 };
 
 struct BBVHAccel::BBvhNode {
-    Bound3d bounds;
+    Bounds3d bounds;
     BBvhNode* left;
     BBvhNode* right;
     int splitAxis;
     int triIdx;
 
-    void initLeaf(const Bound3d& b, int tid) {
+    void initLeaf(const Bounds3d& b, int tid) {
         this->bounds = bounds;
         this->splitAxis = -1;
         this->triIdx = tid;
     }
 
-    void initFork(const Bound3d& b, BBvhNode* l, BBvhNode* r, int axis) {
+    void initFork(const Bounds3d& b, BBvhNode* l, BBvhNode* r, int axis) {
         this->bounds = b;
         this->left  = l;
         this->right = r;
@@ -69,9 +69,9 @@ struct BBVHAccel::ComparePoint {
 
 struct BBVHAccel::CompareToBucket {
     int splitBucket, nBuckets, dim;
-    const Bound3d& centroidBounds;
+    const Bounds3d& centroidBounds;
 
-    CompareToBucket(int split, int num, int d, const Bound3d& b)
+    CompareToBucket(int split, int num, int d, const Bounds3d& b)
         : splitBucket(split)
         , nBuckets(num)
         , dim(d)
@@ -116,8 +116,8 @@ BBVHAccel::~BBVHAccel() {
 //    _nodes.shrink_to_fit();
 //}
 
-Bound3d BBVHAccel::worldBound() const {
-    return _nodes.empty() ? Bound3d() : _nodes[0]->bounds;
+Bounds3d BBVHAccel::worldBound() const {
+    return _nodes.empty() ? Bounds3d() : _nodes[0]->bounds;
 }
 
 void BBVHAccel::construct() {
@@ -139,9 +139,9 @@ BBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
     BBvhNode* node = new BBvhNode();
     _nodes.emplace_back(node);
 
-    Bound3d bounds;
+    Bounds3d bounds;
     for (int i = start; i < end; i++) {
-        bounds = Bound3d::merge(bounds, buildData[i].bounds);
+        bounds = Bounds3d::merge(bounds, buildData[i].bounds);
     }
 
     int nprims = end - start;
@@ -150,7 +150,7 @@ BBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
         node->initLeaf(bounds, buildData[start].primIdx);
     } else {
         // Fork node
-        Bound3d centroidBounds;
+        Bounds3d centroidBounds;
         for (int i = start; i < end; i++) {
             centroidBounds.merge(buildData[i].centroid);
         }
@@ -179,19 +179,19 @@ BBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
                 }
 
                 buckets[b].count++;
-                buckets[b].bounds = Bound3d::merge(buckets[b].bounds, buildData[i].bounds);
+                buckets[b].bounds = Bounds3d::merge(buckets[b].bounds, buildData[i].bounds);
             }
 
             double bucketCost[nBuckets - 1] = {0};
             for (int i = 0; i < nBuckets - 1; i++) {
-                Bound3d b0, b1;
+                Bounds3d b0, b1;
                 int cnt0 = 0, cnt1 = 0;
                 for (int j = 0; j <= i; j++) {
-                    b0 = Bound3d::merge(b0, buckets[j].bounds);
+                    b0 = Bounds3d::merge(b0, buckets[j].bounds);
                     cnt0 += buckets[j].count;
                 }
                 for (int j = i + 1; j < nBuckets; j++) {
-                    b1 = Bound3d::merge(b1, buckets[j].bounds);
+                    b1 = Bounds3d::merge(b1, buckets[j].bounds);
                     cnt1 += buckets[j].count;
                 }
                 bucketCost[i] += 0.125 + (cnt0 * b0.area() + cnt1 * b1.area()) / bounds.area();

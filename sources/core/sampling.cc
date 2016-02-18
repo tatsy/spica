@@ -141,14 +141,14 @@ Point2D sampleConcentricDisk(const Point2D& rands) {
         theta = PI * (uOffset.y() / uOffset.x()) / 4.0;
     } else {
         r = uOffset.y();
-        theta = (PI / 2.0) - PI * (uOffset.x() / uOffset.x()) / 4.0;
+        theta = (PI / 2.0) - PI * (uOffset.x() / uOffset.y()) / 4.0;
     }
     return r * Point2D(std::cos(theta), std::sin(theta));
 }
 
 Vector3D sampleCosineHemisphere(const Point2D& rands) {
     Point2D d = sampleConcentricDisk(rands);
-    double z = std::sqrt(std::max(0.0, 1.0 - d.x() * d.x() - d.y() * d.y()));
+    double z = sqrt(std::max(0.0, 1.0 - d.x() * d.x() - d.y() * d.y()));
     return Vector3D{ d.x(), d.y(), z };
 }
 

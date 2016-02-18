@@ -58,7 +58,8 @@ Spectrum BSDF::f(const Vector3D& wiWorld, const Vector3D& woWorld,
 }
 
 Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
-                      const Point2D& rands, double* pdf, BxDFType type) const {
+                      const Point2D& rands, double* pdf, BxDFType type,
+                      BxDFType* sampledType) const {
     int matchComps = numComponents(type);
     int comps = std::min((int)(rands[0] * matchComps), matchComps - 1);
 
@@ -74,9 +75,8 @@ Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
 
     Point2D uRemapped(rands[0] * matchComps - comps, rands[1]);
 
-    Vector3D wi, wo = worldToLocal(wo);
-    Spectrum ret = bxdf->sample(wo, &wi, uRemapped, pdf);
-
+    Vector3D wi, wo = worldToLocal(woWorld);
+    Spectrum ret = bxdf->sample(wo, &wi, uRemapped, pdf, sampledType);
     *wiWorld = localToWorld(wi);
 
     if ((bxdf->type() & BxDFType::Specular) == BxDFType::None && matchComps > 1) {
@@ -95,7 +95,7 @@ Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
             if ((bxdfs_[i]->type() & type) != BxDFType::None &&
                 ((reflect && (bxdfs_[i]->type() & BxDFType::Reflection) != BxDFType::None) ||
                  (!reflect && (bxdfs_[i]->type() & BxDFType::Transmission) != BxDFType::None))) {
-
+                ret += bxdfs_[i]->f(wo, wi);
             }
         }
     }

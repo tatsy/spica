@@ -67,6 +67,7 @@ namespace spica {
         inline double dudy() const { return dudy_; }
         inline double dvdx() const { return dvdx_; }
         inline double dvdy() const { return dvdy_; }
+        inline const Primitive* primitive() const { return primitive_; }
 
         inline BSDF* bsdf() const { return bsdf_; }
         inline void setBSDF(BSDF* bsdf) { bsdf_ = bsdf; }

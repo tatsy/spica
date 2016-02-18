@@ -5,6 +5,8 @@
 #ifndef _SPICA_TEXTURE_CONSTANT_H_
 #define _SPICA_TEXTURE_CONSTANT_H_
 
+#include "texture.h"
+
 namespace spica {
 
 template <class T>

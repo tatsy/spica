@@ -11,8 +11,6 @@
 
 #include "material.h"
 
-#include "../texture/texture.h"
-
 namespace spica {
 
 class SPICA_EXPORTS LambertianMaterial : public Material {
@@ -24,8 +22,8 @@ public:
                          MemoryArena& arena) const override;
 
 private:
-    std::shared_ptr<Texture<Spectrum> > Kd_;
-    std::shared_ptr<Texture<double> > bumpMap_;
+    std::shared_ptr<Texture<Spectrum>> Kd_;
+    std::shared_ptr<Texture<double>> bumpMap_;
 };
 
 }  // namespace spica

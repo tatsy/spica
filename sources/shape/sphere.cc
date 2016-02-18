@@ -91,6 +91,46 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     return true;
 }
 
+Interaction Sphere::sample(const Interaction& isect,
+                           const Point2D& rands) const {
+    // TODO: For sphere (because it's a closed geometry),
+    //       the case where the intersection is inside the sphere
+    //       should be considered.
+
+    double dist2 = (isect.pos() - center_).squaredNorm();
+    double sinThetaMax2 = radius_ * radius_ / dist2;
+    double cosThetaMax  = sqrt(std::max(0.0, 1.0 - sinThetaMax2));
+    double cosTheta = (1.0 - rands[0]) + rands[0] * cosThetaMax;
+    double sinTheta = sqrt(std::max(0.0, 1.0 - cosTheta * cosTheta));
+    double phi = rands[1] * 2.0 * PI;
+
+    double dc = sqrt(dist2);
+    double ds = dc * cosTheta - sqrt(std::max(0.0, radius_ * radius_ - dc * dc * sinTheta * sinTheta));
+    double cosAlpha = (dc * dc + radius_ * radius_ - ds * ds) / (2.0 * dc * radius_);
+    double sinAlpha = sqrt(std::max(0.0, 1.0 - cosAlpha * cosAlpha));
+
+    Vector3D sw = vect::normalize(isect.pos() - center_);
+    Vector3D su, sv;
+    vect::coordinateSystem(sw, &su, & sv);
+    Vector3D nObj = su * cos(phi) * cosAlpha + sv * sin(phi) * cosAlpha + sw * sinAlpha;
+    Vector3D pObj = radius_ * nObj;
+
+    return Interaction{ Point(pObj), Normal(nObj) };
+
+
+}
+
+double Sphere::pdf(const Interaction& pObj, const Vector3D& wi) const {
+    // TODO: For sphere (because it's a closed geometry),
+    //       the case where the intersection is inside the sphere
+    //       should be considered.
+
+    double dist2 = (pObj.pos() - center_).squaredNorm();
+    double sinTheta2 = radius_ * radius_ / dist2;
+    double cosTheta = sqrt(std::max(0.0, 1.0 - sinTheta2));
+    return 1.0 / (2.0 * PI * (1.0 - cosTheta));
+}
+
 Bound3d Sphere::objectBound() const {
     const Point3D posMin = center_ - Vector3D(radius_, radius_, radius_);
     const Point3D posMax = center_ + Vector3D(radius_, radius_, radius_);

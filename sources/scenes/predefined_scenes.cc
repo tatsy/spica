@@ -11,7 +11,7 @@
 #include "../accel/bbvh_accel.h"
 #include "../accel/qbvh_accel.h"
 
-#include "../material/lambert.h"
+#include "../material/spica_material.h"
 #include "../texture/constant.h"
 
 namespace spica {
@@ -91,14 +91,31 @@ namespace spica {
         {
             auto t1 = std::make_shared<Triangle>(v100, v101, v111);
             auto t2 = std::make_shared<Triangle>(v100, v111, v110);
-            auto rightKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.25, 0.25, 0.75));
+            auto rightKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.25, 0.75, 0.25));
             auto rightMtrl = std::make_shared<LambertianMaterial>(rightKd);
             primitives.emplace_back(new GeometricPrimitive(t1, rightMtrl, nullptr));
             primitives.emplace_back(new GeometricPrimitive(t2, rightMtrl, nullptr));
         }
 
-        auto accel = std::make_shared<BBVHAccel>(primitives);
+        // Mirror ball
+        {            
+            auto sph  = std::make_shared<Sphere>(Point(-5.0, -7.0, -5.0), 3.0);
+            auto Kd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            auto mtrl = std::make_shared<MirrorMaterial>(Kd);
+            primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
+        }
 
+        // Glass ball
+        {
+            auto sph = std::make_shared<Sphere>(Point(5.0, -7.0, 5.0), 3.0);
+            auto Kr  = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            auto rough = std::make_shared<ConstantTexture<double>>(0.0);
+            auto ior = std::make_shared<ConstantTexture<double>>(1.5);
+            auto mtrl = std::make_shared<GlassMaterial>(Kr, Kr, rough, rough, ior);
+            primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
+        }
+
+        auto accel = std::make_shared<BBVHAccel>(primitives);
         *scene = Scene(accel, lights);
 
         /*

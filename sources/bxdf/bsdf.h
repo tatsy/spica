@@ -26,7 +26,8 @@ public:
                BxDFType type = BxDFType::All) const;
 
     Spectrum sample(const Vector3D& woWorld, Vector3D* wiWorld, const Point2D& rands,
-                    double* pdf, BxDFType type = BxDFType::All) const;
+                    double* pdf, BxDFType type = BxDFType::All,
+                    BxDFType* sampledType = nullptr) const;
     double pdf(const Vector3D& wo, const Vector3D& wi,
                BxDFType type = BxDFType::All) const;
 

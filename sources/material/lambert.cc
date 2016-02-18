@@ -6,6 +6,7 @@
 
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bxdf.h"
+#include "../texture/texture.h"
 
 namespace spica {
 

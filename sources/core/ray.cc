@@ -11,11 +11,9 @@ Ray::Ray() {
 
 Ray::Ray(const Point& origin, const Vector3D& direction, double maxDist)
     : org_{ origin }
-    , dir_{ direction }
+    , dir_{ vect::normalize(direction) }
     , invdir_{}
     , maxDist_{ maxDist } {
-    Assertion(std::abs(1.0 - direction.norm()) < EPS,
-                "Direction must be unit vector!!");
     calcInvdir();
 }
 

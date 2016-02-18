@@ -60,7 +60,7 @@ Spectrum estimateDirectLight(const Interaction& intr,
                 if (light.isDelta()) {
                     Ld += f * Li / lightPdf;
                 } else {
-                    const double weight = powerHeuristic(1.0, lightPdf, 1.0, shadePdf);
+                    const double weight = powerHeuristic(1, lightPdf, 1, shadePdf);
                     Ld += f * Li * weight / lightPdf;
                 }
             }
@@ -68,27 +68,42 @@ Spectrum estimateDirectLight(const Interaction& intr,
     }
 
     // Sample BSDF with multiple importance sampling
-    /*
     if (!light.isDelta()) {
         Spectrum f;
+        bool sampledSpecular = false;
         if (intr.isSurfaceInteraction()) {
             BxDFType sampledType;
             const auto& isect = static_cast<const SurfaceInteraction&>(intr);
-            f = isect.bsdf()->sample(isect.wo(), &wi, randShade, &shadePdf, bxdfType);
+            f = isect.bsdf()->sample(isect.wo(), &wi, randShade, &shadePdf, bxdfType, &sampledType);
             f *= vect::absDot(wi, isect.normal());
+            sampledSpecular = (sampledType & BxDFType::Specular) != BxDFType::None;
         }
 
         if (!f.isBlack() && shadePdf) {
             double weight = 1.0;
-            if ()
-        }
+            if (!sampledSpecular) {
+                lightPdf = light.pdfLi(intr, wi);
+                if (lightPdf == 0.0) return Ld;
+                weight = powerHeuristic(1, shadePdf, 1, lightPdf);
+            }
 
-        SurfaceInteraction lightIsect;
-        Ray ray = intr.nextRay(wi);
-        Spectrum Tr(1.0);
-        bool foundSurfaceInteraction = 
+            SurfaceInteraction lightIsect;
+            Ray ray = intr.nextRay(wi);
+            Spectrum Tr(1.0);
+            bool foundSurfaceInteraction = scene.intersect(ray, &lightIsect);
+
+            Spectrum Li(0.0);
+            if (foundSurfaceInteraction) {
+                if (lightIsect.primitive()->areaLight() == reinterpret_cast<const AreaLight*>(&light)) {
+                    Li = lightIsect.Le(-wi);   
+                }
+            } else {
+                Li = light.Le(ray);
+            }
+
+            if (!Li.isBlack()) Ld += f * Li * Tr * weight / shadePdf;
+        }
     }
-    */
     return Ld;
 
 }

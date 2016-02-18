@@ -47,7 +47,8 @@ public:
 
     virtual Spectrum f(const Vector3D& wo, const Vector3D& wi) const = 0;
     virtual Spectrum sample(const Vector3D& wo, Vector3D* wi,
-                            const Point2D& rands, double* pdf) const;
+                            const Point2D& rands, double* pdf,
+                            BxDFType* sampledType = nullptr) const;
     virtual double pdf(const Vector3D& wo, const Vector3D& wi) const;
 
     inline BxDFType type() const { return type_; }
@@ -78,13 +79,44 @@ private:
  * Specular reflection (Metal-like effect).
  */
 class SpecularReflection : public BxDF {
+public:
+    // Public methods
+    SpecularReflection();
+    SpecularReflection(const Spectrum& ref);
+
+    SpecularReflection(const SpecularReflection&) = default;
+    SpecularReflection& operator=(const SpecularReflection&) = default;
+
+    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
+    Spectrum sample(const Vector3D& wo, Vector3D* wi, const Point2D& rands,
+                    double* pdf, BxDFType* sampledType) const override;
+    double pdf(const Vector3D& wo, const Vector3D& wi) const override;
+
+private:
+    // Private fields
+    Spectrum ref_;
 };
 
 /**
  * Fresnel specular refraction (Glass-like effect).
  */
 class FresnelSpecular : public BxDF {
+public:
+    // Public methods
+    FresnelSpecular();
+    FresnelSpecular(const Spectrum& ref, const Spectrum& tr, double etaA, double etaB);
 
+    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
+    Spectrum sample(const Vector3D& wo, Vector3D* wi, const Point2D& rands,
+                    double* pdf, BxDFType* sampledType) const;
+    double pdf(const Vector3D& wo, const Vector3D& wi) const override;
+
+private:
+    // Private fields
+    Spectrum ref_;
+    Spectrum tr_;
+    double etaA_ = 1.0;
+    double etaB_ = 1.0;
 };
 
 }  // namespace spica

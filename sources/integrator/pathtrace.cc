@@ -117,6 +117,7 @@ Spectrum PathRenderer::tracePath(const Scene& scene, const Camera& camera,
                                     const double pixelX, const double pixelY,
                                     Sampler& sampler) {
     CameraSample camSample = camera.sample(pixelX, pixelY, sampler.get2D());
+    
     const Ray ray = camSample.ray();
     return radiance(scene, params, ray, sampler, 0) * (camera.sensitivity() / camSample.pdf());
 }
@@ -165,12 +166,17 @@ Spectrum PathRenderer::radiance(const Scene& scene,
         Vector3D wo = -ray.dir();
         Vector3D wi;
         double pdf;
-        Spectrum ref = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdf);
+        BxDFType sampledType;
+        Spectrum ref = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdf,
+                                            BxDFType::All, &sampledType);
 
         if (ref.isBlack() || pdf == 0.0) break;
 
         beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
         specularBounce = isect.bsdf()->hasType(BxDFType::Specular);
+
+        specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+        ray = isect.nextRay(wi);
 
         // Account for BSSRDF
         /*

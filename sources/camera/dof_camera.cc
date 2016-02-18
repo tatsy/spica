@@ -162,8 +162,8 @@ namespace spica {
     }
 
     CameraSample DoFCamera::sample(const double imageX, const double imageY, const Point2D& rands) const {
-        const double uOnSensor = imageX / _imageW;
-        const double vOnSensor = imageY / _imageH;
+        const double uOnSensor = imageX / _imageW - 0.5;
+        const double vOnSensor = imageY / _imageH - 0.5;
         const Point  posSensor = sensor_.center + (uOnSensor * sensor_.width) * sensor_.unitU + (vOnSensor * sensor_.height) * sensor_.unitV;
 
         const double ratio = lens_.focalLength / distSensorToLens_;

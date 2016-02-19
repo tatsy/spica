@@ -28,6 +28,8 @@ SPICA_EXPORTS Spectrum estimateDirectLight(const Interaction& intr,
 
 SPICA_EXPORTS double powerHeuristic(int nf, double fPdf, int ng, double gPdf);
 
+SPICA_EXPORTS Distribution1D calcLightPowerDistrib(const Scene& scene);
+
 }  // namespace mis
 
 }  // namespace spica

@@ -13,6 +13,9 @@ namespace spica {
     class Primitive;
     class GeometricPrimitive;
 
+    class Distribution1D;
+    class Distribution2D;
+
     template <class T>
     class Stack;
 

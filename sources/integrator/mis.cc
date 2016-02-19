@@ -7,6 +7,7 @@
 #include "../core/ray.h"
 #include "../core/rect.h"
 #include "../core/point2d.h"
+#include "../core/sampling.h"
 
 #include "../camera/camera.h"
 #include "../scenes/scene.h"
@@ -118,6 +119,16 @@ Spectrum estimateDirectLight(const Interaction& intr,
 double powerHeuristic(int nf, double fPdf, int ng, double gPdf) {
     double f = nf * fPdf, g = ng * gPdf;
     return (f * f) / (f * f + g * g);
+}
+
+Distribution1D calcLightPowerDistrib(const Scene& scene) {
+    if (scene.lights().size() == 0) return Distribution1D{};
+
+    std::vector<double> powers;
+    for (const auto& light : scene.lights()) {
+        powers.push_back(light->power().luminance());
+    }
+    return Distribution1D(powers);
 }
 
 }  // namespace mis

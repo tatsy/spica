@@ -75,6 +75,12 @@ double Distribution1D::sample(double rand, double* pdf, int* offset) const {
     return (off + du) / func_.size();
 }
 
+int Distribution1D::sampleDiscrete(double rand, double* pdf) const {
+    int off = findInterval(cdf_, rand);
+    if (pdf) *pdf = func_[off] / (integral_ * count());
+    return off;
+}
+
 int Distribution1D::findInterval(const std::vector<double>& cdf, double v) {
     return std::upper_bound(cdf.begin(), cdf.end(), v) - cdf.begin();    
 }

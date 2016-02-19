@@ -38,8 +38,7 @@
 // Filter
 // --------------------------------------------
 
-#include "../sources/filter/box.h"
-
+#include "../sources/filter/spica_filter.h"
 
 // --------------------------------------------
 // Lights

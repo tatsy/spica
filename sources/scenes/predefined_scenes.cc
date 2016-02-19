@@ -117,31 +117,6 @@ namespace spica {
 
         auto accel = std::make_shared<BBVHAccel>(primitives);
         *scene = Scene(accel, lights);
-
-        /*
-        scene->addShape(floorWall, LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
-        scene->addShape(ceilWall,  LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
-        scene->addShape(backWall,  LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
-        scene->addShape(leftWall,  LambertianBRDF::factory(Spectrum(0.75, 0.25, 0.25)));
-        scene->addShape(rightWall, LambertianBRDF::factory(Spectrum(0.25, 0.25, 0.75)));
-
-        scene->addShape(Sphere(Point( 0.0, -7.0,  0.0), 3.0),
-                        LambertianBRDF::factory(Spectrum(0.25, 0.75, 0.25)));
-        scene->addShape(Sphere(Point(-5.0, -7.0, -5.0), 3.0),
-                        SpecularBRDF::factory(Spectrum(0.999, 0.999, 0.999)));
-        scene->addShape(Sphere(Point( 5.0, -7.0,  5.0), 3.0),
-                        RefractiveBSDF::factory(Spectrum(0.999, 0.999, 0.999)));
-
-        Trimesh texcube(kDataDirectory + "tex_cube.obj");
-        texcube.rotate(PI / 2.0, Vector3D(0.0, 1.0, 0.0));
-        texcube.fitToBounds3d(Bounds3d(-2.0, -2.0, -2.0, 2.0, 2.0, 2.0));
-        // texcube.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
-        texcube.translate(Vector3D(-5.0, 0.0, 5.0));
-        scene->addShape(texcube, LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.75)));
-
-        // scene->setAccelType(AccelType::QBVH);
-        scene->finalize();
-         */
     }
 
     /*

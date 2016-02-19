@@ -24,8 +24,8 @@ public:
 
     virtual double evaluate(const Point2D& p) const = 0;
 
-private:
-    // Private fields
+protected:
+    // Protected fields
     Vector2D radius_;
     Vector2D invRad_;
 

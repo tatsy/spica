@@ -48,7 +48,7 @@ void Film::addPixel(const Point2i& pixel, const Point2D& pInPixel,
     const double dy = pInPixel.y() - 0.5;
     const double weight = filter_->evaluate(Point2D(dx, dy));
 
-    image_.pixel(pixel.x(), pixel.y()) += color;
+    image_.pixel(pixel.x(), pixel.y()) += weight * color;
     weights_[pixel.x()][pixel.y()]     += weight;
 }
 

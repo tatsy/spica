@@ -1,9 +1,12 @@
 set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/filter.cc
     ${CMAKE_CURRENT_LIST_DIR}/box.cc
+    ${CMAKE_CURRENT_LIST_DIR}/tent.cc
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/spica_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/filter.h
     ${CMAKE_CURRENT_LIST_DIR}/box.h
+    ${CMAKE_CURRENT_LIST_DIR}/tent.h
     PARENT_SCOPE)

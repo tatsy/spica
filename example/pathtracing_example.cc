@@ -15,9 +15,9 @@ int main(int argc, char **argv) {
     std::cout << "   height: " << height  << std::endl;
     std::cout << "  samples: " << samples << std::endl << std::endl;
 
-    std::unique_ptr<Filter> boxFilter = std::make_unique<BoxFilter>(Vector2D(0.5, 0.5));
+    std::unique_ptr<Filter> filter = std::make_unique<BoxFilter>(Vector2D(0.5, 0.5));
     auto film = std::make_unique<Film>(Point2i(width, height),
-                                       boxFilter,
+                                       filter,
                                        kOutputDirectory + "pathtrace_%03d.png");
 
     RectF screen(-2.5, -2.5, 5.0, 5.0);
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
     Vector3D up(0.0, 1.0, 0.0);
 
     double focal = std::abs((look - eye).z());
-    double lensR = 0.2;
+    double lensR = 0.5;
 
     Scene scene;
     std::shared_ptr<Camera> camera = std::make_shared<PerspectiveCamera>(

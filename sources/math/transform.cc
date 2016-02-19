@@ -49,6 +49,12 @@ namespace spica {
         return m_ != t.m_ || mInv_ != t.mInv_;
     }
 
+    Transform& Transform::operator*=(const Transform& t) {
+        m_ = m_ * t.m_;
+        mInv_ = t.mInv_ * mInv_;
+        return *this;
+    }
+
     Point3D Transform::apply(const Point3D& p) const {
         return Point3D(apply(Vector3D(p)));
     }
@@ -82,4 +88,110 @@ namespace spica {
         return Transform(mInv_, m_);
     }
 
+    Transform Transform::translate(const Vector3D& delta) {
+        Matrix4x4 m(1.0, 0.0, 0.0, delta.x(),
+                    0.0, 1.0, 0.0, delta.y(),
+                    0.0, 0.0, 1.0, delta.z(),
+                    0.0, 0.0, 0.0, 1.0);
+        Matrix4x4 mInv(1.0, 0.0, 0.0, -delta.x(),
+                       0.0, 1.0, 0.0, -delta.y(),
+                       0.0, 0.0, 1.0, -delta.z(),
+                       0.0, 0.0, 0.0, 1.0);
+        return Transform{ m, mInv };
+    }
+
+    Transform Transform::scale(double sx, double sy, double sz) {
+        Assertion(sx != 0.0 && sy != 0.0 && sz != 0.0,
+                  "Zero division!!");
+        Matrix4x4 m( sx, 0.0, 0.0, 0.0,
+                    0.0,  sy, 0.0, 0.0,
+                    0.0, 0.0,  sz, 0.0,
+                    0.0, 0.0, 0.0, 1.0);
+        Matrix4x4 mInv(1.0 / sx, 0.0, 0.0, 0.0,
+                       0.0, 1.0 / sy, 0.0, 0.0,
+                       0.0, 0.0, 1.0 / sz, 0.0,
+                       0.0, 0.0, 0.0, 1.0);
+        return Transform{ m, mInv };
+    }
+
+    Transform Transform::rotate(double theta, const Vector3D& axis) {
+        Vector3D a = axis.normalized();
+        double sinTheta = sin(theta);
+        double cosTheta = cos(theta);
+        double m[4][4];
+        memset(m, 0, sizeof(m));
+
+        m[0][0] = a.x() * a.x() + (1.0 - a.x() * a.x()) * cosTheta;
+        m[0][1] = a.x() * a.y() * (1.0 - cosTheta) - a.z() * sinTheta;
+        m[0][2] = a.x() * a.z() * (1.0 - cosTheta) + a.y() * sinTheta;
+        m[0][3] = 0.0;
+
+        m[1][0] = a.x() * a.y() * (1.0 - cosTheta) + a.z() * sinTheta;
+        m[1][1] = a.y() * a.y() + (1.0 - a.y() * a.y()) * cosTheta;
+        m[1][2] = a.x() * a.z() * (1.0 - cosTheta) + a.y() * sinTheta;
+        m[1][3] = 0.0;
+
+        m[2][0] = a.x() * a.z() * (1.0 - cosTheta) - a.y() * sinTheta;
+        m[2][1] = a.y() * a.z() * (1.0 - cosTheta) + a.x() * sinTheta;
+        m[2][2] = a.z() * a.z() + (1.0 - a.z() * a.z()) * cosTheta;
+        m[2][3] = 0.0;
+        
+        Matrix4x4 mat(m);
+        return Transform{ mat, mat.transposed() };
+    }
+
+    Transform Transform::lookAt(const Point3D& eye, const Point3D& look,
+                                const Vector3D& up) {
+        double c2w[4][4];
+        memset(c2w, 0, sizeof(c2w));
+        c2w[0][3] = eye.x();
+        c2w[1][3] = eye.y();
+        c2w[2][3] = eye.z();
+        c2w[3][3] = 1.0;
+
+        Vector3D dir = (look - eye).normalized();
+        Vector3D left = Vector3D::cross(up.normalized(), dir);
+        Assertion(left.norm() != 0.0,
+                  "Up vector and viewing direction are oriented "
+                  "the same direction!!");
+
+        Vector3D newUp = Vector3D::cross(dir, left);
+        c2w[0][0] = left.x();
+        c2w[1][0] = left.y();
+        c2w[2][0] = left.z();
+        c2w[3][0] = 0.0;
+        c2w[0][1] = newUp.x();
+        c2w[1][1] = newUp.y();
+        c2w[2][1] = newUp.z();
+        c2w[3][1] = 0.0;
+        c2w[0][2] = dir.x();
+        c2w[1][2] = dir.y();
+        c2w[2][2] = dir.z();
+        c2w[3][2] = 0.0;
+
+        Matrix4x4 cameraToWorld(c2w);
+        return Transform{ cameraToWorld.inverted(), cameraToWorld };
+    }
+
+    Transform Transform::orthographic(double zNear, double zFar) {
+        return scale(1.0, 1.0, 1.0 / (zFar - zNear)) * 
+               translate(Vector3D(0.0, 0.0, -zNear));
+    }
+
+    Transform Transform::perspective(double fov, double near, double far) {
+        Matrix4x4 pers(1.0, 0.0, 0.0, 0.0,
+                       0.0, 1.0, 0.0, 0.0,
+                       0.0, 0.0, far / (far - near), -far * near / (far - near),
+                       0.0, 0.0, 1.0, 0.0);
+        double invTanHalf = 1.0 / tan(fov / 2.0);
+        return scale(invTanHalf, invTanHalf, 1.0) * Transform(pers);
+    }
+
 }  // namespace spica
+
+spica::Transform operator*(const spica::Transform& t1,
+                           const spica::Transform& t2) {
+    spica::Transform ret = t1;
+    ret *= t2;
+    return ret;
+}

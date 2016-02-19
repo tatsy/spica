@@ -5,6 +5,7 @@
 
 #include "../core/point2d.h"
 #include "../core/sampling.h"
+#include "../image/film.h"
 
 namespace spica {
 
@@ -23,7 +24,7 @@ PerspectiveCamera::PerspectiveCamera(const Transform& cameraToWorld,
               screen, lensRadius, focalLength, film }
     , uCamera_{}
     , vCamera_{}
-    , areaWorld_{0.0} {
+    , areaWorld_{ 0.0 } {
     uCamera_ = rasterToCamera_.apply(Point3D(1.0, 0.0, 0.0)) - rasterToCamera_.apply(Point3D(0.0, 0.0, 0.0));
     vCamera_ = rasterToCamera_.apply(Point3D(0.0, 1.0, 0.0)) - rasterToCamera_.apply(Point3D(0.0, 0.0, 0.0));
 
@@ -35,9 +36,11 @@ PerspectiveCamera::PerspectiveCamera(const Transform& cameraToWorld,
     areaWorld_ = std::abs((pMax.x() - pMin.x()) * (pMax.y() - pMin.y()));
 }
 
-Ray PerspectiveCamera::spawnRay(const Point2D& randFilm,
-                                const Point2D& randLens) const {
-    Point3D pFilm = Point3D(randFilm[0], randFilm[1], 0.0);
+Ray PerspectiveCamera::spawnRay(const Point2i& pixel, const Point2D& randFilm,
+                                const Point2D& randLens, double* pdfPos,
+                                double* pdfDir) const {
+    Point3D pFilm = Point3D(pixel[0] + randFilm[0],
+                            pixel[1] + randFilm[1], 0.0);
     Point3D pCamera = rasterToCamera_.apply(pFilm);
     
     Point3D org(0.0, 0.0, 0.0);
@@ -54,8 +57,8 @@ Ray PerspectiveCamera::spawnRay(const Point2D& randFilm,
 
     Point3D  orgWorld = cameraToWorld_.apply(org);
     Vector3D dirWorld = cameraToWorld_.apply(dir);
+
     return Ray{ orgWorld, dirWorld };
 }
-
 
 }  // namespace spica

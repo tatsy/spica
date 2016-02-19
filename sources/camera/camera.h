@@ -10,7 +10,7 @@
 
 namespace spica {
 
-class Camera {
+class SPICA_EXPORTS Camera {
 public:
     // Public methods
     Camera();
@@ -25,8 +25,9 @@ public:
 
     Camera& operator=(const Camera&) = default;
 
-    virtual Ray spawnRay(const Point2D& randFilm,
-                         const Point2D& randLens) const = 0;
+    virtual Ray spawnRay(const Point2i& pixel, const Point2D& randFilm,
+                         const Point2D& randLens, double* pdfPos = nullptr,
+                         double* pdfDir = nullptr) const = 0;
 
 protected:
     // Private fields
@@ -34,7 +35,7 @@ protected:
     Transform cameraToScreen_, rasterToCamera_;
     Transform screenToRaster_, rasterToScreen_;
     double lensRadius_, focalLength_;
-    Film* film;
+    Film* film_;
 };
 
 }  // namespace spica

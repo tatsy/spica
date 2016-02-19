@@ -5,37 +5,36 @@
 #ifndef _SPICA_ORTHOGRAPHIC_CAMERA_H_
 #define _SPICA_ORTHOGRAPHIC_CAMERA_H_
 
-#include "../math/vector3d.h"
-#include "../core/rect.h"
+#include "../core/common.h"
+#include "../core/forward_decl.h"
 
-#include "camera_interface.h"
+#include "camera.h"
 
 namespace spica {
 
-    /** Orthographic camera.
-     *  @ingroup camera_module
-     */
-    class SPICA_EXPORTS OrthographicCamera : public ICamera {
-    private:
-        Rect _rect;
+/** Orthographic camera.
+ *  @ingroup camera_module
+ */
+class SPICA_EXPORTS OrthographicCamera : public Camera {
+public:
+    // Public methods
+    OrthographicCamera();
+    OrthographicCamera(const Transform& cameraToWorld,
+                        const RectF& screen, double lensRadius,
+                        double focalLength, Film* film);
+    OrthographicCamera(const OrthographicCamera&) = default;
+    ~OrthographicCamera();
 
-    public:
-        OrthographicCamera();
-        OrthographicCamera(const Point& center,
-                         const Vector3D& direction,
-                         const Vector3D& up,
-                         const Rect& rect,
-                         int imageW, int imageH, double sensitivity);
-        ~OrthographicCamera();
+    OrthographicCamera& operator=(const OrthographicCamera&) = default;
 
-        OrthographicCamera(const OrthographicCamera& camera);
-        OrthographicCamera& operator=(const OrthographicCamera& camera);
+    Ray spawnRay(const Point2i& pixel, const Point2D& randFilm,
+                 const Point2D& randLens, double* pdfPos = nullptr,
+                 double* pdfDir = nullptr) const override;
+private:
+    // Private fields
+    Vector3D uCamera_, vCamera_;
 
-        CameraSample sample(double px, double py, const Point2D& rands) const override;
-        ICamera* clone() const override;
-
-        inline Rect rect() const { return _rect; }
-    };
+};  // class OrthographicCamera
 
 }  // namespace spica
 

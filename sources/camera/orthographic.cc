@@ -1,45 +1,43 @@
 #define SPICA_API_EXPORT
-#include "orthographic_camera.h"
+#include "orthographic.h"
 
 #include "../core/point2d.h"
+#include "../core/sampling.h"
 
 namespace spica {
 
-    OrthographicCamera::OrthographicCamera()
-        : ICamera() {
+OrthographicCamera::OrthographicCamera(const Transform& cameraToWorld,
+                                       const RectF& screen, double lensRadius,
+                                       double focalLength, Film* film)
+    : Camera{ cameraToWorld, Transform::orthographic(0.0, 1.0), screen,
+              lensRadius, focalLength, film }
+    , uCamera_{}
+    , vCamera_{} {
+    uCamera_ = rasterToCamera_.apply(Vector3D(1.0, 0.0, 0.0));
+    vCamera_ = rasterToCamera_.apply(Vector3D(0.0, 1.0, 0.0));
+}
+
+Ray OrthographicCamera::spawnRay(const Point2i& pixel, const Point2D& randFilm,
+                                 const Point2D& randLens, double* pdfPos,
+                                 double* pdfDir) const {
+    Point3D pFilm(pixel[0] + randFilm[0], pixel[1] + randFilm[1], 0.0);
+    Point3D pCamera = rasterToCamera_.apply(pFilm);
+    
+    Point3D  org = pCamera;
+    Vector3D dir = Vector3D(0.0, 0.0, 1.0);
+    if (lensRadius_ > 0.0) {
+        Point2D pLens = lensRadius_ * sampleConcentricDisk(randLens);
+
+        double ft = focalLength_ / dir.z();
+        Point3D pFocus = org + ft * dir;
+
+        org = Point3D(pLens.x(), pLens.y(), 0.0);
+        dir = (pFocus - org).normalized();
     }
 
-    OrthographicCamera::OrthographicCamera(const Point& center,
-                                       const Vector3D& direction,
-                                       const Vector3D& up,
-                                       const Rect& rect,
-                                       int imageW, int imageH, double sensitivity)
-        : ICamera{center, direction, up, imageW, imageH, sensitivity}
-        , _rect{rect} {
-    }
-
-    OrthographicCamera::~OrthographicCamera() {
-    }
-
-    OrthographicCamera::OrthographicCamera(const OrthographicCamera& camera)
-        : ICamera() {
-        this->operator=(camera);
-    }
-
-    OrthographicCamera& OrthographicCamera::operator=(const OrthographicCamera& camera) {
-        ICamera::operator=(camera);
-        return *this;
-    }
-
-    CameraSample OrthographicCamera::sample(double px, double py, const Point2D& rands) const {
-        const Vector3D vecU = _rect.width()  * (((_imageW - px - 1) + rands[0]) / _imageW - 0.5) * _unitU;
-        const Vector3D vecV = _rect.height() * ((py + rands[1]) / _imageH - 0.5) * _unitV;
-        const Point    origin = _center + vecU + vecV;
-        return CameraSample(Ray(origin, _direction), 1.0);
-    }
-
-    ICamera* OrthographicCamera::clone() const {
-        return new OrthographicCamera(*this);
-    }
+    Point3D orgWorld  = cameraToWorld_.apply(org);
+    Vector3D dirWorld = cameraToWorld_.apply(dir);
+    return Ray{ orgWorld, dirWorld };
+}
 
 }  // namespace spica

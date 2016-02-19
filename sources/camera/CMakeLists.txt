@@ -1,4 +1,5 @@
 set(SOURCES ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/camera.cc
     ${CMAKE_CURRENT_LIST_DIR}/perspective.cc
     ${CMAKE_CURRENT_LIST_DIR}/orthographic.cc
     PARENT_SCOPE)

@@ -109,19 +109,21 @@ static const double EPS = 1.0e-6;
 
 #undef NDEBUG
 #ifndef NDEBUG
-#define Assertion(PREDICATE, MSG) \
+#define Assertion(PREDICATE, MSG, ...) \
 do { \
     if (!(PREDICATE)) { \
         std::cerr << "Asssertion \"" \
         << #PREDICATE << "\" failed in " << __FILE__ \
         << " line " << __LINE__ \
         << " in function \"" << (__FUNCTION_NAME__) << "\"" \
-        << " : " << (MSG) << std::endl; \
+        << " : "; \
+        fprintf(stderr, MSG, __VA_ARGS__); \
+        std::cerr << std::endl; \
         std::abort(); \
     } \
 } while (false)
 #else  // NDEBUG
-#define Assertion(PREDICATE, MSG) do {} while (false)
+#define Assertion(PREDICATE, MSG, ...) do {} while (false)
 #endif  // NDEBUG
 
 // -----------------------------------------------------------------------------

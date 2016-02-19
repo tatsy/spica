@@ -47,10 +47,7 @@
 // Cameras
 // --------------------------------------------
 
-#include "../sources/camera/camera.h"
-#include "../sources/camera/orthographic_camera.h"
-#include "../sources/camera/perspective_camera.h"
-#include "../sources/camera/dof_camera.h"
+#include "../sources/camera/spica_camera.h"
 
 // --------------------------------------------
 // Renderers

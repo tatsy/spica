@@ -10,6 +10,7 @@
 
 #include "../core/common.h"
 #include "../core/forward_decl.h"
+#include "../core/point2d.h"
 
 #include "../filter/filter.h"
 
@@ -17,10 +18,23 @@ namespace spica {
 
 class Film {
 public:
-    Film(const Point2i& resolution, const Rect& cropWindow,
-         std::unique_ptr<Filter> filter, double diagonal,
-         const std::string& filename, double scale);
+    // Public methods
+    Film();
+    Film(const Point2i& resolution, std::unique_ptr<Filter> filter,
+         const std::string& filename);
+    Film(const Film& film) = default;
 
+    ~Film() = default;
+
+    Film& operator=(const Film&) = default;
+
+    inline Point2i resolution() const { return resolution_; }
+
+private:
+    // Private methods
+    Point2i resolution_;
+    Filter* filter_;
+    std::string filename_;
 
 
 };  // class Film

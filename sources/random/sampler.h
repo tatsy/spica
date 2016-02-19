@@ -25,37 +25,12 @@ namespace spica {
     public:
         virtual ~Sampler() {}
 
-        Sampler(Sampler&& sampler)
-            : rng_{std::move(sampler.rng_)} {
+        virtual double  get1D() = 0;
+        virtual Point2D get2D() {
+            return Point2D{ get1D(), get1D() };   
         }
 
-        Sampler& operator=(Sampler&& sampler) {
-            this->rng_ = std::move(sampler.rng_);
-            return *this;
-        }
-
-        double get1D() {
-            return rng_->get1D();
-        }
-
-        Point2D get2D() {
-            return { get1D(), get1D() };
-        }
-
-        // virtual std::unique_ptr<Sampler> clone() const = 0;
-
-    private:
-        // Private methods
-        Sampler(RandomInterface* rng)
-            : rng_{ rng } {
-        }
-
-        // Private fields
-        std::unique_ptr<RandomInterface> rng_;
-
-        // Friend classes.
-        friend class Random;
-        friend class Halton;
+        virtual std::unique_ptr<Sampler> clone(unsigned int seed = 0) const = 0;
     };
 
 }  // namespace spica

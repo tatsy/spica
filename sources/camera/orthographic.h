@@ -23,7 +23,7 @@ public:
                         const RectF& screen, double lensRadius,
                         double focalLength, Film* film);
     OrthographicCamera(const OrthographicCamera&) = default;
-    ~OrthographicCamera();
+    ~OrthographicCamera() = default;
 
     OrthographicCamera& operator=(const OrthographicCamera&) = default;
 

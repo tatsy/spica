@@ -11,6 +11,7 @@
 #include "../core/sampling.h"
 #include "../core/interaction.h"
 
+#include "../image/film.h"
 #include "../image/image.h"
 #include "../image/tmo.h"
 
@@ -25,43 +26,39 @@
 #include "../scenes/scene.h"
 
 #include "integrator.h"
+#include "mis.h"
+
+#include "../camera/camera.h"
+
 #include "renderer_helper.h"
 #include "render_parameters.h"
 // #include "subsurface_integrator.h"
 
 namespace spica {
 
-PathRenderer::PathRenderer()
-    : IRenderer{RendererType::PathTrace} {
+PathIntegrator::PathIntegrator(std::shared_ptr<Camera>& camera,
+                               std::shared_ptr<Sampler>& sampler)
+    : Integrator{ camera }
+    , sampler_{ sampler } {
 }
 
-PathRenderer::~PathRenderer() {
+PathIntegrator::~PathIntegrator() {
 }
 
-void PathRenderer::render(const Scene& scene, const Camera& camera,
-                          const std::unique_ptr<Film>& film,
-                          const RenderParameters& params) {
-    const int width  = camera.imageW();
-    const int height = camera.imageH();
-
+void PathIntegrator::render(const Scene& scene,
+                            const RenderParameters& params) const {
     // Preparation for accouting for BSSRDF
     // _integrator->initialize(scene);
 
-    // Prepare random number generators
-    std::vector<Sampler> samplers;
-    for (int i = 0; i < kNumThreads; i++) {
-        switch (params.randomType()) {
-        case RandomType::MT19937:
-            samplers.push_back(Random::createSampler((unsigned int)time(0) + i));
-            break;
+    const int width = camera_->film()->resolution().x();
+    const int height = camera_->film()->resolution().y();
 
-        case RandomType::Halton:
-            samplers.push_back(Halton::createSampler(300, true, (unsigned int)time(0) + i));
-            break;
-
-        default:
-            FatalError("[ERROR] Unknown random number generator type!!");
-        }
+    // Prepare samplers and memory arenas
+    auto samplers = std::vector<std::unique_ptr<Sampler>>(kNumThreads);
+    auto arenas   = std::vector<MemoryArena>(kNumThreads);
+    for (int t = 0; t < kNumThreads; t++) {
+        auto seed = static_cast<unsigned int>(time(0) + t);
+        samplers[t] = sampler_->clone(seed);
     }
 
     // Distribute rendering tasks
@@ -81,48 +78,33 @@ void PathRenderer::render(const Scene& scene, const Camera& camera,
         for (int t = 0; t < taskPerThread; t++) {
             ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 if (t < tasks[threadID].size()) {
-                    Stack<double> rstk;
                     const int y = tasks[threadID][t];
                     for (int x = 0; x < width; x++) {
-                        film->addPixel(width - x - 1, y, tracePath(scene, camera, params, x, y, samplers[threadID]));
+                        const Point2D randFilm = samplers[threadID]->get2D();
+                        const Point2D randLens = samplers[threadID]->get2D();
+                        const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
+
+                        const Point2i pixel(width - x - 1, y);
+                        camera_->film()->
+                            addPixel(pixel, randFilm,
+                                     Li(scene, params, ray, *samplers[threadID], arenas[threadID]));
                     }
                 }
+                arenas[threadID].reset();
             }
         }
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                _result.pixel(x, y) = buffer(x, y) / (i + 1);
-            }
-        }
-
-        char filename[256];
-        sprintf(filename, params.saveFilenameFormat().c_str(), i + 1);
-        _result = GammaTmo(2.2).apply(_result);
-        _result.save(filename);
-
-        printf("%6.2f %%  processed -> %s\r",
-                100.0 * (i + 1) / params.samplePerPixel(), filename);
+        printf("%d\n", i);
+        camera_->film()->save(i);
     }
-    printf("\nFinish!!\n");
+    std::cout << "Finish!!" << std::endl;
 }
 
-Spectrum PathRenderer::tracePath(const Scene& scene, const Camera& camera, 
-                                    const RenderParameters& params,
-                                    const double pixelX, const double pixelY,
-                                    Sampler& sampler) {
-    CameraSample camSample = camera.sample(pixelX, pixelY, sampler.get2D());
-    
-    const Ray ray = camSample.ray();
-    return radiance(scene, params, ray, sampler, 0) * (camera.sensitivity() / camSample.pdf());
-}
-
-Spectrum PathRenderer::Li(const Scene& scene,
+Spectrum PathIntegrator::Li(const Scene& scene,
                           const RenderParameters& params,
                           const Ray& r,
                           Sampler& sampler,
+                          MemoryArena& arena,
                           int depth) const {
-    MemoryArena arena;
     Ray ray(r);
     Spectrum L(0.0);
     Spectrum beta(1.0);
@@ -153,7 +135,7 @@ Spectrum PathRenderer::Li(const Scene& scene,
         }
 
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-            Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
+            Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
             L += Ld;
         }
 

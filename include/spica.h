@@ -11,6 +11,7 @@
 #include "../sources/core/timer.h"
 #include "../sources/core/sampling.h"
 #include "../sources/core/spica_dirs.h"
+#include "../sources/core/rect.h"
 
 
 #include "../sources/shape/shape.h"
@@ -29,12 +30,16 @@
 // --------------------------------------------
 
 #include "../sources/image/image.h"
+#include "../sources/image/film.h"
 #include "../sources/image/tmo.h"
 #include "../sources/image/birateral.h"
 
 // --------------------------------------------
-// BSDF
+// Filter
 // --------------------------------------------
+
+#include "../sources/filter/box.h"
+
 
 // --------------------------------------------
 // Lights
@@ -56,7 +61,6 @@
 #include "../sources/integrator/render_parameters.h"
 #include "../sources/integrator/renderer_helper.h"
 
-#include "../sources/integrator/renderer_interface.h"
 #include "../sources/integrator/pathtrace.h"
 // #include "../sources/renderer/bdpt.h"
 // #include "../sources/renderer/mlt.h"

@@ -56,19 +56,28 @@ namespace spica {
     }
 
     Point3D Transform::apply(const Point3D& p) const {
-        return Point3D(apply(Vector3D(p)));
+        double ps[4] = { p[0], p[1], p[2], 1.0 };
+        
+        double ret[4] = { 0.0, 0.0, 0.0, 0.0 };
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                ret[i] += m_(i, j) * ps[j]; 
+            }
+        }
+
+        if (ret[3] != 1.0) {
+            ret[0] /= (ret[3] + EPS);
+            ret[1] /= (ret[3] + EPS);
+            ret[2] /= (ret[3] + EPS);
+        }
+        return { ret[0], ret[1], ret[2] };
     }
 
     Vector3D Transform::apply(const Vector3D& v) const {
-        double vs[4] = { v[0], v[1], v[2], 1.0 };
-        
-        double ret[3] = { 0.0, 0.0, 0.0 };
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 4; j++) {
-                ret[i] += m_(i, j) * vs[j]; 
-            }
-        }
-        return { ret[0], ret[1], ret[2] };   
+        return Vector3D(
+            m_(0, 0) * v.x() + m_(0, 1) * v.y() + m_(0, 2) * v.z(),
+            m_(1, 0) * v.x() + m_(1, 1) * v.y() + m_(1, 2) * v.z(),
+            m_(2, 0) * v.x() + m_(2, 1) * v.y() + m_(2, 2) * v.z());
     }
 
     Bounds3d Transform::apply(const Bounds3d& b) const {
@@ -154,7 +163,8 @@ namespace spica {
         Assertion(left.norm() != 0.0,
                   "Up vector and viewing direction are oriented "
                   "the same direction!!");
-
+        
+        left = left.normalized();
         Vector3D newUp = Vector3D::cross(dir, left);
         c2w[0][0] = left.x();
         c2w[1][0] = left.y();
@@ -178,8 +188,8 @@ namespace spica {
                translate(Vector3D(0.0, 0.0, -zNear));
     }
 
-    Transform Transform::perspective(double fov, double near, double far) {
-        Matrix4x4 pers(1.0, 0.0, 0.0, 0.0,
+    Transform Transform::perspective(double fov, double aspect, double near, double far) {
+        Matrix4x4 pers(1.0 / aspect, 0.0, 0.0, 0.0,
                        0.0, 1.0, 0.0, 0.0,
                        0.0, 0.0, far / (far - near), -far * near / (far - near),
                        0.0, 0.0, 1.0, 0.0);

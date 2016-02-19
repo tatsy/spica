@@ -77,7 +77,7 @@ static const double EPS = 1.0e-6;
 // ----------------------------------------------------------------------------
 // Parallel for
 // ----------------------------------------------------------------------------
-#ifndef _OPENMP
+#ifdef _OPENMP
     #include <omp.h>
     #if defined(_WIN32) || defined(__WIN32__)
         #define ompfor __pragma(omp parallel for) for
@@ -131,11 +131,13 @@ do { \
 // -----------------------------------------------------------------------------
 
 #ifndef NDEBUG
-#define MsgInfo(MSG) \
+#define MsgInfo(MSG, ...) \
 do { \
-    std::cout << "[INFO] " << (MSG) << std::endl; \
+    std::cout << "[INFO] "; \
+    fprintf(stderr, MSG, __VA_ARGS__); \
+    std::cerr << std::endl; \
 } while (false);
-#define Warning(MSG) \
+#define Warning(MSG, ...) \
 do { \
     std::cerr << "[WARNING] " << (MSG) << std::endl; \
 } while (false);

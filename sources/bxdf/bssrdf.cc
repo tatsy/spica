@@ -10,7 +10,6 @@
 #include "../math/vector3d.h"
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
-#include "../integrator/renderer_constants.h"
 
 namespace spica {
 

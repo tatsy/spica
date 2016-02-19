@@ -29,6 +29,8 @@ public:
                          const Point2D& randLens, double* pdfPos = nullptr,
                          double* pdfDir = nullptr) const = 0;
 
+    inline Film* film() const { return film_; }
+
 protected:
     // Private fields
     Transform cameraToWorld_;

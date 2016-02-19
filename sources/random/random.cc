@@ -148,8 +148,8 @@ namespace spica {
         return y;
     }
 
-    Sampler Random::createSampler(unsigned int seed) {
-        return { new Random(seed) };
+    std::unique_ptr<Sampler> Random::clone(unsigned int seed) const {
+        return std::make_unique<Random>(seed);
     }
 
     /* generates a random number on [0,0x7fffffff]-interval */

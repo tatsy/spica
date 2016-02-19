@@ -6,6 +6,11 @@
 
 namespace spica {
 
+OrthographicCamera::OrthographicCamera()
+    : uCamera_{}
+    , vCamera_{} {
+}
+
 OrthographicCamera::OrthographicCamera(const Transform& cameraToWorld,
                                        const RectF& screen, double lensRadius,
                                        double focalLength, Film* film)

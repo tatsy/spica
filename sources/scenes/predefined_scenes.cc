@@ -25,7 +25,7 @@ namespace spica {
             Point l01(-5.0, 9.99,  5.0);
             Point l10( 5.0, 9.99, -5.0);
             Point l11( 5.0, 9.99,  5.0);
-            Spectrum Le(32.0, 32.0, 32.0);
+            Spectrum Le(8.0, 8.0, 8.0);
             auto t1 = std::make_shared<Triangle>(l00, l10, l11);
             auto t2 = std::make_shared<Triangle>(l00, l11, l01);
             auto l1 = std::make_shared<AreaLight>(t1, Transform(), Le);
@@ -142,16 +142,6 @@ namespace spica {
         // scene->setAccelType(AccelType::QBVH);
         scene->finalize();
          */
-
-        (*camera) = Camera::asDoF(width, height, 
-                                  Point(0.0, 0.0, 100.0),
-                                  Vector3D(0.0, 0.0, -1.0),
-                                  Vector3D(0.0, 1.0, 0.0),
-                                  20.0,
-                                  42.0,
-                                  58.0,
-                                  1.0,
-                                  90.0);
     }
 
     /*

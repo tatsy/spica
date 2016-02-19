@@ -20,7 +20,8 @@ PerspectiveCamera::PerspectiveCamera(const Transform& cameraToWorld,
                                      const RectF& screen, double lensRadius,
                                      double focalLength, double fov,
                                      Film* film)
-    : Camera{ cameraToWorld, Transform::perspective(fov, 1.0, 1000.0),
+    : Camera{ cameraToWorld, 
+              Transform::perspective(fov, film->aspect(), 1.0e-2, 1000.0),
               screen, lensRadius, focalLength, film }
     , uCamera_{}
     , vCamera_{}
@@ -43,7 +44,7 @@ Ray PerspectiveCamera::spawnRay(const Point2i& pixel, const Point2D& randFilm,
                             pixel[1] + randFilm[1], 0.0);
     Point3D pCamera = rasterToCamera_.apply(pFilm);
     
-    Point3D org(0.0, 0.0, 0.0);
+    Point3D  org = Point3D(0.0, 0.0, 0.0);
     Vector3D dir = vect::normalize(pCamera);
     if (lensRadius_ > 0.0) {
         Point2D pLens = lensRadius_ * sampleConcentricDisk(randLens);
@@ -57,7 +58,6 @@ Ray PerspectiveCamera::spawnRay(const Point2i& pixel, const Point2D& randFilm,
 
     Point3D  orgWorld = cameraToWorld_.apply(org);
     Vector3D dirWorld = cameraToWorld_.apply(dir);
-
     return Ray{ orgWorld, dirWorld };
 }
 

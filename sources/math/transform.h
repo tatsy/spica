@@ -47,7 +47,8 @@ namespace spica {
         static Transform lookAt(const Point3D& eye, const Point3D& look,
                                 const Vector3D& up);
         static Transform orthographic(double zNear, double zFar);
-        static Transform perspective(double fov, double near, double far);
+        static Transform perspective(double fov, double aspect, 
+                                     double near, double far);
 
     private:
         // Private fields

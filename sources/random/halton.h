@@ -24,7 +24,7 @@ namespace spica {
 
         double get1D() override;
 
-        static Sampler createSampler(int dim = 200, bool isPermute = true, unsigned int seed = 0);
+        std::unique_ptr<Sampler> clone(unsigned int seed = 0) const;
 
     private:
         double radicalInverse(int n, int base, const int* p) const;

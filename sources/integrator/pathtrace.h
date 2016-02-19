@@ -7,45 +7,37 @@
 
 #include <string>
 
+#include "../core/common.h"
 #include "../core/forward_decl.h"
-#include "renderer_interface.h"
+
+#include "integrator.h"
 
 namespace spica {
 
-    /** Unidirectional path tracing
-     *  @ingroup renderer_module
+    /** 
+     * Unidirectional path tracing
+     * @ingroup renderer_module
      */
-    class SPICA_EXPORTS PathRenderer : public IRenderer {
+    class SPICA_EXPORTS PathIntegrator : public Integrator {
     public:
-        /** The path tracing renderer constructor.
-         */
-        PathRenderer();
-
-        /** The path tracing renderer destructor.
-         */
-        ~PathRenderer();
-
-        /** Rendering process.
-         *  @param scene: The redering scene.
-         *  @param camera: The camera for the scene.
-         *  @param filem: The film which stores the resulting image.
-         *  @param params: The rendering parameters.
-         */
-        void render(const Scene& scene, const Camera& camera,
-                    const std::unique_ptr<Film>& film,
-                    const RenderParameters& params) override;
+        // Public methods
+        PathIntegrator(std::shared_ptr<Camera>& camera,
+                     std::shared_ptr<Sampler>& sampler);
+        ~PathIntegrator();
+        void render(const Scene& scene,
+                    const RenderParameters& params) const override;
 
     private:
-        Spectrum tracePath(const Scene& scene, const Camera& camera,
-                           const RenderParameters& params,
-                           const double pixelX, const double pixelY,
-                           Sampler& sampler);
-
+        // Private methods
         Spectrum Li(const Scene& scene,
                     const RenderParameters& params,
                     const Ray& ray,
                     Sampler& sampler,
-                    int bounces) const;
+                    MemoryArena& arena,
+                    int depth = 0) const;
+
+        // Private fields
+        std::shared_ptr<Sampler> sampler_;
     };
 }
 

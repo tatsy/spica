@@ -6,16 +6,17 @@
 #define _SPICA_RANDOM_H_
 
 #include "../core/common.h"
-#include "random_base.h"
+#include "sampler.h"
 
 namespace spica {
 
     class Sampler;
 
-    /** Random number generator with Mersenne twister.
-     *  @ingroup random_module
+    /**
+     * Random number generator with Mersenne twister.
+     * @ingroup random_module
      */
-    class SPICA_EXPORTS Random : public RandomInterface {
+    class SPICA_EXPORTS Random : public Sampler {
     private:
         static const int N = 624;
         static const int M = 397;
@@ -45,9 +46,7 @@ namespace spica {
 
         double get1D() override;
 
-        /** Factory method for RandomSampler.
-         */
-        static Sampler createSampler(unsigned int seed = 0);
+        std::unique_ptr<Sampler> clone(unsigned int seed = 0) const override;
 
     private:
         void init_genrand(unsigned int s);

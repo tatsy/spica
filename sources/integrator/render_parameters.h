@@ -7,8 +7,6 @@
 
 #include <string>
 
-#include "renderer_constants.h"
-
 namespace spica {
 
     class RenderParameters {
@@ -22,7 +20,6 @@ namespace spica {
         int         _gatherPhotons;
         double      _gatherRadius;
         // Other parameters
-        RandomType  _randomType;
         std::string _saveFilenameFormat;
 
     public:
@@ -32,7 +29,6 @@ namespace spica {
                          int castPhotons = 1000000,
                          int gatherPhotons = 64,
                          double gatherRadius = 32.0,
-                         RandomType randomType = RandomType::MT19937,
                          std::string saveFilenameFormat = "%03d.png")
             : _samplePerPixel(samplePerPixel)
             , _bounceLimit(bounceLimit)
@@ -40,7 +36,6 @@ namespace spica {
             , _castPhotons(castPhotons)
             , _gatherPhotons(gatherPhotons)
             , _gatherRadius(gatherRadius)
-            , _randomType(randomType)
             , _saveFilenameFormat(saveFilenameFormat)
         {
         }
@@ -52,7 +47,6 @@ namespace spica {
             , _castPhotons()
             , _gatherPhotons()
             , _gatherRadius()
-            , _randomType()
             , _saveFilenameFormat()
         {
             this->operator=(params);
@@ -69,7 +63,6 @@ namespace spica {
             this->_castPhotons         = params._castPhotons;
             this->_gatherPhotons       = params._gatherPhotons;
             this->_gatherRadius        = params._gatherRadius;
-            this->_randomType          = params._randomType;
             this->_saveFilenameFormat  = params._saveFilenameFormat;
             return *this;
         }
@@ -97,10 +90,6 @@ namespace spica {
         // Search radius to collect kNN photons
         inline double gatherRadius() const        { return _gatherRadius;   }
         inline void   gatherRadius(double newval) { _gatherRadius = newval; }
-
-        // Type of random number sampler
-        inline RandomType randomType() const                { return _randomType;       }
-        inline void       randomType(RandomType randomType) { _randomType = randomType; }
 
         // File name format string
         inline std::string saveFilenameFormat() const                    { return _saveFilenameFormat;   }

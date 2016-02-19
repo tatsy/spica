@@ -78,7 +78,7 @@ namespace spica {
     {
         Assertion(dim <= nPrimes, "You cannot specify dimension over 1000");
 
-        Random rng = Random(seed);
+        Random rng(seed);
         bases = new int[dims];
         int sumBases = 0;
         for (int i = 0; i < dims; i++) {
@@ -108,10 +108,6 @@ namespace spica {
     double Halton::get1D() {
         // TODO: Must be revised.
         return 0.0;
-    }
-
-    Sampler Halton::createSampler(int dim, bool isPermute, unsigned int seed) {
-        return { new Halton(dim, isPermute, seed) };
     }
 
     double Halton::radicalInverse(int n, int base, const int* p) const {

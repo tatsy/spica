@@ -117,8 +117,7 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
     return true;
 }
 
-Interaction Triangle::sample(const Interaction& isect,
-                             const Point2D& rands) const {
+Interaction Triangle::sample(const Point2D& rands) const {
     const Vector3D e1 = points_[1] - points_[0];
     const Vector3D e2 = points_[2] - points_[0];
 
@@ -133,7 +132,7 @@ Interaction Triangle::sample(const Interaction& isect,
 
     Point3D pos = points_[0] + u0 * e1 + u1 * e2;
     Normal  nrm = (1.0 - u0 - u1) * normals_[0] + u0 * normals_[1] + u1 * normals_[2];
-    return Interaction{ pos, nrm };
+    return Interaction{ pos, nrm };    
 }
 
 Bounds3d Triangle::objectBound() const {

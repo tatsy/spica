@@ -54,18 +54,13 @@
 #include "../sources/camera/spica_camera.h"
 
 // --------------------------------------------
-// Renderers
+// Integrators
 // --------------------------------------------
 
 #include "../sources/integrator/render_parameters.h"
 #include "../sources/integrator/renderer_helper.h"
 
-#include "../sources/integrator/pathtrace.h"
-// #include "../sources/renderer/bdpt.h"
-// #include "../sources/renderer/mlt.h"
-// #include "../sources/renderer/ppmprob.h"
-// #include "../sources/renderer/sppm.h"
-// #include "../sources/renderer/subsurface_integrator.h"
+#include "../sources/integrator/spica_integrator.h"
 
 // --------------------------------------------
 // Scenes

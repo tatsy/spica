@@ -33,6 +33,12 @@ namespace spica {
 
         double pdfLi(const Interaction& pObj, const Vector3D& dir) const override;
 
+        Spectrum sampleLe(const Point2D& rand1, const Point2D& rand2,
+                          Ray* ray, Normal3D* nLight, double* pdfPos,
+                          double* pdfDir) const override;
+        void pdfLe(const Ray& ray, const Normal3D& nLight, double* pdfPos,
+                   double* pdfDir) const override;
+
         Spectrum power() const override;
         Light* clone() const override;
 

@@ -28,12 +28,13 @@ namespace spica {
         LightSample() {
         }
 
-        LightSample(const Point& p, const Normal& n, const Vector3D& dir, const Spectrum& e, double pdf)
-            : _pos{p}
-            , _nrm{n}
-            , _dir{dir}
-            , _emt{e}
-            , _pdf{pdf} {
+        LightSample(const Point& p, const Normal& n, const Vector3D& dir,
+                    const Spectrum& e, double pdf)
+            : _pos{ p }
+            , _nrm{ n }
+            , _dir{ dir }
+            , _emt{ e }
+            , _pdf{ pdf } {
         }
 
         ~LightSample() {
@@ -98,6 +99,12 @@ namespace spica {
         virtual double pdfLi(const Interaction& pObj, const Vector3D& dir) const = 0;
 
         virtual Spectrum Le(const Ray& ray) const;
+        virtual Spectrum sampleLe(const Point2D& rand1, const Point2D& rand2,
+                                  Ray* ray, Normal3D* nLight, double* pdfPos,
+                                  double *pdfDir) const = 0;
+        virtual void pdfLe(const Ray& ray, const Normal3D& nLight,
+                           double* pdfPos, double* pdfDir) const = 0;
+
         virtual Spectrum power() const = 0;
 
         virtual Light* clone() const = 0;

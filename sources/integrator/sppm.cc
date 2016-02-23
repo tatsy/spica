@@ -6,6 +6,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include "../core/memory.h"
 #include "../core/interaction.h"
 #include "../core/sampling.h"
 
@@ -25,13 +26,29 @@
 namespace spica {
 
 struct SPPMIntegrator::SPPMPixel {
-    Point pos;
     Vector3D wo;
-    Spectrum Ld;
-    Spectrum beta;
+    Spectrum Ld = Spectrum(0.0, 0.0, 0.0);
+    struct VisiblePoint {
+        VisiblePoint() {}
+        VisiblePoint(const Point3D& p_, const Vector3D& wo_, const BSDF* bsdf_,
+                     const Spectrum& beta_)
+            : p{ p_ }
+            , wo{ wo_ }
+            , bsdf{ bsdf_ }
+            , beta{ beta_ } {
+        }
+
+        Point3D p;
+        Vector3D wo;
+        const BSDF* bsdf = nullptr;
+        Spectrum beta;
+    } vp;
+
     Spectrum tau;
+    Spectrum phi;
     double r2 = 0.0;
-    int n = 0;
+    double n  = 0;
+    int m = 0;
 };
 
 const double SPPMIntegrator::kAlpha_ = 0.7;
@@ -55,13 +72,11 @@ void SPPMIntegrator::render(const Scene& scene,
     // _integrator->initialize(scene);
 
     // Initialize hitpoints
-    std::vector<SPPMPixel> hpoints(numPoints);
+    std::vector<SPPMPixel> pixels(numPoints);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             int id = y * width + x;
-            hpoints[id].x = x;
-            hpoints[id].y = y;
-            hpoints[id].n = 0;
+            pixels[id].n = 0;
         }
     }
 
@@ -72,7 +87,7 @@ void SPPMIntegrator::render(const Scene& scene,
     auto samplers = std::vector<std::unique_ptr<Sampler>>(kNumThreads);
     auto arenas   = std::vector<MemoryArena>(kNumThreads);
     for (int i = 0; i < kNumThreads; i++) {
-        unsigned int seed = time(0) + i;
+        unsigned int seed = time((unsigned int)0) + i;
         samplers[i] = sampler_->clone(seed);
     }
 
@@ -80,11 +95,35 @@ void SPPMIntegrator::render(const Scene& scene,
         std::cout << "--- Iteration No." << (t + 1) << " ---" << std::endl;
 
         // 1st pass: Trace rays from camera
-        traceRays(scene, params, samplers, arenas, hpoints);
+        traceRays(scene, params, samplers, arenas, pixels);
 
         // 2nd pass: Trace photons from light source
         tracePhotons(scene, params, samplers, arenas,
                      lightDistrib, params.castPhotons());
+
+        // Update pixel values
+        for (int i = 0; i < numPoints; i++) {
+            SPPMPixel& pixel = pixels[i];
+            if (pixel.m > 0) {
+                double nnew  = static_cast<int>(pixel.n + kAlpha_ * pixel.m);
+                double r2new = pixel.r2 * nnew / (pixel.n + pixel.m);
+                Spectrum phi = pixel.phi;
+                pixel.tau = (pixel.tau + pixel.vp.beta * phi) * 
+                            (r2new / pixel.r2);
+
+                pixel.n  = nnew;
+                pixel.r2 = r2new;
+                pixel.m = 0;
+                pixel.phi = Spectrum(0.0);
+            }
+            pixel.vp.beta = Spectrum(0.0);
+            pixel.vp.bsdf = nullptr;
+        }
+
+        // Reset memory arenas
+        for (int k = 0; k < kNumThreads; k++) {
+            arenas[k].reset();
+        }
 
         // Save temporal image
         const int totalPhotons = (t + 1) * params.castPhotons();
@@ -92,10 +131,10 @@ void SPPMIntegrator::render(const Scene& scene,
         image.fill(RGBSpectrum(0.0, 0.0, 0.0));
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                SPPMPixel& pixel = hpoints[y * width + x];
+                SPPMPixel& pixel = pixels[y * width + x];
                 Spectrum L = pixel.Ld / (t + 1);
-                L += pixel.tau / (totalPhotons * PI * pixel.r2);
-                image.pixel(x, y) = L;
+                L += pixel.tau / (totalPhotons * PI * pixel.r2 + EPS);
+                image.pixel(width - x - 1, y) = L;
             }
         }
         camera_->film()->setImage(image);
@@ -113,7 +152,7 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
     // Compute bounding box
     Bounds3d bbox;
     for (int i = 0; i < numPoints; i++) {
-        bbox.merge(pixels[i].pos);
+        bbox.merge(pixels[i].vp.p);
     }
 
     // Heuristic for initial radius
@@ -127,11 +166,11 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
         if (pixels[i].n == 0) {
             pixels[i].r2 = irad * irad;
             pixels[i].n  = 0;
-            pixels[i]. = Spectrum(0.0, 0.0, 0.0);
+            pixels[i].tau = Spectrum(0.0, 0.0, 0.0);
         }
 
-        bbox.merge(pixels[i].pos + iradv);
-        bbox.merge(pixels[i].pos - iradv);
+        bbox.merge(pixels[i].vp.p + iradv);
+        bbox.merge(pixels[i].vp.p - iradv);
     }
         
     // Make each grid cell two times larger than the initial radius
@@ -142,8 +181,8 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
 
     // Set hit points to the grid
     for (int i = 0; i < numPoints; i++) {
-        Point boxMin = pixels[i].pos - iradv;
-        Point boxMax = pixels[i].pos + iradv;
+        Point boxMin = pixels[i].vp.p - iradv;
+        Point boxMax = pixels[i].vp.p + iradv;
         hashgrid_.add(&pixels[i], boxMin, boxMax);
     }
 }
@@ -172,9 +211,11 @@ void SPPMIntegrator::traceRays(const Scene& scene,
         ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
             if (t < pixelIDs[threadID].size()) {
                 const int pid = pixelIDs[threadID][t];
+                const int px  = pid % width;
+                const int py  = pid / width;
                 const Point2D randFilm = samplers[threadID]->get2D();
                 const Point2D randLens = samplers[threadID]->get2D();
-                const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
+                const Ray ray = camera_->spawnRay(Point2i(px, py), randFilm, randLens);
                 pathTrace(scene, params, ray, *samplers[threadID],
                           arenas[threadID], &hpoints[pid]);
             }
@@ -187,7 +228,7 @@ void SPPMIntegrator::traceRays(const Scene& scene,
     }
     printf("\nFinish !!\n");
 
-    // Construct k-d tree
+    // Construct hash grid
     constructHashGrid(hpoints, width, height);
     std::cout << "Hash grid constructed !!" << std::endl << std::endl;
 }
@@ -207,24 +248,27 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
     int proc = 0;
     for (int t = 0; t < tasksThread; t++) {
         ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-            auto& sampler = samplers[threadID];
+        // for (int threadID = 0; threadID < kNumThreads; threadID++) {
+            const std::unique_ptr<Sampler>& sampler = samplers[threadID];
 
             // Sample light source
             double lightPdf;
             int lightID = lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf);
-            const auto& light = scene.lights()[lightID];
+            const std::shared_ptr<Light>& light = scene.lights()[lightID];
 
             Point2D rand0 = sampler->get2D();
             Point2D rand1 = sampler->get2D();
             Ray photonRay;
+            Normal3D nLight;
             double pdfPos, pdfDir;
-            Spectrum Le = light->sampleLe();
+            Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
+                                          &nLight, &pdfPos, &pdfDir);
 
-            if (pdfPos == 0.0 || pdfDir == 0.0 || Le.isBlack()) return;
+            if (pdfPos == 0.0 || pdfDir == 0.0 || Le.isBlack()) break;
             
-            Spectrum beta = (vect::absDot(Nl, photonRay.dir()) * Le) /
+            Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
                             (lightPdf * pdfPos * pdfDir);
-            if (beta.isBlack()) return;
+            if (beta.isBlack()) break;
 
             tracePhotonsSub(scene, params, photonRay, beta, *sampler, arenas[threadID]);
         }
@@ -250,7 +294,25 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
         if (!scene.intersect(ray, &isect)) break;
 
         if (bounces > 0) {
-            // TODO: Implement!!
+            std::vector<SPPMPixel*> results;
+            omplock {
+                results = hashgrid_[isect.pos()];
+            
+                for (SPPMPixel* pixel : results) {
+                    if ((pixel->vp.p - isect.pos()).squaredNorm() > pixel->r2) {
+                        continue;
+                    }
+
+                    if (!pixel->vp.bsdf) {
+                        continue;
+                    }
+
+                    Vector3D wi = -ray.dir();
+                    Spectrum phi = beta * pixel->vp.bsdf->f(pixel->vp.wo, wi);
+                    pixel->phi += phi;
+                    pixel->m += 1;
+                }
+            }
         }
     
         isect.setScatterFuncs(ray, arena);
@@ -286,7 +348,7 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
                                SPPMPixel* pixel) const {
     Ray ray(r);
     Spectrum L(0.0);
-    Spectrum beta(0.0);
+    Spectrum beta(1.0);
     bool specularBounce = false;
     int bounces;
     for (bounces = 0; ; bounces++) {
@@ -321,8 +383,9 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
             BxDFType::Diffuse | BxDFType::Reflection | BxDFType::Transmission) > 0;       
         bool isGlossy  = bsdf.numComponents(
             BxDFType::Glossy | BxDFType::Reflection | BxDFType::Transmission) > 0;
+
         if (isDiffuse || (isGlossy && bounces == params.bounceLimit() - 1)) {
-            pixel.vp = { isect.pos(), wo, &bsdf, beta };
+            pixel->vp = { isect.pos(), wo, &bsdf, beta };
             break;
         }
 
@@ -341,7 +404,7 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
                 double continueProb = std::min(1.0 , beta.luminance());
                 if (sampler.get1D() > continueProb) break;
                 beta /= continueProb;
-            }            
+            }           
             ray = isect.spawnRay(wi);
 
             // TODO: material with property both of Lambertian and BSSRDF should be accounted for.

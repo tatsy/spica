@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "../core/common.h"
+#include "../core/sampling.h"
 #include "../core/interaction.h"
 #include "../core/bounds3d.h"
 #include "../shape/triangle.h"
@@ -89,6 +90,13 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
 
     *isect = SurfaceInteraction(pWorld, Point2D(u, v), -ray.dir(), dpdu, dpdv, dndu, dndv, this);
     return true;
+}
+
+Interaction Sphere::sample(const Point2D& rands) const {
+    Point3D pObj = Point3D(0.0, 0.0, 0.0) + 
+                   radius_ * sampleUniformSphere(rands);
+    Normal3D nrm = vect::normalize(objectToWorld_.apply(Normal3D(pObj)));
+    return Interaction{ pObj, nrm };
 }
 
 Interaction Sphere::sample(const Interaction& isect,

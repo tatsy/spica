@@ -82,7 +82,8 @@ int Distribution1D::sampleDiscrete(double rand, double* pdf) const {
 }
 
 int Distribution1D::findInterval(const std::vector<double>& cdf, double v) {
-    return std::upper_bound(cdf.begin(), cdf.end(), v) - cdf.begin();    
+    int ret = std::upper_bound(cdf.begin(), cdf.end(), v) - cdf.begin() - 1;    
+    return std::min(ret, (int)cdf.size() - 1);
 }
 
 Distribution2D::Distribution2D()
@@ -150,6 +151,15 @@ Point2D sampleConcentricDisk(const Point2D& rands) {
         theta = (PI / 2.0) - PI * (uOffset.x() / uOffset.y()) / 4.0;
     }
     return r * Point2D(std::cos(theta), std::sin(theta));
+}
+
+Vector3D sampleUniformSphere(const Point2D& rands) {
+    double z = 2.0 * rands[0] - 1.0;
+    double cosTheta = sqrt(1.0 - z * z);
+    double phi = 2.0 * PI * rands[1];
+    double x = cos(phi) * cosTheta;
+    double y = sin(phi) * cosTheta;
+    return { x, y, z };
 }
 
 Vector3D sampleCosineHemisphere(const Point2D& rands) {

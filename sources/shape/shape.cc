@@ -47,6 +47,10 @@ double Shape::pdf(const Interaction& pObj, const Vector3D& wi) const {
     return ret;
 }
 
+Interaction Shape::sample(const Interaction& ref, const Point2D& rands) const {
+    return sample(rands);
+}
+
 Bounds3d Shape::worldBound() const {
     return objectToWorld_.apply(objectBound());
 }

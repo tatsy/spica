@@ -26,7 +26,8 @@ public:
 
     Disk& operator=(const Disk& disk);
 
-    bool intersect(const Ray& ray, double* tHit, SurfaceInteraction* isect) const override;
+    bool intersect(const Ray& ray, double* tHit,
+                   SurfaceInteraction* isect) const override;
 
     Bounds3d objectBound() const override;
 

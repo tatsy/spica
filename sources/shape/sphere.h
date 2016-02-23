@@ -27,6 +27,7 @@ public:
     bool intersect(const Ray& ray, double* tHit,
                    SurfaceInteraction* isect) const override;
 
+    Interaction sample(const Point2D& rands) const override;
     Interaction sample(const Interaction& isect,
                        const Point2D& rands) const override;
 

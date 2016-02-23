@@ -49,8 +49,9 @@ public:
     virtual bool intersect(const Ray& ray, double* tHit,
                            SurfaceInteraction* isect) const = 0;
 
+    virtual Interaction sample(const Point2D& rands) const = 0;
     virtual Interaction sample(const Interaction& isect,
-                               const Point2D& rands) const = 0;
+                               const Point2D& rands) const;
     virtual double pdf(const Interaction& pObj) const;
     virtual double pdf(const Interaction& pObj, const Vector3D& dir) const;
 

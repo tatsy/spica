@@ -23,7 +23,7 @@ void BSDF::add(BxDF* b) {
 int BSDF::numComponents(BxDFType type) const {
     int ret = 0;
     for (int i = 0; i < nBxDFs_; i++) {
-        if ((bxdfs_[i]->type() & type) != BxDFType::None) {
+        if ((bxdfs_[i]->type() & type) == bxdfs_[i]->type()) {
             ret++;
         }
     }

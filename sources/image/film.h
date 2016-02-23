@@ -36,6 +36,7 @@ public:
     }
 
     void save(int id = 0) const;
+    void setImage(const Image& image);
     void addPixel(const Point2i& pixel, const Point2D& pInPixel,
                   const Spectrum& color);
 

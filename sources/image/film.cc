@@ -42,6 +42,11 @@ void Film::save(int id) const {
     MsgInfo("save: %s", savefile);
 }
 
+void Film::setImage(const Image& image) {
+    this->image_ = image;
+    weights_.assign(resolution_.x(), std::vector<double>(resolution_.y(), 1.0));
+}
+
 void Film::addPixel(const Point2i& pixel, const Point2D& pInPixel, 
                     const Spectrum& color) {
     const double dx = pInPixel.x() - 0.5;

@@ -73,6 +73,13 @@ namespace spica {
         return { ret[0], ret[1], ret[2] };
     }
 
+    Normal3D Transform::apply(const Normal3D& n) const {
+        return Normal3D(
+            mInv_(0, 0) * n.x() + mInv_(0, 1) * n.y() + mInv_(0, 2) * n.z(),
+            mInv_(1, 0) * n.x() + mInv_(1, 1) * n.y() + mInv_(1, 2) * n.z(),
+            mInv_(2, 0) * n.x() + mInv_(2, 1) * n.y() + mInv_(2, 2) * n.z());
+    }
+
     Vector3D Transform::apply(const Vector3D& v) const {
         return Vector3D(
             m_(0, 0) * v.x() + m_(0, 1) * v.y() + m_(0, 2) * v.z(),
@@ -81,6 +88,7 @@ namespace spica {
     }
 
     Bounds3d Transform::apply(const Bounds3d& b) const {
+        // TODO: It can be invalid.
         Point3D posMin = apply(b.posMin());
         Point3D posMax = apply(b.posMax());
         return { posMin, posMax };

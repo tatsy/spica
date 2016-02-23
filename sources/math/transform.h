@@ -29,8 +29,9 @@ namespace spica {
         bool operator!=(const Transform& t);
         Transform& operator*=(const Transform& t);
 
-        Point3D  apply(const Point3D& p)  const;
+        Point3D  apply(const Point3D&  p) const;
         Vector3D apply(const Vector3D& v) const;
+        Normal3D apply(const Normal3D& n) const;
         Bounds3d  apply(const Bounds3d& b)  const;
 
         bool isIdentity() const;

@@ -38,6 +38,28 @@ namespace spica {
         return shape_->pdf(pObj, dir);
     }
 
+    Spectrum AreaLight::sampleLe(const Point2D& randPos, const Point2D& randDir,
+                                 Ray* ray, Normal3D* nLight, double* pdfPos,
+                                 double* pdfDir) const {
+        Interaction pShape = shape_->sample(randPos);
+        *pdfPos = shape_->pdf(pShape);
+        *nLight = pShape.normal();
+
+        Vector3D w = sampleCosineHemisphere(randDir);
+        *pdfDir = cosineHemispherePdf(w.z());
+
+        Vector3D v1, v2, n(pShape.normal());
+        vect::coordinateSystem(n, &v1, &v2);
+        w = w.x() * v1 + w.y() * v2 + w.z() * n;
+        *ray = pShape.spawnRay(w);
+        return L(pShape, w);
+    }
+
+    void AreaLight::pdfLe(const Ray& ray, const Normal3D& nLight,
+                          double* pdfPos, double* pdfDir) const {
+        
+    }
+
     Spectrum AreaLight::power() const {
         return Lemit_ * area() * PI;
     }

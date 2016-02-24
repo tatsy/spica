@@ -39,6 +39,8 @@ public:
     double D(const Vector3D& wh) const override;
     Vector3D sample(const Vector3D& wo, const Point2D& rands) const override;
 
+    static double roughnessToAlpha(double rough);
+
 private:
     // Private methods
     double lambda(const Vector3D& w) const;

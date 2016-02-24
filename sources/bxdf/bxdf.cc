@@ -195,7 +195,8 @@ double FresnelSpecular::pdf(const Vector3D& wo, const Vector3D& wi) const {
 MicrofacetReflection::MicrofacetReflection(const Spectrum& ref,
                                            MicrofacetDistribution* distrib,
                                            Fresnel* fresnel)
-    : ref_{ ref }
+    : BxDF{ BxDFType::Reflection | BxDFType::Glossy }
+    , ref_{ ref }
     , distrib_{ distrib }
     , fresnel_{ fresnel } {
 }
@@ -210,8 +211,9 @@ Spectrum MicrofacetReflection::f(const Vector3D& wo, const Vector3D& wi) const {
     wh = wh.normalized();
 
     Spectrum F = fresnel_->evaluate(vect::dot(wi, wh));
-    return ref_ * distrib_->D(wh) * distrib_->G(wo, wi) * F /
+    auto ret = ref_ * distrib_->D(wh) * distrib_->G(wo, wi) * F /
            (4.0 * cosThetaI * cosThetaO);
+    return ret;
 }
 
 Spectrum MicrofacetReflection::sample(const Vector3D& wo, Vector3D* wi,

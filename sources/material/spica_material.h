@@ -8,6 +8,7 @@
 #include "material.h"
 #include "lambert.h"
 #include "mirror.h"
+#include "metal.h"
 #include "glass.h"
 
 #endif  // _SPICA_MATERIAL_HEADERS_H_

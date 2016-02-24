@@ -28,9 +28,9 @@ double MicrofacetDistribution::G(const Vector3D& wo, const Vector3D& wi) const {
 
 double MicrofacetDistribution::pdf(const Vector3D& wo, const Vector3D& wh) const {
     if (sampleVisibleArea_) {
-        return D(wh) * G1(wo) * vect::absDot(wo, wh) / wo.z();
+        return D(wh) * G1(wo) * vect::absDot(wo, wh) / std::abs(vect::cosTheta(wo));
     } else {
-        return D(wh) * wh.z();
+        return D(wh) * std::abs(vect::cosTheta(wh));
     }
 }
 
@@ -65,31 +65,38 @@ Vector3D TrowbridgeReitzDistribution::sample(const Vector3D& wo,
         double phi = (2.0 * PI) * rands[1];
         if (alphax_ == alphay_) {
             double tanTheta2 = alphax_ * alphax_ * rands[0] / (1.0 - rands[0]);
-            cosTheta = 1.0 / sqrt(1.0 + tanTheta2);
+            cosTheta = 1.0 / std::sqrt(1.0 + tanTheta2);
         } else {
-            phi = atan(alphay_ / alphax_ * tan(2.0 * PI * rands[1] + 0.5 * PI));
+            phi = std::atan(alphay_ / alphax_ * tan(2.0 * PI * rands[1] + 0.5 * PI));
             if (rands[1] > 0.5) {
                 phi += PI;
             }
-            double sinPhi = sin(phi);
-            double cosPhi = cos(phi);
+            double sinPhi = std::sin(phi);
+            double cosPhi = std::cos(phi);
             double alphax2 = alphax_ * alphax_;
             double alphay2 = alphay_ * alphay_;
             double alpha2 = 
                 1.0 / (cosPhi * cosPhi / alphax2 + sinPhi * sinPhi / alphay2);
             double tanTheta2 = alpha2 * rands[0] / (1.0 - rands[0]);
-            cosTheta = 1.0 / sqrt(1.0 + tanTheta2);
+            cosTheta = 1.0 / std::sqrt(1.0 + tanTheta2);
         }
-        double sinTheta = sqrt(std::max(0.0, 1.0 - cosTheta * cosTheta));
+        double sinTheta = std::sqrt(std::max(0.0, 1.0 - cosTheta * cosTheta));
         wh = Vector3D(1.0, 0.0, 0.0) * cos(phi) * cosTheta +
              Vector3D(0.0, 1.0, 0.0) * sin(phi) * cosTheta +
              Vector3D(0.0, 0.0, 1.0) * sinTheta;
+        if (!vect::sameHemisphere(wo, wh)) wh = -wh;
     } else {
         bool flip = wo.z() < 0.0;
         wh = sampleVA(flip ? -wo : wo, alphax_, alphay_, rands);
         if (flip) wh = -wh;
     }
     return wh;
+}
+
+double TrowbridgeReitzDistribution::roughnessToAlpha(double rough) {
+    rough = std::max(rough, 1.0e-3);
+    double x = std::log(rough);
+    return 1.62142 + x * (0.819955 + x * (0.1734 +  x * (0.0171201 + 0.000640711 * x)));
 }
 
 double TrowbridgeReitzDistribution::lambda(const Vector3D& w) const {
@@ -109,10 +116,10 @@ Vector3D TrowbridgeReitzDistribution::sampleVA(const Vector3D& wi,
         Vector3D(alphax * wi.x(), alphay * wi.y(), wi.z()).normalized();
     
     double slopex, slopey;
-    sampleSlopes(wiStretched.z(), rands, &slopex, &slopey);
+    sampleSlopes(vect::cosTheta(wiStretched), rands, &slopex, &slopey);
 
-    double cosPhi = wiStretched.x() / wiStretched.z();
-    double sinPhi = wiStretched.y() / wiStretched.z();
+    double cosPhi = vect::cosPhi(wiStretched);
+    double sinPhi = vect::sinPhi(wiStretched);
     double tmp = cosPhi * slopex - sinPhi * slopey;
 
     slopey = sinPhi * slopex + cosPhi * slopey;
@@ -138,7 +145,7 @@ void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
     double sinTheta = sqrt(std::max(0.0, 1.0 - cosTheta * cosTheta));
     double tanTheta = sinTheta / cosTheta;
     double a = 1.0 / tanTheta;
-    double G1 = 2.0 / (1.0 + sqrt(1.0 + 1.0 / (a * a)));
+    double G1 = 2.0 / (1.0 + std::sqrt(1.0 + 1.0 / (a * a)));
 
     double A = 2.0 * rands[0] / G1 - 1.0;
     double tmp = 1.0 / (A * A - 1.0);
@@ -147,7 +154,7 @@ void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
     double D = sqrt(std::max(0.0, B * B * tmp * tmp - (A * A - B * B) * tmp));
     double slopex1 = B * tmp - D;
     double slopex2 = B * tmp - D;
-    *slopex = A < 0.0 || slopex2 > 1.0 / tanTheta ? slopex1 : slopex2;
+    *slopex = (A < 0.0 || slopex2 > 1.0 / tanTheta) ? slopex1 : slopex2;
     Assertion(!isinf(*slopex), "slopex is infinity.");
     Assertion(!isnan(*slopex), "slopex is NaN.");
 
@@ -162,7 +169,7 @@ void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
 
     double z = (U * (U * (U * 0.27385 - 0.73369) + 0.46341)) / 
                (U * (U * (U * 0.093073 + 0.309420) - 1.0) + 0.597999);
-    *slopey = S * z * sqrt(1.0 + (*slopex) * (*slopex));
+    *slopey = S * z * std::sqrt(1.0 + (*slopex) * (*slopex));
     Assertion(!isinf(*slopey), "slopey is infinity.");
     Assertion(!isnan(*slopey), "slopey is NaN");
 }

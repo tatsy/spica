@@ -18,7 +18,7 @@ namespace spica {
     public:
         /** The RGBSpectrum constructor. */
         RGBSpectrum();
-        RGBSpectrum(double l);
+        explicit RGBSpectrum(double l);
         /** The RGBSpectrum constructor
          *  @param red: Red component.
          *  @param green: Green component.

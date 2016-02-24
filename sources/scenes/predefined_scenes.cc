@@ -100,8 +100,12 @@ namespace spica {
         // Mirror ball
         {            
             auto sph  = std::make_shared<Sphere>(Point(-5.0, -7.0, -5.0), 3.0);
-            auto Kd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
-            auto mtrl = std::make_shared<MirrorMaterial>(Kd);
+            //auto Kd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            //auto mtrl = std::make_shared<MirrorMaterial>(Kd);
+            auto eta = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.18309, 0.54410, 1.1715));
+            auto k   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(3.4241, 2.1404, 1.7544));
+            auto roughness = std::make_shared<ConstantTexture<double>>(0.1);
+            auto mtrl = std::make_shared<MetalMaterial>(eta, k, roughness);
             primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
         }
 

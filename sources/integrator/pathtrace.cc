@@ -93,7 +93,6 @@ void PathIntegrator::render(const Scene& scene,
                 arenas[threadID].reset();
             }
         }
-        printf("%d\n", i);
         camera_->film()->save(i);
     }
     std::cout << "Finish!!" << std::endl;

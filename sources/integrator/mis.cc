@@ -47,28 +47,30 @@ Spectrum estimateDirectLight(const Interaction& intr,
     // Sample light with multiple importance sampling
     Vector3D wi;
     VisibilityTester vis;
-    double lightPdf = 0.0, shadePdf = 0.0;
+    double lightPdf = 0.0, bsdfPdf = 0.0;
     Spectrum Li = light.sampleLi(intr, randLight, &wi, &lightPdf, &vis);
     if (lightPdf > 0.0 && !Li.isBlack()) {
         Spectrum f;
         if (intr.isSurfaceInteraction()) {
-            const SurfaceInteraction& isect = static_cast<const SurfaceInteraction&>(intr);
-            f = isect.bsdf()->f(isect.wo(), wi, bxdfType) * vect::absDot(wi, isect.normal());
-            shadePdf = isect.bsdf()->pdf(isect.wo(), wi, bxdfType);
+            const SurfaceInteraction& isect =
+                static_cast<const SurfaceInteraction&>(intr);
+            f = isect.bsdf()->f(isect.wo(), wi, bxdfType) *
+                vect::absDot(wi, isect.normal());
+            bsdfPdf = isect.bsdf()->pdf(isect.wo(), wi, bxdfType);
         } else {
             // TODO: Implement for volume rendering
         }
 
         if (!f.isBlack()) {
             if (!vis.unoccluded(scene)) {
-                return Spectrum(0.0);
+                Li = Spectrum(0.0);
             }
 
             if (!Li.isBlack()) {
                 if (light.isDelta()) {
                     Ld += f * Li / lightPdf;
                 } else {
-                    const double weight = powerHeuristic(1, lightPdf, 1, shadePdf);
+                    const double weight = powerHeuristic(1, lightPdf, 1, bsdfPdf);
                     Ld += f * Li * weight / lightPdf;
                 }
             }
@@ -82,17 +84,19 @@ Spectrum estimateDirectLight(const Interaction& intr,
         if (intr.isSurfaceInteraction()) {
             BxDFType sampledType;
             const auto& isect = static_cast<const SurfaceInteraction&>(intr);
-            f = isect.bsdf()->sample(isect.wo(), &wi, randShade, &shadePdf, bxdfType, &sampledType);
+            f = isect.bsdf()->sample(isect.wo(), &wi, randShade, &bsdfPdf, bxdfType, &sampledType);
             f *= vect::absDot(wi, isect.normal());
             sampledSpecular = (sampledType & BxDFType::Specular) != BxDFType::None;
+        } else {
+            // TODO: Implement for volume interaction
         }
 
-        if (!f.isBlack() && shadePdf) {
+        if (!f.isBlack() && bsdfPdf > 0.0) {
             double weight = 1.0;
             if (!sampledSpecular) {
                 lightPdf = light.pdfLi(intr, wi);
                 if (lightPdf == 0.0) return Ld;
-                weight = powerHeuristic(1, shadePdf, 1, lightPdf);
+                weight = powerHeuristic(1, bsdfPdf, 1, lightPdf);
             }
 
             SurfaceInteraction lightIsect;
@@ -109,7 +113,7 @@ Spectrum estimateDirectLight(const Interaction& intr,
                 Li = light.Le(ray);
             }
 
-            if (!Li.isBlack()) Ld += f * Li * Tr * weight / shadePdf;
+            if (!Li.isBlack()) Ld += f * Li * Tr * weight / bsdfPdf;
         }
     }
     return Ld;

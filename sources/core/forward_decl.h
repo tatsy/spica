@@ -111,6 +111,8 @@ namespace spica {
     // BSDF module
     class BSDF;
     class BxDF;
+    class Fresnel;
+    class MicrofacetDistribution;
     class BSSRDF;
 
     // Random module

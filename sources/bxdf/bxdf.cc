@@ -4,6 +4,9 @@
 #include "../core/sampling.h"
 #include "../math/vector3d.h"
 
+#include "fresnel.h"
+#include "microfacet.h"
+
 namespace spica {
 
 namespace {
@@ -183,5 +186,50 @@ Spectrum FresnelSpecular::sample(const Vector3D& wo, Vector3D* wi,
 double FresnelSpecular::pdf(const Vector3D& wo, const Vector3D& wi) const {
     return 0.0;
 }
+
+
+// -----------------------------------------------------------------------------
+// MicrofacetReflection method definitions
+// -----------------------------------------------------------------------------
+
+MicrofacetReflection::MicrofacetReflection(const Spectrum& ref,
+                                           MicrofacetDistribution* distrib,
+                                           Fresnel* fresnel)
+    : ref_{ ref }
+    , distrib_{ distrib }
+    , fresnel_{ fresnel } {
+}
+
+Spectrum MicrofacetReflection::f(const Vector3D& wo, const Vector3D& wi) const {
+    double cosThetaO = std::abs(vect::cosTheta(wo));
+    double cosThetaI = std::abs(vect::cosTheta(wi));
+    Vector3D wh = wi + wo;
+
+    if (cosThetaI == 0.0 || cosThetaO == 0.0) return Spectrum(0.0);
+    if (wh.x() == 0.0 && wh.y() == 0.0 && wh.z() == 0.0) return Spectrum(0.0);
+    wh = wh.normalized();
+
+    Spectrum F = fresnel_->evaluate(vect::dot(wi, wh));
+    return ref_ * distrib_->D(wh) * distrib_->G(wo, wi) * F /
+           (4.0 * cosThetaI * cosThetaO);
+}
+
+Spectrum MicrofacetReflection::sample(const Vector3D& wo, Vector3D* wi,
+                                      const Point2D& rands, double* pdf,
+                                      BxDFType* sampledType) const {
+    Vector3D wh = distrib_->sample(wo, rands);
+    *wi = vect::reflect(wo, wh);
+    if (!vect::sameHemisphere(wo, *wi)) return Spectrum(0.0);
+
+    *pdf = distrib_->pdf(wo, wh) / (4.0 * vect::dot(wo, wh));
+    return f(wo, *wi);
+}
+
+double MicrofacetReflection::pdf(const Vector3D& wo, const Vector3D& wi) const {
+    if (!vect::sameHemisphere(wo, wi)) return 0.0;
+    Vector3D wh = vect::normalize(wo + wi);
+    return distrib_->pdf(wo, wh) / (4.0 * vect::dot(wo, wh));
+}
+
 
 }  // namespace spica

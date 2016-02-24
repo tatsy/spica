@@ -53,6 +53,65 @@ double sphericalTheta(const Vec& dir) {
 }
 
 template <class Vec>
+double cosTheta(const Vec& w) {
+    return w.z();
+}
+
+template <class Vec>
+double cos2Theta(const Vec& w) {
+    return w.z() * w.z();
+}
+
+template <class Vec>
+double sin2Theta(const Vec& w) {
+    return std::sqrt(std::max(0.0, 1.0 - cos2Theta(w)));
+}
+
+template <class Vec>
+double sinTheta(const Vec& w) {
+    return std::sqrt(sin2Theta(w));
+}
+
+template <class Vec>
+double tanTheta(const Vec& w) {
+    return sinTheta(w) / cosTheta(w);
+}
+
+template <class Vec>
+double tan2Theta(const Vec& w) {
+    return sin2Theta(w) / cos2Theta(w);
+}
+
+template <class Vec>
+double cosPhi(const Vec& w) {
+    double sinTheta = vect::sinTheta(w);
+    return (sinTheta == 0.0) ? 0.0 : clamp(w.x() / sinTheta, -1.0, 1.0);
+}
+
+template <class Vec>
+double sinPhi(const Vec& w) {
+    double sinTheta = vect::sinTheta(w);
+    return (sinTheta == 0.0) ? 0.0 : clamp(w.y() / sinTheta, -1.0, 1.0);    
+}
+
+template <class Vec>
+double cos2Phi(const Vec& w) {
+    const double c = vect::cosPhi(w);
+    return c * c;
+}
+
+template <class Vec>
+double sin2Phi(const Vec& w) {
+    const double s = vect::sinPhi(w);
+    return s * s;
+}
+
+template <class Vec>
+bool sameHemisphere(const Vec& w1, const Vec& w2) {
+    return w1.z() * w2.z() > 0.0;
+}
+
+template <class Vec>
 void coordinateSystem(const Vec& w, Vec* u, Vec* v) {
     if (std::abs(w.x()) > 0.1) {
         *u = vect::normalize(vect::cross(Vec(0.0, 1.0, 0.0), w));
@@ -68,9 +127,10 @@ void coordinateSystem(const Vec& w, Vec* u, Vec* v) {
  * @param n normal of hitpoint
  * @return reflected direction
  */
-template <class T>
-Vector3_<T> reflect(const Vector3_<T>& v, const Normal3_<T>& n) {
-    return (v - Vector3D(n) * T(2) * vect::dot(n, v));        
+template <class Vec1, class Vec2>
+Vector3_<typename Vec1::type> reflect(const Vec1& v, const Vec2& n) {
+    using Type = Vec1::type;
+    return Vector3_<Type>(v - Vector3_<Type>(n) * Type(2) * vect::dot(n, v));        
 }
 
 }  // namespace vect

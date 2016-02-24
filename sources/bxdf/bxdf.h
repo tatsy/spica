@@ -108,7 +108,7 @@ public:
 
     Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
     Spectrum sample(const Vector3D& wo, Vector3D* wi, const Point2D& rands,
-                    double* pdf, BxDFType* sampledType) const;
+                    double* pdf, BxDFType* sampledType) const override;
     double pdf(const Vector3D& wo, const Vector3D& wi) const override;
 
 private:
@@ -117,6 +117,24 @@ private:
     Spectrum tr_;
     double etaA_ = 1.0;
     double etaB_ = 1.0;
+};
+
+/**
+ * Microfacet reflaction.
+ */
+class MicrofacetReflection : public BxDF {
+public:
+    MicrofacetReflection(const Spectrum& ref,
+                         MicrofacetDistribution* distrib, Fresnel* fresnel);
+    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
+    Spectrum sample(const Vector3D& wo, Vector3D* wi, const Point2D& rands,
+                    double* pdf, BxDFType* sampledType) const override;
+    double pdf(const Vector3D& wo, const Vector3D& wi) const override;
+
+private:
+    const Spectrum ref_;
+    const MicrofacetDistribution* distrib_;
+    const Fresnel* fresnel_;
 };
 
 }  // namespace spica

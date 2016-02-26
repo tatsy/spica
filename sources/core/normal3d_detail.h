@@ -87,6 +87,14 @@ namespace spica {
     }
 
     template <class T>
+    T Normal3_<T>::operator[](int i) const {
+        Assertion(0 <= i && i <= 2, "Index out of bounds!!");
+        if (i == 0) return x_;
+        if (i == 1) return y_;
+        return z_;
+    }
+
+    template <class T>
     Normal3_<T>::operator Vector3_<T>() const {
         return { x_, y_, z_ };
     }

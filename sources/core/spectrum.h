@@ -103,6 +103,9 @@ namespace spica {
         /** Covert to string. */
         std::string toString() const;
 
+        // Public fields
+        static const int channels = 3;
+
     private:
         double r_, g_, b_;
     };

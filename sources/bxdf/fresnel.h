@@ -43,6 +43,14 @@ private:
     double etaI_, etaT_;
 };
 
+// -----------------------------------------------------------------------------
+// Fresnel utility functions
+// -----------------------------------------------------------------------------
+
+SPICA_EXPORTS Spectrum FrConductor(double cosThetaI, const Spectrum& etaI,
+                                   const Spectrum& etaT, const Spectrum& k);
+SPICA_EXPORTS double FrDielectric(double cosThetaI, double etaI, double etaT);
+
 }  // namespace spica
 
 #endif  // _SPICA_FRESNEL_H_

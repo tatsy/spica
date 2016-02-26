@@ -29,6 +29,7 @@ namespace spica {
         Interaction& operator=(const Interaction& intr);
 
         virtual Ray spawnRay(const Vector3D& wi) const;
+        virtual Ray spawnRayTo(const Point3D& p) const;
         virtual Ray spawnRayTo(const Interaction& intr) const;
 
         inline virtual bool isSurfaceInteraction() const { return false; }
@@ -40,6 +41,9 @@ namespace spica {
         Point    pos_;
         Normal   normal_;
         Vector3D wo_;
+
+    private:
+        friend class DiffuseBSSRDF;
     };
 
     class SPICA_EXPORTS SurfaceInteraction : public Interaction {

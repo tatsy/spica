@@ -45,9 +45,13 @@ Ray Interaction::spawnRay(const Vector3D& wi) const {
     return Ray(pos_, wi);
 }
 
-Ray Interaction::spawnRayTo(const Interaction& intr) const {
-    Vector3D d = intr.pos_ - pos_;
+Ray Interaction::spawnRayTo(const Point3D& p) const {
+    Vector3D d = p - pos_;
     return Ray(pos_, d, std::max(0.0, d.norm() - EPS));
+}
+
+Ray Interaction::spawnRayTo(const Interaction& intr) const {
+    return spawnRayTo(intr.pos_);
 }
 
 

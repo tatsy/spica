@@ -16,6 +16,9 @@ namespace spica {
     class Distribution1D;
     class Distribution2D;
 
+    class CatmullRom;
+    class CatmullRom2D;
+
     template <class T>
     class Stack;
 
@@ -114,6 +117,7 @@ namespace spica {
     class Fresnel;
     class MicrofacetDistribution;
     class BSSRDF;
+    class DiffuseBSSRDF;
 
     // Random module
     class Random;

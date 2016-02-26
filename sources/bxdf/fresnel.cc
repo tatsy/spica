@@ -17,10 +17,32 @@ FresnelConductor::FresnelConductor(const Spectrum& etaI, const Spectrum& etaT,
 }
 
 Spectrum FresnelConductor::evaluate(double cosThetaI) const {
+    FrConductor(std::abs(cosThetaI), etaI_, etaT_, k_);
+}
+
+// -----------------------------------------------------------------------------
+// FresnelDielectric method definitions
+// -----------------------------------------------------------------------------
+
+FresnelDielectric::FresnelDielectric(double etaI, double etaT)
+    : etaI_{ etaI }
+    , etaT_{ etaT } {
+}
+
+Spectrum FresnelDielectric::evaluate(double cosThetaI) const {
+    return Spectrum(FrDielectric(cosThetaI, etaI_, etaT_));
+}
+
+// -----------------------------------------------------------------------------
+// Fresnel utility function definitions
+// -----------------------------------------------------------------------------
+
+Spectrum FrConductor(double cosThetaI, const Spectrum& etaI,
+                     const Spectrum& etaT, const Spectrum& k) {
     cosThetaI = std::abs(cosThetaI);
     cosThetaI = clamp(cosThetaI, -1.0, 1.0);
-    Spectrum eta = etaT_ / etaI_;
-    Spectrum etaK = k_ / etaI_;
+    Spectrum eta = etaT / etaI;
+    Spectrum etaK = k / etaI;
 
     double cosThetaI2 = cosThetaI * cosThetaI;
     double sinThetaI2 = 1.0 - cosThetaI2;
@@ -41,38 +63,26 @@ Spectrum FresnelConductor::evaluate(double cosThetaI) const {
     return 0.5 * (Rp + Rs);
 }
 
-// -----------------------------------------------------------------------------
-// FresnelDielectric method definitions
-// -----------------------------------------------------------------------------
-
-FresnelDielectric::FresnelDielectric(double etaI, double etaT)
-    : etaI_{ etaI }
-    , etaT_{ etaT } {
-}
-
-Spectrum FresnelDielectric::evaluate(double cosThetaI) const {
-    double eI = etaI_;
-    double eT = etaT_;
-
+double FrDielectric(double cosThetaI, double etaI, double etaT) {
     cosThetaI = clamp(cosThetaI, -1.0, 1.0);
 
     bool entering = cosThetaI > 0.0;
     if (!entering) {
-        std::swap(eI, eT);
+        std::swap(etaI, etaT);
         cosThetaI = std::abs(cosThetaI);
     }
 
     double sinThetaI = std::sqrt(std::max(0.0, 1.0 - cosThetaI * cosThetaI));
-    double sinThetaT = eI / eT * sinThetaI;
+    double sinThetaT = etaI / etaT * sinThetaI;
 
-    if (sinThetaT >= 1.0) return Spectrum(1.0);  // Total reflection
+    if (sinThetaT >= 1.0) return 1.0;  // Total reflection
 
     double cosThetaT = std::sqrt(std::max(0.0, 1.0 - sinThetaT * sinThetaT));
-    double Rpara = ((eT * cosThetaI) - (eI * cosThetaT)) /
-                   ((eT * cosThetaI) + (eI * cosThetaT));
-    double Rperp = ((eI * cosThetaI) - (eT * cosThetaT)) /
-                   ((eI * cosThetaI) + (eT * cosThetaT));
-    return Spectrum((Rpara * Rpara + Rperp * Rperp) / 2.0);
+    double Rpara = ((etaT * cosThetaI) - (etaI * cosThetaT)) /
+                   ((etaT * cosThetaI) + (etaI * cosThetaT));
+    double Rperp = ((etaI * cosThetaI) - (etaT * cosThetaT)) /
+                   ((etaI * cosThetaI) + (etaT * cosThetaT));
+    return (Rpara * Rpara + Rperp * Rperp) / 2.0;
 }
 
 }  // namespace spica

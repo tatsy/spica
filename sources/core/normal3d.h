@@ -27,6 +27,7 @@ namespace spica {
         Normal3_<T> operator-=(const Normal3_<T>& n);
         Normal3_<T> operator*=(T s);
         Normal3_<T> operator/=(T s);
+        T operator[](int i) const;
         explicit operator Vector3_<T>() const;
 
         inline T x() const { return x_; }

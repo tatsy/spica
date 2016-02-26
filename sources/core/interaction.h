@@ -75,7 +75,9 @@ namespace spica {
         inline const Primitive* primitive() const { return primitive_; }
 
         inline BSDF* bsdf() const { return bsdf_; }
+        inline BSSRDF* bssrdf() const { return bssrdf_; }
         inline void setBSDF(BSDF* bsdf) { bsdf_ = bsdf; }
+        inline void setBSSRDF(BSSRDF* bssrdf) { bssrdf_ = bssrdf; }
         inline void setPrimitive(const Primitive* prim) { primitive_ = prim; }
     
     private:
@@ -87,6 +89,7 @@ namespace spica {
         const Shape* shape_ = nullptr;
         const Primitive* primitive_ = nullptr;
         BSDF* bsdf_ = nullptr;
+        BSSRDF* bssrdf_ = nullptr;
     };
 
 }  // namespace spica

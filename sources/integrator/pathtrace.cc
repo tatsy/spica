@@ -22,6 +22,7 @@
 
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bxdf.h"
+#include "../bxdf/bssrdf.h"
 
 #include "../scenes/scene.h"
 
@@ -153,20 +154,24 @@ Spectrum PathIntegrator::Li(const Scene& scene,
         ray = isect.spawnRay(wi);
 
         // Account for BSSRDF
-        /*
-        if (bsdf.type() & BsdfType::Bssrdf) {
-            Assertion(_integrator != nullptr,
-                        "Subsurface intergrator is NULL !!");
+        if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+            SurfaceInteraction pi;
+            Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                sampler.get2D(), arena, &pi, &pdf);
 
-            double refPdf = 1.0;
-            bssrdfRad = bsdf.evalBSSRDF(ray.dir(),
-                                        isect.pos(),
-                                        isect.normal(),
-                                        *_integrator,
-                                        &refPdf);
-            pdf *= refPdf;
+            if (S.isBlack() || pdf == 0.0) break;
+            beta *= S / pdf;
+
+            L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+
+            Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
+                                           BxDFType::All, &sampledType);
+            if (f.isBlack() || pdf == 0.0) break;
+            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+
+            specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+            ray = pi.spawnRay(wi);
         }
-        */
 
         // Russian roulette
         if (bounces > 3) {

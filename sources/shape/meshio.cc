@@ -100,8 +100,7 @@ std::vector<Triangle> PLYMeshIO::load(const std::string& filename) const {
                 ifs.read((char*)ii, sizeof(int) * 3);
                 tris.emplace_back(vertices[ii[0]], vertices[ii[1]], vertices[ii[2]]);
                 if (vs > 3) {
-                    printf("[WARNING] mesh contains non-triangle polygon (%d vertices) !!\n", (int)vs);
-                    exit(1);
+                    Warning("[WARNING] mesh contains non-triangle polygon (%d vertices) !!\n", (int)vs);
                     ifs.seekg(sizeof(int) * (vs - 3), std::ios_base::cur);
                 }
             }

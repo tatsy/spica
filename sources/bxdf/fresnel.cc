@@ -17,7 +17,7 @@ FresnelConductor::FresnelConductor(const Spectrum& etaI, const Spectrum& etaT,
 }
 
 Spectrum FresnelConductor::evaluate(double cosThetaI) const {
-    FrConductor(std::abs(cosThetaI), etaI_, etaT_, k_);
+    return FrConductor(std::abs(cosThetaI), etaI_, etaT_, k_);
 }
 
 // -----------------------------------------------------------------------------

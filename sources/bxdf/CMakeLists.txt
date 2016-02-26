@@ -5,7 +5,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/bssrdf.cc
     ${CMAKE_CURRENT_LIST_DIR}/fresnel.cc
     ${CMAKE_CURRENT_LIST_DIR}/microfacet.cc
-    # ${CMAKE_CURRENT_LIST_DIR}/bssrdf.cc
+    ${CMAKE_CURRENT_LIST_DIR}/phase.cc
     PARENT_SCOPE)
 
 set(HEADERS
@@ -15,5 +15,5 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/bssrdf.h
     ${CMAKE_CURRENT_LIST_DIR}/fresnel.h
     ${CMAKE_CURRENT_LIST_DIR}/microfacet.h
-    # ${CMAKE_CURRENT_LIST_DIR}/bssrdf.h
+    ${CMAKE_CURRENT_LIST_DIR}/phase.h
     PARENT_SCOPE)

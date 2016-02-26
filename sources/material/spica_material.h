@@ -10,5 +10,6 @@
 #include "mirror.h"
 #include "metal.h"
 #include "glass.h"
+#include "subsurface.h"
 
 #endif  // _SPICA_MATERIAL_HEADERS_H_

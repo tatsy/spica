@@ -109,6 +109,19 @@ namespace spica {
             primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
         }
 
+        // Subsurface ball
+        {
+            auto sph  = std::make_shared<Sphere>(Point(0.0, -7.0, 0.0), 3.0);
+            auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.81, 0.81, 0.69));
+            auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            double g = 0.5;
+            double eta = 1.3;
+            auto sigS = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.70, 0.88, 1.01) / (1.0 - g));
+            auto sigA = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.0014, 0.0025, 0.0142));
+            auto mtrl = std::make_shared<SubsurfaceMaterial>(1.0, Kr, Kt, sigA, sigS, g, eta);
+            primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
+        }
+        
         // Glass ball
         {
             auto sph = std::make_shared<Sphere>(Point(5.0, -7.0, 5.0), 3.0);

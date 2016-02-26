@@ -4,6 +4,7 @@ set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/mirror.cc
     ${CMAKE_CURRENT_LIST_DIR}/metal.cc
     ${CMAKE_CURRENT_LIST_DIR}/glass.cc
+    ${CMAKE_CURRENT_LIST_DIR}/subsurface.cc
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
@@ -13,4 +14,5 @@ set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/metal.h
     ${CMAKE_CURRENT_LIST_DIR}/glass.h
     ${CMAKE_CURRENT_LIST_DIR}/material.h
+    ${CMAKE_CURRENT_LIST_DIR}/subsurface.h
     PARENT_SCOPE)

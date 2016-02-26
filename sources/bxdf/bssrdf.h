@@ -13,6 +13,8 @@
 #include "../core/spectrum.h"
 #include "../core/interaction.h"
 
+#include "bxdf.h"
+
 namespace spica {
 
 /**
@@ -61,15 +63,37 @@ protected:
     double pdfSr(int ch, double r) const;
 
 private:
+    // Private fields
     const Normal3D normal_;
     const Vector3D tangent_, binormal_;
     const Material* material_;
     const CatmullRom2D& table_;
     Spectrum sigmaExt_, albedo_;
+
+    // Friend
+    friend class DiffuseBSSRDFAdapter;
 };
 
+/**
+ * Adapter for evaluating surface reflection part of BSSRDF.
+ */
 class DiffuseBSSRDFAdapter : public BxDF {
+public:
+    DiffuseBSSRDFAdapter(const DiffuseBSSRDF* bssrdf);
+
+    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
+
+private:
+    const DiffuseBSSRDF* bssrdf_;
 };
+
+// -----------------------------------------------------------------------------
+// BSSRDF utility functions
+// -----------------------------------------------------------------------------
+
+SPICA_EXPORTS 
+void computeBeamDiffusionBSSRDF(double g, double eta, CatmullRom2D* table,
+                                int albedoDivide = 100, int radiusDivide = 64);
 
 }  // namespace spica
 

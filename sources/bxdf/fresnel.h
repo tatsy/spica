@@ -43,6 +43,17 @@ private:
     double etaI_, etaT_;
 };
 
+/**
+ * Dammy Fresnel class which returns always one.
+ */
+class FresnelNoOp : public Fresnel {
+public:
+    FresnelNoOp() {}
+    Spectrum evaluate(double cosThetaI) const override {
+        return Spectrum(1.0);
+    }
+};
+
 // -----------------------------------------------------------------------------
 // Fresnel utility functions
 // -----------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 #include "../texture/texture.h"
 #include "../bxdf/bxdf.h"
 #include "../bxdf/bsdf.h"
+#include "../bxdf/fresnel.h"
 
 namespace spica {
 
@@ -23,7 +24,8 @@ void MirrorMaterial::setScatterFuncs(SurfaceInteraction* intr,
     intr->setBSDF(arena.allocate<BSDF>(*intr));
     Spectrum r = Spectrum::clamp(Kr_->evaluate(*intr));
     if (!r.isBlack()) {
-        intr->bsdf()->add(arena.allocate<SpecularReflection>(r));
+        Fresnel* fresnel = arena.allocate<FresnelNoOp>();
+        intr->bsdf()->add(arena.allocate<SpecularReflection>(r, fresnel));
     }
 }
 

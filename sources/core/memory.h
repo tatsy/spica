@@ -31,17 +31,6 @@ public:
 
     void* allocate(size_t nBytes);
 
-    template <class T>
-    T* allocate(size_t n = 1, bool runConstructor = true) {
-        T* ret = (T*)allocate(n * sizeof(T));
-        if (runConstructor) {
-            for (size_t i = 0; i < n; i++) {
-                new (&ret[i]) T();
-            }
-        }
-        return ret;
-    }
-
     template <class T, class... Args>
     T* allocate(const Args&... args) {
         T* ret = (T*)allocate(sizeof(T));

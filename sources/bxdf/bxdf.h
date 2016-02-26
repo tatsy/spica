@@ -82,7 +82,7 @@ class SpecularReflection : public BxDF {
 public:
     // Public methods
     SpecularReflection();
-    SpecularReflection(const Spectrum& ref);
+    SpecularReflection(const Spectrum& ref, Fresnel* fresnel);
 
     SpecularReflection(const SpecularReflection&) = default;
     SpecularReflection& operator=(const SpecularReflection&) = default;
@@ -95,6 +95,7 @@ public:
 private:
     // Private fields
     Spectrum ref_;
+    Fresnel* fresnel_;
 };
 
 /**

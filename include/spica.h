@@ -12,7 +12,7 @@
 #include "../sources/core/sampling.h"
 #include "../sources/core/spica_dirs.h"
 #include "../sources/core/rect.h"
-
+#include "../sources/core/interaction.h"
 
 #include "../sources/shape/shape.h"
 

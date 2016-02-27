@@ -52,6 +52,16 @@ namespace spica {
     }
 
     template <class T>
+    bool Normal3_<T>::operator==(const Normal3_<T>& n) const {
+        return (x_ == n.x_ && y_ == n.y_ && z_ == n.z_);
+    }
+
+    template <class T>
+    bool Normal3_<T>::operator!=(const Normal3_<T>& n) const {
+        return !this->operator==(n);
+    }
+
+    template <class T>
     Normal3_<T> Normal3_<T>::operator-() const {
         return { -x_, -y_, -z_ };
     }

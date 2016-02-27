@@ -32,7 +32,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   set(SOURCE_FILES
       all_tests.cc
       test_macros.h
-      test_stack.cc
+#      test_stack.cc
       test_geometry.cc
       test_point3d.cc
       test_normal3d.cc
@@ -43,17 +43,17 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
       test_quaternion.cc
       test_image.cc
       test_color.cc
-      test_vertex_data.cc
-      test_camera.cc
-      test_light.cc
+#      test_vertex_data.cc
+#      test_camera.cc
+#      test_light.cc
       test_ray.cc
-      test_sampler.cc
-      test_trimesh.cc
-      test_kdtree.cc
-      test_scene.cc
-      test_random.cc
-      test_renderer_helper.cc
-      test_path.cc
+#      test_sampler.cc
+#      test_trimesh.cc
+#      test_kdtree.cc
+#      test_scene.cc
+#      test_random.cc
+#      test_renderer_helper.cc
+#      test_path.cc
       test_yaml.cc)
     # test_renderer.cc)
 

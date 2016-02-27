@@ -22,6 +22,8 @@ namespace spica {
         ~Normal3_();
 
         Normal3_<T>& operator=(const Normal3_<T>& n);
+        bool operator==(const Normal3_<T>& n) const;
+        bool operator!=(const Normal3_<T>& n) const;
         Normal3_<T> operator-() const;
         Normal3_<T> operator+=(const Normal3_<T>& n);
         Normal3_<T> operator-=(const Normal3_<T>& n);

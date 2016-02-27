@@ -6,7 +6,7 @@ using namespace spica;
 
 namespace {
 
-    Random rng = Random();
+    auto sampler = std::make_unique<Random>((unsigned int)time(0));
     const std::string filepath = kTempDirectory + "test_image.bmp";
     const std::string hdrpath  = kTempDirectory + "test_hdr.hdr";
 
@@ -33,7 +33,9 @@ protected:
         rand->resize(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                rand->pixel(x, y) = RGBSpectrum(rng.nextReal(), rng.nextReal(), rng.nextReal());
+                rand->pixel(x, y) = RGBSpectrum(sampler->get1D(),
+                                                sampler->get1D(),
+                                                sampler->get1D());
             }
         }
     }
@@ -128,7 +130,9 @@ TEST_F(ImageTest, SaveAndLoad) {
     Image image(width, height);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            image.pixel(x, y) = RGBSpectrum(rng.nextReal(), rng.nextReal(), rng.nextReal());
+            image.pixel(x, y) = RGBSpectrum(sampler->get1D(),
+                                            sampler->get1D(),
+                                            sampler->get1D());
         }
     }
     image.save(filepath);

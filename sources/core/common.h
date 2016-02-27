@@ -152,7 +152,7 @@ do { \
 do { \
     std::cerr << "[ERROR] "; \
     fprintf(stderr, __VA_ARGS__); \
-    std::cerr << std::cout; \
+    std::cerr << std::endl; \
     std::abort(); \
 } while (false);
 

@@ -55,6 +55,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #elif defined(__GNUC__) && __GNUC__ >= 4
 #   define SPICA_EXPORTS __attribute__((visibility ("default")))
 #   define SPICA_IMPORTS
+#   define alignas(n) __attribute__((aligned(n)))
 #else
 #   define SPICA_EXPORTS
 #   define SPICA_IMPORTS

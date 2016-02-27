@@ -19,7 +19,8 @@ namespace spica {
 
     bool VisibilityTester::unoccluded(const Scene& scene) const {
         SurfaceInteraction isect;
-        return !scene.intersect(p1_.spawnRayTo(p2_), &isect);
+        Ray ray = p1_.spawnRayTo(p2_);
+        return !scene.intersect(ray, &isect);
     }
 
 }  // namespace spica

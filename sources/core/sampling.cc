@@ -59,7 +59,8 @@ Distribution1D& Distribution1D::operator=(const Distribution1D& d) {
 }
 
 double Distribution1D::operator()(int i) const {
-    Assertion(i >= 0 && i < func_.size(), "Index out of bounds!!");        
+    Assertion(i >= 0 && i < func_.size(), "Index out of bounds!!");
+    return func_[i];
 }
 
 double Distribution1D::sample(double rand, double* pdf, int* offset) const {

@@ -197,9 +197,7 @@ std::vector<Triangle> OBJMeshIO::load(const std::string& filename) const {
                 }
             }
         } else {
-            char msg[256];
-            sprintf(msg, "Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
-            Assertion(false, msg);
+            FatalError("Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
         }
     }
     ifs.close();

@@ -21,7 +21,7 @@ public:
     virtual ~BBVHAccel();
 
     Bounds3d worldBound() const override;
-    void construct();
+    void construct() override;
     bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
 
 private:

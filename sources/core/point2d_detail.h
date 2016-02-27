@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include <sstream>
+#include <iomanip>
+
 namespace spica {
 
     template <class T>

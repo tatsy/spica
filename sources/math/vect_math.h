@@ -129,7 +129,7 @@ void coordinateSystem(const Vec& w, Vec* u, Vec* v) {
  */
 template <class Vec1, class Vec2>
 Vector3_<typename Vec1::type> reflect(const Vec1& v, const Vec2& n) {
-    using Type = Vec1::type;
+    using Type = typename Vec1::type;
     return Vector3_<Type>(v - Vector3_<Type>(n) * Type(2) * vect::dot(n, v));        
 }
 

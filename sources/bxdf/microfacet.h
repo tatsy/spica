@@ -43,7 +43,7 @@ public:
 
 private:
     // Private methods
-    double lambda(const Vector3D& w) const;
+    double lambda(const Vector3D& w) const override;
     static Vector3D sampleVA(const Vector3D& wi, double alphax, double alphay,
                              const Point2D& rands);
     static void sampleSlopes(double cosTheta, const Point2D& rands,

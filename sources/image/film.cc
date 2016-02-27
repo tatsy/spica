@@ -17,7 +17,8 @@ Film::Film(const Point2i& resolution, std::unique_ptr<Filter>& filter,
     : resolution_{ resolution }
     , filter_{ filter.get() }
     , filename_{ filename }
-    , image_{ resolution.x(), resolution.y() }
+    , image_{ (unsigned int)resolution.x(),
+              (unsigned int)resolution.y() }
     , weights_{} {
     image_.fill(RGBSpectrum(0.0, 0.0, 0.0));
     weights_.assign(resolution_.x(), std::vector<double>(resolution_.y(), 0.0));

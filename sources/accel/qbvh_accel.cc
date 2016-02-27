@@ -465,7 +465,8 @@ bool QBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
         if (item.node.flag == 0) {
             // This is fork node
             const SIMDBVHNode& node = *(simdNodes_[item.node.index]);
-            alignas(16) float now_distance_f[4] = { tHit, tHit, tHit, tHit };
+            const float tHitf = static_cast<float>(tHit);
+            alignas(16) float now_distance_f[4] = { tHitf, tHitf, tHitf, tHitf };
             __m128 now_distance = _mm_load_ps(now_distance_f);
             const int HitMask = test_AABB(node.bboxes, simdOrig, simdIdir, sgn, simdZero, now_distance);
 

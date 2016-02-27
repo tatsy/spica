@@ -1,6 +1,8 @@
 #define SPICA_API_EXPORT
 #include "transform.h"
 
+#include <cstring>
+
 #include "vector3d.h"
 
 namespace spica {

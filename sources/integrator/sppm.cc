@@ -87,7 +87,7 @@ void SPPMIntegrator::render(const Scene& scene,
     auto samplers = std::vector<std::unique_ptr<Sampler>>(kNumThreads);
     auto arenas   = std::vector<MemoryArena>(kNumThreads);
     for (int i = 0; i < kNumThreads; i++) {
-        unsigned int seed = time((unsigned int)0) + i;
+        unsigned int seed = (unsigned int)time(0) + i;
         samplers[i] = sampler_->clone(seed);
     }
 
@@ -264,13 +264,13 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
             Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
                                           &nLight, &pdfPos, &pdfDir);
 
-            if (pdfPos == 0.0 || pdfDir == 0.0 || Le.isBlack()) break;
-            
-            Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
-                            (lightPdf * pdfPos * pdfDir);
-            if (beta.isBlack()) break;
-
-            tracePhotonsSub(scene, params, photonRay, beta, *sampler, arenas[threadID]);
+            if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
+                Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
+                                (lightPdf * pdfPos * pdfDir);
+                if (!beta.isBlack()) {
+                    tracePhotonsSub(scene, params, photonRay, beta, *sampler, arenas[threadID]);
+                }
+            }
         }
 
         proc += kNumThreads;

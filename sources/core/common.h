@@ -109,7 +109,7 @@ static const double EPS = 1.0e-12;
 
 #undef NDEBUG
 #ifndef NDEBUG
-#define Assertion(PREDICATE, MSG, ...) \
+#define Assertion(PREDICATE, ...) \
 do { \
     if (!(PREDICATE)) { \
         std::cerr << "Asssertion \"" \
@@ -117,13 +117,13 @@ do { \
         << " line " << __LINE__ \
         << " in function \"" << (__FUNCTION_NAME__) << "\"" \
         << " : "; \
-        fprintf(stderr, MSG, __VA_ARGS__); \
+        fprintf(stderr, __VA_ARGS__); \
         std::cerr << std::endl; \
         std::abort(); \
     } \
 } while (false)
 #else  // NDEBUG
-#define Assertion(PREDICATE, MSG, ...) do {} while (false)
+#define Assertion(PREDICATE, ...) do {} while (false)
 #endif  // NDEBUG
 
 // -----------------------------------------------------------------------------
@@ -131,23 +131,27 @@ do { \
 // -----------------------------------------------------------------------------
 
 #ifndef NDEBUG
-#define MsgInfo(MSG, ...) \
+#define MsgInfo(...) \
 do { \
     std::cout << "[INFO] "; \
-    fprintf(stderr, MSG, __VA_ARGS__); \
+    fprintf(stdout, __VA_ARGS__); \
     std::cerr << std::endl; \
 } while (false);
-#define Warning(MSG, ...) \
+#define Warning(...) \
 do { \
-    std::cerr << "[WARNING] " << (MSG) << std::endl; \
+    std::cerr << "[WARNING] "; \
+    fprintf(stdout, __VA_ARGS__); \
+    std::cerr << std::endl; \
 } while (false);
 #else
-#define SpicaInfo(MSG)
-#define SpicaWarn(MSG)
+#define SpicaInfo(...)
+#define SpicaWarn(...)
 #endif
-#define FatalError(MSG) \
+#define FatalError(...) \
 do { \
-    std::cerr << "[ERROR] " << (MSG) << std::endl; \
+    std::cerr << "[ERROR] "; \
+    fprintf(stderr, __VA_ARGS__); \
+    std::cerr << std::cout; \
     std::abort(); \
 } while (false);
 

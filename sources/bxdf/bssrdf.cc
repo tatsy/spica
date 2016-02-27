@@ -60,12 +60,12 @@ double beamDiffusionMultipleScatter(double sigma_s, double sigma_a, double g,
     const double sigmap_t = sigma_a + sigmap_s;
     const double albedop  = sigmap_s / sigmap_t;
 
-    const double Dg = (2.0 * sigma_a + sigmap_s) / (3.0 * sigmap_t * sigmap_t);
-    const double sigma_tr = std::sqrt(sigma_a / Dg);
+    const double D_g = (2.0 * sigma_a + sigmap_s) / (3.0 * sigmap_t * sigmap_t);
+    const double sigma_tr = std::sqrt(sigma_a / D_g);
 
     const double fm1 = FresnelMoment1(eta);
     const double fm2 = FresnelMoment2(eta);
-    const double ze = -2.0 * Dg * (1.0 + 3.0 * fm2) / (1.0 - 2.0 * fm1);
+    const double ze = -2.0 * D_g * (1.0 + 3.0 * fm2) / (1.0 - 2.0 * fm1);
 
     const double cPhi = 0.25 * (1.0 - 2.0 * fm1);
     const double cE   = 0.5 * (1.0 - 3.0 * fm2);
@@ -76,12 +76,15 @@ double beamDiffusionMultipleScatter(double sigma_s, double sigma_a, double g,
         const double dr = std::sqrt(r * r + zr * zr);
         const double dv = std::sqrt(r * r + zv * zv);
 
-        const double phiD = Dg / (4.0 * PI) * (std::exp(-sigma_tr * dr) / dr -
-                                               std::exp(-sigma_tr * dv) / dv);
+        const double phiD = 1.0 / (4.0 * PI * D_g) *
+                            (std::exp(-sigma_tr * dr) / dr -
+                             std::exp(-sigma_tr * dv) / dv);
 
         const double EDn = (1.0 / (4.0 * PI)) *
-            (zr * (1.0 + sigma_tr * dr) * std::exp(-sigma_tr * dr) / (dr * dr * dr) -
-             zv * (1.0 + sigma_tr * dv) * std::exp(-sigma_tr * dv) / (dv * dv * dv));
+            (zr * (1.0 + sigma_tr * dr) * 
+                std::exp(-sigma_tr * dr) / (dr * dr * dr) -
+             zv * (1.0 + sigma_tr * dv) * 
+                std::exp(-sigma_tr * dv) / (dv * dv * dv));
 
         const double E = phiD * cPhi + EDn * cE;
         const double kappa = 1.0 - std::exp(-2.0 * sigmap_t * (dr + zr));
@@ -204,15 +207,15 @@ Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
         zAxis = Vector3D(normal_);
         rand1 *= 2.0;
     } else if (rand1 < 0.75) {
-        xAxis = Vector3D(normal_);
-        yAxis = tangent_;
-        zAxis = binormal_;
-        rand1 = (rand1 - 0.5) * 4.0;
-    } else {
         xAxis = binormal_;
         yAxis = Vector3D(normal_);
         zAxis = tangent_;
-        rand1 = (rand1 - 0.75) * 4.0;
+        rand1 = (rand1 - 0.5) * 4.0;
+    } else {
+        xAxis = Vector3D(normal_);
+        yAxis = tangent_;
+        zAxis = binormal_;
+        rand1 = (rand1 - 0.75) * 4.0;        
     }
 
     // Choose spectral chennel for sampling
@@ -231,8 +234,9 @@ Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
     const double zCoord = std::sqrt(rMax * rMax - r * r);
 
     // Compute sampling ray
-    Point3D pFrom = Point(xAxis * std::cos(phi) + yAxis * std::sin(phi)) * r -
-                    zCoord * zAxis;
+    Point3D pFrom = 
+        po_.pos() + (xAxis * std::cos(phi) + yAxis * std::sin(phi)) * r -
+        zCoord * zAxis;
     Point3D pTo   = pFrom + 2.0 * zCoord * zAxis;
     Vector3D dir = pTo - pFrom;
     Ray ray(pFrom, dir, std::max(0.0, dir.norm() - EPS));
@@ -356,7 +360,7 @@ double DiffuseBSSRDF::pdfSr(int ch, double r) const {
     double sr = 0.0, albedoEff = 0.0;
     for (int i = 0; i < 4; i++) {
         if (albW[i] == 0.0) continue;
-        albedoEff += table_.merginalY()[albedoOffset + i] + albW[i];
+        albedoEff += table_.marginalY()[albedoOffset + i] + albW[i];
         for (int j = 0; j < 4; j++) {
             if (radW[j] == 0.0) continue;
             sr += table_(albedoOffset + i, radiusOffset + j) *

@@ -71,12 +71,12 @@ public:
 
     inline const std::vector<double>& xs() const { return xs_; }
     inline const std::vector<double>& ys() const { return ys_; }
-    inline const std::vector<double>& merginalY() const { return merginalY_; }
+    inline const std::vector<double>& marginalY() const { return marginalY_; }
 
 private:
     std::vector<std::vector<double>> fs_;
     std::vector<std::vector<double>> cdf_;
-    std::vector<double> merginalY_;
+    std::vector<double> marginalY_;
     std::vector<double> xs_;
     std::vector<double> ys_;
 };

@@ -26,6 +26,39 @@ int findInterval(int lower, int upper, const Pred& pred) {
     return clamp(lo - 1, lower, upper - 2);
 }
 
+double integrateCatmullRom(const std::vector<double>& xs,
+                           const std::vector<double>& fs,
+                           std::vector<double>* cdf) {
+    const int size = static_cast<int>(xs.size());
+    cdf->resize(size);
+    (*cdf)[0] = 0.0;
+    double sum = 0.0;
+    for (int i = 0; i < size - 1; i++) {
+        const double x0 = xs[i];
+        const double x1 = xs[i + 1];
+        const double f0 = fs[i];
+        const double f1 = fs[i + 1];
+        const double dx = x1 - x0;
+
+        double df0, df1;
+        if (i > 0) {
+            df0 = dx * (f1 - fs[i - 1]) / (x1 - xs[i - 1]);
+        } else {
+            df0 = f1 - f0;
+        }
+
+        if (i < size - 2) {
+            df1 = dx * (fs[i + 2] - f0) / (xs[i +2] - x0);
+        } else {
+            df1 = f1 - f0;
+        }
+
+        sum += ((df0 - df1) / 12.0 + (f0 + f1) * 0.5) * dx;
+        (*cdf)[i + 1] = sum;
+    }
+    return sum;
+}
+
 }  // anonymous namespace
 
 bool catmullRomWeight(const std::vector<double>& nodes, double x,
@@ -220,7 +253,7 @@ bool CatmullRom::weights(double x, double* w0, double* w1, double* w2,
 CatmullRom2D::CatmullRom2D()
     : fs_{}
     , cdf_{}
-    , merginalY_{}
+    , marginalY_{}
     , xs_{}
     , ys_{} {
 }
@@ -230,39 +263,13 @@ CatmullRom2D::CatmullRom2D(const std::vector<std::vector<double>>& fs,
                            const std::vector<double>& ys)
     : fs_{ fs }
     , cdf_{}
-    , merginalY_{}
+    , marginalY_{}
     , xs_{ xs }
     , ys_{ ys } {
     cdf_.resize(xs.size());
-    merginalY_.resize(xs.size());
+    marginalY_.resize(xs.size());
     for (int i = 0; i < xs.size(); i++) {
-        cdf_[i].resize(ys.size());
-        double sum = 0.0;
-        cdf_[i][0] = 0.0;
-        for (int j = 0; j < ys.size() - 1; j++) {
-            const double x0 = ys_[j];
-            const double x1 = ys_[j + 1];
-            const double f0 = fs_[i][j];
-            const double f1 = fs_[i][j + 1];
-            const double dx = x1 - x0;
-
-            double df0, df1;
-            if (j > 0) {
-                df0 = dx * (f1 - fs_[i][j - 1]) / (x1 - ys_[j - 1]);
-            } else {
-                df0 = f1 - f0;
-            }
-
-            if (j < ys.size() - 2) {
-                df1 = dx * (fs_[i][j + 2] - f0) / (ys_[j + 2] - x0);
-            } else {
-                df1 = f1 - f0;
-            }
-
-            sum += ((df0 - df1) * (1.0 / 12.0) + (f0 + f1) * 0.5) * dx;
-            cdf_[i][j + 1] = sum;
-        }
-        merginalY_[i] = sum;
+        marginalY_[i] = integrateCatmullRom(ys_, fs_[i], &cdf_[i]);
     }
 }
 
@@ -274,7 +281,7 @@ CatmullRom2D::CatmullRom2D(CatmullRom2D&& cr)
 CatmullRom2D& CatmullRom2D::operator=(CatmullRom2D&& cr) {
     this->fs_ = std::move(cr.fs_);
     this->cdf_ = std::move(cr.cdf_);
-    this->merginalY_ = std::move(cr.merginalY_);
+    this->marginalY_ = std::move(cr.marginalY_);
     this->xs_ = std::move(cr.xs_);
     this->ys_ = std::move(cr.ys_);
     return *this;

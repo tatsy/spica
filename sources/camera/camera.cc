@@ -32,7 +32,7 @@ Camera::Camera(const Transform& cameraToWorld, const Transform& cameraToScreen,
     screenToRaster_ = Transform::scale(res.x(), res.y(), 1.0) *
                       Transform::scale( 1.0 / screen.width(),
                                        -1.0 / screen.height(), 1.0) *
-                      Transform::translate(Vector3D(-screen.x(), -screen.y()-screen.height(), 0.0));
+                      Transform::translate(Vector3d(-screen.x(), -screen.y()-screen.height(), 0.0));
     rasterToScreen_ = screenToRaster_.inverted();
     rasterToCamera_ = cameraToScreen_.inverted() * rasterToScreen_;
 }

@@ -82,14 +82,14 @@ std::vector<Triangle> PLYMeshIO::load(const std::string& filename) const {
 
             float ff[3];
             float tt[2];
-            std::vector<Point> vertices;
+            std::vector<Point3d> vertices;
             for (size_t i = 0; i < numVerts; i++) {
                 ifs.read((char*)ff, sizeof(float) * 3);
                 vertices.emplace_back(ff[0], ff[1], ff[2]);
                     
                 //if (trimesh->isTextured()) {
                 //    ifs.read((char*)tt, sizeof(float) * 2);
-                //    trimesh->setTexcoord(i, Vector2D(tt[0], tt[1]));
+                //    trimesh->setTexcoord(i, Vector2d(tt[0], tt[1]));
                 //}
             }
 
@@ -134,8 +134,8 @@ std::vector<Triangle> OBJMeshIO::load(const std::string& filename) const {
     std::stringstream ss;
     std::string line;
 
-    std::vector<Point> vertices;
-    std::vector<Vector2D> texcoords;
+    std::vector<Point3d> vertices;
+    std::vector<Vector2d> texcoords;
     std::vector<Triplet>  vertIDs;
     std::vector<Triplet>  texIDs;
     bool hasTexture = false;

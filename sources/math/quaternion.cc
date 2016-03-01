@@ -23,7 +23,7 @@ namespace spica {
         , _w{w} {
     }
 
-    Quaternion::Quaternion(const Vector3D& v)
+    Quaternion::Quaternion(const Vector3d& v)
         : Quaternion{v.x(), v.y(), v.z()} {
     }
 
@@ -57,23 +57,23 @@ namespace spica {
         return *this;
     }
 
-    Quaternion Quaternion::rotation(const Vector3D& axis, double theta) {
+    Quaternion Quaternion::rotation(const Vector3d& axis, double theta) {
         double c = cos(theta * 0.5);
         double s = sin(theta * 0.5);
         return { axis.x() * s, axis.y() * s, axis.z() * s, c };
     }
 
-    Vector3D Quaternion::applyTo(const Vector3D& v) {
+    Vector3d Quaternion::applyTo(const Vector3d& v) {
         Quaternion q{v};
-        return ((*this) * q * (this->inverse())).toVector3D();
+        return ((*this) * q * (this->inverse())).toVector3d();
     }
 
-    Point Quaternion::applyTo(const Point& p) {
-        return Point(applyTo(Vector3D(p)));
+    Point3d Quaternion::applyTo(const Point3d& p) {
+        return Point3d(applyTo(Vector3d(p)));
     }
 
-    Normal Quaternion::applyTo(const Normal& n) {
-        return Normal(applyTo(Vector3D(n)));
+    Normal3d Quaternion::applyTo(const Normal3d& n) {
+        return Normal3d(applyTo(Vector3d(n)));
     }
 
     double Quaternion::squaredNorm() const {
@@ -90,8 +90,8 @@ namespace spica {
         return { -_x / sqnrm, -_y / sqnrm, -_z / sqnrm, _w / sqnrm };
     }
 
-    Vector3D Quaternion::toVector3D() const {
-        return Vector3D(_x, _y, _z);
+    Vector3d Quaternion::toVector3d() const {
+        return Vector3d(_x, _y, _z);
     }
 
     std::string Quaternion::toString() const {

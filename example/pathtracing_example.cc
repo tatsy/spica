@@ -15,7 +15,8 @@ int main(int argc, char **argv) {
     std::cout << "   height: " << height  << std::endl;
     std::cout << "  samples: " << samples << std::endl << std::endl;
 
-    std::unique_ptr<Filter> filter = std::make_unique<BoxFilter>(Vector2D(0.5, 0.5));
+    std::unique_ptr<Filter> filter =
+        std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
     auto film = std::make_unique<Film>(Point2i(width, height),
                                        filter,
                                        kOutputDirectory + "pathtrace_%03d.png");
@@ -23,9 +24,9 @@ int main(int argc, char **argv) {
     RectF screen(-2.5, -2.5, 5.0, 5.0);
     double fov = PI / 24.0;
 
-    Point3D  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));
-    Point3D  look(0.0, 0.0, 0.0);
-    Vector3D up(0.0, 1.0, 0.0);
+    Point3d  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));
+    Point3d  look(0.0, 0.0, 0.0);
+    Vector3d up(0.0, 1.0, 0.0);
 
     double focal = std::abs((look - eye).z());
     double lensR = 0.5;
@@ -35,21 +36,21 @@ int main(int argc, char **argv) {
         Transform::lookAt(eye, look, up),
         screen, lensR, focal, fov, film.get());
 
-    std::shared_ptr<Sampler> sampler = std::make_unique<Random>(0);
+    // std::shared_ptr<Sampler> sampler = std::make_unique<Random>(0);
+    std::shared_ptr<Sampler> sampler = std::make_unique<Halton>(200, true, 0);
 
     cornellBox(&scene, nullptr, 0, 0);
-    // kittenBox(&scene, &camera, width, height);
-    // kittenEnvmap(&scene, &camera, width, height);
     
     Timer timer;
     timer.start();
 
     RenderParameters params(samples);
-    params.bounceLimit(24);
+    params.bounceLimit(256);
     params.castPhotons(500000);
     params.saveFilenameFormat();
 
-    PathIntegrator integr(camera, sampler);
+    VolPathIntegrator integr(camera, sampler);
+    // PathIntegrator integr(camera, sampler);
     integr.render(scene, params);
 
     printf("Timer: %f sec\n", timer.stop());

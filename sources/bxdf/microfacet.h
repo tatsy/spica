@@ -16,12 +16,12 @@ namespace spica {
 class SPICA_EXPORTS MicrofacetDistribution {
 public:
     virtual ~MicrofacetDistribution();
-    virtual double D(const Vector3D& wh) const = 0;
-    virtual double lambda(const Vector3D& w) const = 0;
-    double G1(const Vector3D& w) const;
-    double G(const Vector3D& wo, const Vector3D& wi) const;
-    virtual Vector3D sample(const Vector3D &wo, const Point2D& rands) const = 0;
-    double pdf(const Vector3D& wo, const Vector3D& wh) const;
+    virtual double D(const Vector3d& wh) const = 0;
+    virtual double lambda(const Vector3d& w) const = 0;
+    double G1(const Vector3d& w) const;
+    double G(const Vector3d& wo, const Vector3d& wi) const;
+    virtual Vector3d sample(const Vector3d &wo, const Point2d& rands) const = 0;
+    double pdf(const Vector3d& wo, const Vector3d& wh) const;
 
 protected:
     explicit MicrofacetDistribution(bool sampleVisibleArea);
@@ -36,17 +36,17 @@ public:
     TrowbridgeReitzDistribution(double alphax, double alphay,
                                 bool samplevis = true);
 
-    double D(const Vector3D& wh) const override;
-    Vector3D sample(const Vector3D& wo, const Point2D& rands) const override;
+    double D(const Vector3d& wh) const override;
+    Vector3d sample(const Vector3d& wo, const Point2d& rands) const override;
 
     static double roughnessToAlpha(double rough);
 
 private:
     // Private methods
-    double lambda(const Vector3D& w) const override;
-    static Vector3D sampleVA(const Vector3D& wi, double alphax, double alphay,
-                             const Point2D& rands);
-    static void sampleSlopes(double cosTheta, const Point2D& rands,
+    double lambda(const Vector3d& w) const override;
+    static Vector3d sampleVA(const Vector3d& wi, double alphax, double alphay,
+                             const Point2d& rands);
+    static void sampleSlopes(double cosTheta, const Point2d& rands,
                              double* slopex, double* slopey);
 
 

@@ -39,10 +39,10 @@ Envmap::Envmap(const Image& texmap, const Transform& lightToWorld,
 Envmap::~Envmap() {
 }
 
-Spectrum Envmap::sampleLi(const Interaction& pObj, const Point2D& rands,
-                            Vector3D* dir, double* pdf, VisibilityTester* vis) const {
+Spectrum Envmap::sampleLi(const Interaction& pObj, const Point2d& rands,
+                            Vector3d* dir, double* pdf, VisibilityTester* vis) const {
     double mapPdf;
-    Point2D uv = distrib_.sample(rands, &mapPdf);
+    Point2d uv = distrib_.sample(rands, &mapPdf);
     if (mapPdf == 0.0) return Spectrum();
 
     const double theta = uv[1] * PI;
@@ -51,7 +51,7 @@ Spectrum Envmap::sampleLi(const Interaction& pObj, const Point2D& rands,
     const double sinTheta = sin(theta);
     const double cosPhi   = cos(phi);
     const double sinPhi   = sin(phi);
-    *dir = lightToWorld_.apply(Vector3D(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
+    *dir = lightToWorld_.apply(Vector3d(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
     *pdf = sinTheta == 0.0 ? 0.0 : mapPdf / (2.0 * PI * PI * sinTheta);
 
     Interaction pLight(pObj.pos() + (*dir) * (2.0 * worldRadius_));
@@ -60,23 +60,23 @@ Spectrum Envmap::sampleLi(const Interaction& pObj, const Point2D& rands,
     return Spectrum(texmap_.lookup(uv));
 }
 
-double Envmap::pdfLi(const Interaction&, const Vector3D& d) const {
-    Vector3D dir = worldToLight_.apply(d);
+double Envmap::pdfLi(const Interaction&, const Vector3d& d) const {
+    Vector3d dir = worldToLight_.apply(d);
     double theta = vect::sphericalTheta(dir);
     double phi   = vect::sphericalPhi(dir);
     double sinTheta = sin(theta);
     if (sinTheta == 0.0) return 0.0;
-    return distrib_.pdf(Point2D(phi * (0.5 * INV_PI), theta * INV_PI)) / (2.0 * PI * PI * sinTheta);
+    return distrib_.pdf(Point2d(phi * (0.5 * INV_PI), theta * INV_PI)) / (2.0 * PI * PI * sinTheta);
 }
 
 Spectrum Envmap::Le(const Ray& ray) const {
-    Vector3D dir = worldToLight_.apply(ray.dir()).normalized();
-    Point2D st(vect::sphericalPhi(dir) * (0.5 * INV_PI), vect::sphericalTheta(dir) * INV_PI);
+    Vector3d dir = worldToLight_.apply(ray.dir()).normalized();
+    Point2d st(vect::sphericalPhi(dir) * (0.5 * INV_PI), vect::sphericalTheta(dir) * INV_PI);
     return Spectrum(texmap_.lookup(st));
 }
 
 Spectrum Envmap::power() const {
-    return PI * worldRadius_ * worldRadius_ * Spectrum(texmap_.lookup(Point2D(0.5, 0.5), 0.5));
+    return PI * worldRadius_ * worldRadius_ * Spectrum(texmap_.lookup(Point2d(0.5, 0.5), 0.5));
 }
 
 Light* Envmap::clone() const {

@@ -64,7 +64,7 @@ namespace spica {
         }
     }
 
-    Spectrum MipMap::lookup(const Point2D& st, double width) const {
+    Spectrum MipMap::lookup(const Point2d& st, double width) const {
         const double level = levels() - 1 + log2(std::max(width, 1.0e-8));
 
         if (level < 0) {
@@ -80,7 +80,7 @@ namespace spica {
 
 
 
-    Spectrum MipMap::bilinear(int level, const Point2D& st) const {
+    Spectrum MipMap::bilinear(int level, const Point2d& st) const {
         level = clamp(level, 0, levels());
         const double s = st[0] * pyramid_[level].width()  - 0.5;
         const double t = st[1] * pyramid_[level].height() - 0.5;

@@ -42,7 +42,7 @@ TEST_P(QuaternionUnaryTest, Instance) {
 }
 
 TEST_P(QuaternionUnaryTest, InstanceWithVector) {
-    Vector3D v(q1.x(), q1.y(), q1.z());
+    Vector3d v(q1.x(), q1.y(), q1.z());
     Quaternion q(v);
     EXPECT_EQ(v.x(), q.x());
     EXPECT_EQ(v.y(), q.y());
@@ -77,10 +77,10 @@ TEST_P(QuaternionUnaryTest, Norm) {
 }
 
 TEST_F(QuaternionTest, SimpleRotation) {
-    Vector3D v(1.0, 0.0, 0.0);
-    Vector3D axis(0.0, 1.0, 0.0);
+    Vector3d v(1.0, 0.0, 0.0);
+    Vector3d axis(0.0, 1.0, 0.0);
     Quaternion r    = Quaternion::rotation(axis,  PI * 0.5);
-    Vector3D u = (r * Quaternion(v) * r.inverse()).toVector3D();
+    Vector3d u = (r * Quaternion(v) * r.inverse()).toVector3d();
 
     EXPECT_NEAR( 0.0, u.x(), EPS);
     EXPECT_NEAR( 0.0, u.y(), EPS);

@@ -27,12 +27,12 @@ public:
 
     OrthographicCamera& operator=(const OrthographicCamera&) = default;
 
-    Ray spawnRay(const Point2i& pixel, const Point2D& randFilm,
-                 const Point2D& randLens, double* pdfPos = nullptr,
+    Ray spawnRay(const Point2i& pixel, const Point2d& randFilm,
+                 const Point2d& randLens, double* pdfPos = nullptr,
                  double* pdfDir = nullptr) const override;
 private:
     // Private fields
-    Vector3D uCamera_, vCamera_;
+    Vector3d uCamera_, vCamera_;
 
 };  // class OrthographicCamera
 

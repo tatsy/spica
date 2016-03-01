@@ -26,11 +26,11 @@
 namespace spica {
 
 struct SPPMIntegrator::SPPMPixel {
-    Vector3D wo;
+    Vector3d wo;
     Spectrum Ld = Spectrum(0.0, 0.0, 0.0);
     struct VisiblePoint {
         VisiblePoint() {}
-        VisiblePoint(const Point3D& p_, const Vector3D& wo_, const BSDF* bsdf_,
+        VisiblePoint(const Point3d& p_, const Vector3d& wo_, const BSDF* bsdf_,
                      const Spectrum& beta_)
             : p{ p_ }
             , wo{ wo_ }
@@ -38,8 +38,8 @@ struct SPPMIntegrator::SPPMPixel {
             , beta{ beta_ } {
         }
 
-        Point3D p;
-        Vector3D wo;
+        Point3d p;
+        Vector3d wo;
         const BSDF* bsdf = nullptr;
         Spectrum beta;
     } vp;
@@ -156,12 +156,12 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
     }
 
     // Heuristic for initial radius
-    Vector3D boxSize = bbox.posMax() - bbox.posMin();
+    Vector3d boxSize = bbox.posMax() - bbox.posMin();
     const double irad = ((boxSize.x() + boxSize.y() + boxSize.z()) / 3.0) /
                         ((imageW + imageH) / 2.0) * 2.0;
 
     // Update initial radius
-    Vector3D iradv(irad, irad, irad);
+    Vector3d iradv(irad, irad, irad);
     for (int i = 0; i < numPoints; i++) {
         if (pixels[i].n == 0) {
             pixels[i].r2 = irad * irad;
@@ -181,8 +181,8 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
 
     // Set hit points to the grid
     for (int i = 0; i < numPoints; i++) {
-        Point boxMin = pixels[i].vp.p - iradv;
-        Point boxMax = pixels[i].vp.p + iradv;
+        Point3d boxMin = pixels[i].vp.p - iradv;
+        Point3d boxMax = pixels[i].vp.p + iradv;
         hashgrid_.add(&pixels[i], boxMin, boxMax);
     }
 }
@@ -213,8 +213,8 @@ void SPPMIntegrator::traceRays(const Scene& scene,
                 const int pid = pixelIDs[threadID][t];
                 const int px  = pid % width;
                 const int py  = pid / width;
-                const Point2D randFilm = samplers[threadID]->get2D();
-                const Point2D randLens = samplers[threadID]->get2D();
+                const Point2d randFilm = samplers[threadID]->get2D();
+                const Point2d randLens = samplers[threadID]->get2D();
                 const Ray ray = camera_->spawnRay(Point2i(px, py), randFilm, randLens);
                 pathTrace(scene, params, ray, *samplers[threadID],
                           arenas[threadID], &hpoints[pid]);
@@ -256,10 +256,10 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
             int lightID = lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf);
             const std::shared_ptr<Light>& light = scene.lights()[lightID];
 
-            Point2D rand0 = sampler->get2D();
-            Point2D rand1 = sampler->get2D();
+            Point2d rand0 = sampler->get2D();
+            Point2d rand1 = sampler->get2D();
             Ray photonRay;
-            Normal3D nLight;
+            Normal3d nLight;
             double pdfPos, pdfDir;
             Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
                                           &nLight, &pdfPos, &pdfDir);
@@ -307,7 +307,7 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
                         continue;
                     }
 
-                    Vector3D wi = -ray.dir();
+                    Vector3d wi = -ray.dir();
                     Spectrum phi = beta * pixel->vp.bsdf->f(pixel->vp.wo, wi);
                     pixel->phi += phi;
                     pixel->m += 1;
@@ -323,7 +323,7 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
         }
         const BSDF& bsdf = *isect.bsdf();
 
-        Vector3D wi, wo = -ray.dir();
+        Vector3d wi, wo = -ray.dir();
         double pdf;
         BxDFType sampledType;
         Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
@@ -372,7 +372,7 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
         }
         const BSDF& bsdf = *isect.bsdf();
 
-        const Vector3D wo = -ray.dir();
+        const Vector3d wo = -ray.dir();
         if (bounces == 0 || specularBounce) {
             pixel->Ld += beta * isect.Le(wo);
         }
@@ -390,7 +390,7 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
         }
 
         if (bounces < params.bounceLimit() - 1) {
-            Vector3D wi;
+            Vector3d wi;
             double pdf;
             BxDFType sampledType;
             Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,

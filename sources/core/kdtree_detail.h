@@ -135,7 +135,7 @@ namespace spica {
     }
 
     template <>
-    inline double KdTree<Vector3D>::distance(const Vector3D& p1, const Vector3D& p2) {
+    inline double KdTree<Vector3d>::distance(const Vector3d& p1, const Vector3d& p2) {
         return (p1 - p2).norm();    
     }
 

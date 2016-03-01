@@ -48,8 +48,8 @@ public:
 
     Distribution2D& operator=(const Distribution2D& d);
 
-    Point2D sample(const Point2D& rands, double* pdf) const;
-    double pdf(const Point2D& p) const;
+    Point2d sample(const Point2d& rands, double* pdf) const;
+    double pdf(const Point2d& p) const;
 
 private:
     std::vector<Distribution1D> pCond_;
@@ -57,17 +57,17 @@ private:
 
 };  // class Distribution2D
 
-SPICA_EXPORTS Point2D  sampleConcentricDisk(const Point2D& rands);
-SPICA_EXPORTS Vector3D sampleUniformSphere(const Point2D& rands);
-SPICA_EXPORTS Vector3D sampleCosineHemisphere(const Point2D& rands);
+SPICA_EXPORTS Point2d  sampleConcentricDisk(const Point2d& rands);
+SPICA_EXPORTS Vector3d sampleUniformSphere(const Point2d& rands);
+SPICA_EXPORTS Vector3d sampleCosineHemisphere(const Point2d& rands);
 SPICA_EXPORTS inline double   cosineHemispherePdf(double cosTheta) { return cosTheta * INV_PI; }
-SPICA_EXPORTS void sampleUniformHemisphere(const Normal& normal, Vector3D* direction, const Point2D& rands);
+SPICA_EXPORTS void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const Point2d& rands);
 
 SPICA_EXPORTS
 void samplePoissonDisk(const std::vector<Triangle>& triangles,
                         const double minDist,
-                        std::vector<Point>* points,
-                        std::vector<Normal>* normals);
+                        std::vector<Point3d>* points,
+                        std::vector<Normal3d>* normals);
 
 }  // namespace spica
 

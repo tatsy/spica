@@ -179,40 +179,40 @@ DiffuseBSSRDF::DiffuseBSSRDF(const SurfaceInteraction& po,
 }
 
 Spectrum DiffuseBSSRDF::S(const SurfaceInteraction& pi,
-                          const Vector3D& wi) const {
+                          const Vector3d& wi) const {
     const double Ft = FrDielectric(vect::cosTheta(po_.wo()), 1.0, eta_);
     return (1.0 - Ft) * Sp(pi) * Sw(wi);
 }
 
 Spectrum DiffuseBSSRDF::sample(const Scene& scene, double rand1,
-                               const Point2D& rand2, MemoryArena& arena,
+                               const Point2d& rand2, MemoryArena& arena,
                                SurfaceInteraction* pi, double* pdf) const {
     Spectrum sp = sampleSp(scene, rand1, rand2, arena, pi, pdf);
     if (!sp.isBlack()) {
         pi->setBSDF(arena.allocate<BSDF>(*pi));
         pi->bsdf()->add((BxDF*)(arena.allocate<DiffuseBSSRDFAdapter>(this)));
-        pi->wo_ = Vector3D(pi->normal());
+        pi->wo_ = Vector3d(pi->normal());
     }
     return sp;
 }
 
 Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
-                                 const Point2D& rand2, MemoryArena& arena,
+                                 const Point2d& rand2, MemoryArena& arena,
                                  SurfaceInteraction* pi, double* pdf) const {
     // Choose coordinate system for sampling
-    Vector3D xAxis, yAxis, zAxis;
+    Vector3d xAxis, yAxis, zAxis;
     if (rand1 < 0.5) {
         xAxis = tangent_;
         yAxis = binormal_;
-        zAxis = Vector3D(normal_);
+        zAxis = Vector3d(normal_);
         rand1 *= 2.0;
     } else if (rand1 < 0.75) {
         xAxis = binormal_;
-        yAxis = Vector3D(normal_);
+        yAxis = Vector3d(normal_);
         zAxis = tangent_;
         rand1 = (rand1 - 0.5) * 4.0;
     } else {
-        xAxis = Vector3D(normal_);
+        xAxis = Vector3d(normal_);
         yAxis = tangent_;
         zAxis = binormal_;
         rand1 = (rand1 - 0.75) * 4.0;        
@@ -234,11 +234,11 @@ Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
     const double zCoord = std::sqrt(rMax * rMax - r * r);
 
     // Compute sampling ray
-    Point3D pFrom = 
+    Point3d pFrom = 
         po_.pos() + (xAxis * std::cos(phi) + yAxis * std::sin(phi)) * r -
         zCoord * zAxis;
-    Point3D pTo   = pFrom + 2.0 * zCoord * zAxis;
-    Vector3D dir = pTo - pFrom;
+    Point3d pTo   = pFrom + 2.0 * zCoord * zAxis;
+    Vector3d dir = pTo - pFrom;
     Ray ray(pFrom, dir, std::max(0.0, dir.norm() - EPS));
 
     // Compute intersection candidates
@@ -274,10 +274,10 @@ Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
 }
 
 double DiffuseBSSRDF::pdfSp(const SurfaceInteraction& pi) const {
-    Vector3D d = po_.pos() - pi.pos();
-    Vector3D dLocal(vect::dot(tangent_, d), vect::dot(binormal_, d),
+    Vector3d d = po_.pos() - pi.pos();
+    Vector3d dLocal(vect::dot(tangent_, d), vect::dot(binormal_, d),
                     vect::dot(normal_, d));
-    Normal3D nLocal(vect::dot(tangent_, pi.normal()),
+    Normal3d nLocal(vect::dot(tangent_, pi.normal()),
                     vect::dot(binormal_, pi.normal()),
                     vect::dot(normal_, pi.normal()));
 
@@ -300,7 +300,7 @@ Spectrum DiffuseBSSRDF::Sp(const SurfaceInteraction& pi) const {
     return Sr((po_.pos() - pi.pos()).norm());
 }
 
-Spectrum DiffuseBSSRDF::Sw(const Vector3D& wi) const {
+Spectrum DiffuseBSSRDF::Sw(const Vector3d& wi) const {
     double c = 1.0 - 2.0 * FresnelMoment1(1.0 / eta_);
     double Ft = FrDielectric(vect::cosTheta(wi), 1.0, eta_);
     return Spectrum((1.0 - Ft) / (c * PI));
@@ -384,7 +384,7 @@ DiffuseBSSRDFAdapter::DiffuseBSSRDFAdapter(const DiffuseBSSRDF* bssrdf)
     , bssrdf_{ bssrdf } {
 }
 
-Spectrum DiffuseBSSRDFAdapter::f(const Vector3D& wo, const Vector3D& wi) const {
+Spectrum DiffuseBSSRDFAdapter::f(const Vector3d& wo, const Vector3d& wi) const {
     Spectrum f = bssrdf_->Sw(wi);
     // TODO: Should the transport mode be considered??
     return f;

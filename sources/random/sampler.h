@@ -11,7 +11,6 @@
 
 #include <memory>
 
-#include "random_base.h"
 #include "../core/common.h"
 #include "../core/uncopyable.h"
 #include "../core/point2d.h"
@@ -26,9 +25,11 @@ namespace spica {
         virtual ~Sampler() {}
 
         virtual double  get1D() = 0;
-        virtual Point2D get2D() {
-            return Point2D{ get1D(), get1D() };   
+        virtual Point2d get2D() {
+            return Point2d{ get1D(), get1D() };   
         }
+
+        virtual bool startNextSample() { return true; }
 
         virtual std::unique_ptr<Sampler> clone(unsigned int seed = 0) const = 0;
     };

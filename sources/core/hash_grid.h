@@ -26,12 +26,12 @@ public:
     void init(const int hashSize, const double hashScale, const Bounds3d& bbox);
 
     //! Set point data for the cells inside the specifed bounding box
-    void add(const T& p, const Point& boxMin, const Point& boxMax);
+    void add(const T& p, const Point3d& boxMin, const Point3d& boxMax);
 
     //! Clear grid data
     void clear();
 
-    const std::vector<T>& operator[](const Point& v) const;
+    const std::vector<T>& operator[](const Point3d& v) const;
 
 private:
     // Private methods

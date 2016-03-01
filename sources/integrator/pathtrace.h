@@ -24,17 +24,17 @@ public:
     PathIntegrator(std::shared_ptr<Camera>& camera,
                    std::shared_ptr<Sampler>& sampler);
     ~PathIntegrator();
-    void render(const Scene& scene,
-                const RenderParameters& params) const override;
+    virtual void render(const Scene& scene,
+                        const RenderParameters& params) const override;
 
-private:
+protected:
     // Private methods
-    Spectrum Li(const Scene& scene,
-                const RenderParameters& params,
-                const Ray& ray,
-                Sampler& sampler,
-                MemoryArena& arena,
-                int depth = 0) const;
+    virtual Spectrum Li(const Scene& scene,
+                        const RenderParameters& params,
+                        const Ray& ray,
+                        Sampler& sampler,
+                        MemoryArena& arena,
+                        int depth = 0) const;
 
     // Private fields
     std::shared_ptr<Sampler> sampler_;

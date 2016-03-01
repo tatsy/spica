@@ -25,18 +25,18 @@ namespace spica {
 
         virtual ~AreaLight();
 
-        Spectrum L(const Interaction& pLight, const Vector3D& dir) const;
+        Spectrum L(const Interaction& pLight, const Vector3d& dir) const;
 
-        Spectrum sampleLi(const Interaction& isect, const Point2D& rands,
-                          Vector3D* dir, double* pdf,
+        Spectrum sampleLi(const Interaction& isect, const Point2d& rands,
+                          Vector3d* dir, double* pdf,
                           VisibilityTester* vis) const override;
 
-        double pdfLi(const Interaction& pObj, const Vector3D& dir) const override;
+        double pdfLi(const Interaction& pObj, const Vector3d& dir) const override;
 
-        Spectrum sampleLe(const Point2D& rand1, const Point2D& rand2,
-                          Ray* ray, Normal3D* nLight, double* pdfPos,
+        Spectrum sampleLe(const Point2d& rand1, const Point2d& rand2,
+                          Ray* ray, Normal3d* nLight, double* pdfPos,
                           double* pdfDir) const override;
-        void pdfLe(const Ray& ray, const Normal3D& nLight, double* pdfPos,
+        void pdfLe(const Ray& ray, const Normal3d& nLight, double* pdfPos,
                    double* pdfDir) const override;
 
         Spectrum power() const override;

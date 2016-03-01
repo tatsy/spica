@@ -19,7 +19,7 @@ namespace spica {
 class SPICA_EXPORTS Disk : public Shape {
 public:
     Disk();
-    Disk(const Point& center, const Normal& normal, double radius,
+    Disk(const Point3d& center, const Normal3d& normal, double radius,
          const Transform& objectToWorld = Transform());
     Disk(const Disk& disk);
     ~Disk();
@@ -35,14 +35,14 @@ public:
 
     std::vector<Triangle> triangulate() const override;
 
-    inline Point  center() const { return center_; }
-    inline Normal normal() const { return normal_; }
-    inline double radius() const { return radius_; }
+    inline Point3d  center() const { return center_; }
+    inline Normal3d normal() const { return normal_; }
+    inline double   radius() const { return radius_; }
     
 private:
-    Point  center_ = { 0.0, 0.0, 0.0 };
-    Normal normal_ = { 0.0, 0.0, 0.0 };
-    double radius_ = 0.0;
+    Point3d  center_ = { 0.0, 0.0, 0.0 };
+    Normal3d normal_ = { 0.0, 0.0, 0.0 };
+    double   radius_ = 0.0;
 
 };  // class Disk
 

@@ -31,10 +31,14 @@ public:
 private:
     T x_, y_;
 
+    static_assert(std::is_arithmetic<T>::value,
+                  "Template type must be arithmetic!!");
+
 };  // class Point2_
 
 using Point2i = Point2_<int>;
-using Point2D = Point2_<double>;
+using Point2f = Point2_<float>;
+using Point2d = Point2_<double>;
 
 }  // namespace spica
 

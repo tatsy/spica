@@ -62,7 +62,7 @@ int test_AABB(const __m128 bboxes[2][3], const __m128 org[3], const __m128 idir[
 
 struct QBVHAccel::BVHPrimitiveInfo {
     int primitiveNumber;
-    Point centroid;
+    Point3d centroid;
     Bounds3d bounds;
 
     BVHPrimitiveInfo(int pn, const Bounds3d& b)

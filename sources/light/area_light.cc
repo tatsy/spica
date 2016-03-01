@@ -20,12 +20,12 @@ namespace spica {
     AreaLight::~AreaLight() {
     }
 
-    Spectrum AreaLight::L(const Interaction& pLight, const Vector3D& w) const {
+    Spectrum AreaLight::L(const Interaction& pLight, const Vector3d& w) const {
         return vect::dot(pLight.normal(), w) > 0.0 ? Lemit_ : Spectrum(0.0);                
     }
 
-    Spectrum AreaLight::sampleLi(const Interaction& pObj, const Point2D& rands,
-                                 Vector3D* dir, double* pdf,
+    Spectrum AreaLight::sampleLi(const Interaction& pObj, const Point2d& rands,
+                                 Vector3d* dir, double* pdf,
                                  VisibilityTester* vis) const {
         Interaction pLight = shape_->sample(pObj, rands);
         *dir = (pLight.pos() - pObj.pos()).normalized();
@@ -34,28 +34,28 @@ namespace spica {
         return L(pLight, -(*dir));
     }
 
-    double AreaLight::pdfLi(const Interaction& pObj, const Vector3D& dir) const {
+    double AreaLight::pdfLi(const Interaction& pObj, const Vector3d& dir) const {
         return shape_->pdf(pObj, dir);
     }
 
-    Spectrum AreaLight::sampleLe(const Point2D& randPos, const Point2D& randDir,
-                                 Ray* ray, Normal3D* nLight, double* pdfPos,
+    Spectrum AreaLight::sampleLe(const Point2d& randPos, const Point2d& randDir,
+                                 Ray* ray, Normal3d* nLight, double* pdfPos,
                                  double* pdfDir) const {
         Interaction pShape = shape_->sample(randPos);
         *pdfPos = shape_->pdf(pShape);
         *nLight = pShape.normal();
 
-        Vector3D w = sampleCosineHemisphere(randDir);
+        Vector3d w = sampleCosineHemisphere(randDir);
         *pdfDir = cosineHemispherePdf(w.z());
 
-        Vector3D v1, v2, n(pShape.normal());
+        Vector3d v1, v2, n(pShape.normal());
         vect::coordinateSystem(n, &v1, &v2);
         w = w.x() * v1 + w.y() * v2 + w.z() * n;
         *ray = pShape.spawnRay(w);
         return L(pShape, w);
     }
 
-    void AreaLight::pdfLe(const Ray& ray, const Normal3D& nLight,
+    void AreaLight::pdfLe(const Ray& ray, const Normal3d& nLight,
                           double* pdfPos, double* pdfDir) const {
         
     }

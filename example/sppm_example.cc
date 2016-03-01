@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     std::cout << "   height: " << height  << std::endl;
     std::cout << "  samples: " << samples << std::endl << std::endl;
 
-    std::unique_ptr<Filter> filter = std::make_unique<BoxFilter>(Vector2D(0.5, 0.5));
+    std::unique_ptr<Filter> filter = std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
     auto film = std::make_unique<Film>(Point2i(width, height),
                                        filter,
                                        kOutputDirectory + "sppm_%03d.png");
@@ -23,9 +23,9 @@ int main(int argc, char** argv) {
     RectF screen(-2.5, -2.5, 5.0, 5.0);
     double fov = PI / 24.0;
 
-    Point3D  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));
-    Point3D  look(0.0, 0.0, 0.0);
-    Vector3D up(0.0, 1.0, 0.0);
+    Point3d  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));
+    Point3d  look(0.0, 0.0, 0.0);
+    Vector3d up(0.0, 1.0, 0.0);
 
     double focal = std::abs((look - eye).z());
     double lensR = 0.5;

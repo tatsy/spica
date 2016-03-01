@@ -49,8 +49,9 @@ namespace spica {
         static_assert(std::is_arithmetic<T>::value, "Template type must be arithmetic!!");
     };
 
-    using Point3D = Point3_<double>;
-    using Point   = Point3D;
+    using Point3i = Point3_<int>;
+    using Point3f = Point3_<float>;
+    using Point3d = Point3_<double>;
 
 }  // namespace spica
 

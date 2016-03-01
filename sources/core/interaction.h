@@ -15,82 +15,114 @@
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
 #include "../math/vector3d.h"
+#include "../medium/medium.h"
 
 namespace spica {
 
-    class SPICA_EXPORTS Interaction {
-    public:
-        Interaction();
-        explicit Interaction(const Point& pos, const Normal& normal = Normal(),
-                             const Vector3D& wo = Vector3D());
-        Interaction(const Interaction& intr);
-        virtual ~Interaction();
+class SPICA_EXPORTS Interaction {
+public:
+    Interaction();
+    explicit Interaction(const Point3d& pos, const Normal3d& normal = Normal3d(),
+                         const Vector3d& wo = Vector3d());
+    Interaction(const Point3d& pos, const Vector3d& wo,
+                const MediumInterface& mediumInterface);
+    Interaction(const Interaction& intr);
+    virtual ~Interaction();
 
-        Interaction& operator=(const Interaction& intr);
+    Interaction& operator=(const Interaction& intr);
 
-        virtual Ray spawnRay(const Vector3D& wi) const;
-        virtual Ray spawnRayTo(const Point3D& p) const;
-        virtual Ray spawnRayTo(const Interaction& intr) const;
+    virtual Ray spawnRay(const Vector3d& wi) const;
+    virtual Ray spawnRayTo(const Point3d& p) const;
+    virtual Ray spawnRayTo(const Interaction& intr) const;
 
-        inline virtual bool isSurfaceInteraction() const { return false; }
-        inline const Point&    pos()    const { return pos_; }
-        inline const Normal&   normal() const { return normal_; }
-        inline const Vector3D& wo()     const { return wo_; }
+    inline virtual bool isSurfaceInteraction() const { return false; }
+    inline const Point3d&    pos()    const { return pos_; }
+    inline const Normal3d&   normal() const { return normal_; }
+    inline const Vector3d& wo()     const { return wo_; }
+    inline void setMediumInterface(const MediumInterface& mediumInterface) {
+        mediumInterface_ = mediumInterface;
+    }
 
-    protected:
-        Point    pos_;
-        Normal   normal_;
-        Vector3D wo_;
+    inline const Medium* getMedium(const Vector3d& w) const {
+        return vect::dot(w, normal_) > 0.0 ? mediumInterface_.outside()
+                                           : mediumInterface_.inside(); 
+    }
 
-    private:
-        friend class DiffuseBSSRDF;
-    };
+    inline const Medium* getMedium() const {
+        Assertion(mediumInterface_.inside() == mediumInterface_.outside(),
+                  "Only inside the primitive should be fiiled with participating media");
+        return mediumInterface_.inside();
+    }
 
-    class SPICA_EXPORTS SurfaceInteraction : public Interaction {
-    public:
-        SurfaceInteraction();
-        SurfaceInteraction(const Point& p, const Point2D& uv, const Vector3D& wo,
-                           const Vector3D& dpdu, const Vector3D& dpdv,
-                           const Normal3D& dndu, const Normal3D& dndv,
-                           const Shape* shape);
-        SurfaceInteraction(const SurfaceInteraction& intr);
-        virtual ~SurfaceInteraction();
+protected:
+    Point3d  pos_;
+    Normal3d normal_;
+    Vector3d wo_;
+    MediumInterface mediumInterface_;
 
-        SurfaceInteraction& operator=(const SurfaceInteraction& intr);
+private:
+    friend class DiffuseBSSRDF;
+};
 
-        void computeDifferentials(const Ray& ray);
-        void setScatterFuncs(const Ray& ray, MemoryArena& arena);
-        Spectrum Le(const Vector3D& w) const;
+class SPICA_EXPORTS SurfaceInteraction : public Interaction {
+public:
+    SurfaceInteraction();
+    SurfaceInteraction(const Point3d& p, const Point2d& uv, const Vector3d& wo,
+                       const Vector3d& dpdu, const Vector3d& dpdv,
+                       const Normal3d& dndu, const Normal3d& dndv,
+                       const Shape* shape);
+    SurfaceInteraction(const SurfaceInteraction& intr);
+    virtual ~SurfaceInteraction();
 
-        inline bool isSurfaceInteraction() const override { return true; }
-        inline const Point2D& uv() const { return uv_; }
-        inline const Vector3D& dpdu() const { return dpdu_; }
-        inline const Vector3D& dpdv() const { return dpdv_; }
-        inline const Normal3D& dndu() const { return dndu_; }
-        inline const Normal3D& dndv() const { return dndv_; }
-        inline double dudx() const { return dudx_; }
-        inline double dudy() const { return dudy_; }
-        inline double dvdx() const { return dvdx_; }
-        inline double dvdy() const { return dvdy_; }
-        inline const Primitive* primitive() const { return primitive_; }
+    SurfaceInteraction& operator=(const SurfaceInteraction& intr);
 
-        inline BSDF* bsdf() const { return bsdf_; }
-        inline BSSRDF* bssrdf() const { return bssrdf_; }
-        inline void setBSDF(BSDF* bsdf) { bsdf_ = bsdf; }
-        inline void setBSSRDF(BSSRDF* bssrdf) { bssrdf_ = bssrdf; }
-        inline void setPrimitive(const Primitive* prim) { primitive_ = prim; }
+    void computeDifferentials(const Ray& ray);
+    void setScatterFuncs(const Ray& ray, MemoryArena& arena);
+    Spectrum Le(const Vector3d& w) const;
+
+    inline bool isSurfaceInteraction() const override { return true; }
+    inline const Point2d& uv() const { return uv_; }
+    inline const Vector3d& dpdu() const { return dpdu_; }
+    inline const Vector3d& dpdv() const { return dpdv_; }
+    inline const Normal3d& dndu() const { return dndu_; }
+    inline const Normal3d& dndv() const { return dndv_; }
+    inline double dudx() const { return dudx_; }
+    inline double dudy() const { return dudy_; }
+    inline double dvdx() const { return dvdx_; }
+    inline double dvdy() const { return dvdy_; }
+    inline const Primitive* primitive() const { return primitive_; }
+
+    inline BSDF* bsdf() const { return bsdf_; }
+    inline BSSRDF* bssrdf() const { return bssrdf_; }
+    inline void setBSDF(BSDF* bsdf) { bsdf_ = bsdf; }
+    inline void setBSSRDF(BSSRDF* bssrdf) { bssrdf_ = bssrdf; }
+    inline void setPrimitive(const Primitive* prim) { primitive_ = prim; }
     
-    private:
-        Point2D uv_;
-        Vector3D dpdu_, dpdv_;
-        Normal3D dndu_, dndv_;
-        Vector3D dpdx_, dpdy_;
-        double dudx_ = 0.0, dudy_ = 0.0, dvdx_ = 0.0, dvdy_ = 0.0;
-        const Shape* shape_ = nullptr;
-        const Primitive* primitive_ = nullptr;
-        BSDF* bsdf_ = nullptr;
-        BSSRDF* bssrdf_ = nullptr;
-    };
+private:
+    Point2d uv_;
+    Vector3d dpdu_, dpdv_;
+    Normal3d dndu_, dndv_;
+    Vector3d dpdx_, dpdy_;
+    double dudx_ = 0.0, dudy_ = 0.0, dvdx_ = 0.0, dvdy_ = 0.0;
+    const Shape* shape_ = nullptr;
+    const Primitive* primitive_ = nullptr;
+    BSDF* bsdf_ = nullptr;
+    BSSRDF* bssrdf_ = nullptr;
+};
+
+class SPICA_EXPORTS MediumInteraction : public Interaction {
+public:
+    MediumInteraction();
+    MediumInteraction(const Point3d& p, const Vector3d& wo,
+                      const Medium* medium,
+                      const PhaseFunction* phase);
+    bool isValid() const;
+
+    inline const PhaseFunction* phase() const { return phase_; }
+
+private:
+    const PhaseFunction* phase_;
+};
 
 }  // namespace spica
 

@@ -28,7 +28,8 @@ public:
     // Public methods
     GeometricPrimitive(const std::shared_ptr<Shape>& shape,
                        const std::shared_ptr<Material>& material,
-                       const std::shared_ptr<AreaLight>& areaLight);
+                       const std::shared_ptr<AreaLight>& areaLight,
+                       const std::shared_ptr<MediumInterface>& mediumInterface = nullptr);
 
     virtual Bounds3d worldBound() const override;
     virtual bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
@@ -43,6 +44,7 @@ private:
     std::shared_ptr<Shape>     shape_ = nullptr;
     std::shared_ptr<Material>  material_ = nullptr;
     std::shared_ptr<AreaLight> areaLight_ = nullptr;
+    std::shared_ptr<MediumInterface> mediumInterface_ = nullptr;
 
 };  // class GeometricPrimitive
 

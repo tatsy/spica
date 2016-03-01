@@ -12,7 +12,7 @@ namespace spica {
 
     /** Base class for tone mapping operators.
      */
-    class Tmo {
+    class SPICA_EXPORTS Tmo {
     public:
         Tmo() {}
         virtual ~Tmo() {}

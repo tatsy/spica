@@ -12,12 +12,9 @@
 #include "../core/interaction.h"
 
 #include "../image/film.h"
-#include "../image/image.h"
-#include "../image/tmo.h"
 
 #include "../math/vector3d.h"
 
-#include "../random/halton.h"
 #include "../random/sampler.h"
 
 #include "../bxdf/bsdf.h"
@@ -31,7 +28,6 @@
 
 #include "../camera/camera.h"
 
-#include "renderer_helper.h"
 #include "render_parameters.h"
 // #include "subsurface_integrator.h"
 
@@ -57,10 +53,6 @@ void PathIntegrator::render(const Scene& scene,
     // Prepare samplers and memory arenas
     auto samplers = std::vector<std::unique_ptr<Sampler>>(kNumThreads);
     auto arenas   = std::vector<MemoryArena>(kNumThreads);
-    for (int t = 0; t < kNumThreads; t++) {
-        auto seed = static_cast<unsigned int>(time(0) + t);
-        samplers[t] = sampler_->clone(seed);
-    }
 
     // Distribute rendering tasks
     const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
@@ -76,13 +68,21 @@ void PathIntegrator::render(const Scene& scene,
             // _integrator->construct(scene, params);
         }
 
+        if (i % 16 == 0) {
+            for (int t = 0; t < kNumThreads; t++) {
+                auto seed = static_cast<unsigned int>(time(0) + kNumThreads * i + t);
+                samplers[t] = sampler_->clone(seed);
+            }
+        }
+
         for (int t = 0; t < taskPerThread; t++) {
             ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
+                samplers[threadID]->startNextSample();
                 if (t < tasks[threadID].size()) {
                     const int y = tasks[threadID][t];
                     for (int x = 0; x < width; x++) {
-                        const Point2D randFilm = samplers[threadID]->get2D();
-                        const Point2D randLens = samplers[threadID]->get2D();
+                        const Point2d randFilm = samplers[threadID]->get2D();
+                        const Point2d randLens = samplers[threadID]->get2D();
                         const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
 
                         const Point2i pixel(width - x - 1, y);
@@ -140,8 +140,8 @@ Spectrum PathIntegrator::Li(const Scene& scene,
         }
 
         // Process BxDF
-        Vector3D wo = -ray.dir();
-        Vector3D wi;
+        Vector3d wo = -ray.dir();
+        Vector3d wi;
         double pdf;
         BxDFType sampledType;
         Spectrum ref = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdf,

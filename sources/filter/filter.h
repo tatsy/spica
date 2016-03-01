@@ -16,18 +16,18 @@ class SPICA_EXPORTS Filter {
 public:
     // Public methods
     Filter();
-    explicit Filter(const Vector2D& radius);
+    explicit Filter(const Vector2d& radius);
     Filter(const Filter&) = default;
     virtual ~Filter();
 
     Filter& operator=(const Filter&) = default;
 
-    virtual double evaluate(const Point2D& p) const = 0;
+    virtual double evaluate(const Point2d& p) const = 0;
 
 protected:
     // Protected fields
-    Vector2D radius_;
-    Vector2D invRad_;
+    Vector2d radius_;
+    Vector2d invRad_;
 
 };  // class Filter
 

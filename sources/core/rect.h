@@ -5,18 +5,14 @@
 #ifndef _SPICA_RECT_H_
 #define _SPICA_RECT_H_
 
+#include <type_traits>
+
 #include "common.h"
 
 namespace spica {
 
-    template <class T, class Enable = void>
-    class Rect_;
-
     template <class T>
-    class Rect_<T, typename std::enable_if<std::is_arithmetic<T>::value>::type> {
-    private:
-        T _x, _y, _width, _height;
-
+    class Rect_ {
     public:
         Rect_()
             : _x(0)
@@ -54,7 +50,15 @@ namespace spica {
         inline T y() const { return _y; }
         inline T width() const { return _width; }
         inline T height() const { return _height; }
-    };
+
+    private:
+        // Private fields
+        T _x, _y, _width, _height;
+
+        static_assert(std::is_arithmetic<T>::value,
+                      "Template type must be arithmetic!!");
+
+    };  // class Rect_
 
     using Rect  = Rect_<int>;
     using RectF = Rect_<double>;

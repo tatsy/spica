@@ -14,6 +14,7 @@
 #include "../random/sampler.h"
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bxdf.h"
+#include "../bxdf/phase.h"
 #include "../shape/visibility_tester.h"
 
 namespace spica {
@@ -21,31 +22,33 @@ namespace spica {
 namespace mis {
 
 Spectrum uniformSampleOneLight(const Interaction& intr, const Scene& scene,
-                               MemoryArena& arena, Sampler& sampler) {
+                               MemoryArena& arena, Sampler& sampler,
+                               bool handleMedia) {
     const int nLights = static_cast<int>(scene.lights().size());
     if (nLights == 0) return Spectrum(0.0);
 
     const int lightID = std::min((int)(sampler.get1D() * nLights), nLights - 1);
     const auto& light = scene.lights()[lightID];
-    const Point2D randLight = sampler.get2D();
-    const Point2D randShade = sampler.get2D();
+    const Point2d randLight = sampler.get2D();
+    const Point2d randShade = sampler.get2D();
     return nLights * estimateDirectLight(intr, randShade, *light, randLight,
                                          scene, sampler, arena);
 }
 
 Spectrum estimateDirectLight(const Interaction& intr,
-                             const Point2D& randShade,
+                             const Point2d& randShade,
                              const Light& light,
-                             const Point2D& randLight,
+                             const Point2d& randLight,
                              const Scene& scene, Sampler& sampler,
                              MemoryArena& arena,
-                             bool specular) {
+                             bool specular,
+                             bool handleMedia) {
     BxDFType bxdfType = specular ? BxDFType::All : (BxDFType::All & (~BxDFType::Specular));
 
     Spectrum Ld(0.0);
 
     // Sample light with multiple importance sampling
-    Vector3D wi;
+    Vector3d wi;
     VisibilityTester vis;
     double lightPdf = 0.0, bsdfPdf = 0.0;
     Spectrum Li = light.sampleLi(intr, randLight, &wi, &lightPdf, &vis);
@@ -58,11 +61,18 @@ Spectrum estimateDirectLight(const Interaction& intr,
                 vect::absDot(wi, isect.normal());
             bsdfPdf = isect.bsdf()->pdf(isect.wo(), wi, bxdfType);
         } else {
-            // TODO: Implement for volume rendering
+            // Evaluate phase function
+            const MediumInteraction& mi =
+                static_cast<const MediumInteraction&>(intr);
+            double p = mi.phase()->p(mi.wo(), wi);
+            f = Spectrum(p);
+            bsdfPdf = p;
         }
 
         if (!f.isBlack()) {
-            if (!vis.unoccluded(scene)) {
+            if (handleMedia) {
+                Li *= vis.transmittance(scene, sampler);
+            } else if (!vis.unoccluded(scene)) {
                 Li = Spectrum(0.0);
             }
 
@@ -88,7 +98,12 @@ Spectrum estimateDirectLight(const Interaction& intr,
             f *= vect::absDot(wi, isect.normal());
             sampledSpecular = (sampledType & BxDFType::Specular) != BxDFType::None;
         } else {
-            // TODO: Implement for volume interaction
+            // Sample new direction after scattered with participating media
+            const MediumInteraction& mi = 
+                static_cast<const MediumInteraction&>(intr);
+            double p = mi.phase()->sample(mi.wo(), &wi, randShade);
+            f = Spectrum(p);
+            bsdfPdf = p;
         }
 
         if (!f.isBlack() && bsdfPdf > 0.0) {
@@ -102,7 +117,9 @@ Spectrum estimateDirectLight(const Interaction& intr,
             SurfaceInteraction lightIsect;
             Ray ray = intr.spawnRay(wi);
             Spectrum Tr(1.0);
-            bool foundSurfaceInteraction = scene.intersect(ray, &lightIsect);
+            bool foundSurfaceInteraction = 
+                handleMedia ? scene.intersect(ray, &lightIsect)
+                            : scene.intersect(ray, &lightIsect); 
 
             Spectrum Li(0.0);
             if (foundSurfaceInteraction) {

@@ -12,46 +12,49 @@
 
 namespace spica {
 
-    template <class T>
-    class Normal3_ {
-    public:
-        Normal3_();
-        Normal3_(T x, T y, T z);
-        explicit Normal3_(const Vector3_<T>& v);
-        Normal3_(const Normal3_<T>& n);
-        ~Normal3_();
+template <class T>
+class Normal3_ {
+public:
+    // Public methods
+    Normal3_();
+    Normal3_(T x, T y, T z);
+    explicit Normal3_(const Vector3_<T>& v);
+    Normal3_(const Normal3_<T>& n);
+    ~Normal3_();
 
-        Normal3_<T>& operator=(const Normal3_<T>& n);
-        bool operator==(const Normal3_<T>& n) const;
-        bool operator!=(const Normal3_<T>& n) const;
-        Normal3_<T> operator-() const;
-        Normal3_<T> operator+=(const Normal3_<T>& n);
-        Normal3_<T> operator-=(const Normal3_<T>& n);
-        Normal3_<T> operator*=(T s);
-        Normal3_<T> operator/=(T s);
-        T operator[](int i) const;
-        explicit operator Vector3_<T>() const;
+    Normal3_<T>& operator=(const Normal3_<T>& n);
+    bool operator==(const Normal3_<T>& n) const;
+    bool operator!=(const Normal3_<T>& n) const;
+    Normal3_<T> operator-() const;
+    Normal3_<T> operator+=(const Normal3_<T>& n);
+    Normal3_<T> operator-=(const Normal3_<T>& n);
+    Normal3_<T> operator*=(T s);
+    Normal3_<T> operator/=(T s);
+    T operator[](int i) const;
+    explicit operator Vector3_<T>() const;
 
-        inline T x() const { return x_; }
-        inline T y() const { return y_; }
-        inline T z() const { return z_; }
+    inline T x() const { return x_; }
+    inline T y() const { return y_; }
+    inline T z() const { return z_; }
 
-        double norm() const;
-        double squaredNorm() const;
-        Normal3_<T> normalized() const;
+    double norm() const;
+    double squaredNorm() const;
+    Normal3_<T> normalized() const;
 
-        std::string toString() const;
+    std::string toString() const;
 
-        using type = T;
+    using type = T;
         
-    private:
-        T x_, y_, z_;
+private:
+    // Private fields
+    T x_, y_, z_;
 
-        static_assert(std::is_arithmetic<T>::value, "Template type must be arithmetic!!");
-    };
+    static_assert(std::is_arithmetic<T>::value,
+                    "Template type must be arithmetic!!");
+};
 
-    using Normal3D = Normal3_<double>;
-    using Normal   = Normal3D;
+using Normal3f = Normal3_<float>;
+using Normal3d = Normal3_<double>;
 
 }  // namespace spica
 

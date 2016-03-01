@@ -58,7 +58,6 @@
 // --------------------------------------------
 
 #include "../sources/integrator/render_parameters.h"
-#include "../sources/integrator/renderer_helper.h"
 
 #include "../sources/integrator/spica_integrator.h"
 

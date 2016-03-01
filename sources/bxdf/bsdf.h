@@ -22,13 +22,13 @@ public:
     void add(BxDF* b);
     int numComponents(BxDFType type = BxDFType::All) const;
     
-    Spectrum f(const Vector3D& wiWorld, const Vector3D& woWorld,
+    Spectrum f(const Vector3d& wiWorld, const Vector3d& woWorld,
                BxDFType type = BxDFType::All) const;
 
-    Spectrum sample(const Vector3D& woWorld, Vector3D* wiWorld, const Point2D& rands,
+    Spectrum sample(const Vector3d& woWorld, Vector3d* wiWorld, const Point2d& rands,
                     double* pdf, BxDFType type = BxDFType::All,
                     BxDFType* sampledType = nullptr) const;
-    double pdf(const Vector3D& wo, const Vector3D& wi,
+    double pdf(const Vector3d& wo, const Vector3d& wi,
                BxDFType type = BxDFType::All) const;
 
     bool hasType(BxDFType type) const;
@@ -37,13 +37,13 @@ public:
 
 private:
     // Private methods
-    Vector3D worldToLocal(const Vector3D& v) const;
-    Vector3D localToWorld(const Vector3D& v) const;
+    Vector3d worldToLocal(const Vector3d& v) const;
+    Vector3d localToWorld(const Vector3d& v) const;
 
     // Private fields
     const double eta_;
-    const Normal3D normal_;
-    const Vector3D tangent_, binormal_;
+    const Normal3d normal_;
+    const Vector3d tangent_, binormal_;
     int nBxDFs_ = 0;
     static constexpr int maxBxDFs_ = 8;
     BxDF *bxdfs_[maxBxDFs_];

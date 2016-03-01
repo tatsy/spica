@@ -29,10 +29,13 @@ else()
 endif()
 
 # ------------------------------------------------------------------------------
-# Turn on using solution folders (MSVC)
+# Special settings for MSVC
 # ------------------------------------------------------------------------------
 if (MSVC)
+  # Use solution folders
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+  # Disable comparatively unimportant warning
+  add_definitions("/D_CRT_SECURE_NO_WARNINGS /W3 /wd4251")
 endif()
 
 # ------------------------------------------------------------------------------

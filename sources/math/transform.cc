@@ -57,7 +57,7 @@ namespace spica {
         return *this;
     }
 
-    Point3D Transform::apply(const Point3D& p) const {
+    Point3d Transform::apply(const Point3d& p) const {
         double ps[4] = { p[0], p[1], p[2], 1.0 };
         
         double ret[4] = { 0.0, 0.0, 0.0, 0.0 };
@@ -75,15 +75,15 @@ namespace spica {
         return { ret[0], ret[1], ret[2] };
     }
 
-    Normal3D Transform::apply(const Normal3D& n) const {
-        return Normal3D(
+    Normal3d Transform::apply(const Normal3d& n) const {
+        return Normal3d(
             mInv_(0, 0) * n.x() + mInv_(0, 1) * n.y() + mInv_(0, 2) * n.z(),
             mInv_(1, 0) * n.x() + mInv_(1, 1) * n.y() + mInv_(1, 2) * n.z(),
             mInv_(2, 0) * n.x() + mInv_(2, 1) * n.y() + mInv_(2, 2) * n.z());
     }
 
-    Vector3D Transform::apply(const Vector3D& v) const {
-        return Vector3D(
+    Vector3d Transform::apply(const Vector3d& v) const {
+        return Vector3d(
             m_(0, 0) * v.x() + m_(0, 1) * v.y() + m_(0, 2) * v.z(),
             m_(1, 0) * v.x() + m_(1, 1) * v.y() + m_(1, 2) * v.z(),
             m_(2, 0) * v.x() + m_(2, 1) * v.y() + m_(2, 2) * v.z());
@@ -91,8 +91,8 @@ namespace spica {
 
     Bounds3d Transform::apply(const Bounds3d& b) const {
         // TODO: It can be invalid.
-        Point3D posMin = apply(b.posMin());
-        Point3D posMax = apply(b.posMax());
+        Point3d posMin = apply(b.posMin());
+        Point3d posMax = apply(b.posMax());
         return { posMin, posMax };
     }
 
@@ -107,7 +107,7 @@ namespace spica {
         return Transform(mInv_, m_);
     }
 
-    Transform Transform::translate(const Vector3D& delta) {
+    Transform Transform::translate(const Vector3d& delta) {
         Matrix4x4 m(1.0, 0.0, 0.0, delta.x(),
                     0.0, 1.0, 0.0, delta.y(),
                     0.0, 0.0, 1.0, delta.z(),
@@ -133,8 +133,8 @@ namespace spica {
         return Transform{ m, mInv };
     }
 
-    Transform Transform::rotate(double theta, const Vector3D& axis) {
-        Vector3D a = axis.normalized();
+    Transform Transform::rotate(double theta, const Vector3d& axis) {
+        Vector3d a = axis.normalized();
         double sinTheta = sin(theta);
         double cosTheta = cos(theta);
         double m[4][4];
@@ -159,8 +159,8 @@ namespace spica {
         return Transform{ mat, mat.transposed() };
     }
 
-    Transform Transform::lookAt(const Point3D& eye, const Point3D& look,
-                                const Vector3D& up) {
+    Transform Transform::lookAt(const Point3d& eye, const Point3d& look,
+                                const Vector3d& up) {
         double c2w[4][4];
         memset(c2w, 0, sizeof(c2w));
         c2w[0][3] = eye.x();
@@ -168,14 +168,14 @@ namespace spica {
         c2w[2][3] = eye.z();
         c2w[3][3] = 1.0;
 
-        Vector3D dir = (look - eye).normalized();
-        Vector3D left = Vector3D::cross(up.normalized(), dir);
+        Vector3d dir = (look - eye).normalized();
+        Vector3d left = Vector3d::cross(up.normalized(), dir);
         Assertion(left.norm() != 0.0,
                   "Up vector and viewing direction are oriented "
                   "the same direction!!");
         
         left = left.normalized();
-        Vector3D newUp = Vector3D::cross(dir, left);
+        Vector3d newUp = Vector3d::cross(dir, left);
         c2w[0][0] = left.x();
         c2w[1][0] = left.y();
         c2w[2][0] = left.z();
@@ -195,7 +195,7 @@ namespace spica {
 
     Transform Transform::orthographic(double zNear, double zFar) {
         return scale(1.0, 1.0, 1.0 / (zFar - zNear)) * 
-               translate(Vector3D(0.0, 0.0, -zNear));
+               translate(Vector3d(0.0, 0.0, -zNear));
     }
 
     Transform Transform::perspective(double fov, double aspect, double near, double far) {

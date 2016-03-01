@@ -4,21 +4,21 @@
 using namespace spica;
 
 template <class T>
-class Vector2DTest : public ::testing::Test {
+class Vector2dTest : public ::testing::Test {
 protected:
-    Vector2DTest() {}
-    virtual ~Vector2DTest() {}
+    Vector2dTest() {}
+    virtual ~Vector2dTest() {}
 };
 
-TYPED_TEST_CASE_P(Vector2DTest);
+TYPED_TEST_CASE_P(Vector2dTest);
 
-TYPED_TEST_P(Vector2DTest, DefaultInstance) {
+TYPED_TEST_P(Vector2dTest, DefaultInstance) {
     Vector2_<TypeParam> v;
     EXPECT_EQ(0, v.x());
     EXPECT_EQ(0, v.y());
 }
 
-TYPED_TEST_P(Vector2DTest, Instance) {
+TYPED_TEST_P(Vector2dTest, Instance) {
     const int trials = 100;
     Random rng((unsigned int)time(0));
 
@@ -31,7 +31,7 @@ TYPED_TEST_P(Vector2DTest, Instance) {
     }
 }
 
-TYPED_TEST_P(Vector2DTest, CopyAndAssign) {
+TYPED_TEST_P(Vector2dTest, CopyAndAssign) {
     const int trials = 100;
     Random rng((unsigned int)time(0));
 
@@ -51,10 +51,10 @@ TYPED_TEST_P(Vector2DTest, CopyAndAssign) {
     }
 }
 
-REGISTER_TYPED_TEST_CASE_P(Vector2DTest,
+REGISTER_TYPED_TEST_CASE_P(Vector2dTest,
                            DefaultInstance,
                            Instance,
                            CopyAndAssign);
 
 using VectorTypes = ::testing::Types<int, float, double>;
-INSTANTIATE_TYPED_TEST_CASE_P(, Vector2DTest, VectorTypes);
+INSTANTIATE_TYPED_TEST_CASE_P(, Vector2dTest, VectorTypes);

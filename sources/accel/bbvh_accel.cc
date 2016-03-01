@@ -12,7 +12,7 @@ namespace spica {
 
 struct BBVHAccel::BVHPrimitiveInfo {
     int primIdx;
-    Point centroid;
+    Point3d centroid;
     Bounds3d bounds;
     BVHPrimitiveInfo() {}
     BVHPrimitiveInfo(int pid, const Bounds3d& b)

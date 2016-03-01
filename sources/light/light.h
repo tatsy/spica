@@ -18,9 +18,9 @@ namespace spica {
 
     class SPICA_EXPORTS LightSample {
     private:
-        Point    _pos{0.0, 0.0, 0.0};  /** Position.      */
-        Normal   _nrm{0.0, 0.0, 0.0};  /** Normal.        */
-        Vector3D _dir{0.0, 0.0, 0.0};  /** Out direction. */
+        Point3d  _pos{0.0, 0.0, 0.0};  /** Position.      */
+        Normal3d _nrm{0.0, 0.0, 0.0};  /** Normal.        */
+        Vector3d _dir{0.0, 0.0, 0.0};  /** Out direction. */
         Spectrum _emt{0.0, 0.0, 0.0};  /** Emission.      */
         double   _pdf = 0.0;           /** Sample PDF.    */
 
@@ -28,7 +28,7 @@ namespace spica {
         LightSample() {
         }
 
-        LightSample(const Point& p, const Normal& n, const Vector3D& dir,
+        LightSample(const Point3d& p, const Normal3d& n, const Vector3d& dir,
                     const Spectrum& e, double pdf)
             : _pos{ p }
             , _nrm{ n }
@@ -54,9 +54,9 @@ namespace spica {
             return *this;
         }
 
-        inline Point    position() const { return _pos; }
-        inline Normal   normal()   const { return _nrm; }
-        inline Vector3D dir()      const { return _dir; }
+        inline Point3d  position() const { return _pos; }
+        inline Normal3d normal()   const { return _nrm; }
+        inline Vector3d dir()      const { return _dir; }
         inline Spectrum Le()       const { return _emt; }
         inline double   pdf()      const { return _pdf; }
     };
@@ -87,8 +87,8 @@ namespace spica {
          * @param[in] rands: A pair of real random numbers.
          * @return Sampled incident randiance.
          */
-        virtual Spectrum sampleLi(const Interaction& pObj, const Point2D& rands,
-                                  Vector3D* dir, double* pdf, VisibilityTester* vis) const = 0;
+        virtual Spectrum sampleLi(const Interaction& pObj, const Point2d& rands,
+                                  Vector3d* dir, double* pdf, VisibilityTester* vis) const = 0;
 
         /**
          * Compute PDF for the incident direction.
@@ -96,13 +96,13 @@ namespace spica {
          * @param[in] inDir: Incident direction.
          * @return PDF (probability density).
          */
-        virtual double pdfLi(const Interaction& pObj, const Vector3D& dir) const = 0;
+        virtual double pdfLi(const Interaction& pObj, const Vector3d& dir) const = 0;
 
         virtual Spectrum Le(const Ray& ray) const;
-        virtual Spectrum sampleLe(const Point2D& rand1, const Point2D& rand2,
-                                  Ray* ray, Normal3D* nLight, double* pdfPos,
+        virtual Spectrum sampleLe(const Point2d& rand1, const Point2d& rand2,
+                                  Ray* ray, Normal3d* nLight, double* pdfPos,
                                   double *pdfDir) const = 0;
-        virtual void pdfLe(const Ray& ray, const Normal3D& nLight,
+        virtual void pdfLe(const Ray& ray, const Normal3d& nLight,
                            double* pdfPos, double* pdfDir) const = 0;
 
         virtual Spectrum power() const = 0;

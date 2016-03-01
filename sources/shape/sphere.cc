@@ -15,7 +15,7 @@ Sphere::Sphere()
     : Shape{ Transform{}, ShapeType::Sphere } {
 }
 
-Sphere::Sphere(const Point& center, double radius, const Transform& objectToWorld)
+Sphere::Sphere(const Point3d& center, double radius, const Transform& objectToWorld)
     : Shape{ objectToWorld, ShapeType::Sphere }
     , center_{ center }
     , radius_{ radius } {
@@ -38,7 +38,7 @@ Sphere& Sphere::operator=(const Sphere& sphere) {
 bool Sphere::intersect(const Ray& ray, double* tHit,
                         SurfaceInteraction* isect) const {
     // Compute intersection
-    const Vector3D VtoC = center_ - ray.org();
+    const Vector3d VtoC = center_ - ray.org();
     const double b = VtoC.dot(ray.dir());
     const double D4 = b * b - VtoC.dot(VtoC) + radius_ * radius_;
 
@@ -57,9 +57,9 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     }
     if (*tHit > ray.maxDist()) return false;
 
-    Point pWorld = ray.org() + Point((*tHit) * ray.dir());
-    Point pObj   = Point(pWorld - center_);
-    Normal nrm = Normal(pObj).normalized();
+    Point3d  pWorld = ray.org() + (*tHit) * ray.dir();
+    Point3d  pObj   = Point3d(pWorld - center_);
+    Normal3d nrm    = Normal3d(pObj).normalized();
 
     // Compute differential geometries
     const double phi   = vect::sphericalPhi(nrm);
@@ -68,39 +68,39 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     const double sinPhi = sin(phi);
     const double u = phi / (2.0 * PI);
     const double v = theta  / PI;
-    const Vector3D dpdu = { -2.0 * PI * pObj.y(), 2.0 * PI * pObj.x(), 0.0 };
-    const Vector3D dpdv = -PI * Vector3D(cosPhi * pObj.z(), sinPhi * pObj.z(), -radius_ * sin(theta));
+    const Vector3d dpdu = { -2.0 * PI * pObj.y(), 2.0 * PI * pObj.x(), 0.0 };
+    const Vector3d dpdv = -PI * Vector3d(cosPhi * pObj.z(), sinPhi * pObj.z(), -radius_ * sin(theta));
 
-    Vector3D d2pdudu = - (2.0 * PI) * (2.0 * PI) * Vector3D(pObj.x(), pObj.y(), 0.0);
-    Vector3D d2pdudv = PI * pObj.z() * (2.0 * PI) * Vector3D(sinPhi, -cosPhi, 0.0);
-    Vector3D d2pdvdv = -PI * PI * pObj;
+    Vector3d d2pdudu = - (2.0 * PI) * (2.0 * PI) * Vector3d(pObj.x(), pObj.y(), 0.0);
+    Vector3d d2pdudv = PI * pObj.z() * (2.0 * PI) * Vector3d(sinPhi, -cosPhi, 0.0);
+    Vector3d d2pdvdv = -PI * PI * pObj;
 
     // Fundamental forms
-    const double E = Vector3D::dot(dpdu, dpdu);
-    const double F = Vector3D::dot(dpdu, dpdv);
-    const double G = Vector3D::dot(dpdv, dpdv);
-    const Vector3D N = Vector3D::cross(dpdu, dpdv).normalized();
-    const double e = Vector3D::dot(N, d2pdudu);
-    const double f = Vector3D::dot(N, d2pdudv);
-    const double g = Vector3D::dot(N, d2pdvdv);
+    const double E = Vector3d::dot(dpdu, dpdu);
+    const double F = Vector3d::dot(dpdu, dpdv);
+    const double G = Vector3d::dot(dpdv, dpdv);
+    const Vector3d N = Vector3d::cross(dpdu, dpdv).normalized();
+    const double e = Vector3d::dot(N, d2pdudu);
+    const double f = Vector3d::dot(N, d2pdudv);
+    const double g = Vector3d::dot(N, d2pdvdv);
 
     double invEGF2 = 1.0 / (E * G - F * F);
-    Normal3D dndu = Normal3D((F * f - G * e) * invEGF2 * dpdu + (F * e - E * f) * invEGF2 * dpdv);
-    Normal3D dndv = Normal3D((F * g - G * f) * invEGF2 * dpdu + (F * f - E * g) * invEGF2 * dpdv);
+    Normal3d dndu = Normal3d((F * f - G * e) * invEGF2 * dpdu + (F * e - E * f) * invEGF2 * dpdv);
+    Normal3d dndv = Normal3d((F * g - G * f) * invEGF2 * dpdu + (F * f - E * g) * invEGF2 * dpdv);
 
-    *isect = SurfaceInteraction(pWorld, Point2D(u, v), -ray.dir(), dpdu, dpdv, dndu, dndv, this);
+    *isect = SurfaceInteraction(pWorld, Point2d(u, v), -ray.dir(), dpdu, dpdv, dndu, dndv, this);
     return true;
 }
 
-Interaction Sphere::sample(const Point2D& rands) const {
-    Point3D pObj = Point3D(0.0, 0.0, 0.0) + 
+Interaction Sphere::sample(const Point2d& rands) const {
+    Point3d pObj = Point3d(0.0, 0.0, 0.0) + 
                    radius_ * sampleUniformSphere(rands);
-    Normal3D nrm = vect::normalize(objectToWorld_.apply(Normal3D(pObj)));
+    Normal3d nrm = vect::normalize(objectToWorld_.apply(Normal3d(pObj)));
     return Interaction{ pObj, nrm };
 }
 
 Interaction Sphere::sample(const Interaction& isect,
-                           const Point2D& rands) const {
+                           const Point2d& rands) const {
     // TODO: For sphere (because it's a closed geometry),
     //       the case where the intersection is inside the sphere
     //       should be considered.
@@ -117,16 +117,16 @@ Interaction Sphere::sample(const Interaction& isect,
     double cosAlpha = (dc * dc + radius_ * radius_ - ds * ds) / (2.0 * dc * radius_);
     double sinAlpha = sqrt(std::max(0.0, 1.0 - cosAlpha * cosAlpha));
 
-    Vector3D sw = vect::normalize(isect.pos() - center_);
-    Vector3D su, sv;
+    Vector3d sw = vect::normalize(isect.pos() - center_);
+    Vector3d su, sv;
     vect::coordinateSystem(sw, &su, & sv);
-    Vector3D nObj = su * cos(phi) * cosAlpha + sv * sin(phi) * cosAlpha + sw * sinAlpha;
-    Vector3D pObj = radius_ * nObj;
+    Vector3d nObj = su * cos(phi) * cosAlpha + sv * sin(phi) * cosAlpha + sw * sinAlpha;
+    Vector3d pObj = radius_ * nObj;
 
-    return Interaction{ Point(pObj), Normal(nObj) };
+    return Interaction{ Point3d(pObj), Normal3d(nObj) };
 }
 
-double Sphere::pdf(const Interaction& pObj, const Vector3D& wi) const {
+double Sphere::pdf(const Interaction& pObj, const Vector3d& wi) const {
     // TODO: For sphere (because it's a closed geometry),
     //       the case where the intersection is inside the sphere
     //       should be considered.
@@ -138,8 +138,8 @@ double Sphere::pdf(const Interaction& pObj, const Vector3D& wi) const {
 }
 
 Bounds3d Sphere::objectBound() const {
-    const Point3D posMin = center_ - Vector3D(radius_, radius_, radius_);
-    const Point3D posMax = center_ + Vector3D(radius_, radius_, radius_);
+    const Point3d posMin = center_ - Vector3d(radius_, radius_, radius_);
+    const Point3d posMax = center_ + Vector3d(radius_, radius_, radius_);
     return { posMin, posMax };
 }
 
@@ -168,22 +168,24 @@ std::vector<Triangle> Sphere::triangulate() const {
             double cp0 = cos(phi0);
             double cp1 = cos(phi1);
 
-            Vector3D n00(cp0 * st0, sp0 * st0, ct0);
-            Vector3D n01(cp0 * st1, sp0 * st1, ct1);
-            Vector3D n10(cp1 * st0, sp1 * st0, ct0);
-            Vector3D n11(cp1 * st1, sp1 * st1, ct1);
+            Vector3d n00(cp0 * st0, sp0 * st0, ct0);
+            Vector3d n01(cp0 * st1, sp0 * st1, ct1);
+            Vector3d n10(cp1 * st0, sp1 * st0, ct0);
+            Vector3d n11(cp1 * st1, sp1 * st1, ct1);
 
-            Point3D v00 = center_ + radius_ * n00;
-            Point3D v01 = center_ + radius_ * n01;
-            Point3D v10 = center_ + radius_ * n10;
-            Point3D v11 = center_ + radius_ * n11;
+            Point3d v00 = center_ + radius_ * n00;
+            Point3d v01 = center_ + radius_ * n01;
+            Point3d v10 = center_ + radius_ * n10;
+            Point3d v11 = center_ + radius_ * n11;
 
             if (i != nTheta - 1) {
-                tris.emplace_back(v00, v01, v11, Normal(n00), Normal(n01), Normal(n11));
+                tris.emplace_back(v00, v01, v11,
+                                  Normal3d(n00), Normal3d(n01), Normal3d(n11));
             }
 
             if (i != 0) {
-                tris.emplace_back(v00, v11, v10, Normal(n00), Normal(n11), Normal(n10));
+                tris.emplace_back(v00, v11, v10,
+                                  Normal3d(n00), Normal3d(n11), Normal3d(n10));
             }
         }
     }

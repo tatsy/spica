@@ -35,7 +35,7 @@ namespace spica {
         /** The Quaternion constructor.
          *  @param v: The three-dimensional vector for imaginary parts.
          */
-        explicit Quaternion(const Vector3D& v);
+        explicit Quaternion(const Vector3d& v);
 
         /** The Quaternion constructor (copy).
          */
@@ -57,13 +57,13 @@ namespace spica {
          *  @param axis: Rotation axis
          *  @param theta: Rotation angle by radii
          */
-        static Quaternion rotation(const Vector3D& axis, double theta);
+        static Quaternion rotation(const Vector3d& axis, double theta);
 
         /** Apply transformation of quaternion to the vector.
          */
-        Vector3D applyTo(const Vector3D& v);
-        Point    applyTo(const Point& p);
-        Normal   applyTo(const Normal& n);
+        Vector3d applyTo(const Vector3d& v);
+        Point3d  applyTo(const Point3d& p);
+        Normal3d applyTo(const Normal3d& n);
 
         /** Squared norm.
          */
@@ -79,7 +79,7 @@ namespace spica {
 
         /** Extract imaginary parts as a three-dimensional vector.
          */
-        Vector3D toVector3D() const;
+        Vector3d toVector3d() const;
 
         /** Convert to string
          */

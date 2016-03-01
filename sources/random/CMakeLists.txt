@@ -4,7 +4,6 @@ set(SOURCES ${SOURCES}
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
-    ${CMAKE_CURRENT_LIST_DIR}/random_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/random.h
     ${CMAKE_CURRENT_LIST_DIR}/halton.h
     ${CMAKE_CURRENT_LIST_DIR}/sampler.h

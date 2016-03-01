@@ -11,6 +11,9 @@
 #include "../accel/bbvh_accel.h"
 #include "../accel/qbvh_accel.h"
 
+#include "../medium/medium.h"
+#include "../medium/homogeneous.h"
+
 #include "../material/spica_material.h"
 #include "../texture/constant.h"
 
@@ -21,10 +24,10 @@ namespace spica {
 
         // Light
         {
-            Point l00(-5.0, 9.99, -5.0);
-            Point l01(-5.0, 9.99,  5.0);
-            Point l10( 5.0, 9.99, -5.0);
-            Point l11( 5.0, 9.99,  5.0);
+            Point3d l00(-5.0, 9.99, -5.0);
+            Point3d l01(-5.0, 9.99,  5.0);
+            Point3d l10( 5.0, 9.99, -5.0);
+            Point3d l11( 5.0, 9.99,  5.0);
             Spectrum Le(8.0, 8.0, 8.0);
             auto t1 = std::make_shared<Triangle>(l00, l10, l11);
             auto t2 = std::make_shared<Triangle>(l00, l11, l01);
@@ -38,14 +41,14 @@ namespace spica {
             lights.push_back(l2);
         }
 
-        Point v000(-10.0, -10.0, -10.0);
-        Point v100( 10.0, -10.0, -10.0);
-        Point v010(-10.0,  10.0, -10.0);
-        Point v001(-10.0, -10.0,  50.0);
-        Point v110( 10.0,  10.0, -10.0);
-        Point v101( 10.0, -10.0,  50.0);
-        Point v011(-10.0,  10.0,  50.0);
-        Point v111( 10.0,  10.0,  50.0);
+        Point3d v000(-10.0, -10.0, -10.0);
+        Point3d v100( 10.0, -10.0, -10.0);
+        Point3d v010(-10.0,  10.0, -10.0);
+        Point3d v001(-10.0, -10.0,  50.0);
+        Point3d v110( 10.0,  10.0, -10.0);
+        Point3d v101( 10.0, -10.0,  50.0);
+        Point3d v011(-10.0,  10.0,  50.0);
+        Point3d v111( 10.0,  10.0,  50.0);
         
         // Ceil
         {
@@ -99,7 +102,7 @@ namespace spica {
 
         // Mirror ball
         {            
-            auto sph  = std::make_shared<Sphere>(Point(-5.0, -7.0, -5.0), 3.0);
+            auto sph  = std::make_shared<Sphere>(Point3d(-5.0, -7.0, -5.0), 3.0);
             //auto Kd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
             //auto mtrl = std::make_shared<MirrorMaterial>(Kd);
             auto eta = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.18309, 0.54410, 1.1715));
@@ -111,20 +114,60 @@ namespace spica {
 
         // Subsurface ball
         {
-            auto sph  = std::make_shared<Sphere>(Point(0.0, -7.0, 0.0), 3.0);
-            auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.81, 0.81, 0.69));
-            auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            // Skim milk
+            //auto sph  = std::make_shared<Sphere>(Point(0.0, -7.0, 0.0), 3.0);
+            //auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.81, 0.81, 0.69));
+            //auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            //double g = 0.0;
+            //double eta = 1.3;
+            //auto sigS = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.70, 1.22, 1.90) / (1.0 - g));
+            //auto sigA = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.0014, 0.0025, 0.0142));
+            //auto mtrl = std::make_shared<SubsurfaceMaterial>(1.0, Kr, Kt, sigA, sigS, g, eta);
+            //primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
+
+            // Human skin
+            //auto sph  = std::make_shared<Sphere>(Point(0.0, -7.0, 0.0), 3.0);
+            //auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.44, 0.22, 0.13));
+            //auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            //double g = 0.0;
+            //double eta = 1.3;
+            //auto sigS = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.74, 0.88, 1.01) / (1.0 - g));
+            //auto sigA = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.0032, 0.17, 0.48));
+            //auto mtrl = std::make_shared<SubsurfaceMaterial>(0.5, Kr, Kt, sigA, sigS, g, eta);
+            //primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
+
+            auto sph = std::make_shared<Sphere>(Point3d(0.0, -7.0, 0.0), 3.0);
+            double scale = 5.0;
             double g = 0.5;
-            double eta = 1.3;
-            auto sigS = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.70, 0.88, 1.01) / (1.0 - g));
-            auto sigA = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.0014, 0.0025, 0.0142));
-            auto mtrl = std::make_shared<SubsurfaceMaterial>(1.0, Kr, Kt, sigA, sigS, g, eta);
-            primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
+            // Budweiser
+            //Spectrum sigma_a = Spectrum(0.006164, 0.013984, 0.034983) * scale;
+            //Spectrum sigma_s = Spectrum(5.0922e-05, 4.301e-05, 0) * scale;
+            // Grapefruit juice
+            Spectrum sigma_a = Spectrum(0.0138, 0.018831, 0.056781) * scale;
+            Spectrum sigma_s = Spectrum(0.22826, 0.23998, 0.32748) * scale;
+            // Regular milk
+            //Spectrum sigma_a = Spectrum(0.0015333, 0.0046, 0.019933) * scale;
+            //Spectrum sigma_s = Spectrum(4.5513, 5.8294, 7.136) * scale;
+            // Espresso
+            //Spectrum sigma_a = Spectrum(4.72378, 6.5751, 8.8493) * scale;
+            //Spectrum sigma_s = Spectrum(0.72378, 0.84557, 1.0247) * scale;
+            // Coke
+            //Spectrum sigma_a = Spectrum(0.10014, 0.16503, 0.2468) * scale;
+            //Spectrum sigma_s = Spectrum(8.9053e-5, 8.372e-5, 0.0) * scale;
+            Medium* medium = new HomogeneousMedium(sigma_a, sigma_s, g);
+            auto mediumInterface = std::make_shared<MediumInterface>(medium, nullptr);
+
+            auto Kr  = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            auto rough = std::make_shared<ConstantTexture<double>>(0.0);
+            auto ior = std::make_shared<ConstantTexture<double>>(1.5);
+            auto mtrl = std::make_shared<GlassMaterial>(Kr, Kr, rough, rough, ior);
+
+            primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr, mediumInterface));
         }
         
         // Glass ball
         {
-            auto sph = std::make_shared<Sphere>(Point(5.0, -7.0, 5.0), 3.0);
+            auto sph = std::make_shared<Sphere>(Point3d(5.0, -7.0, 5.0), 3.0);
             auto Kr  = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
             auto rough = std::make_shared<ConstantTexture<double>>(0.0);
             auto ior = std::make_shared<ConstantTexture<double>>(1.5);
@@ -141,21 +184,21 @@ namespace spica {
         scene->clear(); 
 
         // Light
-        Vector3D l00(-5.0, 9.99, -5.0);
-        Vector3D l01(-5.0, 9.99,  5.0);
-        Vector3D l10( 5.0, 9.99, -5.0);
-        Vector3D l11( 5.0, 9.99,  5.0);
+        Vector3d l00(-5.0, 9.99, -5.0);
+        Vector3d l01(-5.0, 9.99,  5.0);
+        Vector3d l10( 5.0, 9.99, -5.0);
+        Vector3d l11( 5.0, 9.99,  5.0);
         scene->add(Quad(l00, l10, l11, l01), Material(Spectrum(32.0, 32.0, 32.0), Spectrum(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
 
         // Walls
-        Vector3D v000(-10.0, -10.0, -10.0);
-        Vector3D v100( 10.0, -10.0, -10.0);
-        Vector3D v010(-10.0,  10.0, -10.0);
-        Vector3D v001(-10.0, -10.0,  50.0);
-        Vector3D v110( 10.0,  10.0, -10.0);
-        Vector3D v101( 10.0, -10.0,  50.0);
-        Vector3D v011(-10.0,  10.0,  50.0);
-        Vector3D v111( 10.0,  10.0,  50.0);
+        Vector3d v000(-10.0, -10.0, -10.0);
+        Vector3d v100( 10.0, -10.0, -10.0);
+        Vector3d v010(-10.0,  10.0, -10.0);
+        Vector3d v001(-10.0, -10.0,  50.0);
+        Vector3d v110( 10.0,  10.0, -10.0);
+        Vector3d v101( 10.0, -10.0,  50.0);
+        Vector3d v011(-10.0,  10.0,  50.0);
+        Vector3d v111( 10.0,  10.0,  50.0);
 
         Quad ceilWall(v010, v110, v111, v011);
         Quad floorWall(v000, v001, v101, v100);
@@ -172,16 +215,16 @@ namespace spica {
 
         // Objects
         Trimesh bunny(kDataDirectory + "bunny.ply");
-        bunny.translate(Vector3D(-3.0, 0.0, 0.0));
-        bunny.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        bunny.translate(Vector3d(-3.0, 0.0, 0.0));
+        bunny.putOnPlane(Plane(10.0, Vector3d(0.0, 1.0, 0.0)));
         scene->add(bunny, Material(Spectrum(), Spectrum(0.75, 0.75, 0.25), REFLECTION_DIFFUSE));                         
 
-        scene->add(Sphere(3.0,  Vector3D(5.0, -7.0, 5.0)), Material(Spectrum(), Spectrum(0.99, 0.99, 0.99), REFLECTION_REFRACTION));
+        scene->add(Sphere(3.0,  Vector3d(5.0, -7.0, 5.0)), Material(Spectrum(), Spectrum(0.99, 0.99, 0.99), REFLECTION_REFRACTION));
 
         (*camera) = Camera(width, height, 
-                           Vector3D(0.0, 0.0, 100.0),
-                           Vector3D(0.0, 0.0, -1.0),
-                           Vector3D(0.0, 1.0, 0.0),
+                           Vector3d(0.0, 0.0, 100.0),
+                           Vector3d(0.0, 0.0, -1.0),
+                           Vector3d(0.0, 1.0, 0.0),
                            20.0,
                            42.0,
                            58.0,
@@ -193,28 +236,28 @@ namespace spica {
         scene->clear(); 
 
         // Light
-        //Vector3D l00(-5.0, 9.99, -5.0);
-        //Vector3D l01(-5.0, 9.99,  5.0);
-        //Vector3D l10( 5.0, 9.99, -5.0);
-        //Vector3D l11( 5.0, 9.99,  5.0);
+        //Vector3d l00(-5.0, 9.99, -5.0);
+        //Vector3d l01(-5.0, 9.99,  5.0);
+        //Vector3d l10( 5.0, 9.99, -5.0);
+        //Vector3d l11( 5.0, 9.99,  5.0);
         //scene->add(Quad(l00, l10, l11, l01), Material(Spectrum(32.0, 32.0, 32.0), Spectrum(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
 
         // Back light
-        Vector3D l00(3.0, -3.0, -9.99);
-        Vector3D l01(8.0, -3.0, -9.99);
-        Vector3D l10(3.0, -8.0, -9.99);
-        Vector3D l11(8.0, -8.0, -9.99);
+        Vector3d l00(3.0, -3.0, -9.99);
+        Vector3d l01(8.0, -3.0, -9.99);
+        Vector3d l10(3.0, -8.0, -9.99);
+        Vector3d l11(8.0, -8.0, -9.99);
         scene->add(Quad(l00, l10, l11, l01), Material(Spectrum(128.0, 128.0, 128.0), Spectrum(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
 
         // Walls
-        Vector3D v000(-10.0, -10.0, -10.0);
-        Vector3D v100( 10.0, -10.0, -10.0);
-        Vector3D v010(-10.0,  10.0, -10.0);
-        Vector3D v001(-10.0, -10.0,  50.0);
-        Vector3D v110( 10.0,  10.0, -10.0);
-        Vector3D v101( 10.0, -10.0,  50.0);
-        Vector3D v011(-10.0,  10.0,  50.0);
-        Vector3D v111( 10.0,  10.0,  50.0);
+        Vector3d v000(-10.0, -10.0, -10.0);
+        Vector3d v100( 10.0, -10.0, -10.0);
+        Vector3d v010(-10.0,  10.0, -10.0);
+        Vector3d v001(-10.0, -10.0,  50.0);
+        Vector3d v110( 10.0,  10.0, -10.0);
+        Vector3d v101( 10.0, -10.0,  50.0);
+        Vector3d v011(-10.0,  10.0,  50.0);
+        Vector3d v111( 10.0,  10.0,  50.0);
 
         Quad ceilWall(v010, v110, v111, v011);
         Quad floorWall(v000, v001, v101, v100);
@@ -229,20 +272,20 @@ namespace spica {
         scene->add(rightWall, Material(Spectrum(), Spectrum(0.25, 0.25, 0.75), REFLECTION_DIFFUSE));
 
         // Sphere
-        Sphere sphere(2.0, Vector3D(-5.0, -8.0, 5.0));
+        Sphere sphere(2.0, Vector3d(-5.0, -8.0, 5.0));
         scene->add(sphere, Material(Spectrum(), Spectrum(0.25, 0.75, 0.25), REFLECTION_DIFFUSE));
 
         // Objects
         Trimesh dragon(kDataDirectory + "dragon.ply");
         dragon.scale(50.0, 50.0, 50.0);
-        dragon.translate(Vector3D(2.0, 0.0, 0.0));
-        dragon.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        dragon.translate(Vector3d(2.0, 0.0, 0.0));
+        dragon.putOnPlane(Plane(10.0, Vector3d(0.0, 1.0, 0.0)));
         scene->add(dragon, Material(Spectrum(), Spectrum(0.70, 0.60, 0.40), REFLECTION_REFRACTION));    
 
         (*camera) = Camera(width, height, 
-                           Vector3D(0.0, 0.0, 100.0),
-                           Vector3D(0.0, 0.0, -1.0),
-                           Vector3D(0.0, 1.0, 0.0),
+                           Vector3d(0.0, 0.0, 100.0),
+                           Vector3d(0.0, 0.0, -1.0),
+                           Vector3d(0.0, 1.0, 0.0),
                            20.0,
                            42.0,
                            58.0,
@@ -254,17 +297,17 @@ namespace spica {
         scene->clear(); 
 
         // Back light
-        scene->add(Sphere(2.0, Vector3D(-5.0, 5.0, -5.0)), Material(Spectrum(64.0, 64.0, 64.0), Spectrum(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
+        scene->add(Sphere(2.0, Vector3d(-5.0, 5.0, -5.0)), Material(Spectrum(64.0, 64.0, 64.0), Spectrum(1.0, 1.0, 1.0), REFLECTION_DIFFUSE), true);
 
         // Walls
-        Vector3D v000(-10.0, -10.0, -10.0);
-        Vector3D v100( 10.0, -10.0, -10.0);
-        Vector3D v010(-10.0,  10.0, -10.0);
-        Vector3D v001(-10.0, -10.0,  50.0);
-        Vector3D v110( 10.0,  10.0, -10.0);
-        Vector3D v101( 10.0, -10.0,  50.0);
-        Vector3D v011(-10.0,  10.0,  50.0);
-        Vector3D v111( 10.0,  10.0,  50.0);
+        Vector3d v000(-10.0, -10.0, -10.0);
+        Vector3d v100( 10.0, -10.0, -10.0);
+        Vector3d v010(-10.0,  10.0, -10.0);
+        Vector3d v001(-10.0, -10.0,  50.0);
+        Vector3d v110( 10.0,  10.0, -10.0);
+        Vector3d v101( 10.0, -10.0,  50.0);
+        Vector3d v011(-10.0,  10.0,  50.0);
+        Vector3d v111( 10.0,  10.0,  50.0);
 
         Quad ceilWall(v010, v110, v111, v011);
         Quad floorWall(v000, v001, v101, v100);
@@ -281,16 +324,16 @@ namespace spica {
         // Objects
         Trimesh dragon(kDataDirectory + "dragon.ply");
         dragon.scale(70.0, 70.0, 70.0);
-        dragon.translate(Vector3D(0.0, 0.0, 0.0));
-        dragon.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        dragon.translate(Vector3d(0.0, 0.0, 0.0));
+        dragon.putOnPlane(Plane(10.0, Vector3d(0.0, 1.0, 0.0)));
         dragon.buildAccel();
 
         scene->add(dragon, Material(Spectrum(), Spectrum(0.70, 0.60, 0.40), REFLECTION_SUBSURFACE));                         
 
         (*camera) = Camera(width, height, 
-                           Vector3D(0.0, 0.0, 100.0),
-                           Vector3D(0.0, 0.0, -1.0),
-                           Vector3D(0.0, 1.0, 0.0),
+                           Vector3d(0.0, 0.0, 100.0),
+                           Vector3d(0.0, 0.0, -1.0),
+                           Vector3d(0.0, 1.0, 0.0),
                            20.0,
                            42.0,
                            58.0,
@@ -303,10 +346,10 @@ namespace spica {
     void kittenBox(Scene* scene, Camera* camera, const int width, const int height) {
         scene->clear(); 
 
-        //Vector3D l00(-5.0, 9.99, -5.0);
-        //Vector3D l01(-5.0, 9.99,  5.0);
-        //Vector3D l10( 5.0, 9.99, -5.0);
-        //Vector3D l11( 5.0, 9.99,  5.0);
+        //Vector3d l00(-5.0, 9.99, -5.0);
+        //Vector3d l01(-5.0, 9.99,  5.0);
+        //Vector3d l10( 5.0, 9.99, -5.0);
+        //Vector3d l11( 5.0, 9.99,  5.0);
         //scene->add(Quad(l00, l10, l11, l01), LambertianBRDF::factory(Spectrum(0.0, 0.0, 0.0)), Spectrum(32.0, 32.0, 32.0), true);
 
         // Back light
@@ -314,14 +357,14 @@ namespace spica {
                             Spectrum(64.0, 64.0, 64.0));
 
         // Walls
-        Point v000(-10.0, -10.0, -10.0);
-        Point v100( 10.0, -10.0, -10.0);
-        Point v010(-10.0,  10.0, -10.0);
-        Point v001(-10.0, -10.0,  50.0);
-        Point v110( 10.0,  10.0, -10.0);
-        Point v101( 10.0, -10.0,  50.0);
-        Point v011(-10.0,  10.0,  50.0);
-        Point v111( 10.0,  10.0,  50.0);
+        Point3d v000(-10.0, -10.0, -10.0);
+        Point3d v100( 10.0, -10.0, -10.0);
+        Point3d v010(-10.0,  10.0, -10.0);
+        Point3d v001(-10.0, -10.0,  50.0);
+        Point3d v110( 10.0,  10.0, -10.0);
+        Point3d v101( 10.0, -10.0,  50.0);
+        Point3d v011(-10.0,  10.0,  50.0);
+        Point3d v111( 10.0,  10.0,  50.0);
 
         Quad ceilWall(v010, v110, v111, v011);
         Quad floorWall(v000, v001, v101, v100);
@@ -338,7 +381,7 @@ namespace spica {
         // Objects
         Trimesh kitten(kDataDirectory + "kitten.ply");
         kitten.scale(0.1, 0.1, 0.1);
-        // kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        // kitten.putOnPlane(Plane(10.0, Vector3d(0.0, 1.0, 0.0)));
 
         // BSDF kittenBsdf = LambertianBRDF::factory(Spectrum(0.81, 0.81, 0.69));
         BSDF kittenBsdf = SpecularBRDF::factory(Spectrum(0.999, 0.999, 0.999));
@@ -354,8 +397,8 @@ namespace spica {
 
         (*camera) = Camera::asDoF(width, height, 
                                   Point(0.0, 0.0, 100.0),
-                                  Vector3D(0.0, 0.0, -1.0),
-                                  Vector3D(0.0, 1.0, 0.0),
+                                  Vector3d(0.0, 0.0, -1.0),
+                                  Vector3d(0.0, 1.0, 0.0),
                                   20.0,
                                   42.0,
                                   58.0,
@@ -369,7 +412,7 @@ namespace spica {
         // Objects
         Trimesh kitten(kDataDirectory + "kitten.ply");
         kitten.scale(0.15, 0.15, 0.15);
-        // kitten.putOnPlane(Plane(10.0, Vector3D(0.0, 1.0, 0.0)));
+        // kitten.putOnPlane(Plane(10.0, Vector3d(0.0, 1.0, 0.0)));
 
         const Spectrum sigmap_s = Spectrum(2.19, 2.62, 3.00);
         const Spectrum sigma_a  = Spectrum(0.0021, 0.0041, 0.0071);
@@ -382,10 +425,10 @@ namespace spica {
             for (int j = 0; j <= tiles; j++) {
                 double ii = (i - tiles / 2) * tileSize;
                 double jj = (j - tiles / 2) * tileSize;
-                Point p00(ii, -10.0, jj);
-                Point p01(ii + tileSize, -10.0, jj);
-                Point p10(ii, -10.0, jj + tileSize);
-                Point p11(ii + tileSize, -10.0, jj + tileSize);
+                Point3d p00(ii, -10.0, jj);
+                Point3d p01(ii + tileSize, -10.0, jj);
+                Point3d p10(ii, -10.0, jj + tileSize);
+                Point3d p11(ii + tileSize, -10.0, jj + tileSize);
                 Spectrum color = (i + j) % 2 == 0 ? Spectrum(0.9, 0.9, 0.9) 
                                                   : Spectrum(0.2, 0.2, 0.2);
                 BSDF bsdf = (i + j) % 2 == 0 ? LambertianBRDF::factory(color)
@@ -401,9 +444,9 @@ namespace spica {
         kittenBsdf.setBssrdf(bssrdf);
         scene->addShape(kitten, kittenBsdf);
 
-        Point eye(0.0, 10.0, 100.0);
-        (*camera) = Camera::asDoF(width, height, eye, -Vector3D(eye).normalized(),
-                                  Vector3D(0.0, 1.0, 0.0),
+        Point3d eye(0.0, 10.0, 100.0);
+        (*camera) = Camera::asDoF(width, height, eye, -Vector3d(eye).normalized(),
+                                  Vector3d(0.0, 1.0, 0.0),
                                   20.0,
                                   42.0,
                                   58.0,

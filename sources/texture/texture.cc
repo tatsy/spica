@@ -14,11 +14,11 @@ namespace spica {
         , dv_{ dv } {
     }
 
-    Point2D UVMapping2D::map(const SurfaceInteraction& intr, 
-                             Vector2D* dstdx, Vector2D* dstdy) const {
-        *dstdx = Vector2D(su_ * intr.dudx(), sv_ * intr.dvdx());
-        *dstdy = Vector2D(su_ * intr.dudy(), sv_ * intr.dvdy());
-        return Point2D(su_ * intr.uv()[0] + du_, sv_ * intr.uv()[1] + dv_);
+    Point2d UVMapping2D::map(const SurfaceInteraction& intr, 
+                             Vector2d* dstdx, Vector2d* dstdy) const {
+        *dstdx = Vector2d(su_ * intr.dudx(), sv_ * intr.dvdx());
+        *dstdy = Vector2d(su_ * intr.dudy(), sv_ * intr.dvdy());
+        return Point2d(su_ * intr.uv()[0] + du_, sv_ * intr.uv()[1] + dv_);
     }
 
 }  // namespace spica

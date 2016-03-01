@@ -23,5 +23,23 @@ namespace spica {
         return !scene.intersect(ray, &isect);
     }
 
+    Spectrum VisibilityTester::transmittance(const Scene& scene, Sampler& sampler) const {
+        Ray ray(p1_.spawnRayTo(p2_));
+        Spectrum tr(1.0);
+        for (;;) {
+            SurfaceInteraction isect;
+            bool hitSurface = scene.intersect(ray, &isect);
+            if (hitSurface && isect.primitive()->material() != nullptr) {
+                return Spectrum(0.0);
+            }
+
+            if (ray.medium()) tr *= ray.medium()->Tr(ray, sampler);
+
+            if (!hitSurface) break;
+            ray = isect.spawnRayTo(p2_);
+        }
+        return tr;
+    }
+
 }  // namespace spica
 

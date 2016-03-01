@@ -18,30 +18,30 @@ OrthographicCamera::OrthographicCamera(const Transform& cameraToWorld,
               lensRadius, focalLength, film }
     , uCamera_{}
     , vCamera_{} {
-    uCamera_ = rasterToCamera_.apply(Vector3D(1.0, 0.0, 0.0));
-    vCamera_ = rasterToCamera_.apply(Vector3D(0.0, 1.0, 0.0));
+    uCamera_ = rasterToCamera_.apply(Vector3d(1.0, 0.0, 0.0));
+    vCamera_ = rasterToCamera_.apply(Vector3d(0.0, 1.0, 0.0));
 }
 
-Ray OrthographicCamera::spawnRay(const Point2i& pixel, const Point2D& randFilm,
-                                 const Point2D& randLens, double* pdfPos,
+Ray OrthographicCamera::spawnRay(const Point2i& pixel, const Point2d& randFilm,
+                                 const Point2d& randLens, double* pdfPos,
                                  double* pdfDir) const {
-    Point3D pFilm(pixel[0] + randFilm[0], pixel[1] + randFilm[1], 0.0);
-    Point3D pCamera = rasterToCamera_.apply(pFilm);
+    Point3d pFilm(pixel[0] + randFilm[0], pixel[1] + randFilm[1], 0.0);
+    Point3d pCamera = rasterToCamera_.apply(pFilm);
     
-    Point3D  org = pCamera;
-    Vector3D dir = Vector3D(0.0, 0.0, 1.0);
+    Point3d  org = pCamera;
+    Vector3d dir = Vector3d(0.0, 0.0, 1.0);
     if (lensRadius_ > 0.0) {
-        Point2D pLens = lensRadius_ * sampleConcentricDisk(randLens);
+        Point2d pLens = lensRadius_ * sampleConcentricDisk(randLens);
 
         double ft = focalLength_ / dir.z();
-        Point3D pFocus = org + ft * dir;
+        Point3d pFocus = org + ft * dir;
 
-        org = Point3D(pLens.x(), pLens.y(), 0.0);
+        org = Point3d(pLens.x(), pLens.y(), 0.0);
         dir = (pFocus - org).normalized();
     }
 
-    Point3D orgWorld  = cameraToWorld_.apply(org);
-    Vector3D dirWorld = cameraToWorld_.apply(dir);
+    Point3d orgWorld  = cameraToWorld_.apply(org);
+    Vector3d dirWorld = cameraToWorld_.apply(dir);
     return Ray{ orgWorld, dirWorld };
 }
 

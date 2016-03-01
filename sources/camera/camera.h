@@ -25,8 +25,8 @@ public:
 
     Camera& operator=(const Camera&) = default;
 
-    virtual Ray spawnRay(const Point2i& pixel, const Point2D& randFilm,
-                         const Point2D& randLens, double* pdfPos = nullptr,
+    virtual Ray spawnRay(const Point2i& pixel, const Point2d& randFilm,
+                         const Point2d& randLens, double* pdfPos = nullptr,
                          double* pdfDir = nullptr) const = 0;
 
     inline Film* film() const { return film_; }

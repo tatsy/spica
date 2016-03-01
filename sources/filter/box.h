@@ -13,13 +13,13 @@ namespace spica {
 class SPICA_EXPORTS BoxFilter : public Filter {
 public:
     BoxFilter();
-    BoxFilter(const Vector2D& radius);
+    BoxFilter(const Vector2d& radius);
     BoxFilter(const BoxFilter&) = default;
     ~BoxFilter();
 
     BoxFilter& operator=(const BoxFilter&) = default;
 
-    double evaluate(const Point2D& p) const override;
+    double evaluate(const Point2d& p) const override;
 };
 
 }  // namespace spica

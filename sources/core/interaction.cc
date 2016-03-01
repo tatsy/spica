@@ -16,14 +16,24 @@ namespace spica {
 Interaction::Interaction()
     : pos_{}
     , normal_{} 
-    , wo_{} {
+    , wo_{}
+    , mediumInterface_{} {
 }
 
-Interaction::Interaction(const Point& p, const Normal& n,
-                            const Vector3D& wo)
+Interaction::Interaction(const Point3d& p, const Normal3d& n,
+                         const Vector3d& wo)
     : pos_{ p }
     , normal_{ n }
-    , wo_{ wo } {
+    , wo_{ wo }
+    , mediumInterface_{} {
+}
+
+Interaction::Interaction(const Point3d& p, const Vector3d& wo,
+                         const MediumInterface& mediumInterface)
+    : pos_{ p }
+    , normal_{}
+    , wo_{ wo }
+    , mediumInterface_{ mediumInterface } {
 }
 
 Interaction::~Interaction() {
@@ -38,16 +48,17 @@ Interaction& Interaction::operator=(const Interaction& intr) {
     this->pos_    = intr.pos_;
     this->normal_ = intr.normal_;
     this->wo_     = intr.wo_;
+    this->mediumInterface_ = intr.mediumInterface_;
     return *this;
 }
 
-Ray Interaction::spawnRay(const Vector3D& wi) const {
-    return Ray(pos_, wi);
+Ray Interaction::spawnRay(const Vector3d& wi) const {
+    return Ray(pos_, wi, INFTY, getMedium(wi));
 }
 
-Ray Interaction::spawnRayTo(const Point3D& p) const {
-    Vector3D d = p - pos_;
-    return Ray(pos_, d, std::max(0.0, d.norm() - EPS));
+Ray Interaction::spawnRayTo(const Point3d& p) const {
+    Vector3d d = p - pos_;
+    return Ray(pos_, d, std::max(0.0, d.norm() - EPS), getMedium(d));
 }
 
 Ray Interaction::spawnRayTo(const Interaction& intr) const {
@@ -69,12 +80,12 @@ SurfaceInteraction::SurfaceInteraction()
     , bsdf_{} {
 }
 
-SurfaceInteraction::SurfaceInteraction(const Point& pos, const Point2D& uv,
-                                       const Vector3D& wo,
-                                       const Vector3D& dpdu, const Vector3D& dpdv,
-                                       const Normal3D& dndu, const Normal3D& dndv,
+SurfaceInteraction::SurfaceInteraction(const Point3d& pos, const Point2d& uv,
+                                       const Vector3d& wo,
+                                       const Vector3d& dpdu, const Vector3d& dpdv,
+                                       const Normal3d& dndu, const Normal3d& dndv,
                                        const Shape* shape)
-    : Interaction{ pos, Normal(vect::normalize(vect::cross(dpdu, dpdv))), wo }
+    : Interaction{ pos, Normal3d(vect::normalize(vect::cross(dpdu, dpdv))), wo }
     , uv_{ uv }
     , dpdu_{ dpdu }
     , dpdv_{ dpdv }
@@ -106,7 +117,7 @@ void SurfaceInteraction::computeDifferentials(const Ray& ray) {
     //} else {
     dudx_ = dvdx_ = 0.0;
     dudy_ = dvdy_ = 0.0;
-    dpdx_ = dpdy_ = Vector3D(0.0, 0.0, 0.0);
+    dpdx_ = dpdy_ = Vector3d(0.0, 0.0, 0.0);
     //}
 }
 
@@ -115,9 +126,29 @@ void SurfaceInteraction::setScatterFuncs(const Ray& ray, MemoryArena& arena) {
     primitive_->setScatterFuncs(this, arena);
 }
 
-Spectrum SurfaceInteraction::Le(const Vector3D& w) const {
+Spectrum SurfaceInteraction::Le(const Vector3d& w) const {
     const AreaLight* area = primitive_->areaLight();
     return area ? area->L(*this, w) : Spectrum(0.0);
+}
+
+
+// -----------------------------------------------------------------------------
+// SurfaceInteraction method definitions
+// -----------------------------------------------------------------------------
+
+MediumInteraction::MediumInteraction()
+    : phase_{ nullptr } {
+}
+
+MediumInteraction::MediumInteraction(const Point3d& p, const Vector3d& wo,
+                                     const Medium* medium,
+                                     const PhaseFunction* phase)
+    : Interaction{ p, wo,  MediumInterface(medium) }
+    , phase_{ phase } {
+}
+
+bool MediumInteraction::isValid() const {
+    return phase_ != nullptr;
 }
 
 }  // namespace spica

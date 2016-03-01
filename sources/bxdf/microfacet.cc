@@ -18,15 +18,15 @@ MicrofacetDistribution::MicrofacetDistribution(bool sampleVisibleArea)
 MicrofacetDistribution::~MicrofacetDistribution() {
 }
 
-double MicrofacetDistribution::G1(const Vector3D& w) const {
+double MicrofacetDistribution::G1(const Vector3d& w) const {
     return 1.0 / (1.0 + lambda(w));
 }
 
-double MicrofacetDistribution::G(const Vector3D& wo, const Vector3D& wi) const {
+double MicrofacetDistribution::G(const Vector3d& wo, const Vector3d& wi) const {
     return 1.0 / (1.0 + lambda(wo) + lambda(wi));    
 }
 
-double MicrofacetDistribution::pdf(const Vector3D& wo, const Vector3D& wh) const {
+double MicrofacetDistribution::pdf(const Vector3d& wo, const Vector3d& wh) const {
     if (sampleVisibleArea_) {
         return D(wh) * G1(wo) * vect::absDot(wo, wh) / std::abs(vect::cosTheta(wo));
     } else {
@@ -46,7 +46,7 @@ TrowbridgeReitzDistribution::TrowbridgeReitzDistribution(double alphax,
     , alphay_{ alphay } {
 }
 
-double TrowbridgeReitzDistribution::D(const Vector3D& wh) const {
+double TrowbridgeReitzDistribution::D(const Vector3d& wh) const {
     double tan2Theta = vect::tan2Theta(wh);
     if (isinf(tan2Theta)) return 0.0;
 
@@ -57,9 +57,9 @@ double TrowbridgeReitzDistribution::D(const Vector3D& wh) const {
     return 1.0 / (PI * alphax_ * alphay_ * cos4Theta * (1.0 + e) * (1.0 + e));
 }
 
-Vector3D TrowbridgeReitzDistribution::sample(const Vector3D& wo,
-                                             const Point2D& rands) const {
-    Vector3D wh;
+Vector3d TrowbridgeReitzDistribution::sample(const Vector3d& wo,
+                                             const Point2d& rands) const {
+    Vector3d wh;
     if (!sampleVisibleArea_) {
         double cosTheta = 0.0;
         double phi = (2.0 * PI) * rands[1];
@@ -81,9 +81,9 @@ Vector3D TrowbridgeReitzDistribution::sample(const Vector3D& wo,
             cosTheta = 1.0 / std::sqrt(1.0 + tanTheta2);
         }
         double sinTheta = std::sqrt(std::max(0.0, 1.0 - cosTheta * cosTheta));
-        wh = Vector3D(1.0, 0.0, 0.0) * cos(phi) * cosTheta +
-             Vector3D(0.0, 1.0, 0.0) * sin(phi) * cosTheta +
-             Vector3D(0.0, 0.0, 1.0) * sinTheta;
+        wh = Vector3d(1.0, 0.0, 0.0) * cos(phi) * sinTheta +
+             Vector3d(0.0, 1.0, 0.0) * sin(phi) * sinTheta +
+             Vector3d(0.0, 0.0, 1.0) * cosTheta;
         if (!vect::sameHemisphere(wo, wh)) wh = -wh;
     } else {
         bool flip = wo.z() < 0.0;
@@ -99,7 +99,7 @@ double TrowbridgeReitzDistribution::roughnessToAlpha(double rough) {
     return 1.62142 + x * (0.819955 + x * (0.1734 +  x * (0.0171201 + 0.000640711 * x)));
 }
 
-double TrowbridgeReitzDistribution::lambda(const Vector3D& w) const {
+double TrowbridgeReitzDistribution::lambda(const Vector3d& w) const {
     double absTanTheta = std::abs(vect::tanTheta(w));
     if (isinf(absTanTheta)) return 0.0;
 
@@ -109,11 +109,11 @@ double TrowbridgeReitzDistribution::lambda(const Vector3D& w) const {
     return (-1.0 + std::sqrt(1.0 + tmp)) / 2.0;
 }
 
-Vector3D TrowbridgeReitzDistribution::sampleVA(const Vector3D& wi,
+Vector3d TrowbridgeReitzDistribution::sampleVA(const Vector3d& wi,
                                                double alphax, double alphay,
-                                               const Point2D& rands) {
-    Vector3D wiStretched = 
-        Vector3D(alphax * wi.x(), alphay * wi.y(), wi.z()).normalized();
+                                               const Point2d& rands) {
+    Vector3d wiStretched = 
+        Vector3d(alphax * wi.x(), alphay * wi.y(), wi.z()).normalized();
     
     double slopex, slopey;
     sampleSlopes(vect::cosTheta(wiStretched), rands, &slopex, &slopey);
@@ -128,11 +128,11 @@ Vector3D TrowbridgeReitzDistribution::sampleVA(const Vector3D& wi,
     slopex = slopex * alphax;
     slopey = slopey * alphay;
 
-    return Vector3D(-slopex, -slopey, 1.0).normalized();
+    return Vector3d(-slopex, -slopey, 1.0).normalized();
 }
 
 void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
-                                               const Point2D& rands,
+                                               const Point2d& rands,
                                                double* slopex, double* slopey) {
     if (cosTheta > 0.9999) {
         double r = sqrt(rands[0] / (1.0 - rands[0]));

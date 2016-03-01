@@ -8,7 +8,6 @@
 
 #include "point2d.h"
 #include "interaction.h"
-#include "../integrator/renderer_helper.h"
 
 namespace spica {
 
@@ -124,24 +123,24 @@ Distribution2D& Distribution2D::operator=(const Distribution2D& d) {
     return *this;
 }
 
-Point2D Distribution2D::sample(const Point2D& rands, double* pdf) const {
+Point2d Distribution2D::sample(const Point2d& rands, double* pdf) const {
     double pdfs[2];
     int v;
     const double d1 = pMarg_.sample(rands[1], &pdfs[1], &v);
     const double d0 = pCond_[v].sample(rands[0], &pdfs[0]);
     *pdf = pdfs[0] * pdfs[1];
-    return Point2D(d0, d1);
+    return Point2d(d0, d1);
 }
 
-double Distribution2D::pdf(const Point2D& p) const {
+double Distribution2D::pdf(const Point2d& p) const {
     const int iu = clamp(static_cast<int>(p[0] * pCond_[0].count()), 0, pCond_[0].count() - 1);
     const int iv = clamp(static_cast<int>(p[1] * pMarg_.count()), 0, pMarg_.count() - 1);
     return pCond_[iv](iv) / pMarg_.integral();
 }
 
-Point2D sampleConcentricDisk(const Point2D& rands) {
-    Point2D uOffset = 2.0 * rands - Point2D(1.0, 1.0);
-    if (uOffset.x() == 0.0 && uOffset.y() == 0.0) return Point2D(0.0, 0.0);
+Point2d sampleConcentricDisk(const Point2d& rands) {
+    Point2d uOffset = 2.0 * rands - Point2d(1.0, 1.0);
+    if (uOffset.x() == 0.0 && uOffset.y() == 0.0) return Point2d(0.0, 0.0);
 
     double theta, r;
     if (std::abs(uOffset.x()) > std::abs(uOffset.y())) {
@@ -151,10 +150,10 @@ Point2D sampleConcentricDisk(const Point2D& rands) {
         r = uOffset.y();
         theta = (PI / 2.0) - PI * (uOffset.x() / uOffset.y()) / 4.0;
     }
-    return r * Point2D(std::cos(theta), std::sin(theta));
+    return r * Point2d(std::cos(theta), std::sin(theta));
 }
 
-Vector3D sampleUniformSphere(const Point2D& rands) {
+Vector3d sampleUniformSphere(const Point2d& rands) {
     double z = 2.0 * rands[0] - 1.0;
     double cosTheta = sqrt(1.0 - z * z);
     double phi = 2.0 * PI * rands[1];
@@ -163,15 +162,15 @@ Vector3D sampleUniformSphere(const Point2D& rands) {
     return { x, y, z };
 }
 
-Vector3D sampleCosineHemisphere(const Point2D& rands) {
-    Point2D d = sampleConcentricDisk(rands);
+Vector3d sampleCosineHemisphere(const Point2d& rands) {
+    Point2d d = sampleConcentricDisk(rands);
     double z = sqrt(std::max(0.0, 1.0 - d.x() * d.x() - d.y() * d.y()));
-    return Vector3D{ d.x(), d.y(), z };
+    return Vector3d{ d.x(), d.y(), z };
 }
 
-void sampleUniformHemisphere(const Normal& normal, Vector3D* direction, const Point2D& rands) {
-    Vector3D u, v, w;
-    w = static_cast<Vector3D>(normal);
+void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const Point2d& rands) {
+    Vector3d u, v, w;
+    w = static_cast<Vector3d>(normal);
     vect::coordinateSystem(w, &u, &v);
 
     const double t = 2.0 * PI * rands[0];
@@ -180,7 +179,7 @@ void sampleUniformHemisphere(const Normal& normal, Vector3D* direction, const Po
     *direction = (u * cos(t) * z2s + v * sin(t) * z2s + w * sqrt(1.0 - z2)).normalized();        
 }
 
-void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minDist, std::vector<Point>* points, std::vector<Normal>* normals) {
+void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minDist, std::vector<Point3d>* points, std::vector<Normal3d>* normals) {
     Random rng((unsigned int)time(0));
 
     // Sample random points on trimesh
@@ -200,7 +199,7 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
                 v = 1.0 - v;
             }
 
-            Point p = (1.0 - u - v) * tri[0] + u * tri[1] + v * tri[2];
+            Point3d p = (1.0 - u - v) * tri[0] + u * tri[1] + v * tri[2];
             Normal n = (1.0 - u - v) * tri.normal(0) + u * tri.normal(1) + v * tri.normal(2);
             candPoints.push_back(p);
             candNormals.push_back(n);
@@ -210,7 +209,7 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
 
     // Create hash grid
     const int numCands = static_cast<int>(candPoints.size());
-    Vector3D bsize = bbox.posMax() - bbox.posMin();
+    Vector3d bsize = bbox.posMax() - bbox.posMin();
     const double scale = 1.0 / (2.0 * minDist);
     const int numPoints = candPoints.size();
     HashGrid<int> hashgrid;
@@ -222,10 +221,10 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
     }
 
     std::vector<int> sampledIDs;
-    Vector3D marginv(2.0 * minDist, 2.0 * minDist, 2.0 * minDist);
+    Vector3d marginv(2.0 * minDist, 2.0 * minDist, 2.0 * minDist);
     while (!que.empty()) {
         int id = que.pop();
-        Point v = candPoints[id];
+        Point3d v = candPoints[id];
         const std::vector<int>& cellvs = hashgrid[v];
 
         bool accept = true;
@@ -237,8 +236,8 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
         }
 
         if (accept) {
-            Point boxMin = v - marginv;
-            Point boxMax = v + marginv;
+            Point3d boxMin = v - marginv;
+            Point3d boxMax = v + marginv;
             hashgrid.add(id, boxMin, boxMax);
             sampledIDs.push_back(id);
         }

@@ -25,8 +25,8 @@ public:
     BSSRDF(const SurfaceInteraction& po, double eta);
 
     virtual Spectrum S(const SurfaceInteraction& pi,
-                       const Vector3D& wi) const = 0;
-    virtual Spectrum sample(const Scene& scene, double rand1, const Point2D& rand2,
+                       const Vector3d& wi) const = 0;
+    virtual Spectrum sample(const Scene& scene, double rand1, const Point2d& rand2,
                             MemoryArena& arena, SurfaceInteraction* po,
                             double* pdf) const = 0;
 
@@ -44,19 +44,19 @@ public:
                   double eta, const Spectrum& sigmaAbsorb,
                   const Spectrum& sigmaScatter, const CatmullRom2D& table);
 
-    Spectrum S(const SurfaceInteraction& pi, const Vector3D& wi) const override;
-    Spectrum sample(const Scene& scene, double rand1, const Point2D& rand2,
+    Spectrum S(const SurfaceInteraction& pi, const Vector3d& wi) const override;
+    Spectrum sample(const Scene& scene, double rand1, const Point2d& rand2,
                     MemoryArena& arena, SurfaceInteraction* pi,
                     double* pdf) const override;
 
 protected:
-    Spectrum sampleSp(const Scene& scene, double rand1, const Point2D& rand2,
+    Spectrum sampleSp(const Scene& scene, double rand1, const Point2d& rand2,
                       MemoryArena& arena, SurfaceInteraction* pi,
                       double* pdf) const;
     double pdfSp(const SurfaceInteraction& pi) const;
 
     Spectrum Sp(const SurfaceInteraction& pi) const;
-    Spectrum Sw(const Vector3D& wi) const;
+    Spectrum Sw(const Vector3d& wi) const;
 
     Spectrum Sr(double r) const;
     double sampleSr(int ch, double rand) const;
@@ -64,8 +64,8 @@ protected:
 
 private:
     // Private fields
-    const Normal3D normal_;
-    const Vector3D tangent_, binormal_;
+    const Normal3d normal_;
+    const Vector3d tangent_, binormal_;
     const Material* material_;
     const CatmullRom2D& table_;
     Spectrum sigmaExt_, albedo_;
@@ -81,7 +81,7 @@ class DiffuseBSSRDFAdapter : public BxDF {
 public:
     DiffuseBSSRDFAdapter(const DiffuseBSSRDF* bssrdf);
 
-    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
+    Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
 
 private:
     const DiffuseBSSRDF* bssrdf_;

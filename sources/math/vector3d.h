@@ -21,22 +21,22 @@ namespace spica {
     template <class T>
     class Vector3_ {
     public:
-        /** The Vector3D constructor.
+        /** The Vector3d constructor.
          */
         Vector3_();
 
-        /** The Vector3D constructor.
+        /** The Vector3d constructor.
          * @param x x-coordinate
          * @param y y-coordinate
          * @param z z-coordinate
          */
         Vector3_(T x, T y, T z);
 
-        /** The Vector3D copy constructor
+        /** The Vector3d copy constructor
          */
         Vector3_(const Vector3_& v);
 
-        /** The Vector3D destructor.
+        /** The Vector3d destructor.
          */
         virtual ~Vector3_();
 
@@ -117,11 +117,14 @@ namespace spica {
     protected:
         T _x, _y, _z;
 
-        static_assert(std::is_arithmetic<T>::value, "Template type must be arithmetic!!");
+        static_assert(std::is_arithmetic<T>::value,
+                      "Template type must be arithmetic!!");
 
-    };  // class Vector3D
+    };  // class Vector3d
 
-    using Vector3D = Vector3_<double>;
+    using Vector3i = Vector3_<int>;
+    using Vector3f = Vector3_<float>;
+    using Vector3d = Vector3_<double>;
 
 }  // namespace spica
 

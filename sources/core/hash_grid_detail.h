@@ -33,9 +33,9 @@ namespace spica {
     }
 
     template <class T>
-    void HashGrid<T>::add(const T& p, const Point& boxMin, const Point& boxMax) {
-        const Vector3D bMin = (boxMin - _bbox.posMin()) * _hashScale;
-        const Vector3D bMax = (boxMax - _bbox.posMin()) * _hashScale;
+    void HashGrid<T>::add(const T& p, const Point3d& boxMin, const Point3d& boxMax) {
+        const Vector3d bMin = (boxMin - _bbox.posMin()) * _hashScale;
+        const Vector3d bMax = (boxMax - _bbox.posMin()) * _hashScale;
 
         const int minZ = std::abs(static_cast<int>(bMin.z()));
         const int maxZ = std::abs(static_cast<int>(bMax.z()));
@@ -65,8 +65,8 @@ namespace spica {
     }
 
     template <class T>
-    const typename std::vector<T>& HashGrid<T>::operator[](const Point& v) const {
-        Vector3D b = (v - _bbox.posMin()) * _hashScale;
+    const typename std::vector<T>& HashGrid<T>::operator[](const Point3d& v) const {
+        Vector3d b = (v - _bbox.posMin()) * _hashScale;
         const int ix = std::abs(static_cast<int>(b.x()));
         const int iy = std::abs(static_cast<int>(b.y()));
         const int iz = std::abs(static_cast<int>(b.z()));

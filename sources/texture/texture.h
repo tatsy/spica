@@ -16,16 +16,16 @@ namespace spica {
     class SPICA_EXPORTS TextureMapping2D {
     public:
         virtual ~TextureMapping2D() {}
-        virtual Point2D map(const SurfaceInteraction& intr, Vector2D* dstdx,
-                            Vector2D* dstdy) const = 0;
+        virtual Point2d map(const SurfaceInteraction& intr, Vector2d* dstdx,
+                            Vector2d* dstdy) const = 0;
     };
 
     class UVMapping2D : public TextureMapping2D {
     public:
         explicit UVMapping2D(double su = 1.0, double sv = 1.0,
                              double du = 0.0, double dv = 0.0);
-        Point2D map(const SurfaceInteraction& intr, Vector2D* dstdx,
-                    Vector2D* dstdy) const override;
+        Point2d map(const SurfaceInteraction& intr, Vector2d* dstdx,
+                    Vector2d* dstdy) const override;
 
     private:
         const double su_, sv_, du_, dv_;

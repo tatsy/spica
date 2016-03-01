@@ -15,7 +15,7 @@ namespace spica {
 
         /** Calculate u and v axes from w, which is the surface normal.
          */
-        SPICA_EXPORTS void calcLocalCoords(const Vector3D& w, Vector3D* u, Vector3D* v);
+        SPICA_EXPORTS void calcLocalCoords(const Vector3d& w, Vector3d* u, Vector3d* v);
 
         SPICA_EXPORTS bool checkTotalReflection(const bool isIncoming,
                                                 const Vector3D& in,
@@ -39,7 +39,7 @@ namespace spica {
         SPICA_EXPORTS Spectrum directLight(const Scene& scene,
                                            const Point& pos,
                                            const Vector3D& in,
-                                           const Normal& normal, 
+                                           const Normal3d& normal, 
                                            const BSDF& bsdf,
                                            Stack<double>& rstk);
 

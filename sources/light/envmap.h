@@ -30,10 +30,10 @@ namespace spica {
 
         virtual ~Envmap();
 
-        Spectrum sampleLi(const Interaction& pObj, const Point2D& rands,
-                          Vector3D* dir, double* pdf, VisibilityTester* vis) const override;
+        Spectrum sampleLi(const Interaction& pObj, const Point2d& rands,
+                          Vector3d* dir, double* pdf, VisibilityTester* vis) const override;
 
-        double pdfLi(const Interaction& pObj, const Vector3D& dir) const override;
+        double pdfLi(const Interaction& pObj, const Vector3d& dir) const override;
 
         Spectrum Le(const Ray& ray) const override;
         Spectrum power() const override;
@@ -42,7 +42,7 @@ namespace spica {
 
     private:
         const MipMap texmap_;
-        Vector3D worldCenter_;
+        Vector3d worldCenter_;
         double   worldRadius_;
         Distribution2D distrib_;
     };

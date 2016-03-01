@@ -26,14 +26,14 @@ public:
     bool operator==(const Bounds3_<T>& b) const;
     bool operator!=(const Bounds3_<T>& b) const;
 
-    //! Maximum extent: return 0 -> x, 1 -> y, 2 -> z.
+    /** Maximum extent: return 0 -> x, 1 -> y, 2 -> z. */
     int maximumExtent() const;
 
-    //! Intersection test.
+    /** Intersection test. */
     bool intersect(const Ray& ray, double* tNear = nullptr,
                    double* tFar = nullptr) const;
 
-    //! Merge two bounds.
+    //** Merge two bounds. */
     static Bounds3_<T> merge(const Bounds3_<T>& b1, const Bounds3_<T>& b2);
 
     void merge(const Bounds3_<T>& b);
@@ -49,7 +49,8 @@ private:
     Point3_<T> posMin_;
     Point3_<T> posMax_;
 
-    static_assert(std::is_arithmetic<T>::value, "Template type must be arithmetic!!");
+    static_assert(std::is_arithmetic<T>::value,
+                  "Template type must be arithmetic!!");
 };
 
 using Bounds3i = Bounds3_<int>;

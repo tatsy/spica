@@ -48,11 +48,11 @@ void Film::setImage(const Image& image) {
     weights_.assign(resolution_.x(), std::vector<double>(resolution_.y(), 1.0));
 }
 
-void Film::addPixel(const Point2i& pixel, const Point2D& pInPixel, 
+void Film::addPixel(const Point2i& pixel, const Point2d& pInPixel, 
                     const Spectrum& color) {
     const double dx = pInPixel.x() - 0.5;
     const double dy = pInPixel.y() - 0.5;
-    const double weight = filter_->evaluate(Point2D(dx, dy));
+    const double weight = filter_->evaluate(Point2d(dx, dy));
 
     image_.pixel(pixel.x(), pixel.y()) += weight * color;
     weights_[pixel.x()][pixel.y()]     += weight;

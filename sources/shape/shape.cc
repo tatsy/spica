@@ -36,7 +36,7 @@ double Shape::pdf(const Interaction& pObj) const {
     return 1.0 / area();
 }
 
-double Shape::pdf(const Interaction& pObj, const Vector3D& wi) const {
+double Shape::pdf(const Interaction& pObj, const Vector3d& wi) const {
     Ray ray = pObj.spawnRay(wi);
     double tHit;
     SurfaceInteraction isect;
@@ -47,7 +47,7 @@ double Shape::pdf(const Interaction& pObj, const Vector3D& wi) const {
     return ret;
 }
 
-Interaction Shape::sample(const Interaction& ref, const Point2D& rands) const {
+Interaction Shape::sample(const Interaction& ref, const Point2d& rands) const {
     return sample(rands);
 }
 

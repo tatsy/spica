@@ -5,8 +5,11 @@
 #ifndef _SPICA_BXDF_H_
 #define _SPICA_BXDF_H_
 
+#include <memory>
+
 #include "../core/common.h"
 #include "../core/forward_decl.h"
+#include "../core/uncopyable.h"
 #include "../core/spectrum.h"
 
 namespace spica {
@@ -36,7 +39,7 @@ inline BxDFType operator~(BxDFType t) {
 /**
  * The base class of BxDFs.
  */
-class SPICA_EXPORTS BxDF {
+class SPICA_EXPORTS BxDF : public Uncopyable {
 public:
     // Public methods
     BxDF(BxDFType type = BxDFType::None);
@@ -45,11 +48,11 @@ public:
     BxDF(const BxDF&) = default;
     BxDF& operator=(const BxDF&) = default;
 
-    virtual Spectrum f(const Vector3D& wo, const Vector3D& wi) const = 0;
-    virtual Spectrum sample(const Vector3D& wo, Vector3D* wi,
-                            const Point2D& rands, double* pdf,
+    virtual Spectrum f(const Vector3d& wo, const Vector3d& wi) const = 0;
+    virtual Spectrum sample(const Vector3d& wo, Vector3d* wi,
+                            const Point2d& rands, double* pdf,
                             BxDFType* sampledType = nullptr) const;
-    virtual double pdf(const Vector3D& wo, const Vector3D& wi) const;
+    virtual double pdf(const Vector3d& wo, const Vector3d& wi) const;
 
     inline BxDFType type() const { return type_; }
 
@@ -63,16 +66,25 @@ private:
  */
 class LambertianReflection : public BxDF {
 public:
-    LambertianReflection();
     LambertianReflection(const Spectrum& ref);
 
-    LambertianReflection(const LambertianReflection&) = default;
-    LambertianReflection& operator=(LambertianReflection&) = default;
-
-    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
+    Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
 
 private:
     Spectrum ref_;
+};
+
+/**
+ * Lambertian transmission.
+ */
+class LambertianTransmission : public BxDF {
+public:
+    LambertianTransmission(const Spectrum& tr);
+
+    Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
+
+private:
+    Spectrum tr_;
 };
 
 /**
@@ -81,22 +93,39 @@ private:
 class SpecularReflection : public BxDF {
 public:
     // Public methods
-    SpecularReflection();
     SpecularReflection(const Spectrum& ref, Fresnel* fresnel);
 
-    SpecularReflection(const SpecularReflection&) = default;
-    SpecularReflection& operator=(const SpecularReflection&) = default;
-
-    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
-    Spectrum sample(const Vector3D& wo, Vector3D* wi, const Point2D& rands,
+    Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
+    Spectrum sample(const Vector3d& wo, Vector3d* wi, const Point2d& rands,
                     double* pdf, BxDFType* sampledType) const override;
-    double pdf(const Vector3D& wo, const Vector3D& wi) const override;
+    double pdf(const Vector3d& wo, const Vector3d& wi) const override;
 
 private:
     // Private fields
     Spectrum ref_;
     Fresnel* fresnel_;
 };
+
+/**
+ * Specular transmission.
+ */
+class SpecularTransmission : public BxDF {
+public:
+    // Public methods
+    SpecularTransmission(const Spectrum& tr, double etaA, double etaB);
+
+    Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
+    Spectrum sample(const Vector3d& wo, Vector3d* wi, const Point2d& rands,
+                    double* pdf, BxDFType* sampledType) const override;
+    double pdf(const Vector3d& wo, const Vector3d& wi) const override;
+
+private:
+    // Private fields
+    Spectrum tr_;
+    double etaA_, etaB_;
+    std::unique_ptr<FresnelDielectric> fresnel_;
+
+};  // class SpecularTransmission
 
 /**
  * Fresnel specular refraction (Glass-like effect).
@@ -107,10 +136,10 @@ public:
     FresnelSpecular();
     FresnelSpecular(const Spectrum& ref, const Spectrum& tr, double etaA, double etaB);
 
-    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
-    Spectrum sample(const Vector3D& wo, Vector3D* wi, const Point2D& rands,
+    Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
+    Spectrum sample(const Vector3d& wo, Vector3d* wi, const Point2d& rands,
                     double* pdf, BxDFType* sampledType) const override;
-    double pdf(const Vector3D& wo, const Vector3D& wi) const override;
+    double pdf(const Vector3d& wo, const Vector3d& wi) const override;
 
 private:
     // Private fields
@@ -127,16 +156,39 @@ class MicrofacetReflection : public BxDF {
 public:
     MicrofacetReflection(const Spectrum& ref,
                          MicrofacetDistribution* distrib, Fresnel* fresnel);
-    Spectrum f(const Vector3D& wo, const Vector3D& wi) const override;
-    Spectrum sample(const Vector3D& wo, Vector3D* wi, const Point2D& rands,
+    Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
+    Spectrum sample(const Vector3d& wo, Vector3d* wi, const Point2d& rands,
                     double* pdf, BxDFType* sampledType) const override;
-    double pdf(const Vector3D& wo, const Vector3D& wi) const override;
+    double pdf(const Vector3d& wo, const Vector3d& wi) const override;
 
 private:
     const Spectrum ref_;
     const MicrofacetDistribution* distrib_;
     const Fresnel* fresnel_;
 };
+
+/**
+ * Microfacet transmission.
+ */
+class MicrofacetTransmission : public BxDF {
+public:
+    // Public methods
+    MicrofacetTransmission(const Spectrum& tr,
+                           MicrofacetDistribution* distrib, double etaA,
+                           double etaB);
+    Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
+    Spectrum sample(const Vector3d& wo, Vector3d* wi, const Point2d& rands,
+                    double* pdf, BxDFType* sampledType) const override;
+    double pdf(const Vector3d& wo, const Vector3d& wi) const override;
+
+private:
+    // Private fields
+    const Spectrum tr_;
+    const MicrofacetDistribution* distrib_;
+    const double etaA_, etaB_;
+    std::unique_ptr<FresnelDielectric> fresnel_;
+
+};  // class MicrofacetTransmission
 
 }  // namespace spica
 

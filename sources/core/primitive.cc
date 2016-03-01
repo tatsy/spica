@@ -32,11 +32,13 @@ void Aggregate::setScatterFuncs(SurfaceInteraction* intr,
 
 GeometricPrimitive::GeometricPrimitive(const std::shared_ptr<Shape>& shape,
                                        const std::shared_ptr<Material>& material,
-                                       const std::shared_ptr<AreaLight>& areaLight)
+                                       const std::shared_ptr<AreaLight>& areaLight,
+                                       const std::shared_ptr<MediumInterface>& mediumInterface)
     : Primitive{}
     , shape_{ shape }
     , material_{ material }
-    , areaLight_{ areaLight } {
+    , areaLight_{ areaLight }
+    , mediumInterface_{ mediumInterface } {
 }
 
 Bounds3d GeometricPrimitive::worldBound() const {
@@ -48,6 +50,13 @@ bool GeometricPrimitive::intersect(Ray& ray, SurfaceInteraction* isect) const {
     if (!shape_->intersect(ray, &tHit, isect)) return false;
     ray.setMaxDist(tHit);
     isect->setPrimitive(this);
+
+    if (mediumInterface_ && mediumInterface_->isMediumTransition()) {
+        isect->setMediumInterface(*mediumInterface_);
+    } else {
+        isect->setMediumInterface(MediumInterface(ray.medium()));
+    }
+
     return true;
 }
 

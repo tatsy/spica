@@ -18,14 +18,14 @@ TEST(SphereTest, InstanceTest) {
     EXPECT_EQ(0.0, sp0.center().z());
     EXPECT_EQ(0.0, sp0.radius());
 
-    Sphere sp(Point(0.0, 0.0, 0.0), 2.0);
+    Sphere sp(Point3d(0.0, 0.0, 0.0), 2.0);
     EXPECT_EQ(0.0, sp.center().x());
     EXPECT_EQ(0.0, sp.center().y());
     EXPECT_EQ(0.0, sp.center().z());
 }
 
 TEST(SphereTest, CopyConstructor) {
-    Sphere sp(Point(0.0, 0.0, 0.0), 2.0);
+    Sphere sp(Point3d(0.0, 0.0, 0.0), 2.0);
     Sphere sp0 = sp;
     EXPECT_EQ(0.0, sp0.center().x());
     EXPECT_EQ(0.0, sp0.center().y());
@@ -33,26 +33,26 @@ TEST(SphereTest, CopyConstructor) {
 }
 
 TEST(SphereTest, IntersectionTest) {
-    Sphere sp(Point(0.0, 0.0, 0.0), 2.0);
+    Sphere sp(Point3d(0.0, 0.0, 0.0), 2.0);
     SurfaceInteraction isect;
     double tHit;
     EXPECT_TRUE(sp.intersect(
-        Ray(Point(10.0, 0.0, 0.0), Vector3D(-1.0, 0.0, 0.0)), &tHit, &isect));
-    EXPECT_EQ(Vector3D(2.0, 0.0, 0.0), isect.pos());
-    EXPECT_EQ(Normal3D(1.0, 0.0, 0.0), isect.normal());
+        Ray(Point3d(10.0, 0.0, 0.0), Vector3d(-1.0, 0.0, 0.0)), &tHit, &isect));
+    EXPECT_EQ(Vector3d(2.0, 0.0, 0.0), isect.pos());
+    EXPECT_EQ(Normal3d(1.0, 0.0, 0.0), isect.normal());
     EXPECT_EQ(8.0, tHit);
 
     EXPECT_FALSE(sp.intersect(
-        Ray(Point(10.0, 0.0, 0.0), Vector3D(0.0, 1.0, 0.0)), &tHit, &isect));
+        Ray(Point3d(10.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0)), &tHit, &isect));
 }
 
 TEST(SphereTest, AreaTest) {
     double rad = 2.0;
     double area = 4.0 * PI * rad * rad;
-    Sphere sp0(Point(0.0, 0.0, 0.0), rad);
+    Sphere sp0(Point3d(0.0, 0.0, 0.0), rad);
     EXPECT_EQ(area, sp0.area());
 
-    Sphere sp1(Point(5.0, 4.0, 3.0), rad);
+    Sphere sp1(Point3d(5.0, 4.0, 3.0), rad);
     EXPECT_EQ(area, sp1.area());
 }
 
@@ -61,16 +61,16 @@ TEST(SphereTest, AreaTest) {
 // ------------------------------
 TEST(TriangleTest, InstanceTest) {
     Triangle t0;
-    EXPECT_EQ_VEC(Point(), t0[0]);
-    EXPECT_EQ_VEC(Point(), t0[1]);
-    EXPECT_EQ_VEC(Point(), t0[2]);
+    EXPECT_EQ_VEC(Point3d(), t0[0]);
+    EXPECT_EQ_VEC(Point3d(), t0[1]);
+    EXPECT_EQ_VEC(Point3d(), t0[2]);
 
-    Triangle t1(Point(0, 0, 0),
-                Point(0, 1, 0),
-                Point(1, 1, 0));
-    EXPECT_EQ_VEC(Point(0, 0, 0), t1[0]);
-    EXPECT_EQ_VEC(Point(0, 1, 0), t1[1]);
-    EXPECT_EQ_VEC(Point(1, 1, 0), t1[2]);
+    Triangle t1(Point3d(0, 0, 0),
+                Point3d(0, 1, 0),
+                Point3d(1, 1, 0));
+    EXPECT_EQ_VEC(Point3d(0, 0, 0), t1[0]);
+    EXPECT_EQ_VEC(Point3d(0, 1, 0), t1[1]);
+    EXPECT_EQ_VEC(Point3d(1, 1, 0), t1[2]);
 }
 
 /*
@@ -81,20 +81,20 @@ TEST(TriangleTest, IntersectionTest) {
     Ray ray;
     Hitpoint hitpoint;
 
-    ray = Ray(Point(0, 0, -1), (Vector3D(1, 1, 1) - Vector3D(0, 0, -1)).normalized());
+    ray = Ray(Point(0, 0, -1), (Vector3d(1, 1, 1) - Vector3d(0, 0, -1)).normalized());
     EXPECT_TRUE(t0.intersect(ray, &hitpoint));
     EXPECT_EQ(sqrt(6.0) / 2.0, hitpoint.distance());
 
-    ray = Ray(Point(-0.1, -0.1, 1.0), Vector3D(0.0, 0.0, -1.0));
+    ray = Ray(Point(-0.1, -0.1, 1.0), Vector3d(0.0, 0.0, -1.0));
     EXPECT_FALSE(t0.intersect(ray, &hitpoint));
 
-    ray = Ray(Point(0.6, 0.6, 1.0), Vector3D(0.0, 0.0, -1.0));
+    ray = Ray(Point(0.6, 0.6, 1.0), Vector3d(0.0, 0.0, -1.0));
     EXPECT_FALSE(t0.intersect(ray, &hitpoint));
 
-    ray = Ray(Point(-0.1, 1.1, 1.0), Vector3D(0.0, 0.0, -1.0));
+    ray = Ray(Point(-0.1, 1.1, 1.0), Vector3d(0.0, 0.0, -1.0));
     EXPECT_FALSE(t0.intersect(ray, &hitpoint));
 
-    ray = Ray(Point(1.1, -0.1, 1.0), Vector3D(0.0, 0.0, -1.0));
+    ray = Ray(Point(1.1, -0.1, 1.0), Vector3d(0.0, 0.0, -1.0));
     EXPECT_FALSE(t0.intersect(ray, &hitpoint));
 }
 
@@ -150,21 +150,21 @@ TEST(QuadTest, IntersectionTest) {
     Hitpoint hitpoint;
 
     // Hit in the center
-    EXPECT_TRUE(quad.intersect(Ray(Point(0.0, 0.0, 1.0), Vector3D(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_TRUE(quad.intersect(Ray(Point(0.0, 0.0, 1.0), Vector3d(0.0, 0.0, -1.0)), &hitpoint));
     EXPECT_EQ(1.0, hitpoint.distance());
 
     // Hit on the lim
-    EXPECT_TRUE(quad.intersect(Ray(Point(-1.0, -1.0, 1.0), Vector3D(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_TRUE(quad.intersect(Ray(Point(-1.0, -1.0, 1.0), Vector3d(0.0, 0.0, -1.0)), &hitpoint));
     EXPECT_EQ(1.0, hitpoint.distance());
-    EXPECT_TRUE(quad.intersect(Ray(Point(1.0, 1.0, 1.0), Vector3D(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_TRUE(quad.intersect(Ray(Point(1.0, 1.0, 1.0), Vector3d(0.0, 0.0, -1.0)), &hitpoint));
     EXPECT_EQ(1.0, hitpoint.distance());
 
     // Not hit
-    EXPECT_FALSE(quad.intersect(Ray(Point(0.0, 0.0, 1.0), Vector3D(0.0, 0.0, 1.0)), &hitpoint));
-    EXPECT_FALSE(quad.intersect(Ray(Point(-1.1, -1.1, 1.0), Vector3D(0.0, 0.0, -1.0)), &hitpoint));
-    EXPECT_FALSE(quad.intersect(Ray(Point(-1.1,  1.1, 1.0), Vector3D(0.0, 0.0, -1.0)), &hitpoint));
-    EXPECT_FALSE(quad.intersect(Ray(Point( 1.1, -1.1, 1.0), Vector3D(0.0, 0.0, -1.0)), &hitpoint));
-    EXPECT_FALSE(quad.intersect(Ray(Point( 1.1,  1.1, 1.0), Vector3D(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Point(0.0, 0.0, 1.0), Vector3d(0.0, 0.0, 1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Point(-1.1, -1.1, 1.0), Vector3d(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Point(-1.1,  1.1, 1.0), Vector3d(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Point( 1.1, -1.1, 1.0), Vector3d(0.0, 0.0, -1.0)), &hitpoint));
+    EXPECT_FALSE(quad.intersect(Ray(Point( 1.1,  1.1, 1.0), Vector3d(0.0, 0.0, -1.0)), &hitpoint));
 }
 
 TEST(QuadTest, RandomIntersection) {
@@ -180,9 +180,9 @@ TEST(QuadTest, RandomIntersection) {
         double ty = rng.nextReal() * 4.0 - 2.0;
         double fx = rng.nextReal() * 4.0 - 2.0;
         double fy = rng.nextReal() * 4.0 - 2.0;
-        Point from(fx, fy, -1.0);
-        Point to(tx, ty, 0.0);
-        Vector3D dir = (to - from).normalized();
+        Point3d from(fx, fy, -1.0);
+        Point3d to(tx, ty, 0.0);
+        Vector3d dir = (to - from).normalized();
         double dist = (to - from).norm();
         Ray ray(from, dir);
         Hitpoint hitpoint;
@@ -230,7 +230,7 @@ TEST(DiskTest, CopyConstructor) {
 TEST(DiskTest, IntersectionTest) {
     Disk disk(Point(1.0, 0.0, 0.0), Normal(0.0, 1.0, 0.0), 1.0);
     Hitpoint hitpoint;
-    EXPECT_TRUE(disk.intersect(Ray(Point(1.0, 1.0, 0.0), Vector3D(0.0, -1.0, 0.0)), &hitpoint));
+    EXPECT_TRUE(disk.intersect(Ray(Point(1.0, 1.0, 0.0), Vector3d(0.0, -1.0, 0.0)), &hitpoint));
     EXPECT_EQ(1.0, hitpoint.distance());
 }
 
@@ -283,7 +283,7 @@ TEST(BBoxTest, MergeTest) {
 TEST(BBoxTest, IntersectionTest) {
     BBox b0(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
     double tMin, tMax;
-    b0.intersect(Ray(Point(0.5, 0.5, -1.0), Vector3D(0.0, 0.0, 1.0)), &tMin, &tMax);
+    b0.intersect(Ray(Point(0.5, 0.5, -1.0), Vector3d(0.0, 0.0, 1.0)), &tMin, &tMax);
     EXPECT_EQ(1.0, tMin);
     EXPECT_EQ(2.0, tMax);
 }

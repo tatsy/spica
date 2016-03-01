@@ -77,9 +77,11 @@ void SubsurfaceMaterial::setScatterFuncs(SurfaceInteraction* isect,
 
         if (!tr.isBlack()) {
             if (isSpecular) {
-                //isect->bsdf()->add(arena.allocate<SpecularTransmission>(tr, 1.0, eta, fresnel));
+                isect->bsdf()->add(
+                    arena.allocate<SpecularTransmission>(tr, 1.0, eta_));
             } else {
-                //isect->bsdf()->add(arena.allocate<MicrofacetTransmission>(tr, distrib, 1.0, eta));
+                isect->bsdf()->add(
+                    arena.allocate<MicrofacetTransmission>(tr, distrib, 1.0, eta_));
             }
         }
     }

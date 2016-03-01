@@ -21,41 +21,41 @@ class SPICA_EXPORTS Triangle : public Shape {
 public:
     // Public methods
     Triangle();
-    Triangle(const Point3D& p0, const Point3D& p1, const Point3D& p2,
+    Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
              const Transform& objectToWorld = Transform());
-    Triangle(const Point3D& p0, const Point3D& p1, const Point3D& p2,
-             const Normal3D& n0, const Normal3D& n1, const Normal3D& n2,
+    Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
+             const Normal3d& n0, const Normal3d& n1, const Normal3d& n2,
              const Transform& objectToWorld = Transform());
-    Triangle(const Point3D& p0, const Point3D& p1, const Point3D& p2,
-             const Normal3D& n0, const Normal3D& n1, const Normal3D& n2,
-             const Point2D& uv0, const Point2D& uv1, const Point2D& uv2,
+    Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
+             const Normal3d& n0, const Normal3d& n1, const Normal3d& n2,
+             const Point2d& uv0, const Point2d& uv1, const Point2d& uv2,
              const Transform& objectToWorld = Transform());
     Triangle(const Triangle& t);
 
     ~Triangle();
 
     Triangle& operator=(const Triangle& t);
-    const Point3D& operator[](int i) const;
+    const Point3d& operator[](int i) const;
 
     bool intersect(const Ray& ray, double* tHit,
                    SurfaceInteraction* isect) const override;
 
-    Interaction sample(const Point2D& rands) const override;
+    Interaction sample(const Point2d& rands) const override;
 
     Bounds3d objectBound() const override;
 
     double area() const override;
     std::vector<Triangle> triangulate() const override;
 
-    Point3D gravity() const;
-    const Normal3D& normal(int i) const;
-    const Point2D&  uv(int i) const;
+    Point3d gravity() const;
+    const Normal3d& normal(int i) const;
+    const Point2d&  uv(int i) const;
 
 private:
     // Private fields
-    std::array<Point3D, 3> points_;
-    std::array<Normal,  3> normals_;
-    std::array<Point2D, 3> uvs_;
+    std::array<Point3d,  3> points_;
+    std::array<Normal3d, 3> normals_;
+    std::array<Point2d,  3> uvs_;
 
 };  // class Triangle
 

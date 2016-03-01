@@ -7,14 +7,14 @@ BoxFilter::BoxFilter()
     : Filter{} {
 }
 
-BoxFilter::BoxFilter(const Vector2D& radius)
+BoxFilter::BoxFilter(const Vector2d& radius)
     : Filter{ radius } {
 }
 
 BoxFilter::~BoxFilter() {
 }
 
-double BoxFilter::evaluate(const Point2D& p) const {
+double BoxFilter::evaluate(const Point2d& p) const {
     return 1.0;
 }
 

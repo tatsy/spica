@@ -30,21 +30,21 @@ int BSDF::numComponents(BxDFType type) const {
     return ret;
 }
 
-Vector3D BSDF::worldToLocal(const Vector3D& v) const {
+Vector3d BSDF::worldToLocal(const Vector3d& v) const {
     double x = vect::dot(tangent_, v);
     double y = vect::dot(binormal_, v);
     double z = vect::dot(normal_, v);
     return { x, y, z };
 }
 
-Vector3D BSDF::localToWorld(const Vector3D& v) const {
-    return v.x() * tangent_ + v.y() * binormal_ + v.z() * Vector3D(normal_);
+Vector3d BSDF::localToWorld(const Vector3d& v) const {
+    return v.x() * tangent_ + v.y() * binormal_ + v.z() * Vector3d(normal_);
 }
 
-Spectrum BSDF::f(const Vector3D& wiWorld, const Vector3D& woWorld,
+Spectrum BSDF::f(const Vector3d& wiWorld, const Vector3d& woWorld,
                  BxDFType type) const {
-    Vector3D wi = worldToLocal(wiWorld);
-    Vector3D wo = worldToLocal(woWorld);
+    Vector3d wi = worldToLocal(wiWorld);
+    Vector3d wo = worldToLocal(woWorld);
     bool reflect = vect::dot(wiWorld, normal_) * vect::dot(woWorld, normal_) > 0.0;
     Spectrum ret(0.0);
     for (int i = 0; i < nBxDFs_; i++) {
@@ -57,8 +57,8 @@ Spectrum BSDF::f(const Vector3D& wiWorld, const Vector3D& woWorld,
     return ret;
 }
 
-Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
-                      const Point2D& rands, double* pdf, BxDFType type,
+Spectrum BSDF::sample(const Vector3d& woWorld, Vector3d* wiWorld,
+                      const Point2d& rands, double* pdf, BxDFType type,
                       BxDFType* sampledType) const {
     int matchComps = numComponents(type);
     if (matchComps == 0) {
@@ -79,9 +79,9 @@ Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
     }
     Assertion(bxdf, "BxDF not found!!");
 
-    Point2D uRemapped(rands[0] * matchComps - comps, rands[1]);
+    Point2d uRemapped(rands[0] * matchComps - comps, rands[1]);
 
-    Vector3D wi, wo = worldToLocal(woWorld);
+    Vector3d wi, wo = worldToLocal(woWorld);
     *pdf = 0.0;
     if (sampledType) *sampledType = bxdf->type();
     Spectrum ret = bxdf->sample(wo, &wi, uRemapped, pdf, sampledType);
@@ -114,9 +114,9 @@ Spectrum BSDF::sample(const Vector3D& woWorld, Vector3D* wiWorld,
     return ret;
 }
 
-double BSDF::pdf(const Vector3D& woWorld, const Vector3D& wiWorld, BxDFType type) const {
+double BSDF::pdf(const Vector3d& woWorld, const Vector3d& wiWorld, BxDFType type) const {
     if (nBxDFs_ == 0) return 0.0;
-    Vector3D wo = worldToLocal(woWorld), wi = worldToLocal(wiWorld);
+    Vector3d wo = worldToLocal(woWorld), wi = worldToLocal(wiWorld);
     double pdf = 0.0;
     int matchComps = 0;
     for (int i = 0; i < nBxDFs_; i++) {

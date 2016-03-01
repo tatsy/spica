@@ -29,9 +29,9 @@ namespace spica {
         bool operator!=(const Transform& t);
         Transform& operator*=(const Transform& t);
 
-        Point3D  apply(const Point3D&  p) const;
-        Vector3D apply(const Vector3D& v) const;
-        Normal3D apply(const Normal3D& n) const;
+        Point3d  apply(const Point3d&  p) const;
+        Vector3d apply(const Vector3d& v) const;
+        Normal3d apply(const Normal3d& n) const;
         Bounds3d  apply(const Bounds3d& b)  const;
 
         bool isIdentity() const;
@@ -42,11 +42,11 @@ namespace spica {
         inline const Matrix4x4& getInvMat() const { return mInv_; }
 
         // Public static methods
-        static Transform translate(const Vector3D& delta);
+        static Transform translate(const Vector3d& delta);
         static Transform scale(double x, double y, double z);
-        static Transform rotate(double theta, const Vector3D& axis);
-        static Transform lookAt(const Point3D& eye, const Point3D& look,
-                                const Vector3D& up);
+        static Transform rotate(double theta, const Vector3d& axis);
+        static Transform lookAt(const Point3d& eye, const Point3d& look,
+                                const Vector3d& up);
         static Transform orthographic(double zNear, double zFar);
         static Transform perspective(double fov, double aspect, 
                                      double near, double far);

@@ -12,14 +12,14 @@ TentFilter::TentFilter()
     : Filter{} {
 }
 
-TentFilter::TentFilter(const Vector2D& radius)
+TentFilter::TentFilter(const Vector2d& radius)
     : Filter{ radius } {
 }
 
 TentFilter::~TentFilter() {
 }
 
-double TentFilter::evaluate(const Point2D& p) const {
+double TentFilter::evaluate(const Point2d& p) const {
     return std::max(0.0, radius_.x() - std::abs(p.x())) *
            std::max(0.0, radius_.y() - std::abs(p.y()));
 }

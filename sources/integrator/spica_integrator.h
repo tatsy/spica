@@ -6,6 +6,7 @@
 #define _SPICA_RENDERER_H_
 
 #include "pathtrace.h"
+#include "volpath.h"
 // #include "bdpt.h"
 // #include "mlt.h"
 // #include "ppmprob.h"

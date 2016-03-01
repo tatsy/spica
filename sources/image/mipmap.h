@@ -24,13 +24,13 @@ namespace spica {
     public:
         MipMap(const Image& image, ImageWrap imageWrap = ImageWrap::Repeat);
 
-        Spectrum lookup(const Point2D& st, double width = 0.0) const;
-        Spectrum lookup(const Point2D& st, const Vector2D& dstdx, const Vector2D& dstdy) const;
+        Spectrum lookup(const Point2d& st, double width = 0.0) const;
+        Spectrum lookup(const Point2d& st, const Vector2d& dstdx, const Vector2d& dstdy) const;
 
         inline int levels() const { return static_cast<int>(pyramid_.size()); }
 
     private:
-        Spectrum bilinear(int level, const Point2D& st) const;
+        Spectrum bilinear(int level, const Point2d& st) const;
 
         ImageWrap imageWrap_;
         std::vector<Image> pyramid_;

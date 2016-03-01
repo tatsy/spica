@@ -15,10 +15,10 @@ namespace spica {
 
     class VertexData {
     private:
-        Point    _pos;
+        Point3d    _pos;
         Spectrum _color;
-        Normal   _normal;
-        Vector2D _texcoord;
+        Normal3d _normal;
+        Vector2d _texcoord;
         bool     _isTextured;
 
     public:
@@ -30,10 +30,10 @@ namespace spica {
             , _isTextured(false) {
         }
 
-        explicit VertexData(const Point& pos,
+        explicit VertexData(const Point3d& pos,
                             const Spectrum& color = Spectrum(),
-                            const Normal& normal = Normal(0.0, 0.0, 0.0),
-                            const Vector2D& texcoord = Vector2D(INFTY, INFTY))
+                            const Normal3d& normal = Normal3d(0.0, 0.0, 0.0),
+                            const Vector2d& texcoord = Vector2d(INFTY, INFTY))
             : _pos(pos)
             , _color(color)
             , _normal(normal)
@@ -65,16 +65,16 @@ namespace spica {
             return *this;
         }
 
-        inline const Point& pos() const { return _pos; }
+        inline const Point3d& pos() const { return _pos; }
         inline const Spectrum& color() const { return _color; }
-        inline const Normal& normal() const { return _normal; }
-        inline const Vector2D& texcoord() const { return _texcoord; }
+        inline const Normal3d& normal() const { return _normal; }
+        inline const Vector2d& texcoord() const { return _texcoord; }
         inline bool isTextured() const { return _isTextured; }
 
-        inline void setPosition(const Point& pos) { _pos = pos; }
+        inline void setPosition(const Point3d& pos) { _pos = pos; }
         inline void setColor(const Spectrum& color) { _color = color; }
-        inline void setNormal(const Normal& nrm) { _normal = nrm; }
-        inline void setTexcoord(const Vector2D& texcoord) { _texcoord = texcoord; }
+        inline void setNormal(const Normal3d& nrm) { _normal = nrm; }
+        inline void setTexcoord(const Vector2d& texcoord) { _texcoord = texcoord; }
     };
 
 }  // namespace spica

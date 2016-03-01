@@ -17,7 +17,7 @@ namespace spica {
 class Distribution1D {
 public:
     Distribution1D();
-    Distribution1D(const std::vector<double>& data);
+    explicit Distribution1D(const std::vector<double>& data);
     Distribution1D(const Distribution1D& d);
     virtual ~Distribution1D();
 

@@ -136,7 +136,7 @@ namespace spica {
             //auto mtrl = std::make_shared<SubsurfaceMaterial>(0.5, Kr, Kt, sigA, sigS, g, eta);
             //primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
 
-            auto sph = std::make_shared<Sphere>(Point3d(0.0, -7.0, 0.0), 3.0);
+            // auto sph = std::make_shared<Sphere>(Point3d(0.0, -7.0, 0.0), 3.0);
             double scale = 5.0;
             double g = 0.5;
             // Budweiser
@@ -162,17 +162,25 @@ namespace spica {
             auto ior = std::make_shared<ConstantTexture<double>>(1.5);
             auto mtrl = std::make_shared<GlassMaterial>(Kr, Kr, rough, rough, ior);
 
-            primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr, mediumInterface));
+            Transform o2w = Transform::translate(Vector3d(5.0, -12.0, 5.0)) * Transform::scale(50.0, 50.0, 50.0);
+
+            PLYMeshIO meshio;
+            auto tris = meshio.load(kDataDirectory + "bunny.ply", o2w);
+            for (const auto& t : tris) {
+                primitives.emplace_back(new GeometricPrimitive(t, mtrl, nullptr, mediumInterface));                
+            }
+
+            // primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr, mediumInterface));
         }
         
         // Glass ball
         {
-            auto sph = std::make_shared<Sphere>(Point3d(5.0, -7.0, 5.0), 3.0);
-            auto Kr  = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
-            auto rough = std::make_shared<ConstantTexture<double>>(0.0);
-            auto ior = std::make_shared<ConstantTexture<double>>(1.5);
-            auto mtrl = std::make_shared<GlassMaterial>(Kr, Kr, rough, rough, ior);
-            primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
+            //auto sph = std::make_shared<Sphere>(Point3d(5.0, -7.0, 5.0), 3.0);
+            //auto Kr  = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            //auto rough = std::make_shared<ConstantTexture<double>>(0.0);
+            //auto ior = std::make_shared<ConstantTexture<double>>(1.5);
+            //auto mtrl = std::make_shared<GlassMaterial>(Kr, Kr, rough, rough, ior);
+            //primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
         }
 
         auto accel = std::make_shared<BBVHAccel>(primitives);

@@ -26,7 +26,7 @@ namespace spica {
 class SPICA_EXPORTS Integrator : public Uncopyable {
 public:
     // Public methods
-    Integrator(std::shared_ptr<Camera>& camera);
+    explicit Integrator(std::shared_ptr<Camera>& camera);
     virtual ~Integrator();
     virtual void render(const Scene& scene,
                         const RenderParameters& params) const = 0;

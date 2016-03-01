@@ -34,7 +34,7 @@ namespace spica {
          */
         Matrix4x4(const Matrix4x4& mat);
 
-        Matrix4x4(double m[4][4]);
+        explicit Matrix4x4(double m[4][4]);
         Matrix4x4(double t00, double t01, double t02, double t03,
                   double t10, double t11, double t12, double t13,
                   double t20, double t21, double t22, double t23,

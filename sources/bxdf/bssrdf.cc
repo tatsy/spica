@@ -190,7 +190,7 @@ Spectrum DiffuseBSSRDF::sample(const Scene& scene, double rand1,
     Spectrum sp = sampleSp(scene, rand1, rand2, arena, pi, pdf);
     if (!sp.isBlack()) {
         pi->setBSDF(arena.allocate<BSDF>(*pi));
-        pi->bsdf()->add((BxDF*)(arena.allocate<DiffuseBSSRDFAdapter>(this)));
+        pi->bsdf()->add(arena.allocate<DiffuseBSSRDFAdapter>(this));
         pi->wo_ = Vector3d(pi->normal());
     }
     return sp;
@@ -320,7 +320,7 @@ Spectrum DiffuseBSSRDF::Sr(double r) const {
             continue;
         }
 
-        double sr = 0.0, albedoEff = 0.0;
+        double sr = 0.0;
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 const double weight = albW[i] * radW[j];

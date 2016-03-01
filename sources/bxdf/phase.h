@@ -25,7 +25,7 @@ public:
 
 class HenyeyGreenstein : public PhaseFunction {
 public:
-    HenyeyGreenstein(double g);
+    explicit HenyeyGreenstein(double g);
     double p(const Vector3d& wo, const Vector3d& wi) const;
     double sample(const Vector3d& wo, Vector3d* wi,
                   const Point2d& rands) const;

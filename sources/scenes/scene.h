@@ -32,6 +32,8 @@ public:
     Scene& operator=(Scene&& scene);
 
     bool intersect(Ray& ray, SurfaceInteraction* isect) const;
+    bool intersectTr(Ray& ray, Sampler& sampler, SurfaceInteraction* isect,
+                     Spectrum* tr) const;
 
     inline const Bounds3d& worldBound() const { return worldBound_; }
 

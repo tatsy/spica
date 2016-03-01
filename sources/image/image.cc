@@ -333,7 +333,7 @@ namespace spica {
             } else {
                 if (strstr(buf, "FORMAT=") == buf) {
                     char temp[bufSize] = {0};
-                    sscanf(buf, "FORMAT=%s", temp);
+                    sscanf(buf, "FORMAT=%128s", temp);
                     if (strcmp(temp, "32-bit_rle_rgbe") == 0) {
                         fileType = HDR_RLE_RGBE_32;
                     }
@@ -359,7 +359,7 @@ namespace spica {
         char bufX[bufSize];
         char bufY[bufSize];
         fgets(buf, bufSize, fp);
-        sscanf(buf, "%s %d %s %d", bufY, &height, bufX, &width);
+        sscanf(buf, "%16s %d %16s %d", bufY, &height, bufX, &width);
         
         if (strcmp(bufY, "-Y") != 0 || strcmp(bufX, "+X") != 0) {
             std::cerr << "Invalid HDR file format: " << filename << std::endl;

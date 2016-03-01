@@ -18,8 +18,8 @@ namespace spica {
     public:
         // Public methods
         Transform();
-        Transform(const double mat[4][4]);
-        Transform(const Matrix4x4& m);
+        explicit Transform(const double mat[4][4]);
+        explicit Transform(const Matrix4x4& m);
         Transform(const Matrix4x4& m, const Matrix4x4& mInv);
         Transform(const Transform& t);
 

@@ -115,7 +115,7 @@ struct QBVHAccel::BVHBuildNode {
 
 struct QBVHAccel::ComparePoint {
     int dim;
-    ComparePoint(int d) : dim(d) {}
+    explicit ComparePoint(int d) : dim(d) {}
     bool operator()(const BVHPrimitiveInfo &a, const BVHPrimitiveInfo &b) const {
         return a.centroid[dim] < b.centroid[dim];
     }
@@ -453,11 +453,7 @@ bool QBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
 
     nodeStack[0].raw = 0;
 
-    bool hit = false;
     int tid = -1;
-
-    int cnt = 0;
-
     double tHit = ray.maxDist();
     while (todoNode >= 0) {
         Children item = nodeStack[todoNode--];
@@ -535,8 +531,7 @@ bool QBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
 
             for (int i = 0; i < 4; i++) {
                 if ((nohitmask & (1 << i)) == 0 && tHit > t_f[i]) {
-                    tid = ordered_[s->idx[i]];
-                    hit = triangles_[tid].intersect(ray, &tHit, isect);
+                    triangles_[tid].intersect(ray, &tHit, isect);
                 }
             }
         }

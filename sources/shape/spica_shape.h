@@ -10,4 +10,6 @@
 #include "disk.h"
 #include "sphere.h"
 
+#include "meshio.h"
+
 #endif  // _SPICA_SHAPE_HEADERS_H_

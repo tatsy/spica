@@ -79,7 +79,7 @@ private:
  */
 class DiffuseBSSRDFAdapter : public BxDF {
 public:
-    DiffuseBSSRDFAdapter(const DiffuseBSSRDF* bssrdf);
+    explicit DiffuseBSSRDFAdapter(const DiffuseBSSRDF* bssrdf);
 
     Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
 

@@ -7,10 +7,12 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 #include "../core/uncopyable.h"
+#include "../math/transform.h"
 
 namespace spica {
 
@@ -22,7 +24,8 @@ public:
     MeshIO() {}
     virtual ~MeshIO() {}
 
-    virtual std::vector<Triangle> load(const std::string& filename) const = 0;
+    virtual std::vector<std::shared_ptr<Shape>>
+        load(const std::string& filename, const Transform& o2w = Transform()) const = 0;
     virtual void save(const std::string& filename,
                       const std::vector<Triangle>& trimesh) const = 0;
 };
@@ -34,7 +37,8 @@ public:
     PLYMeshIO();
     ~PLYMeshIO();
 
-    std::vector<Triangle> load(const std::string& filename) const override;
+    std::vector<std::shared_ptr<Shape>>
+        load(const std::string& filename, const Transform& o2w = Transform()) const override;
     void save(const std::string& filename, 
               const std::vector<Triangle>& trimesh) const override;
 };
@@ -46,7 +50,8 @@ public:
     OBJMeshIO();
     ~OBJMeshIO();
 
-    std::vector<Triangle> load(const std::string& filename) const override;
+    std::vector<std::shared_ptr<Shape>>
+        load(const std::string& filename, const Transform& o2w = Transform()) const override;
     void save(const std::string& filename,
               const std::vector<Triangle>& trimesh) const override;
 

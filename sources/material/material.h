@@ -12,7 +12,7 @@
 
 namespace spica {
 
-class Material {
+class SPICA_EXPORTS Material {
 public:
     virtual ~Material() {}
     virtual void setScatterFuncs(SurfaceInteraction* intr, MemoryArena& arena) const = 0;

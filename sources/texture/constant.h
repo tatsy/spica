@@ -12,7 +12,7 @@ namespace spica {
 template <class T>
 class ConstantTexture : public Texture<T> {
 public:
-    ConstantTexture(const T& value) : value_{ value } {}
+    explicit ConstantTexture(const T& value) : value_{ value } {}
     T evaluate(const SurfaceInteraction& isect) const { return value_; }
 
 private:

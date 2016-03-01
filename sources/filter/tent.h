@@ -13,7 +13,7 @@ namespace spica {
 class SPICA_EXPORTS TentFilter : public Filter {
 public:    
     TentFilter();
-    TentFilter(const Vector2d& radius);
+    explicit TentFilter(const Vector2d& radius);
     TentFilter(const TentFilter&) = default;
     ~TentFilter();
 

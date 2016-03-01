@@ -1,6 +1,9 @@
 #define SPICA_API_EXPORT
 #include "scene.h"
 
+#include "../core/interaction.h"
+#include "../medium/medium.h"
+
 namespace spica {
 
     Scene::Scene()
@@ -33,6 +36,21 @@ namespace spica {
 
     bool Scene::intersect(Ray& ray, SurfaceInteraction* isect) const {
         return aggregate_->intersect(ray, isect);
+    }
+
+    bool Scene::intersectTr(Ray& ray, Sampler& sampler,
+                            SurfaceInteraction* isect, Spectrum* tr) const {
+        *tr = Spectrum(1.0);
+        for (;;) {
+            bool hitSurface = intersect(ray, isect);
+            if (ray.medium()) {
+                *tr *= ray.medium()->Tr(ray, sampler);
+            }
+
+            if (!hitSurface) return false;
+            if (isect->primitive()->material() != nullptr) return true;
+            ray = isect->spawnRay(ray.dir());
+        }
     }
 
 }  // namespace spica

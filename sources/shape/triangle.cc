@@ -16,7 +16,9 @@ Triangle::Triangle()
 Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
                    const Transform& objectToWorld)
     : Shape{ objectToWorld, ShapeType::Triangle }
-    , points_{ p0, p1, p2 }
+    , points_{ objectToWorld.apply(p0),
+               objectToWorld.apply(p1),
+               objectToWorld.apply(p2) }
     , normals_{}
     , uvs_{} {
     // Compute normals
@@ -30,8 +32,12 @@ Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
                    const Normal3d& n0, const Normal3d& n1, const Normal3d& n2,
                    const Transform& objectToWorld)
     : Shape{ objectToWorld, ShapeType::Triangle }
-    , points_{ p0, p1, p2 }
-    , normals_{ n0, n1, n2 }
+    , points_{ objectToWorld.apply(p0), 
+               objectToWorld.apply(p1),
+               objectToWorld.apply(p2) }
+    , normals_{ objectToWorld.apply(n0),
+                objectToWorld.apply(n1), 
+                objectToWorld.apply(n2) }
     , uvs_{} {
 }
 
@@ -112,7 +118,6 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
         dndu = invM[0][0] * dn01 + invM[0][1] * dn02;
         dndv = invM[1][0] * dn01 + invM[1][1] * dn02;
     }
-
     *isect = SurfaceInteraction(pos, uv, -ray.dir(), dpdu, dpdv, dndu, dndv, this);
     return true;
 }
@@ -135,10 +140,17 @@ Interaction Triangle::sample(const Point2d& rands) const {
     return Interaction{ pos, nrm };    
 }
 
-Bounds3d Triangle::objectBound() const {
+Bounds3d Triangle::worldBound() const {
     Point3d posMin = Point3d::minimum(points_[0], Point3d::minimum(points_[1], points_[2]));
     Point3d posMax = Point3d::maximum(points_[0], Point3d::maximum(points_[1], points_[2]));
     return Bounds3d{ posMin, posMax };
+}
+
+Bounds3d Triangle::objectBound() const {
+    Point3d posMin = Point3d::minimum(points_[0], Point3d::minimum(points_[1], points_[2]));
+    Point3d posMax = Point3d::maximum(points_[0], Point3d::maximum(points_[1], points_[2]));
+    return Bounds3d{ worldToObject_.apply(posMin),
+                     worldToObject_.apply(posMax) };
 }
 
 double Triangle::area() const {

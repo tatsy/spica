@@ -23,7 +23,8 @@ PLYMeshIO::PLYMeshIO()
 PLYMeshIO::~PLYMeshIO() {
 }
 
-std::vector<Triangle> PLYMeshIO::load(const std::string& filename) const {
+std::vector<std::shared_ptr<Shape>> PLYMeshIO::load(const std::string& filename,
+                                                    const Transform& objectToWorld) const {
     std::ifstream ifs(filename.c_str(),
                       std::ios::in | std::ios::binary);
 
@@ -41,7 +42,7 @@ std::vector<Triangle> PLYMeshIO::load(const std::string& filename) const {
     Assertion(format == "ply", "Invalid format identifier");
 
     bool isBody = false;
-    std::vector<Triangle> tris;
+    std::vector<std::shared_ptr<Shape>> tris;
     while(!ifs.eof()) {
         if (!isBody) {
             std::getline(ifs, line);
@@ -98,9 +99,9 @@ std::vector<Triangle> PLYMeshIO::load(const std::string& filename) const {
             for (size_t i = 0; i < numFaces; i++) {
                 ifs.read((char*)&vs, sizeof(unsigned char));
                 ifs.read((char*)ii, sizeof(int) * 3);
-                tris.emplace_back(vertices[ii[0]], vertices[ii[1]], vertices[ii[2]]);
+                tris.emplace_back(new Triangle(vertices[ii[0]], vertices[ii[1]], vertices[ii[2]], objectToWorld));
                 if (vs > 3) {
-                    Warning("[WARNING] mesh contains non-triangle polygon (%d vertices) !!\n", (int)vs);
+                    Warning("[WARNING] mesh contains non-triangle polygon (%d vertices) !!", (int)vs);
                     ifs.seekg(sizeof(int) * (vs - 3), std::ios_base::cur);
                 }
             }
@@ -108,6 +109,13 @@ std::vector<Triangle> PLYMeshIO::load(const std::string& filename) const {
         }
     }
     ifs.close(); 
+
+    Bounds3d b;
+    for (const auto& t : tris) {
+        b.merge(t->worldBound());
+    }
+    std::cout << b.posMin() << std::endl;
+    std::cout << b.posMax() << std::endl;
 
     return std::move(tris);
 }
@@ -127,7 +135,8 @@ OBJMeshIO::OBJMeshIO()
 OBJMeshIO::~OBJMeshIO() {
 }
 
-std::vector<Triangle> OBJMeshIO::load(const std::string& filename) const {
+std::vector<std::shared_ptr<Shape>> OBJMeshIO::load(const std::string& filename,
+                                                    const Transform& objectToWorld) const {
     std::ifstream ifs(filename.c_str(), std::ios::in);
     Assertion(ifs.is_open(), "Failed to open mesh file");
 
@@ -218,9 +227,9 @@ std::vector<Triangle> OBJMeshIO::load(const std::string& filename) const {
     }
     */
 
-    std::vector<Triangle> tris;
+    std::vector<std::shared_ptr<Shape>> tris;
     for (int i = 0; i < vertIDs.size(); i++) {
-        tris.emplace_back(vertices[vertIDs[i][0]], vertices[vertIDs[i][1]], vertices[vertIDs[i][2]]);        
+        tris.emplace_back(new Triangle(vertices[vertIDs[i][0]], vertices[vertIDs[i][1]], vertices[vertIDs[i][2]]));        
     }
     return std::move(tris);
 }

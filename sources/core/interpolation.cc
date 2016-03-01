@@ -167,6 +167,8 @@ double CatmullRom::evaluate(double x) const {
 
     if (idx < xs_.size() - 2) {
         df1 = dx * (fs_[idx + 2] - f0) / (xs_[idx + 2] - x0);
+    } else {
+        df1 = f1 - f0;
     }
 
     // Compute parameter and its powers
@@ -212,7 +214,7 @@ double CatmullRom::sample(double rand, double* fval, double* pdf) const {
     }
 
     double lo = 0.0, hi = 1.0;
-    double fhat, Fhat;
+    double fhat;
     for (;;) {
         if (t < lo || hi < t) t = 0.5 * (lo + hi);
 
@@ -221,7 +223,7 @@ double CatmullRom::sample(double rand, double* fval, double* pdf) const {
         const double t4 = t * t3;
         fhat = f0 + df0 * t + (-2.0 * df0 - df1 + 3.0 * (f1 - f0)) * t2 +
                (df0 + df1 + 2.0 * (f0 - f1)) * t3;
-        Fhat = f0 * t + 0.5 * df0 * t2 + 
+        const double Fhat = f0 * t + 0.5 * df0 * t2 + 
                (1.0 / 3.0) * (-2.0 * df0 - df1 + 3.0 * (f1 - f0)) * t3 +
                0.25  *(df0 + df1 + 2.0 * (f0 - f1)) * t4;
 
@@ -380,7 +382,7 @@ double CatmullRom2D::sample(double rand1, double rand2, double* fval,
     }
 
     double lo = 0.0, hi = 1.0;
-    double fhat, Fhat;
+    double fhat;
     for (;;) {
         if (t < lo || hi < t) t = 0.5 * (lo + hi);
 
@@ -389,7 +391,7 @@ double CatmullRom2D::sample(double rand1, double rand2, double* fval,
         const double t4 = t * t3;
         fhat = f0 + df0 * t + (-2.0 * df0 - df1 + 3.0 * (f1 - f0)) * t2 +
                (df0 + df1 + 2.0 * (f0 - f1)) * t3;
-        Fhat = f0 * t + 0.5 * df0 * t2 + 
+        const double Fhat = f0 * t + 0.5 * df0 * t2 + 
                (1.0 / 3.0) * (-2.0 * df0 - df1 + 3.0 * (f1 - f0)) * t3 +
                0.25  * (df0 + df1 + 2.0 * (f0 - f1)) * t4;
 

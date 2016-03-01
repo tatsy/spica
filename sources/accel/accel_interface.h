@@ -31,10 +31,10 @@ enum class AccelType : int {
 /** Interface for intersection test accelerators.
     *  @ingroup accel_module
     */
-class AccelInterface : public Aggregate, Uncopyable {
+class SPICA_EXPORTS AccelInterface : public Aggregate, Uncopyable {
 public:
     // Public methods
-    AccelInterface(AccelType type) : type_{ type } {}
+    explicit AccelInterface(AccelType type) : type_{ type } {}
     virtual ~AccelInterface() {}
     virtual void construct() = 0;
     virtual Bounds3d worldBound() const override {

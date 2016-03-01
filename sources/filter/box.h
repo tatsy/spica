@@ -13,7 +13,7 @@ namespace spica {
 class SPICA_EXPORTS BoxFilter : public Filter {
 public:
     BoxFilter();
-    BoxFilter(const Vector2d& radius);
+    explicit BoxFilter(const Vector2d& radius);
     BoxFilter(const BoxFilter&) = default;
     ~BoxFilter();
 

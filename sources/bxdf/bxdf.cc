@@ -119,11 +119,11 @@ double SpecularReflection::pdf(const Vector3d& wo, const Vector3d& wi) const {
 
 SpecularTransmission::SpecularTransmission(const Spectrum& tr, double etaA,
                                            double etaB)
-    : BxDF{ BxDFType::Transmission | BxDFType::Specular } {
-    this->tr_ = tr;
-    this->etaA_ = etaA;
-    this->etaB_ = etaB;
-    this->fresnel_ = std::make_unique<FresnelDielectric>(etaA, etaB);
+    : BxDF{ BxDFType::Transmission | BxDFType::Specular }
+    , tr_{ tr }
+    , etaA_{ etaA }
+    , etaB_{ etaB }
+    , fresnel_{ std::make_unique<FresnelDielectric>(etaA_, etaB_) } {
 }
 
 Spectrum SpecularTransmission::f(const Vector3d& wo, const Vector3d& wi) const {
@@ -295,6 +295,7 @@ Spectrum MicrofacetTransmission::f(const Vector3d& wo,
 
     return (Spectrum(1.0) - F) * tr_ *
            std::abs(distrib_->D(wh) * distrib_->G(wo, wi) * eta * eta *
+                    vect::absDot(wi, wh) * vect::absDot(wo, wh) * factor * factor /
                     (cosThetaI * cosThetaO * sqrtDenom * sqrtDenom));
 }
 

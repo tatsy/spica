@@ -5,6 +5,8 @@
 #ifndef _SPICA_BSDF_H_
 #define _SPICA_BSDF_H_
 
+#include <array>
+
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 
@@ -46,7 +48,7 @@ private:
     const Vector3d tangent_, binormal_;
     int nBxDFs_ = 0;
     static constexpr int maxBxDFs_ = 8;
-    BxDF *bxdfs_[maxBxDFs_];
+    std::array<BxDF*, maxBxDFs_> bxdfs_;
 
 };  // class BSDF
 

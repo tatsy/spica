@@ -135,7 +135,7 @@ Point2d Distribution2D::sample(const Point2d& rands, double* pdf) const {
 double Distribution2D::pdf(const Point2d& p) const {
     const int iu = clamp(static_cast<int>(p[0] * pCond_[0].count()), 0, pCond_[0].count() - 1);
     const int iv = clamp(static_cast<int>(p[1] * pMarg_.count()), 0, pMarg_.count() - 1);
-    return pCond_[iv](iv) / pMarg_.integral();
+    return pCond_[iv](iu) / pMarg_.integral();
 }
 
 Point2d sampleConcentricDisk(const Point2d& rands) {

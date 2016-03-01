@@ -60,7 +60,7 @@ struct BBVHAccel::BBvhNode {
 
 struct BBVHAccel::ComparePoint {
     int dim;
-    ComparePoint(int d) : dim(d) {}
+    explicit ComparePoint(int d) : dim(d) {}
     bool operator()(const BVHPrimitiveInfo& a,
         const BVHPrimitiveInfo& b) const {
         return a.centroid[dim] < b.centroid[dim];

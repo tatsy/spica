@@ -35,7 +35,7 @@ namespace spica {
         YamlNode* _ptr;
 
     private:
-        YamlElement(YamlNode* ptr);
+        explicit YamlElement(YamlNode* ptr);
 
     public:
         YamlElement();
@@ -75,7 +75,7 @@ namespace spica {
 
     public:
         YamlParser();
-        YamlParser(const std::string& filename);
+        explicit YamlParser(const std::string& filename);
         ~YamlParser();
 
         void load(const std::string& filename);

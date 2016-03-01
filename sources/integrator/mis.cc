@@ -118,7 +118,7 @@ Spectrum estimateDirectLight(const Interaction& intr,
             Ray ray = intr.spawnRay(wi);
             Spectrum Tr(1.0);
             bool foundSurfaceInteraction = 
-                handleMedia ? scene.intersect(ray, &lightIsect)
+                handleMedia ? scene.intersectTr(ray, sampler, &lightIsect, &Tr)
                             : scene.intersect(ray, &lightIsect); 
 
             Spectrum Li(0.0);

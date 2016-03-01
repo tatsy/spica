@@ -62,7 +62,6 @@ void PathIntegrator::render(const Scene& scene,
     }
 
     // Trace rays
-    int processed = 0;
     for (int i = 0; i < params.samplePerPixel(); i++) {
         if (i % kNumThreads == 0) {
             // _integrator->construct(scene, params);

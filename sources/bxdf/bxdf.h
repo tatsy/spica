@@ -42,7 +42,7 @@ inline BxDFType operator~(BxDFType t) {
 class SPICA_EXPORTS BxDF : public Uncopyable {
 public:
     // Public methods
-    BxDF(BxDFType type = BxDFType::None);
+    explicit BxDF(BxDFType type = BxDFType::None);
     virtual ~BxDF();
 
     BxDF(const BxDF&) = default;
@@ -66,7 +66,7 @@ private:
  */
 class LambertianReflection : public BxDF {
 public:
-    LambertianReflection(const Spectrum& ref);
+    explicit LambertianReflection(const Spectrum& ref);
 
     Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
 
@@ -79,7 +79,7 @@ private:
  */
 class LambertianTransmission : public BxDF {
 public:
-    LambertianTransmission(const Spectrum& tr);
+    explicit LambertianTransmission(const Spectrum& tr);
 
     Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
 

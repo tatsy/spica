@@ -1,6 +1,8 @@
 #define SPICA_API_EXPORT
 #include "bsdf.h"
 
+#include <algorithm>
+
 #include "../core/interaction.h"
 #include "../math/vect_math.h"
 
@@ -12,7 +14,9 @@ BSDF::BSDF(const SurfaceInteraction& isect, double eta)
     : eta_{ eta }
     , normal_{ isect.normal().normalized() }
     , tangent_{ isect.dpdu().normalized() }
-    , binormal_{ isect.dpdv().normalized() } {
+    , binormal_{ isect.dpdv().normalized() }
+    , bxdfs_{} {
+    std::fill(bxdfs_.begin(), bxdfs_.end(), nullptr);
 }
 
 void BSDF::add(BxDF* b) {

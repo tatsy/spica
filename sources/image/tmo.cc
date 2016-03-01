@@ -149,7 +149,7 @@ namespace spica {
             for (int x = 0; x < width; x++) {
                 const double L = image(x, y).luminance();
                 const double L_wa = L / Lwa;
-                const double Ld = c2 * log(1.0 + L_wa) / log(2.0 + 8.0 * pow(L_wa / Lmax_wa, c1));
+                const double Ld = c2 * log1p(L_wa) / log(2.0 + 8.0 * pow(L_wa / Lmax_wa, c1));
             
                 ret.pixel(x, y) = image(x, y) / (L + EPS) * Ld;
             }

@@ -6,7 +6,6 @@
 #define _SPICA_H_
 
 #include "../sources/core/common.h"
-// #include "../sources/core/vbo.h"
 #include "../sources/core/path.h"
 #include "../sources/core/timer.h"
 #include "../sources/core/sampling.h"

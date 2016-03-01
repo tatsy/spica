@@ -180,7 +180,7 @@ Spectrum FresnelSpecular::f(const Vector3d& wo, const Vector3d& wi) const {
 Spectrum FresnelSpecular::sample(const Vector3d& wo, Vector3d* wi,
                                  const Point2d& rands, double* pdf,
                                  BxDFType* sampledType) const {
-    const double refProb = FrDielectric(wo.z(), etaA_, etaB_);
+    const double refProb = FrDielectric(vect::cosTheta(wo), etaA_, etaB_);
     if (rands[0] < refProb) {
         // Reflection
         *wi = Vector3d(-wo.x(), -wo.y(), wo.z());
@@ -188,7 +188,7 @@ Spectrum FresnelSpecular::sample(const Vector3d& wo, Vector3d* wi,
             *sampledType = BxDFType::Specular | BxDFType::Reflection;
         }
         *pdf = refProb;
-        return ref_ * (refProb / std::abs(wi->z()));
+        return ref_ * (refProb / std::abs(vect::cosTheta(*wi)));
     } else {
         // Transmission
         bool entering = wo.z() > 0.0;

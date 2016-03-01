@@ -25,11 +25,11 @@ double FresnelMoment1(double eta) {
     const double eta4 = eta * eta3;
     const double eta5 = eta * eta4;
     if (eta < 1.0) {
-        return 0.45966f - 1.73965f * eta + 3.37668f * eta2 - 3.904945 * eta3 +
-               2.49277f * eta4 - 0.68441f * eta5;
+        return 0.45966 - 1.73965 * eta + 3.37668 * eta2 - 3.904945 * eta3 +
+               2.49277 * eta4 - 0.68441 * eta5;
     } else {
-        return -4.61686f + 11.1136f * eta - 10.4646f * eta2 + 5.11455f * eta3 -
-                1.27198f * eta4 + 0.12746f * eta5;
+        return -4.61686 + 11.1136 * eta - 10.4646 * eta2 + 5.11455 * eta3 -
+                1.27198 * eta4 + 0.12746 * eta5;
     }
 }
 
@@ -39,15 +39,15 @@ double FresnelMoment2(double eta) {
     const double eta4 = eta * eta3;
     const double eta5 = eta * eta4;
     if (eta < 1) {
-        return 0.27614f - 0.87350f * eta + 1.12077f * eta2 - 0.65095f * eta3 +
-               0.07883f * eta4 + 0.04860f * eta5;
+        return 0.27614 - 0.87350 * eta + 1.12077 * eta2 - 0.65095 * eta3 +
+               0.07883 * eta4 + 0.04860 * eta5;
     } else {
         const double r_eta = 1 / eta;
         const double r_eta2 = r_eta * r_eta;
-        const double r_eta3 = r_eta2 * r_eta;
-        return -547.033f + 45.3087f * r_eta3 - 218.725f * r_eta2 +
-               458.843f * r_eta + 404.557f * eta - 189.519f * eta2 +
-               54.9327f * eta3 - 9.00603f * eta4 + 0.63942f * eta5;
+        const double r_eta3 = r_eta * r_eta2;
+        return -547.033 + 45.3087 * r_eta3 - 218.725 * r_eta2 +
+               458.843 * r_eta + 404.557 * eta - 189.519 * eta2 +
+               54.9327 * eta3 - 9.00603 * eta4 + 0.63942 * eta5;
     }
 }
 
@@ -76,7 +76,7 @@ double beamDiffusionMultipleScatter(double sigma_s, double sigma_a, double g,
         const double dr = std::sqrt(r * r + zr * zr);
         const double dv = std::sqrt(r * r + zv * zv);
 
-        const double phiD = 1.0 / (4.0 * PI * D_g) *
+        const double phiD = (1.0 / (4.0 * PI * D_g)) *
                             (std::exp(-sigma_tr * dr) / dr -
                              std::exp(-sigma_tr * dv) / dv);
 
@@ -107,8 +107,8 @@ double beamDiffusionSingleScatter(double sigma_s, double sigma_a, double g,
         double d = std::sqrt(r * r + ti * ti);
         double cosThetaO = ti / d;
 
-        Ess += albedo * std::exp(-sigma_t * (d + tCrit)) / (d * d) *
-               phase::hg(cosThetaO, g) * 
+        Ess += albedo * std::exp(-sigma_t * (d + tCrit))  / (d * d) *
+               phase::hg(cosThetaO, g) *
                (1.0 - FrDielectric(-cosThetaO, 1.0, eta)) *
                std::abs(cosThetaO);
     }
@@ -128,8 +128,8 @@ void computeBeamDiffusionBSSRDF(double g, double eta, CatmullRom2D* table,
 
     std::vector<double> albedoSample(albedoDivide);
     for (int i = 0; i < albedoDivide; i++) {
-        albedoSample[i] = 
-            (1.0 - std::exp(-8.0 * i / (albedoDivide - 1))) /
+        albedoSample[i] =
+            (1.0 - std::exp(-(8.0 * i) / (albedoDivide - 1))) /
             (1.0 - std::exp(-8.0));
     }
 
@@ -257,7 +257,7 @@ Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
 
     // Randomly select interaction from candidates
     const int nFound = static_cast<int>(candidates.size());
-    int selectID = std::min((int)(rand1 * nFound), nFound - 1);
+    int selectID = clamp((int)(rand1 * nFound), 0, nFound - 1);
 
     std::list<SurfaceInteraction>::const_iterator it;
     for (it = candidates.cbegin(); it != candidates.cend(); ++it) {
@@ -326,7 +326,7 @@ Spectrum DiffuseBSSRDF::Sr(double r) const {
                 const double weight = albW[i] * radW[j];
                 if (weight != 0.0) {
                     sr += table_(albedoOffset + i, radiusOffset + j) *
-                            weight;
+                          weight;
                 }
             }
         }
@@ -337,6 +337,7 @@ Spectrum DiffuseBSSRDF::Sr(double r) const {
         ret.ref(ch) = sr;
     }
     ret *= sigmaExt_ * sigmaExt_;
+
     return Spectrum::clamp(ret);
 }
 
@@ -360,7 +361,7 @@ double DiffuseBSSRDF::pdfSr(int ch, double r) const {
     double sr = 0.0, albedoEff = 0.0;
     for (int i = 0; i < 4; i++) {
         if (albW[i] == 0.0) continue;
-        albedoEff += table_.marginalY()[albedoOffset + i] + albW[i];
+        albedoEff += table_.marginalY()[albedoOffset + i] * albW[i];
         for (int j = 0; j < 4; j++) {
             if (radW[j] == 0.0) continue;
             sr += table_(albedoOffset + i, radiusOffset + j) *

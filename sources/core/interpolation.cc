@@ -62,8 +62,8 @@ double integrateCatmullRom(const std::vector<double>& xs,
 }  // anonymous namespace
 
 bool catmullRomWeight(const std::vector<double>& nodes, double x,
-                        double* w0, double* w1, double* w2, double* w3,
-                        int* offset) {
+                      double* w0, double* w1, double* w2, double* w3,
+                      int* offset) {
     const int size = static_cast<int>(nodes.size());
     if (x < nodes[0] || nodes[size - 1] < x) return false;
 

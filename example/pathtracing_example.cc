@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <iostream>
 #include <memory>
+#include <omp.h>
 
 #include "../include/spica.h"
 using namespace spica;

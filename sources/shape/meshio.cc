@@ -110,13 +110,6 @@ std::vector<std::shared_ptr<Shape>> PLYMeshIO::load(const std::string& filename,
     }
     ifs.close(); 
 
-    Bounds3d b;
-    for (const auto& t : tris) {
-        b.merge(t->worldBound());
-    }
-    std::cout << b.posMin() << std::endl;
-    std::cout << b.posMax() << std::endl;
-
     return std::move(tris);
 }
 

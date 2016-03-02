@@ -7,7 +7,7 @@
 
 #include <qevent.h>
 
-#include "../core/vbo.h"
+#include "vbo.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
 
@@ -20,7 +20,8 @@ namespace spica {
         explicit QGLRenderWidget(QWidget *parent = 0);
         ~QGLRenderWidget();
 
-        void setScene(const Scene& scene, const Camera& camera);
+        void setScene(const Scene& scene,
+                      const std::shared_ptr<const Camera>& camera);
 
     protected:
         void initializeGL();
@@ -56,7 +57,7 @@ namespace spica {
         QOpenGLShaderProgram* shaderProgram;
         
         VBO vbo;
-        Camera camera;
+        std::shared_ptr<const Camera> camera;
 
     };
 

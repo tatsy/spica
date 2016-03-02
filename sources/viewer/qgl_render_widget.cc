@@ -4,10 +4,12 @@
 #include <algorithm>
 #include <typeinfo>
 
-#include "../bsdf/bsdf.h"
-#include "../camera/orthographic_camera.h"
-#include "../camera/perspective_camera.h"
-#include "../camera/dof_camera.h"
+#include "../bxdf/bsdf.h"
+#include "../image/film.h"
+#include "../camera/orthographic.h"
+#include "../camera/perspective.h"
+
+#include "shader_location.h"
 
 namespace spica {
 
@@ -34,14 +36,18 @@ namespace spica {
         delete shaderProgram;
     }
 
-    void QGLRenderWidget::setScene(const Scene& scene, const Camera& camera_) {
+    void QGLRenderWidget::setScene(const Scene& scene,
+                                   const std::shared_ptr<const Camera>& camera_) {
         this->camera = camera_;
 
-        this->resize(camera_.imageW(), camera_.imageH());
+        const Point2i res = camera_->film()->resolution();
+        this->resize(res.x(), res.y());
 
+        /*
         for (int i = 0; i < scene.numTriangles(); i++) {
             vbo.add(scene.getTriangle(i), scene.getBsdf(i).reflectance());
         }
+        */
     }
 
     void QGLRenderWidget::initializeGL() {
@@ -55,8 +61,10 @@ namespace spica {
 
         // Initialize GLSL
         shaderProgram = new QOpenGLShaderProgram(this);
-        shaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex, "../../../src/viewer/blinn_phong.vs");
-        shaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment, "../../../src/viewer/blinn_phong.fs");
+        shaderProgram->addShaderFromSourceFile(QOpenGLShader::Vertex,
+            QString(kShaderDirectory.c_str()) + "blinn_phong.vs");
+        shaderProgram->addShaderFromSourceFile(QOpenGLShader::Fragment,
+            QString(kShaderDirectory.c_str()) + "blinn_phong.fs");
         shaderProgram->link();
         
         if (!shaderProgram->isLinked()) {
@@ -73,11 +81,12 @@ namespace spica {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         qglClearColor(Qt::black);
 
-        if (camera.imageW() == 0 || camera.imageH() == 0) return;
+        if (camera->film()->resolution().x() == 0 ||
+            camera->film()->resolution().y() == 0) return;
 
-        const Point eye = camera.center();
-        const Point lookTo = eye + camera.direction();
-        const Vector3D up = camera.up();
+        const Point3d  eye; //    = camera->;
+        const Point3d  lookTo; // = eye + camera.direction();
+        const Vector3d up; //     = camera.up();
 
         QMatrix4x4 projMat, viewMat, modelMat, normalMat;
         cameraToProj(&projMat);
@@ -152,6 +161,7 @@ namespace spica {
     }
 
     void QGLRenderWidget::cameraToProj(QMatrix4x4* mat) const {
+        /*
         ICamera* ptr = camera._ptr.get();    
         if (typeid(*ptr) == typeid(OrthographicCamera)) {
             OrthographicCamera* cam = reinterpret_cast<OrthographicCamera*>(ptr);
@@ -170,6 +180,7 @@ namespace spica {
             std::cerr << "[ERROR] unknown camera projection type detected: " << (typeid(*ptr).name()) << std::endl;
             std::abort();
         }
+        */
     }
 
     void QGLRenderWidget::wheelEvent(QWheelEvent* e) {

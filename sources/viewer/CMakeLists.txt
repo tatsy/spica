@@ -20,6 +20,10 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
 
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
+  configure_file(shader_location.in.h
+                 ${CMAKE_CURRENT_LIST_DIR}/shader_location.h
+                 @ONLY)
+
   set(SOURCES ${SOURCES}
       main.cc
       vbo.cc
@@ -31,6 +35,7 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
 
   set(HEADERS ${HEADERS}
       vbo.h
+      shader_location.h
       scene_viewer.h
       render_thread.h
       render_param_widget.h
@@ -44,8 +49,8 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
   add_dependencies(${BUILD_TARGET} ${SPICA_TARGET_NAME})
 
   if (MSVC)
-    source_group(Sources FILES ${SOURCES} ${HEADERS})
-    source_group(Shaders FILES ${SHADERS})
+    source_group("Source Files" FILES ${SOURCES} ${HEADERS})
+    source_group("Shader Files" FILES ${SHADERS})
     source_group("Qt Files" FILES ${QT_GEN_FILES})
   endif()
 

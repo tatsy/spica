@@ -9,7 +9,7 @@ namespace spica {
     void SceneViewer::onRenderButtonClicked() {
         if (!renderThread->isRunning()) {
             // TODO: implement scene graph class and load the graph from XML
-            renderer.reset(new PathRenderer());
+            // renderer.reset(new PathIntegrator(camera));
         }
     }
 
@@ -23,11 +23,13 @@ namespace spica {
 
         if (filename == "") return;
 
+        /*
         Scene scene;
         Camera camera;
         SceneLoader loader;
         loader.load(filename.toStdString(), &scene, &camera);
         setScene(scene, camera);
+         */
     }
 
 }  // namespace spica

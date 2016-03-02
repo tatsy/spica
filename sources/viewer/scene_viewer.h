@@ -19,39 +19,40 @@
 
 namespace spica {
 
-    class SceneViewer : public QMainWindow {
-        Q_OBJECT
+class SceneViewer : public QMainWindow {
+    Q_OBJECT
 
-    public:
-        explicit SceneViewer(QWidget *parent = 0);
-        ~SceneViewer();
+public:
+    explicit SceneViewer(QWidget *parent = 0);
+    ~SceneViewer();
 
-        void setScene(const Scene& scene, const Camera& camera);
+    void setScene(const Scene& scene,
+                  const std::shared_ptr<const Camera>& camera);
 
-    private:
-        void setSignalSlots();
+private:
+    void setSignalSlots();
         
-    private slots:
-        void onRenderButtonClicked();
-        void onLoadButtonClicked();
+private slots:
+    void onRenderButtonClicked();
+    void onLoadButtonClicked();
 
-    protected:
-        QWidget* mainContainer;
-        QHBoxLayout* mainLayout;
+protected:
+    QWidget* mainContainer;
+    QHBoxLayout* mainLayout;
         
-        QWidget* rightContainer;
-        QWidget* leftContainer;
+    QWidget* rightContainer;
+    QWidget* leftContainer;
 
-        QVBoxLayout* rightLayout;
-        QVBoxLayout* leftLayout;
+    QVBoxLayout* rightLayout;
+    QVBoxLayout* leftLayout;
 
-        QGLRenderWidget* qglWidget;
-        RenderParamWidget* paramWidget;
+    QGLRenderWidget* qglWidget;
+    RenderParamWidget* paramWidget;
 
-        std::unique_ptr<IRenderer> renderer;
-        RenderThread* renderThread;
-    };
+    std::unique_ptr<Integrator> renderer;
+    RenderThread* renderThread;
+};
 
-}
+}  // namespace spica
 
 #endif  // _SPICA_SCENE_VIEWER_H_

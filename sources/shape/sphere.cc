@@ -92,6 +92,30 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     return true;
 }
 
+bool Sphere::intersect(const Ray& ray) const {
+    // Compute intersection
+    const Vector3d v2c = center_ - ray.org();
+    const double b = v2c.dot(ray.dir());
+    const double D4 = b * b - v2c.squaredNorm() + radius_ * radius_;
+
+    if (D4 < 0.0) return false;
+
+    const double sqrtD4 = sqrt(D4);
+    const double t1 = b - sqrtD4;
+    const double t2 = b + sqrtD4;
+
+    if (t1 < EPS && t2 < EPS) return false;
+
+    double tHit;
+    if (t1 > EPS) {
+        tHit = t1;
+    } else {
+        tHit = t2;
+    }
+
+    return tHit <= ray.maxDist();
+}
+
 Interaction Sphere::sample(const Point2d& rands) const {
     Point3d pObj = Point3d(0.0, 0.0, 0.0) + 
                    radius_ * sampleUniformSphere(rands);

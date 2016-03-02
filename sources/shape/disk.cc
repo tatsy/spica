@@ -6,6 +6,7 @@
 
 #include "triangle.h"
 #include "../core/ray.h"
+#include "../core/sampling.h"
 
 namespace spica {
 
@@ -71,6 +72,28 @@ bool Disk::intersect(const Ray& ray, double* tHit,
                                 dpdu, dpdv, Normal3d(0.0, 0.0, 0.0),
                                 Normal3d(0.0, 0.0, 0.0), this);
     return true;
+}
+
+bool Disk::intersect(const Ray& ray) const {
+    double dt = vect::dot(ray.dir(), normal_);
+    if (dt > -EPS) return false;
+
+    const double tHit = vect::dot(normal_, center_ - ray.org()) / dt;
+    if (tHit > ray.maxDist()) return false;
+
+    Point3d pos = ray.org() + tHit * ray.dir();
+    Vector3d p2c = pos - center_;
+    const double r = p2c.norm();
+    return r <= radius_;
+}
+
+Interaction Disk::sample(const Point2d& rands) const {
+    const Point2d uv = sampleConcentricDisk(rands);
+    Vector3d u, v;
+    vect::coordinateSystem(Vector3d(normal_), &u, &v);
+
+    Point3d pos = center_ + uv[0] * u + uv[1] * v;
+    return Interaction{ pos, normal_ };
 }
 
 Bounds3d Disk::objectBound() const {

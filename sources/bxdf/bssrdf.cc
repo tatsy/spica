@@ -149,6 +149,16 @@ void computeBeamDiffusionBSSRDF(double g, double eta, CatmullRom2D* table,
     *table = CatmullRom2D(profile, albedoSample, radiusSample);
 }
 
+void subsurfaceFromDiffuse(const CatmullRom2D& table, const Spectrum& albedoEff,
+                           const Spectrum& mfp, Spectrum* sigA, Spectrum* sigS) {
+    CatmullRom cr(table.xs(), table.marginalY());
+    for (int c = 0; c < Spectrum::channels; c++) {
+        double albedo = cr.sample(albedoEff[c]);
+        (*sigA).ref(c) = albedo / mfp[c];
+        (*sigS).ref(c) = (1.0 - albedo) / mfp[c];
+    }
+}
+
 // -----------------------------------------------------------------------------
 // BSSRDF method definitions
 // -----------------------------------------------------------------------------

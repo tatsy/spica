@@ -17,6 +17,7 @@ public:
     virtual ~Primitive() {}
     virtual Bounds3d worldBound() const = 0;
     virtual bool    intersect(Ray& ray, SurfaceInteraction* isect) const = 0;
+    virtual bool    intersect(Ray& ray) const = 0;
     virtual const   AreaLight* areaLight() const = 0;
     virtual const   Material*  material()  const = 0;
     virtual void    setScatterFuncs(SurfaceInteraction* intr,
@@ -33,6 +34,7 @@ public:
 
     virtual Bounds3d worldBound() const override;
     virtual bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
+    virtual bool intersect(Ray& ray) const override;
 
     const AreaLight* areaLight() const override;
     const Material*  material()  const override;

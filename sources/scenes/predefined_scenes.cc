@@ -116,29 +116,27 @@ namespace spica {
         {
             // Regular milk
             const double scale = 5.0;
-            const double eta   = 1.3;
+            //const double eta   = 1.3;
             const double g     = 0.0;
-            Spectrum sigma_a = Spectrum(0.0015333, 0.0046, 0.019933);
-            Spectrum sigma_s = Spectrum(4.5513, 5.8294, 7.136);
-            //Spectrum sigma_a = Spectrum(0.0061, 0.97, 1.45);
-            //Spectrum sigma_s = Spectrum(0.18, 0.07, 0.03);
+            // Regular milk
+            //Spectrum sigma_a = Spectrum(0.0015333, 0.0046, 0.019933);
+            //Spectrum sigma_s = Spectrum(4.5513, 5.8294, 7.136);
+            // Skin1
+            //Spectrum sigma_a = Spectrum(0.0032, 0.17, 0.48);
+            //Spectrum sigma_s = Spectrum(0.74, 0.88, 1.01);
+            // Skin2
+            //Spectrum sigma_a = Spectrum(0.013, 0.070, 0.145);
+            //Spectrum sigma_s = Spectrum(1.09, 1.59, 1.79);
+            // Marble
+            const double eta = 1.5;
+            Spectrum sigma_a = Spectrum(0.0021, 0.0041, 0.0071);
+            Spectrum sigma_s = Spectrum(2.19, 2.62, 3.00);
+
             auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
             auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
             auto sigA = std::make_shared<ConstantTexture<Spectrum>>(sigma_a);
             auto sigS = std::make_shared<ConstantTexture<Spectrum>>(sigma_s);
             auto mtrl = std::make_shared<SubsurfaceMaterial>(scale, Kr, Kt, sigA, sigS, g, eta);
-            //primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
-
-            // Human skin
-            //auto sph  = std::make_shared<Sphere>(Point(0.0, -7.0, 0.0), 3.0);
-            //auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.44, 0.22, 0.13));
-            //auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
-            //double g = 0.0;
-            //double eta = 1.3;
-            //auto sigS = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.74, 0.88, 1.01) / (1.0 - g));
-            //auto sigA = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.0032, 0.17, 0.48));
-            //auto mtrl = std::make_shared<SubsurfaceMaterial>(0.5, Kr, Kt, sigA, sigS, g, eta);
-            //primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
 
             Transform o2w = Transform::translate(Vector3d(5.0, -12.0, 5.0)) * Transform::scale(50.0, 50.0, 50.0);
 

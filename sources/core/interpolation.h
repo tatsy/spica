@@ -34,7 +34,8 @@ public:
     }
 
     double evaluate(double x) const;
-    double sample(double rand, double* fval, double* pdf) const;
+    double sample(double rand, double* fval = nullptr,
+                  double* pdf = nullptr) const;
 
     inline int size() const { return static_cast<int>(fs_.size()); }
 

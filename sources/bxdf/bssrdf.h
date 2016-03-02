@@ -91,6 +91,10 @@ private:
 // BSSRDF utility functions
 // -----------------------------------------------------------------------------
 
+SPICA_EXPORTS
+void subsurfaceFromDiffuse(const CatmullRom2D& table, const Spectrum& albedoEff,
+                           const Spectrum& mfp, Spectrum* sigA, Spectrum* sigS);
+
 SPICA_EXPORTS 
 void computeBeamDiffusionBSSRDF(double g, double eta, CatmullRom2D* table,
                                 int albedoDivide = 100, int radiusDivide = 64);

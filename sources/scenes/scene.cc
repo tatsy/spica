@@ -38,6 +38,10 @@ namespace spica {
         return aggregate_->intersect(ray, isect);
     }
 
+    bool Scene::intersect(Ray& ray) const {
+        return aggregate_->intersect(ray);
+    }
+
     bool Scene::intersectTr(Ray& ray, Sampler& sampler,
                             SurfaceInteraction* isect, Spectrum* tr) const {
         *tr = Spectrum(1.0);

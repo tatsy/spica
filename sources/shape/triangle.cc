@@ -122,6 +122,27 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
     return true;
 }
 
+bool Triangle::intersect(const Ray& ray) const {
+    const Vector3d e1 = points_[1] - points_[0];
+    const Vector3d e2 = points_[2] - points_[0];
+    Vector3d pVec = Vector3d::cross(ray.dir(), e2);
+
+    double det = Vector3d::dot(e1, pVec);
+    if (det > -EPS && det <EPS) return false;
+
+    double invdet = 1.0 / det;        
+    const Vector3d tVec = ray.org() - points_[0];
+    double u = Vector3d::dot(tVec, pVec) * invdet;
+    if (u < 0.0 || u > 1.0) return false;
+
+    const Vector3d qVec = Vector3d::cross(tVec, e1);
+    double v = Vector3d::dot(ray.dir(), qVec) * invdet;
+    if (v < 0.0 || u + v > 1.0) return false;
+
+    const double tHit = Vector3d::dot(e2, qVec) * invdet;
+    return (tHit > EPS && tHit <= ray.maxDist());
+}
+
 Interaction Triangle::sample(const Point2d& rands) const {
     const Vector3d e1 = points_[1] - points_[0];
     const Vector3d e2 = points_[2] - points_[0];
@@ -136,7 +157,8 @@ Interaction Triangle::sample(const Point2d& rands) const {
     }
 
     Point3d  pos = points_[0] + u0 * e1 + u1 * e2;
-    Normal3d nrm = (1.0 - u0 - u1) * normals_[0] + u0 * normals_[1] + u1 * normals_[2];
+    Normal3d nrm = (1.0 - u0 - u1) * normals_[0] + u0 * normals_[1] +
+                   u1 * normals_[2];
     return Interaction{ pos, nrm };    
 }
 

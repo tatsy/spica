@@ -32,6 +32,8 @@ namespace spica {
         Point3_<T>& operator+=(const Point3_<T>& p);
         Point3_<T>& operator*=(T s);
         Point3_<T>& operator/=(T s);
+        bool operator==(const Point3_<T>& p) const;
+        bool operator!=(const Point3_<T>& p) const;
         T operator[](int i) const;
         operator Vector3_<T>() const;
 

@@ -95,6 +95,16 @@ namespace spica {
     }
 
     template <class T>
+    bool Point3_<T>::operator==(const Point3_<T>& p) const {
+        return (x_ == p.x_ && y_ == p.y_ && z_ == p.z_);
+    }
+
+    template <class T>
+    bool Point3_<T>::operator!=(const Point3_<T>& p) const {
+        return !this->operator==(p);
+    }
+
+    template <class T>
     T Point3_<T>::operator[](int i) const {
         Assertion(i >= 0 && i <= 2, "Index out of bounds!!");
         if (i == 0) return x_;

@@ -18,9 +18,8 @@ namespace spica {
     }
 
     bool VisibilityTester::unoccluded(const Scene& scene) const {
-        SurfaceInteraction isect;
         Ray ray = p1_.spawnRayTo(p2_);
-        return !scene.intersect(ray, &isect);
+        return !scene.intersect(ray);
     }
 
     Spectrum VisibilityTester::transmittance(const Scene& scene, Sampler& sampler) const {

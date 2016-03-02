@@ -23,6 +23,7 @@ public:
     Bounds3d worldBound() const override;
     void construct() override;
     bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
+    bool intersect(Ray& ray) const override;
 
 private:
     // Private internal classes

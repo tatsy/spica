@@ -60,6 +60,10 @@ bool GeometricPrimitive::intersect(Ray& ray, SurfaceInteraction* isect) const {
     return true;
 }
 
+bool GeometricPrimitive::intersect(Ray& ray) const {
+    return shape_->intersect(ray);
+}
+
 const Material* GeometricPrimitive::material() const {
     return material_.get();
 }

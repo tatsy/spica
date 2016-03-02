@@ -103,19 +103,6 @@ BBVHAccel::BBVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims,
 BBVHAccel::~BBVHAccel() {
 }
 
-//void BBVHAccel::release() {
-//    for (int i = 0; i < _nodes.size(); i++) {
-//        _nodes[i].reset();
-//    }
-
-//    _root = nullptr;
-//    _tris.clear();
-//    _tris.shrink_to_fit();
-
-//    _nodes.clear();
-//    _nodes.shrink_to_fit();
-//}
-
 Bounds3d BBVHAccel::worldBound() const {
     return _nodes.empty() ? Bounds3d() : _nodes[0]->bounds;
 }
@@ -249,6 +236,33 @@ bool BBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
         }
     }
     return hit;
+}
+
+bool BBVHAccel::intersect(Ray& ray) const {
+std::stack<BBvhNode*> nodeStack;
+    nodeStack.push(_root);
+
+    bool hit = false;
+    while (!nodeStack.empty()) {
+        BBvhNode* node = nodeStack.top();
+        nodeStack.pop();
+
+        if (node->isLeaf()) {
+            // Leaf
+            const auto& prim = primitives_[node->triIdx];
+            if (prim->intersect(ray)) {
+                return true;
+            }
+        } else {
+            // Fork
+            double tmin = INFTY, tmax = INFTY;
+            if (node->bounds.intersect(ray, &tmin, &tmax)) {
+                if (node->left ) nodeStack.push(node->left);
+                if (node->right) nodeStack.push(node->right);
+            }
+        }
+    }
+    return false;    
 }
 
 }  // namespace spica

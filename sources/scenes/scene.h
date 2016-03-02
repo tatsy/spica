@@ -32,6 +32,7 @@ public:
     Scene& operator=(Scene&& scene);
 
     bool intersect(Ray& ray, SurfaceInteraction* isect) const;
+    bool intersect(Ray& ray) const;
     bool intersectTr(Ray& ray, Sampler& sampler, SurfaceInteraction* isect,
                      Spectrum* tr) const;
 

@@ -67,6 +67,7 @@ file(MAKE_DIRECTORY output)
 # ------------------------------------------------------------------------------
 add_subdirectory(3rdparty)
 include_directories(${STB_INCLUDE_DIRS})
+include_directories(${TINYXML2_INCLUDE_DIRS})
 
 # ------------------------------------------------------------------------------
 # Include subdirectories

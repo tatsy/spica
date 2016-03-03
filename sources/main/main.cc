@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
         } else if (!strcmp(argv[i], "--integrator")) {
             option.integrator = argv[++i];
         } else {
-            filenames.push_back(argv[++i]);
+            filenames.push_back(argv[i]);
         }
     }
 
@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
     spica::Engine engine;
     engine.init(option);
     for (const auto& f : filenames) {
+        std::cout << f << std::endl;
         engine.start(f);
     }
     engine.cleanup();

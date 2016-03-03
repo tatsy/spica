@@ -46,6 +46,7 @@ process_subdirectory(material)
 process_subdirectory(texture)
 
 add_library(${BUILD_TARGET} SHARED ${ALL_SOURCES} ${ALL_HEADERS})
+target_link_libraries(${BUILD_TARGET} ${TINYXML2_LIBS})
 set(SPICA_LIBS ${LIB_PREFIX}${BUILD_TARGET}${LIB_SUFFIX} CACHE INTERNAL "")
 
 if (MSVC)

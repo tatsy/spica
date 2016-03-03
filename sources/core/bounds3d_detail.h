@@ -66,6 +66,7 @@ bool Bounds3_<T>::intersect(const Ray& ray, double* tNear, double* tFar) const {
     for (int i = 0; i < 3; i++) {
         double tt0 = (posMin_[i] - ray.org()[i]) * ray.invdir()[i];
         double tt1 = (posMax_[i] - ray.org()[i]) * ray.invdir()[i];
+        if (tt0 > tt1) std::swap(tt0, tt1);
 
         t0 = std::max(t0, tt0);
         t1 = std::min(t1, tt1);

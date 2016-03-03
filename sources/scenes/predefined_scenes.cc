@@ -113,14 +113,15 @@ namespace spica {
         }
 
         // Subsurface ball
+        /*
         {
             // Regular milk
-            const double scale = 5.0;
-            //const double eta   = 1.3;
-            const double g     = 0.0;
+            const double scale = 5000.0;
+            const double eta   = 1.3;
+            const double g     = 0.7;
             // Regular milk
-            //Spectrum sigma_a = Spectrum(0.0015333, 0.0046, 0.019933);
-            //Spectrum sigma_s = Spectrum(4.5513, 5.8294, 7.136);
+            Spectrum sigma_a = Spectrum(0.0015333, 0.0046, 0.019933);
+            Spectrum sigma_s = Spectrum(4.5513, 5.8294, 7.136);
             // Skin1
             //Spectrum sigma_a = Spectrum(0.0032, 0.17, 0.48);
             //Spectrum sigma_s = Spectrum(0.74, 0.88, 1.01);
@@ -128,9 +129,9 @@ namespace spica {
             //Spectrum sigma_a = Spectrum(0.013, 0.070, 0.145);
             //Spectrum sigma_s = Spectrum(1.09, 1.59, 1.79);
             // Marble
-            const double eta = 1.5;
-            Spectrum sigma_a = Spectrum(0.0021, 0.0041, 0.0071);
-            Spectrum sigma_s = Spectrum(2.19, 2.62, 3.00);
+            //const double eta = 1.5;
+            //Spectrum sigma_a = Spectrum(0.0021, 0.0041, 0.0071);
+            //Spectrum sigma_s = Spectrum(2.19, 2.62, 3.00);
 
             auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
             auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
@@ -146,13 +147,13 @@ namespace spica {
                 primitives.emplace_back(new GeometricPrimitive(t, mtrl, nullptr));                
             }
         }
+        */
 
         // Volume material
-        /*
         {
             // auto sph = std::make_shared<Sphere>(Point3d(0.0, -7.0, 0.0), 3.0);
-            double scale = 5.0;
-            double g = 0.5;
+            double scale = 10.0;
+            double g = 0.7;
             // Budweiser
             //Spectrum sigma_a = Spectrum(0.006164, 0.013984, 0.034983) * scale;
             //Spectrum sigma_s = Spectrum(5.0922e-05, 4.301e-05, 0) * scale;
@@ -176,7 +177,7 @@ namespace spica {
             auto ior = std::make_shared<ConstantTexture<double>>(1.5);
             auto mtrl = std::make_shared<GlassMaterial>(Kr, Kr, rough, rough, ior);
 
-            Transform o2w = Transform::translate(Vector3d(5.0, -12.0, 5.0)) * Transform::scale(50.0, 50.0, 50.0);
+            Transform o2w = Transform::translate(Vector3d(5.0, -12.0, -5.0)) * Transform::scale(50.0, 50.0, 50.0);
 
             PLYMeshIO meshio;
             auto tris = meshio.load(kDataDirectory + "bunny.ply", o2w);
@@ -186,7 +187,6 @@ namespace spica {
 
             // primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr, mediumInterface));
         }
-        */
         
         // Glass ball
         {

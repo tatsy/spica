@@ -12,10 +12,10 @@ Film::Film()
     , image_{} {
 }
 
-Film::Film(const Point2i& resolution, std::unique_ptr<Filter>& filter,
+Film::Film(const Point2i& resolution, std::unique_ptr<Filter> filter,
            const std::string& filename)
     : resolution_{ resolution }
-    , filter_{ filter.get() }
+    , filter_{ std::move(filter) }
     , filename_{ filename }
     , image_{ (unsigned int)resolution.x(),
               (unsigned int)resolution.y() }

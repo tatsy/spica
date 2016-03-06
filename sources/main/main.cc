@@ -12,10 +12,10 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--nthreads")) {
             option.nThreads = atoi(argv[++i]);
+        } else if (!strcmp(argv[i], "--nsamples")) { 
+            option.nSamples = atoi(argv[++i]);
         } else if (!strcmp(argv[i], "--outfile")) {
             option.outfile = argv[++i];
-        } else if (!strcmp(argv[i], "--integrator")) {
-            option.integrator = argv[++i];
         } else {
             filenames.push_back(argv[i]);
         }

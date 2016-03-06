@@ -22,7 +22,7 @@ class SPICA_EXPORTS Film {
 public:
     // Public methods
     Film();
-    Film(const Point2i& resolution, std::unique_ptr<Filter>& filter,
+    Film(const Point2i& resolution, std::unique_ptr<Filter> filter,
          const std::string& filename);
     Film(const Film& film) = default;
 
@@ -43,7 +43,7 @@ public:
 private:
     // Private methods
     Point2i resolution_;
-    Filter* filter_;
+    std::unique_ptr<Filter> filter_;
     std::string filename_;
     Image image_;
     std::vector<std::vector<double>> weights_;

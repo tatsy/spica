@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<Filter> filter = std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
     auto film = std::make_unique<Film>(Point2i(width, height),
-                                       filter,
+                                       std::move(filter),
                                        kOutputDirectory + "sppm_%03d.png");
 
 

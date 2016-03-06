@@ -36,7 +36,7 @@ Vec cross(const Vec& v1, const Vec& v2) {
 
 template <class Vec>
 Vec normalize(const Vec& v) {
-    const double nrm = sqrt(v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
+    const double nrm = std::sqrt(v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
     Assertion(nrm != 0.0, "Zero division!!");
     return { v.x() / nrm, v.y() / nrm, v.z() / nrm };
 }

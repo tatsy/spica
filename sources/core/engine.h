@@ -15,8 +15,8 @@ namespace spica {
 
 struct Option {
     int nThreads = 1;
+    int nSamples = 16;
     std::string outfile = "image_%03d.png";
-    std::string integrator = "path";
 };
 
 /**

@@ -48,7 +48,6 @@ Ray PerspectiveCamera::spawnRay(const Point2i& pixel, const Point2d& randFilm,
     Vector3d dir = vect::normalize(pCamera);
     if (lensRadius_ > 0.0) {
         Point2d pLens = lensRadius_ * sampleConcentricDisk(randLens);
-
         double ft = focalLength_ / dir.z();
         Point3d pFocus = org + dir * ft;
 

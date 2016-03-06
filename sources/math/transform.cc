@@ -189,8 +189,7 @@ namespace spica {
         c2w[2][2] = dir.z();
         c2w[3][2] = 0.0;
 
-        Matrix4x4 cameraToWorld(c2w);
-        return Transform{ cameraToWorld.inverted(), cameraToWorld };
+        return Transform{ c2w };
     }
 
     Transform Transform::orthographic(double zNear, double zFar) {

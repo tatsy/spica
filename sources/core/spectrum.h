@@ -6,6 +6,7 @@
 #define _SPICA_SPECTRUM_H_
 
 #include <iostream>
+#include <vector>
 
 #include "common.h"
 
@@ -19,12 +20,19 @@ namespace spica {
         /** The RGBSpectrum constructor. */
         RGBSpectrum();
         explicit RGBSpectrum(double l);
-        /** The RGBSpectrum constructor
+        
+        /** The RGBSpectrum constructor.
          *  @param red: Red component.
          *  @param green: Green component.
          *  @param blue: Blue component.
          */
         RGBSpectrum(double red, double green, double blue);
+
+        /** The RGBSpectrum constructor.
+         */
+        RGBSpectrum(const std::vector<double>& nm,
+                    const std::vector<double>& values);
+
         /** The RGBSpectrum constructor (copy) */
         RGBSpectrum(const RGBSpectrum& RGBSpectrum);
         /** The RGBSpectrum destructor */
@@ -54,6 +62,8 @@ namespace spica {
         RGBSpectrum& operator/=(double s);
         /** Negation operator */
         RGBSpectrum operator-() const;
+
+        static RGBSpectrum fromXYZ(double x, double y, double z);
 
         static RGBSpectrum minimum(const RGBSpectrum& c1, const RGBSpectrum& c2);
         static RGBSpectrum maximum(const RGBSpectrum& c1, const RGBSpectrum& c2);

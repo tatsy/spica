@@ -136,10 +136,14 @@ std::vector<std::shared_ptr<Shape>> OBJMeshIO::load(const std::string& filename,
     std::stringstream ss;
     std::string line;
 
-    std::vector<Point3d> vertices;
-    std::vector<Vector2d> texcoords;
-    std::vector<Triplet>  vertIDs;
-    std::vector<Triplet>  texIDs;
+    std::vector<Point3d>  vertices;
+    std::vector<Point2d> texcoords;
+    std::vector<Normal3d> normals;
+
+    std::vector<Triplet> vertIDs;
+    std::vector<Triplet> texIDs;
+    std::vector<Triplet> nrmIDs;
+
     bool hasTexture = false;
     Image texture;
     while (!ifs.eof()) {
@@ -152,7 +156,7 @@ std::vector<std::shared_ptr<Shape>> OBJMeshIO::load(const std::string& filename,
         if(it == line.end() || *it == '#') continue;
 
         ss.clear();
-        ss << line;
+        ss.str(line);
 
         std::string typ;
         ss >> typ;
@@ -174,29 +178,93 @@ std::vector<std::shared_ptr<Shape>> OBJMeshIO::load(const std::string& filename,
                 ss >> x >> y;
                 texcoords.emplace_back(x, y);
             } else if(typ[1] == 'n') {
-                // Normal not supported
+                double x, y, z;
+                ss >> x >> y >> z;
+                normals.emplace_back(x, y, z);
             } else {
                 FatalError("Unexpected character detected!!");
             }
         } else if (typ[0] == 'f') {
-            if (!hasTexture) {
+            char s0[64], s1[64], s2[64], s3[64];
+            int res = sscanf(line.c_str(), "f %s %s %s %s", s0, s1, s2, s3);
+            if (res == 3) {
+                // Triangle mesh
                 int v0, v1, v2;
-                ss >> v0 >> v1 >> v2;
-                vertIDs.emplace_back(v0 - 1, v1 - 1, v2 - 1);
-            } else {
-                std::string s0, s1, s2;
-                ss >> s0 >> s1 >> s2;
-                   
-                int v0, v1, v2;
+                int n0, n1, n2;
                 int t0, t1, t2;
-                if (sscanf(s0.c_str(), "%d/%d", &v0, &t0) == 2 &&
-                    sscanf(s1.c_str(), "%d/%d", &v1, &t1) == 2 &&
-                    sscanf(s2.c_str(), "%d/%d", &v2, &t2) == 2) {
-                    vertIDs.emplace_back(v0 - 1, v1 - 1, v2 - 1);
-                    texIDs.emplace_back(t0 - 1, t1 - 1, t2 - 1);
+                if (sscanf(s0, "%d/%d/%d", &v0, &t0, &n0) == 3 &&
+                    sscanf(s1, "%d/%d/%d", &v1, &t1, &n1) == 3 &&
+                    sscanf(s1, "%d/%d/%d", &v2, &t2, &n2) == 3) {
+                    // All vertex, normal, texcoord exist
+                    vertIDs.emplace_back(v0, v1, v2);
+                    texIDs.emplace_back(t0, t1, t2);
+                    nrmIDs.emplace_back(n0, n1, n2);
+                } else if (sscanf(s0, "%d//%d", &v0, &n0) == 2 &&
+                           sscanf(s1, "%d//%d", &v1, &n1) == 2 &&
+                           sscanf(s2, "%d//%d", &v2, &n2) == 2) {
+                    // Vertex and normal
+                    vertIDs.emplace_back(v0, v1, v2);
+                    nrmIDs.emplace_back(n0, n1, n2);
+                } else if (sscanf(s0, "%d/%d", &v0, &t0) == 2 &&
+                           sscanf(s1, "%d/%d", &v1, &t1) == 2 &&
+                           sscanf(s2, "%d/%d", &v2, &t2) == 2) {
+                    // Vertex and texcoord
+                    vertIDs.emplace_back(v0, v1, v2);
+                    texIDs.emplace_back(t0, t1, t2);
+                } else if (sscanf(s0, "%d", &v0) == 1 &&
+                           sscanf(s1, "%d", &v1) == 1 &&
+                           sscanf(s2, "%d", &v2) == 1) {
+                    // Only vertex
+                    vertIDs.emplace_back(v0, v1, v2);
                 } else {
-                    FatalError("Unsupported face format!!");
+                    FatalError("Sorry. Unsupported face description was found!!");
                 }
+            } else if (res == 4) {
+                // Quad mesh
+                int v0, v1, v2, v3;
+                int n0, n1, n2, n3;
+                int t0, t1, t2, t3;
+                if (sscanf(s0, "%d/%d/%d", &v0, &t0, &n0) == 3 &&
+                    sscanf(s1, "%d/%d/%d", &v1, &t1, &n1) == 3 &&
+                    sscanf(s2, "%d/%d/%d", &v2, &t2, &n2) == 3 &&
+                    sscanf(s3, "%d/%d/%d", &v3, &t3, &n3) == 3) {
+                    // All vertex, normal, texcoord exist
+                    vertIDs.emplace_back(v0, v1, v2);
+                    vertIDs.emplace_back(v0, v2, v3);
+                    texIDs.emplace_back(t0, t1, t2);
+                    texIDs.emplace_back(t0, t2, t3);
+                    nrmIDs.emplace_back(n0, n1, n2);
+                    nrmIDs.emplace_back(n0, n2, n3);
+                } else if (sscanf(s0, "%d//%d", &v0, &n0) == 2 &&
+                           sscanf(s1, "%d//%d", &v1, &n1) == 2 &&
+                           sscanf(s2, "%d//%d", &v2, &n2) == 2 &&
+                           sscanf(s3, "%d//%d", &v3, &n3) == 2) {
+                    // Vertex and normal
+                    vertIDs.emplace_back(v0, v1, v2);
+                    vertIDs.emplace_back(v0, v2, v3);
+                    nrmIDs.emplace_back(n0, n1, n2);
+                    nrmIDs.emplace_back(n0, n2, n3);
+                } else if (sscanf(s0, "%d/%d", &v0, &t0) == 2 &&
+                           sscanf(s1, "%d/%d", &v1, &t1) == 2 &&
+                           sscanf(s2, "%d/%d", &v2, &t2) == 2 &&
+                           sscanf(s3, "%d/%d", &v3, &t3) == 2) {
+                    // Vertex and texcoord
+                    vertIDs.emplace_back(v0, v1, v2);
+                    vertIDs.emplace_back(v0, v2, v3);
+                    texIDs.emplace_back(t0, t1, t2);
+                    texIDs.emplace_back(t0, t2, t3);
+                } else if (sscanf(s0, "%d", &v0) == 1 &&
+                           sscanf(s1, "%d", &v1) == 1 &&
+                           sscanf(s2, "%d", &v2) == 1 &&
+                           sscanf(s3, "%d", &v3) == 1) {
+                    // Only vertex
+                    vertIDs.emplace_back(v0, v1, v2);
+                    vertIDs.emplace_back(v0, v2, v3);
+                } else {
+                    FatalError("Sorry. Unsupported face description was found!!");
+                }
+            } else {
+                FatalError("Mesh is neither triangle nor quadrangle!!");
             }
         } else {
             FatalError("Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
@@ -222,7 +290,42 @@ std::vector<std::shared_ptr<Shape>> OBJMeshIO::load(const std::string& filename,
 
     std::vector<std::shared_ptr<Shape>> tris;
     for (int i = 0; i < vertIDs.size(); i++) {
-        tris.emplace_back(new Triangle(vertices[vertIDs[i][0]], vertices[vertIDs[i][1]], vertices[vertIDs[i][2]]));        
+        if (!nrmIDs.empty() && !texIDs.empty()) {
+            tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],
+                                           vertices[vertIDs[i][1] - 1],
+                                           vertices[vertIDs[i][2] - 1],
+                                           normals[nrmIDs[i][0] - 1],
+                                           normals[nrmIDs[i][1] - 1],
+                                           normals[nrmIDs[i][2] - 1],
+                                           texcoords[texIDs[i][0] - 1],
+                                           texcoords[texIDs[i][1] - 1],
+                                           texcoords[texIDs[i][2] - 1],
+                                           objectToWorld));        
+        } else if (!nrmIDs.empty()) {
+            tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],
+                                           vertices[vertIDs[i][1] - 1],
+                                           vertices[vertIDs[i][2] - 1],      
+                                           normals[nrmIDs[i][0] - 1],
+                                           normals[nrmIDs[i][1] - 1],
+                                           normals[nrmIDs[i][2] - 1],
+                                           objectToWorld));
+        
+        } else if (!texIDs.empty()) {
+            /*
+            tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],
+                                           vertices[vertIDs[i][1] - 1],
+                                           vertices[vertIDs[i][2] - 1],  
+                                           texcoords[texIDs[i][0] - 1],
+                                           texcoords[texIDs[i][1] - 1],
+                                           texcoords[texIDs[i][2] - 1],
+                                           objectToWorld));        
+                                           */
+        } else {
+            tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],
+                                           vertices[vertIDs[i][1] - 1],
+                                           vertices[vertIDs[i][2] - 1],
+                                           objectToWorld));  
+        }
     }
     return std::move(tris);
 }

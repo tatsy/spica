@@ -8,5 +8,6 @@
 #include "filter.h"
 #include "box.h"
 #include "tent.h"
+#include "gaussian.h"
 
 #endif  // _SPICA_FILTER_HEADERS_

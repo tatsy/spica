@@ -43,8 +43,8 @@ public:
 
 private:
     // Private methods
-    void printOut(const char* format, ...) const;
-    void printErr(const char* format, ...) const;
+    void printOut(const char* const format, ...) const;
+    void printErr(const char* const format, ...) const;
 
     bool parseTransform(const boost::property_tree::ptree& xml,
                         Transform* transform) const;

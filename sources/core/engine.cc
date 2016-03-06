@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "engine.h"
 
+#include <cstdio>
 #include <cstdarg>
 #include <map>
 
@@ -88,8 +89,8 @@ void Engine::start(const std::string& filename) const {
         return;
     }
 
-    printOut("Version: %s\n", 
-        xml.get<std::string>("scene.<xmlattr>.version").c_str());
+    const std::string version = xml.get<std::string>("scene.<xmlattr>.version");
+    printOut("Version: %s\n", version);
 
     // Parse sensor
     if (xml.get_child("scene.sensor").empty()) {
@@ -207,20 +208,20 @@ void Engine::start(const std::string& filename) const {
 void Engine::cleanup() {
 }
 
-void Engine::printOut(const char* format, ...) const {
+void Engine::printOut(const char* const format, ...) const {
     va_list args;
     if (option_.verbose) {
         va_start(args, format);
-        fprintf(stdout, format, args);
+        vfprintf(stdout, format, args);
         va_end(args);
     }
 }
 
-void Engine::printErr(const char* format, ...) const {
+void Engine::printErr(const char* const format, ...) const {
     va_list args;
     if (option_.verbose) {
         va_start(args, format);
-        fprintf(stderr, format, args);
+        vfprintf(stderr, format, args);
         va_end(args);
     }
 }
@@ -356,10 +357,14 @@ bool Engine::parseFilm(const boost::property_tree::ptree& xml,
     const std::string filtType =
         xml.get<std::string>(
             "scene.sensor.film.rfilter.<xmlattr>.type");
-    if (filtType == "tent") {
+    if (filtType == "box") {
+        filter = std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
+    } else if (filtType == "tent") {
         filter = std::make_unique<TentFilter>(Vector2d(0.5, 0.5));
+    } else if (filtType == "gaussian") {
+        filter = std::make_unique<GaussianFilter>(Vector2d(0.5, 0.5), 2.0);
     } else {
-        printErr("Unknown filter type \"%s\" is specified!!", filtType);
+        printErr("Unknown filter type \"%s\" is specified!!", filtType.c_str());
         return false;
     }
 

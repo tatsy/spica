@@ -2,6 +2,3 @@
 	path = docs/html
 	url = https://github.com/tatsy/spica.git
 	branch = gh-pages
-[submodule "3rdparty/tinyxml2"]
-	path = 3rdparty/tinyxml2
-	url = https://github.com/leethomason/tinyxml2.git

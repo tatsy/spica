@@ -42,7 +42,7 @@ $ cmake --build .
 
 <img src="./results/cbox_1000.png" width="512" />
 
-The scene coutesy of Mitsuba renderer (W. Jakob 2010).
+The scene courtesy of Mitsuba renderer (W. Jakob 2010).
 
 ## Acknowledgment
 

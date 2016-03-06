@@ -16,7 +16,7 @@ namespace spica {
 /** Stochastic progressive photon mapping
  *  @ingroup renderer_module
  */
-class SPICA_EXPORTS SPPMIntegrator : private Integrator {
+class SPICA_EXPORTS SPPMIntegrator : public Integrator {
 public:
     // Public methods
     SPPMIntegrator(std::shared_ptr<Camera>& camera,

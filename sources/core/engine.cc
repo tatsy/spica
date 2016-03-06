@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "engine.h"
 
+#include <cstdarg>
 #include <map>
 
 #include "spectrum.h"
@@ -23,23 +24,23 @@
 #include "../accel/bbvh_accel.h"
 #include "../scenes/scene.h"
 
-#include "tinyxml2.h"
-using namespace tinyxml2;
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 
 namespace spica {
 
 namespace {
 
-Vector3d getVector3d(const char* attr) {
+Vector3d getVector3d(const std::string& attr) {
     double x, y, z;
-    if (sscanf(attr, "%lf, %lf, %lf", &x, &y, &z) != 3) {
+    if (sscanf(attr.c_str(), "%lf, %lf, %lf", &x, &y, &z) != 3) {
         return Vector3d{};
     }
     return Vector3d{ x, y, z };
 }
 
-Spectrum getSpectrum(const char* attr) {
-    const char* ptr = attr;
+Spectrum getSpectrum(const std::string& attr) {
+    const char* ptr = &attr[0];
     double nm;
     double value;
     std::vector<double> nms;
@@ -55,70 +56,13 @@ Spectrum getSpectrum(const char* attr) {
             break;
         }
     }
-    auto s = Spectrum(nms, values);
-    std::cout << s << std::endl;
-    return s;
-}
-
-Transform getTransform(XMLElement* elem) {
-    if (strcmp(elem->Name(), "transform") != 0) {
-        return Transform{};
-    }
-
-    Transform ret;
-
-    XMLElement* child = elem->FirstChildElement();
-    if (strcmp(child->Name(), "translate") == 0) {
-        double x = atof(child->Attribute("x"));
-        double y = atof(child->Attribute("y"));
-        double z = atof(child->Attribute("z"));
-        ret *= Transform::translate(Vector3d(x, y, z));        
-    }
-
-    if (strcmp(child->Name(), "lookAt") == 0) {
-        Point3d origin = Point3d(getVector3d(child->Attribute("origin")));
-        Point3d target = Point3d(getVector3d(child->Attribute("target")));
-        Vector3d up    = getVector3d(child->Attribute("up"));
-        ret *= Transform::lookAt(origin, target, up);
-    }
-
-    return ret;
-}
-
-Film* getFilm(XMLElement* elem, const std::string& outfile) {
-    XMLElement* child = elem->FirstChildElement();
-    int width = 0;
-    int height = 0;
-    std::unique_ptr<Filter> filter = nullptr;
-
-    while (child) {
-        if (strcmp(child->Name(), "integer") == 0) {
-            if (strcmp(child->Attribute("name"), "width") == 0) {
-                width = child->IntAttribute("value");
-            } else if (strcmp(child->Attribute("name"), "height") == 0) {
-                height = child->IntAttribute("value");
-            }
-        } else if (strcmp(child->Name(), "rfilter") == 0) {
-            const char* filterType = child->Attribute("type");
-            if (strcmp(filterType, "gaussian") == 0) {
-
-            } else if (strcmp(filterType, "tent") == 0) {
-                filter = std::make_unique<TentFilter>(Vector2d(0.5, 0.5));
-            } else {
-                FatalError("Unknown filter type \"%s\" is specified!!", filterType);
-            }
-        }
-
-        child = child->NextSiblingElement();
-    }    
-    return new Film(Point2i(width, height), std::move(filter), outfile);
+    return Spectrum(nms, values);
 }
 
 }  // anonymous namespace
 
 Engine::Engine()
-    : option_{}
-    , integrator_{} {
+    : option_{} {
 }
 
 Engine::~Engine() {
@@ -129,152 +73,125 @@ void Engine::init(const Option& option) {
 }
 
 void Engine::start(const std::string& filename) const {
-    using namespace tinyxml2;
+    using namespace boost::property_tree;
 
-    XMLDocument doc;
-    if (doc.LoadFile(filename.c_str()) != tinyxml2::XMLError::XML_SUCCESS) {
-        fprintf(stderr, "XML file is invalid!!\n");
+    // Open XML
+    ptree xml;
+    read_xml(filename, xml);
+    if (xml.empty()) {
+        printErr("XML file not found: %s\n", filename.c_str());
         return;
     }
 
-    XMLElement* elem = doc.FirstChildElement("scene");
-    if (!elem) {
-        fprintf(stderr, "XML file does not have \"scene\" child!!\n");
+    if (xml.get_child("scene").empty()) {
+        printErr("The XML does not have the tag \"scene\"!!\n");
         return;
     }
 
-    // Parse camera
+    printOut("Version: %s\n", 
+        xml.get<std::string>("scene.<xmlattr>.version").c_str());
+
+    // Parse sensor
+    if (xml.get_child("scene.sensor").empty()) {
+        printErr("XML file does not have \"sensor\" block!!\n");
+        return;
+    }
+
     std::shared_ptr<Camera> camera = nullptr;
     std::shared_ptr<Sampler> sampler = nullptr;
-    if (elem->FirstChildElement("sensor")) {
-        XMLElement* sensorElem = elem->FirstChildElement("sensor");
-        std::string sensorType = sensorElem->Attribute("type");
-
-        // Parse sampler
-        if (sensorElem->FirstChildElement("sampler")) {
-            std::string samplerType = sensorElem->FirstChildElement("sampler")->Attribute("type");
-            const int nSamples = sensorElem->FirstChildElement("sampler")->FirstChildElement("integer")->IntAttribute("value");
-            if (samplerType == "random") {
-                sampler = std::make_shared<Random>(0);
-            } else if (samplerType == "ldsampler") {
-                sampler = std::make_shared<Halton>(0, true, nSamples);
-            }
-        }
-
-        if (sensorType == "perspective") {
-            Film* film = getFilm(sensorElem->FirstChildElement("film"), option_.outfile);
-
-            XMLElement* child = sensorElem->FirstChildElement("float");
-            double fov, near, far, focal, lensr = 1.0;
-            while (child) {
-                if (strcmp(child->Attribute("name"), "fov") == 0) 
-                    fov = child->DoubleAttribute("value") / 180.0 * PI;
-                if (strcmp(child->Attribute("name"), "nearClip") == 0)
-                    near = child->DoubleAttribute("value");
-                if (strcmp(child->Attribute("name"), "farClip") == 0)
-                    far = child->DoubleAttribute("value");
-                if (strcmp(child->Attribute("name"), "focusDistance") == 0)
-                    focal = child->DoubleAttribute("value");
-
-                child = child->NextSiblingElement("float");
-            }
-            
-
-            Transform toWorld = getTransform(sensorElem->FirstChildElement("transform"));
-            RectF screen = RectF(-1.0, -1.0, 2.0, 2.0);
-            camera = std::make_shared<PerspectiveCamera>(toWorld, screen, lensr, focal, fov, film);
-        } else if (sensorType == "orthographic") {
-            FatalError("Not implemented yet!!");
-        } else {
-            fprintf(stderr, "Unknown sensor type \"%s\" is specified!!", sensorType.c_str());
-            return;
-        }
-    } else {
-        fprintf(stderr, "Sensor not found!!");
-    }
-
+    parseCamera(xml, &camera, &sampler);
+    
     // Parse integrator
     Assertion(sampler != nullptr, "Sampler not found!!");
     Assertion(camera  != nullptr, "Camera not found!!");
     std::unique_ptr<Integrator> integrator;
-    if (elem->FirstChildElement("integrator")) {
-        const std::string integratorName =
-            elem->FirstChildElement("integrator")->Attribute("type");
-        if (integratorName == "path") {
-            integrator.reset(new PathIntegrator(camera, sampler));
-        }
+    if (xml.get_child("scene.integrator").empty()) {
+        printErr("Integrator not found!!");
+        return;
+    }
+
+    const std::string intgrName =
+        xml.get<std::string>("scene.integrator.<xmlattr>.type");
+    if (intgrName == "path") {
+        integrator.reset(new PathIntegrator(camera, sampler));
+    } else if (intgrName == "sppm") {
+        integrator.reset(new SPPMIntegrator(camera, sampler));
     } else {
-        fprintf(stderr, "Integrator not found!!");
+        printErr("Unknown integrator name: %s\n", intgrName);
+        return;
     }
 
     // Parse materials
     std::map<std::string, std::shared_ptr<Material>> materials;
-    XMLElement* bsdfElem = elem->FirstChildElement("bsdf");
-    while (bsdfElem) {
-        std::string type = bsdfElem->Attribute("type");
-        std::string id   = bsdfElem->Attribute("id");
+    for (const auto& child : xml.get_child("scene")) {
+        if (child.first != "bsdf") continue;
+
+        std::string type = child.second.get<std::string>("<xmlattr>.type");
+        std::string id   = child.second.get<std::string>("<xmlattr>.id");
         std::shared_ptr<Material> mtrl = nullptr;
         if (type == "diffuse") {
-            Spectrum ref = getSpectrum(bsdfElem->FirstChildElement("spectrum")->Attribute("value"));
+            Spectrum ref = getSpectrum(child.second.get<std::string>("spectrum.<xmlattr>.value"));
             mtrl = std::make_shared<LambertianMaterial>(
                    std::make_shared<ConstantTexture<Spectrum>>(ref));
         }
-        materials.insert(std::make_pair(id, mtrl));
-    
-        bsdfElem = bsdfElem->NextSiblingElement("bsdf");
+        materials[id] = mtrl;
     }
 
     // Parse shapes
     std::string dir = path::getDirectory(filename);
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<Primitive>> primitives;
-    XMLElement* shapeElem = elem->FirstChildElement("shape");
-    while (shapeElem) {
+    for (const auto& child : xml.get_child("scene")) {
+        if (child.first != "shape") continue;
+
         // Transform
         Transform toWorld;
-        if (shapeElem->FirstChildElement("transform")) {
-            toWorld = getTransform(shapeElem->FirstChildElement("transform"));
-        }
+        parseTransform(child.second, &toWorld);
 
+        // Shape
+        std::string type = child.second.get<std::string>("<xmlattr>.type");
         std::vector<std::shared_ptr<Shape>> shapes;
-        if (strcmp(shapeElem->Attribute("type"), "obj") == 0) {
-            if (shapeElem->FirstChildElement("string") &&
-                strcmp(shapeElem->FirstChildElement("string")->Attribute("name"), "filename") == 0) {
-                std::string objfile = dir + shapeElem->FirstChildElement("string")->Attribute("value");
+        if (type == "obj") {
+            if (child.second.get<std::string>("string.<xmlattr>.name") == "filename") {
+                const std::string relpath =
+                    child.second.get<std::string>("string.<xmlattr>.value");
+                std::string objfile = dir + relpath;
 
                 OBJMeshIO loader;
                 shapes = loader.load(objfile, toWorld);
             }
         }
 
-        // Reflectance
+        // Material
         std::shared_ptr<Material> mtrl = nullptr;
-        if (shapeElem->FirstChildElement("ref")) {
-            const char* id = shapeElem->FirstChildElement("ref")->Attribute("id");
+        if (child.second.find("ref") != child.second.not_found()) {
+            std::string id = child.second.get<std::string>("ref.<xmlattr>.id");
             mtrl = materials[id];
         }
 
         // Emitter
         int lightID = -1;
-        if (shapeElem->FirstChildElement("emitter")) {
+        if (child.second.find("emitter") != child.second.not_found()) {
             lightID = static_cast<int>(lights.size());
-            const char* lightType = shapeElem->FirstChildElement("emitter")->Attribute("type");
-            Spectrum Le = getSpectrum(shapeElem->FirstChildElement("emitter")->FirstChildElement("spectrum")->Attribute("value"));
+            const std::string lightType =
+                child.second.get<std::string>("emitter.<xmlattr>.type");
 
             for (const auto& shape : shapes) {
-                if (strcmp(lightType, "area") == 0) {
+                if (lightType == "area") {
+                    Spectrum Le = getSpectrum(child.second.get<std::string>("emitter.spectrum.<xmlattr>.value"));
                     lights.emplace_back(new AreaLight(shape, toWorld, Le));
                 }
             }
         }
 
+        // Set geometric primitives
         for (int i = 0; i < shapes.size(); i++) {
             std::shared_ptr<AreaLight> area = lightID >= 0 ? std::static_pointer_cast<AreaLight>(lights[lightID + i]) : nullptr;
             primitives.emplace_back(new GeometricPrimitive(shapes[i], mtrl, area));
         }
-        shapeElem = shapeElem->NextSiblingElement("shape");
     }
 
+    // Construct BVH and the scene
     auto bbvh = std::make_shared<BBVHAccel>(primitives);
     Scene scene(bbvh, lights);
         
@@ -288,6 +205,168 @@ void Engine::start(const std::string& filename) const {
 
 
 void Engine::cleanup() {
+}
+
+void Engine::printOut(const char* format, ...) const {
+    va_list args;
+    if (option_.verbose) {
+        va_start(args, format);
+        fprintf(stdout, format, args);
+        va_end(args);
+    }
+}
+
+void Engine::printErr(const char* format, ...) const {
+    va_list args;
+    if (option_.verbose) {
+        va_start(args, format);
+        fprintf(stderr, format, args);
+        va_end(args);
+    }
+}
+
+bool Engine::parseTransform(const boost::property_tree::ptree& xml,
+                            Transform* transform) const {
+    *transform = Transform();
+    for (const auto& props : xml) {
+        if (props.first == "translate") {
+            double x = props.second.get<double>("<xmlattr>.x");
+            double y = props.second.get<double>("<xmlattr>.y");
+            double z = props.second.get<double>("<xmlattr>.z");
+            *transform *= Transform::translate(Vector3d(x, y, z));        
+        }
+
+        if (props.first == "lookAt") {
+            Vector3d origin = getVector3d(
+                props.second.get<std::string>("<xmlattr>.origin"));
+            Vector3d target = getVector3d(
+                props.second.get<std::string>("<xmlattr>.target"));
+
+            Vector3d up = getVector3d(
+                props.second.get<std::string>("<xmlattr>.up"));
+            *transform *= Transform::lookAt(Point3d(origin), Point3d(target), up);
+        }
+    }
+    return true;
+}
+
+bool Engine::parseSampler(const boost::property_tree::ptree& xml,
+                          std::shared_ptr<Sampler>* sampler) const {
+    const std::string type =
+        xml.get<std::string>("scene.sensor.sampler.<xmlattr>.type");
+    if (type == "ldsampler") {
+        const int sampleCount =
+            xml.get<int>("scene.sensor.sampler.integer.<xmlattr>.value");
+        *sampler = std::make_shared<Halton>(sampleCount, true, (unsigned int)time(0));
+    } else {
+        printErr("Unknown sampler type \"%s\" is specified !!", type.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool Engine::parseCamera(const boost::property_tree::ptree& xml,
+                         std::shared_ptr<Camera>* camera,
+                         std::shared_ptr<Sampler>* sampler) const {
+    const std::string type = 
+        xml.get<std::string>("scene.sensor.<xmlattr>.type");
+
+    if (type == "perspective") {
+        printOut("Camera: perspective\n");
+
+        // Parse sampler
+        if (!parseSampler(xml, sampler)) {
+            printErr("Sampler not found!!\n");
+            return false;
+        }
+
+        Film* film = nullptr;
+        if (!parseFilm(xml, &film)) {
+            printErr("Failed to parse \"Film\" !!\n");
+            return false;
+        }
+
+        Transform toWorld;
+        double fov, nearClip, farClip, focusDistance, lensr = 1.0;
+        for (const auto& props : xml.get_child("scene.sensor")) {
+            if (props.first == "<xmlattr>") continue;
+
+            // Parse transform
+            if (props.first == "transform") {
+                if (props.second.get<std::string>("<xmlattr>.name") == "toWorld") {
+                    parseTransform(props.second, &toWorld);
+                }
+            }
+
+            // Parse float properties
+            if (props.first == "float") {
+                std::string name =
+                    props.second.get<std::string>("<xmlattr>.name");
+                if (name == "fov") { 
+                    fov = props.second.get<double>("<xmlattr>.value") / 180.0 * PI;
+                    if (xml.get<std::string>("scene.sensor.string.<xmlattr>.name") == "fovAxis") {
+                        const std::string val =
+                            xml.get<std::string>("scene.sensor.string.<xmlattr>.value");
+                        if (val == "smaller") {
+                            fov *= 0.95;
+                        } else if (val == "larger") {
+                            fov *= 1.05;
+                        }
+                    }
+                } else if (name == "nearClip") {
+                    nearClip = props.second.get<double>("<xmlattr>.value");
+                } else if (name == "farClip") {
+                    farClip = props.second.get<double>("<xmlattr>.value");
+                } else if (name == "focusDistance") {
+                    focusDistance = props.second.get<double>("<xmlattr>.value");
+                }
+            }
+        }           
+
+        RectF screen = RectF(-1.0, -1.0, 2.0, 2.0);
+        *camera = std::make_shared<PerspectiveCamera>(
+            toWorld, screen, lensr, focusDistance, fov, film);
+    } else if (type == "orthographic") {
+        printf("Orthographic\n");
+    } else {
+        FatalError("Unknown sensor type \"%s\" is specified!!\n", type.c_str());
+    }
+}
+
+bool Engine::parseFilm(const boost::property_tree::ptree& xml,
+                       Film** film) const {
+
+    int width = 0;
+    int height = 0;
+    std::unique_ptr<Filter> filter = nullptr;
+    
+    // Parse width and height
+    for (const auto& props : xml.get_child("scene.sensor.film")) {
+        if (props.first != "integer") continue;
+        const std::string name =
+            props.second.get<std::string>("<xmlattr>.name");
+        if (name == "width") {
+            width = props.second.get<int>("<xmlattr>.value");
+        } else if (name == "height") {
+            height = props.second.get<int>("<xmlattr>.value");
+        }
+    }
+
+    // Parse rfilter
+    const std::string filtType =
+        xml.get<std::string>(
+            "scene.sensor.film.rfilter.<xmlattr>.type");
+    if (filtType == "tent") {
+        filter = std::make_unique<TentFilter>(Vector2d(0.5, 0.5));
+    } else {
+        printErr("Unknown filter type \"%s\" is specified!!", filtType);
+        return false;
+    }
+
+    *film = new Film(Point2i(width, height), std::move(filter),
+                     option_.outfile);
+
+    return true;
 }
 
 }  // namespace spica

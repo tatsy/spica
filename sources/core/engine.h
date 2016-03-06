@@ -9,13 +9,22 @@
 #include <memory>
 
 #include "common.h"
-#include "../integrator/integrator.h"
+#include "forward_decl.h"
+
+namespace boost {
+namespace property_tree {
+template < class Key, class Data, class KeyCompare = std::less<Key> >
+class basic_ptree;
+using ptree = basic_ptree<std::string, std::string>;
+}
+}
 
 namespace spica {
 
 struct Option {
     int nThreads = 1;
     int nSamples = 16;
+    bool verbose = true;
     std::string outfile = kOutputDirectory + "image_%03d.png";
 };
 
@@ -33,9 +42,25 @@ public:
     void cleanup();
 
 private:
+    // Private methods
+    void printOut(const char* format, ...) const;
+    void printErr(const char* format, ...) const;
+
+    bool parseTransform(const boost::property_tree::ptree& xml,
+                        Transform* transform) const;
+
+    bool parseCamera(const boost::property_tree::ptree& xml,
+                     std::shared_ptr<Camera>* camera,
+                     std::shared_ptr<Sampler>* sampler) const;
+
+    bool parseSampler(const boost::property_tree::ptree& xml,
+                      std::shared_ptr<Sampler>* sampler) const;
+
+    bool parseFilm(const boost::property_tree::ptree& xml,
+                   Film** film) const;
+
     // Private fields
     Option option_;
-    std::unique_ptr<Integrator> integrator_;
 
 };  // class Engine
 

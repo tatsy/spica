@@ -67,7 +67,20 @@ file(MAKE_DIRECTORY output)
 # ------------------------------------------------------------------------------
 add_subdirectory(3rdparty)
 include_directories(${STB_INCLUDE_DIRS})
-include_directories(${TINYXML2_INCLUDE_DIRS})
+
+# ------------------------------------------------------------------------------
+# Import Boost libraries
+# ------------------------------------------------------------------------------
+set(BOOST_ROOT ${BOOST_ROOT} CACHE PATH "BOOST-NOT_FOUND")
+if (NOT EXISTS "${BOOST_ROOT}/boost")
+  message(FATAL_ERROR "[ERROR] Boost not found!!")
+else()
+  message(STATUS "Boost: ${BOOST_ROOT}")
+  set(Boost_USE_STATIC_LIBS FALSE CACHE BOOL FALSE)
+endif()
+
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
 # ------------------------------------------------------------------------------
 # Include subdirectories

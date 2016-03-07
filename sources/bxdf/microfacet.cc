@@ -51,9 +51,8 @@ double TrowbridgeReitzDistribution::D(const Vector3d& wh) const {
     if (isinf(tan2Theta)) return 0.0;
 
     double cos4Theta = vect::cos2Theta(wh) * vect::cos2Theta(wh);
-    double e = vect::cos2Phi(wh) / (alphax_ * alphax_) +
-               vect::sin2Phi(wh) / (alphay_ * alphay_);
-    e *= tan2Theta;
+    double e = (vect::cos2Phi(wh) / (alphax_ * alphax_) +
+                vect::sin2Phi(wh) / (alphay_ * alphay_)) * tan2Theta;
     return 1.0 / (PI * alphax_ * alphay_ * cos4Theta * (1.0 + e) * (1.0 + e));
 }
 
@@ -81,9 +80,9 @@ Vector3d TrowbridgeReitzDistribution::sample(const Vector3d& wo,
             cosTheta = 1.0 / std::sqrt(1.0 + tanTheta2);
         }
         double sinTheta = std::sqrt(std::max(0.0, 1.0 - cosTheta * cosTheta));
-        wh = Vector3d(1.0, 0.0, 0.0) * cos(phi) * sinTheta +
-             Vector3d(0.0, 1.0, 0.0) * sin(phi) * sinTheta +
-             Vector3d(0.0, 0.0, 1.0) * cosTheta;
+        wh = Vector3d(std::cos(phi) * sinTheta,
+                      std::sin(phi) * sinTheta,
+                      cosTheta);
         if (!vect::sameHemisphere(wo, wh)) wh = -wh;
     } else {
         bool flip = wo.z() < 0.0;
@@ -135,10 +134,10 @@ void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
                                                const Point2d& rands,
                                                double* slopex, double* slopey) {
     if (cosTheta > 0.9999) {
-        double r = sqrt(rands[0] / (1.0 - rands[0]));
+        double r = std::sqrt(rands[0] / (1.0 - rands[0]));
         double phi = 2.0 * PI * rands[1];
-        *slopex = r * cos(phi);
-        *slopey = r * sin(phi);
+        *slopex = r * std::cos(phi);
+        *slopey = r * std::sin(phi);
         return;
     }
 
@@ -153,7 +152,7 @@ void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
     double B = tanTheta;
     double D = sqrt(std::max(0.0, B * B * tmp * tmp - (A * A - B * B) * tmp));
     double slopex1 = B * tmp - D;
-    double slopex2 = B * tmp - D;
+    double slopex2 = B * tmp + D;
     *slopex = (A < 0.0 || slopex2 > 1.0 / tanTheta) ? slopex1 : slopex2;
     Assertion(!isinf(*slopex), "slopex is infinity.");
     Assertion(!isnan(*slopex), "slopex is NaN.");

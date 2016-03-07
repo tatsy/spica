@@ -20,7 +20,8 @@ PlasticMaterial::PlasticMaterial(const std::shared_ptr<Texture<Spectrum>>& Kd,
     , Kd_{ Kd }
     , Ks_{ Ks }
     , roughness_{ roughness }
-    , bumpMap_{ bumpMap } {
+    , bumpMap_{ bumpMap }
+    , remapRoughness_{ remapRoughness } {
 }
 
 void PlasticMaterial::setScatterFuncs(SurfaceInteraction* isect,
@@ -31,7 +32,7 @@ void PlasticMaterial::setScatterFuncs(SurfaceInteraction* isect,
     
     Spectrum kd = Kd_->evaluate(*isect);
     if (!kd.isBlack()) {
-        //isect->bsdf()->add(arena.allocate<LambertianReflection>(kd));
+        isect->bsdf()->add(arena.allocate<LambertianReflection>(kd));
     }
 
     Spectrum ks = Ks_->evaluate(*isect);

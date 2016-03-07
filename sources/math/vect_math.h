@@ -85,7 +85,7 @@ double tan2Theta(const Vec& w) {
 template <class Vec>
 double cosPhi(const Vec& w) {
     double sinTheta = vect::sinTheta(w);
-    return (sinTheta == 0.0) ? 0.0 : clamp(w.x() / sinTheta, -1.0, 1.0);
+    return (sinTheta == 0.0) ? 1.0 : clamp(w.x() / sinTheta, -1.0, 1.0);
 }
 
 template <class Vec>
@@ -128,9 +128,9 @@ void coordinateSystem(const Vec& w, Vec* u, Vec* v) {
  * @return reflected direction
  */
 template <class Vec1, class Vec2>
-Vector3_<typename Vec1::type> reflect(const Vec1& v, const Vec2& n) {
+Vector3_<typename Vec1::type> reflect(const Vec1& wo, const Vec2& n) {
     using Type = typename Vec1::type;
-    return Vector3_<Type>(v - Vector3_<Type>(n) * Type(2) * vect::dot(n, v));        
+    return Vector3_<Type>(- wo + Vector3_<Type>(n) * Type(2) * vect::dot(n, wo));        
 }
 
 }  // namespace vect

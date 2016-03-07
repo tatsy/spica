@@ -262,7 +262,7 @@ double MicrofacetReflection::pdf(const Vector3d& wo, const Vector3d& wi) const {
 
 
 // -----------------------------------------------------------------------------
-// MicrofacetReflection method definitions
+// MicrofacetTransmission method definitions
 // -----------------------------------------------------------------------------
 
 MicrofacetTransmission::MicrofacetTransmission(const Spectrum& tr,

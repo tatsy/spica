@@ -213,6 +213,8 @@ void Engine::start(const std::string& filename) const {
             } else if (bsdfType == "roughplastic") {
                 Spectrum diffuse(0.9999);
                 Spectrum specular(0.9999);                
+                double ior = 1.0;
+                double alpha = 0.0;
                 for (const auto& k : child.second.get_child("bsdf")) {
                     if (k.first == "rgb" || k.first == "spectrum") {
                         std::string refName = k.second.get<std::string>("<xmlattr>.name");
@@ -220,6 +222,13 @@ void Engine::start(const std::string& filename) const {
                             diffuse = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
                         } else if (refName == "specularReflectance") {
                             specular = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));                    
+                        }
+                    } else if (k.first == "float") {
+                        std::string propName = k.second.get<std::string>("<xmlattr>.name");
+                        if (propName == "alpha") {
+                            alpha = k.second.get<double>("<xmlattr>.value");
+                        } else if (propName == "intIOR") {
+                            ior = k.second.get<double>("<xmlattr>.value");
                         }
                     }
                 }
@@ -236,9 +245,8 @@ void Engine::start(const std::string& filename) const {
                 } else {
                     auto Kd = std::make_shared<ConstantTexture<Spectrum>>(diffuse);
                     auto Ks = std::make_shared<ConstantTexture<Spectrum>>(specular);
-                    std::cout << "Kd: " << diffuse << std::endl;
-                    std::cout << "Ks: " << specular << std::endl;
-                    mtrl = std::make_shared<PlasticMaterial>(Kd, Ks);
+                    auto rough = std::make_shared<ConstantTexture<double>>(alpha);
+                    mtrl = std::make_shared<PlasticMaterial>(Kd, Ks, rough);
                 }
             }
         }
@@ -387,9 +395,9 @@ bool Engine::parseCamera(const boost::property_tree::ptree& xml,
                         const std::string val =
                             xml.get<std::string>("scene.sensor.string.<xmlattr>.value");
                         if (val == "smaller") {
-                            fov *= 0.95;
+                            //fov *= 0.95;
                         } else if (val == "larger") {
-                            fov *= 1.05;
+                            //fov *= 1.05;
                         }
                     }
                 } else if (name == "nearClip") {

@@ -38,11 +38,24 @@ $ cmake --build .
 
 ## Results
 
-#### Path tracing
+#### Cornell Box
 
 <img src="./results/cbox_1000.png" width="512" />
 
 The scene courtesy of Mitsuba renderer (W. Jakob 2010).
+
+#### Cornell Box (Subsurface Scattering)
+
+<img src="./results/cbox_sss_1000.png" width="512" />
+
+The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
+
+#### Multiple Importance Sampling
+
+<img src="./results/mi_1000.png" width="512" />
+
+The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
+
 
 ## Acknowledgment
 

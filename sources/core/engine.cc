@@ -105,7 +105,7 @@ void Engine::start(const std::string& filename) const {
     }
 
     const std::string version = xml.get<std::string>("scene.<xmlattr>.version");
-    printOut("Version: %s\n", version);
+    printOut("Version: %s\n", version.c_str());
 
     // Parse sensor
     if (xml.get_child("scene.sensor").empty()) {
@@ -133,7 +133,7 @@ void Engine::start(const std::string& filename) const {
     } else if (intgrName == "sppm") {
         integrator.reset(new SPPMIntegrator(camera, sampler));
     } else {
-        printErr("Unknown integrator name: %s\n", intgrName);
+        printErr("Unknown integrator name: %s\n", intgrName.c_str());
         return;
     }
 

@@ -42,12 +42,18 @@ Vector3d getVector3d(const std::string& attr) {
 
 Spectrum getSpectrum(const std::string& attr) {
     const char* ptr = &attr[0];
+    double r, g, b;
+    if (sscanf(ptr, "%lf, %lf, %lf", &r, &g, &b) == 3 ||
+        sscanf(ptr, "%lf %lf %lf", &r, &g, &b) == 3) {
+        return RGBSpectrum(r, g, b);
+    }
+
     double nm;
     double value;
     std::vector<double> nms;
     std::vector<double> values;
     while (ptr) {
-        sscanf(ptr, "%lf:%lf", &nm, &value);
+        if (sscanf(ptr, "%lf:%lf", &nm, &value) != 2) break;
         nms.push_back(nm);
         values.push_back(value);
         ptr = strstr(ptr, ",");
@@ -57,7 +63,16 @@ Spectrum getSpectrum(const std::string& attr) {
             break;
         }
     }
-    return Spectrum(nms, values);
+
+    if (!nms.empty() && !values.empty()) {
+        return Spectrum(nms, values);
+    }
+
+    if (sscanf(ptr, "%lf", &r) == 1) {
+        return Spectrum(r);       
+    }
+
+    return Spectrum();
 }
 
 }  // anonymous namespace
@@ -161,13 +176,71 @@ void Engine::start(const std::string& filename) const {
                 OBJMeshIO loader;
                 shapes = loader.load(objfile, toWorld);
             }
+        } else if (type == "sphere") {
+            Point3d center;
+            if (child.second.get<std::string>("point.<xmlattr>.name") == "center") {
+                double x = child.second.get<double>("point.<xmlattr>.x");
+                double y = child.second.get<double>("point.<xmlattr>.y");
+                double z = child.second.get<double>("point.<xmlattr>.z");
+                center = Point3d(x, y, z);
+            }
+            double r = child.second.get<double>("float.<xmlattr>.value");
+            shapes.push_back(std::make_shared<Sphere>(center, r));
         }
 
         // Material
         std::shared_ptr<Material> mtrl = nullptr;
+        // Check existance of subsurface 
+        bool isSubsurface = false;
+        if (child.second.find("subsurface") != child.second.not_found()) {
+            isSubsurface = true;            
+        }
+
         if (child.second.find("ref") != child.second.not_found()) {
             std::string id = child.second.get<std::string>("ref.<xmlattr>.id");
             mtrl = materials[id];
+        } else if (child.second.find("bsdf") != child.second.not_found()) {
+            const std::string bsdfType = child.second.get<std::string>("bsdf.<xmlattr>.type");
+            if (bsdfType == "diffuse") {
+                Spectrum ref;
+                if (child.second.get_child("bsdf").find("rgb") != child.second.get_child("bsdf").not_found()) {
+                    ref = getSpectrum(child.second.get<std::string>("bsdf.rgb.<xmlattr>.value"));
+                } else {
+                    ref = getSpectrum(child.second.get<std::string>("bsdf.spectrum.<xmlattr>.value"));                
+                }
+                mtrl = std::make_shared<LambertianMaterial>(
+                       std::make_shared<ConstantTexture<Spectrum>>(ref));
+            } else if (bsdfType == "roughplastic") {
+                Spectrum diffuse(0.9999);
+                Spectrum specular(0.9999);                
+                for (const auto& k : child.second.get_child("bsdf")) {
+                    if (k.first == "rgb" || k.first == "spectrum") {
+                        std::string refName = k.second.get<std::string>("<xmlattr>.name");
+                        if (refName == "diffuseReflectance") {
+                            diffuse = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                        } else if (refName == "specularReflectance") {
+                            specular = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));                    
+                        }
+                    }
+                }
+
+                if (isSubsurface) {
+                    double scale = 0.2;
+                    auto Kr      = std::make_shared<ConstantTexture<Spectrum>>(diffuse);
+                    auto Kt      = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.9999));
+                    auto sigma_a = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.0014, 0.0025, 0.0142));
+                    auto sigma_s = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.70, 1.22, 1.90));
+                    const double g = 0.0;
+                    const double eta = 1.3;
+                    mtrl = std::make_shared<SubsurfaceMaterial>(scale, Kr, Kt, sigma_a, sigma_s, g, eta);
+                } else {
+                    auto Kd = std::make_shared<ConstantTexture<Spectrum>>(diffuse);
+                    auto Ks = std::make_shared<ConstantTexture<Spectrum>>(specular);
+                    std::cout << "Kd: " << diffuse << std::endl;
+                    std::cout << "Ks: " << specular << std::endl;
+                    mtrl = std::make_shared<PlasticMaterial>(Kd, Ks);
+                }
+            }
         }
 
         // Emitter
@@ -179,7 +252,12 @@ void Engine::start(const std::string& filename) const {
 
             for (const auto& shape : shapes) {
                 if (lightType == "area") {
-                    Spectrum Le = getSpectrum(child.second.get<std::string>("emitter.spectrum.<xmlattr>.value"));
+                    Spectrum Le; 
+                    if (child.second.get_child("emitter").find("rgb") != child.second.get_child("emitter").not_found()) {
+                        Le = getSpectrum(child.second.get<std::string>("emitter.rgb.<xmlattr>.value"));
+                    } else {
+                        Le = getSpectrum(child.second.get<std::string>("emitter.spectrum.<xmlattr>.value"));
+                    }
                     lights.emplace_back(new AreaLight(shape, toWorld, Le));
                 }
             }
@@ -288,7 +366,7 @@ bool Engine::parseCamera(const boost::property_tree::ptree& xml,
         }
 
         Transform toWorld;
-        double fov, nearClip, farClip, focusDistance, lensr = 1.0;
+        double fov, nearClip, farClip, focusDistance = 1.0, lensr = 0.0;
         for (const auto& props : xml.get_child("scene.sensor")) {
             if (props.first == "<xmlattr>") continue;
 
@@ -332,6 +410,7 @@ bool Engine::parseCamera(const boost::property_tree::ptree& xml,
     } else {
         FatalError("Unknown sensor type \"%s\" is specified!!\n", type.c_str());
     }
+    return true;
 }
 
 bool Engine::parseFilm(const boost::property_tree::ptree& xml,

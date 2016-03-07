@@ -4,6 +4,7 @@ set(SOURCES ${SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/mirror.cc
     ${CMAKE_CURRENT_LIST_DIR}/metal.cc
     ${CMAKE_CURRENT_LIST_DIR}/glass.cc
+    ${CMAKE_CURRENT_LIST_DIR}/plastic.cc
     ${CMAKE_CURRENT_LIST_DIR}/subsurface.cc
     ${CMAKE_CURRENT_LIST_DIR}/kdsubsurface.cc
     ${CMAKE_CURRENT_LIST_DIR}/translucent.cc
@@ -15,6 +16,7 @@ set(HEADERS ${HEADERS}
     ${CMAKE_CURRENT_LIST_DIR}/mirror.h
     ${CMAKE_CURRENT_LIST_DIR}/metal.h
     ${CMAKE_CURRENT_LIST_DIR}/glass.h
+    ${CMAKE_CURRENT_LIST_DIR}/plastic.h
     ${CMAKE_CURRENT_LIST_DIR}/material.h
     ${CMAKE_CURRENT_LIST_DIR}/subsurface.h
     ${CMAKE_CURRENT_LIST_DIR}/kdsubsurface.h

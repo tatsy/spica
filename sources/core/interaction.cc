@@ -9,6 +9,16 @@
 
 namespace spica {
 
+namespace {
+
+Point3d offsetRayOrigin(const Point3d& p, const Normal3d& n, const Vector3d& w) {
+    Vector3d offset = EPS * Vector3d(n);
+    if (vect::dot(w, n) < 0.0) offset = -offset;
+    return p + offset;
+}
+
+}  // anonymous namespace
+
 // -----------------------------------------------------------------------------
 // Interaction method definitions
 // -----------------------------------------------------------------------------
@@ -53,16 +63,21 @@ Interaction& Interaction::operator=(const Interaction& intr) {
 }
 
 Ray Interaction::spawnRay(const Vector3d& wi) const {
-    return Ray(pos_, wi, INFTY, getMedium(wi));
+    Point3d origin = offsetRayOrigin(pos_, normal_, wi);
+    return Ray(origin, wi, INFTY, getMedium(wi));
 }
 
 Ray Interaction::spawnRayTo(const Point3d& p) const {
     Vector3d d = p - pos_;
-    return Ray(pos_, d, std::max(0.0, d.norm() - EPS), getMedium(d));
+    Point3d origin = offsetRayOrigin(pos_, normal_, d);
+    return Ray(origin, d, d.norm(), getMedium(d));
 }
 
 Ray Interaction::spawnRayTo(const Interaction& intr) const {
-    return spawnRayTo(intr.pos_);
+    Point3d origin = offsetRayOrigin(pos_, normal_, intr.pos_ - pos_);
+    Point3d target = offsetRayOrigin(intr.pos_, intr.normal_, origin - intr.pos_);
+    Vector3d d = target - origin;
+    return Ray(origin, d, d.norm(), getMedium(d));
 }
 
 

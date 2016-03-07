@@ -117,7 +117,7 @@ bool Sphere::intersect(const Ray& ray) const {
 }
 
 Interaction Sphere::sample(const Point2d& rands) const {
-    Point3d pObj = Point3d(0.0, 0.0, 0.0) + 
+    Point3d pObj = center_ + 
                    radius_ * sampleUniformSphere(rands);
     Normal3d nrm = vect::normalize(objectToWorld_.apply(Normal3d(pObj)));
     return Interaction{ pObj, nrm };
@@ -145,7 +145,7 @@ Interaction Sphere::sample(const Interaction& isect,
     Vector3d su, sv;
     vect::coordinateSystem(sw, &su, & sv);
     Vector3d nObj = su * cos(phi) * cosAlpha + sv * sin(phi) * cosAlpha + sw * sinAlpha;
-    Vector3d pObj = radius_ * nObj;
+    Vector3d pObj = center_ + radius_ * nObj;
 
     return Interaction{ Point3d(pObj), Normal3d(nObj) };
 }

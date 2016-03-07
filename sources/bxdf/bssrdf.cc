@@ -261,6 +261,7 @@ Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
             candidates.push_back(isect);
         }
         ray = isect.spawnRayTo(pTo);
+        Assertion(candidates.size() < 100, "Candidate too many!!");
     }
 
     if (candidates.empty()) return Spectrum(0.0);

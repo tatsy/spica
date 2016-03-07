@@ -13,9 +13,9 @@
 
 namespace boost {
 namespace property_tree {
-template < class Key, class Data, class KeyCompare = std::less<Key> >
+template < class Key, class Data, class KeyCompare >
 class basic_ptree;
-using ptree = basic_ptree<std::string, std::string>;
+using ptree = basic_ptree<std::string, std::string, std::less<std::string> >;
 }
 }
 

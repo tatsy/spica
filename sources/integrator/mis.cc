@@ -130,7 +130,9 @@ Spectrum estimateDirectLight(const Interaction& intr,
                 Li = light.Le(ray);
             }
 
-            if (!Li.isBlack()) Ld += f * Li * Tr * weight / bsdfPdf;
+            if (!Li.isBlack()) {
+                Ld += f * Li * Tr * weight / bsdfPdf;
+            }
         }
     }
     return Ld;

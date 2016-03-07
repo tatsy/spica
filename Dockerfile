@@ -24,8 +24,9 @@ RUN pip install gcovr
 RUN apt-get -qq install cppcheck cccc doxygen
 
 #
-## Install freeglut and glew
+## Install Boost, freeglut and glew
 #
+RUN apt-get -qq install libboost-dev
 RUN apt-get -qq install freeglut3-dev libglew-dev
 RUN apt-get -qq install libxmu-dev libxi-dev
 

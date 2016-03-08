@@ -1,7 +1,7 @@
 spica
 ===
 
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/tatsy/spica/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Build Status](https://travis-ci.org/tatsy/spica.svg?branch=master)](https://travis-ci.org/tatsy/spica)
 [![Coverage Status](https://coveralls.io/repos/tatsy/spica/badge.svg?branch=master)](https://coveralls.io/r/tatsy/spica?branch=master)
 
@@ -46,7 +46,7 @@ The scene courtesy of Mitsuba renderer (W. Jakob 2010).
 
 #### Cornell Box (Subsurface Scattering)
 
-<img src="./results/cbox_sss_1000.png" width="512" />
+<img src="./results/cbox_sss_5000.png" width="512" />
 
 The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
 

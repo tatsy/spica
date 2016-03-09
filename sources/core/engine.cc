@@ -6,7 +6,7 @@
 #include <map>
 
 #include "spectrum.h"
-#include "rect.h"
+#include "bounds2d.h"
 #include "primitive.h"
 #include "path.h"
 
@@ -410,7 +410,7 @@ bool Engine::parseCamera(const boost::property_tree::ptree& xml,
             }
         }           
 
-        RectF screen = RectF(-1.0, -1.0, 2.0, 2.0);
+        Bounds2d screen(-1.0, -1.0, 1.0, 1.0);
         *camera = std::make_shared<PerspectiveCamera>(
             toWorld, screen, lensr, focusDistance, fov, film);
     } else if (type == "orthographic") {

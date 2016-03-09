@@ -25,9 +25,10 @@ namespace spica {
     class MemoryArena;
 
     template <class T>
-    class Rect_;
-    using Rect = Rect_<int>;
-    using RectF = Rect_<double>;
+    class Bounds2_;
+    using Bounds2i = Bounds2_<int>;
+    using Bounds2f = Bounds2_<float>;
+    using Bounds2d = Bounds2_<double>;
 
     template <class T>
     class Bounds3_;

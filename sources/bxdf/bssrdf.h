@@ -91,6 +91,9 @@ private:
 // BSSRDF utility functions
 // -----------------------------------------------------------------------------
 
+SPICA_EXPORTS double FresnelMoment1(double eta);
+SPICA_EXPORTS double FresnelMoment2(double eta);
+
 SPICA_EXPORTS
 void subsurfaceFromDiffuse(const CatmullRom2D& table, const Spectrum& albedoEff,
                            const Spectrum& mfp, Spectrum* sigA, Spectrum* sigS);

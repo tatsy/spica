@@ -20,7 +20,7 @@ public:
     // Public methods
     OrthographicCamera();
     OrthographicCamera(const Transform& cameraToWorld,
-                        const RectF& screen, double lensRadius,
+                        const Bounds2d& screen, double lensRadius,
                         double focalLength, Film* film);
     OrthographicCamera(const OrthographicCamera&) = default;
     ~OrthographicCamera() = default;

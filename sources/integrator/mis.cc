@@ -5,7 +5,6 @@
 #include "../core/memory.h"
 #include "../core/interaction.h"
 #include "../core/ray.h"
-#include "../core/rect.h"
 #include "../core/point2d.h"
 #include "../core/sampling.h"
 

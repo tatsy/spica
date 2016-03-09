@@ -16,7 +16,7 @@ public:
     Camera();
     Camera(const Transform& cameraToWorld,
            const Transform& cameraToScreen,
-           const RectF& screen,
+           const Bounds2d& screen,
            double lensRadius, double focalLength,
            Film* film);
     Camera(const Camera&) = default;

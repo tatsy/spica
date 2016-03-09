@@ -11,13 +11,31 @@
 #include "../sources/core/timer.h"
 #include "../sources/core/sampling.h"
 #include "../sources/core/spica_dirs.h"
-#include "../sources/core/rect.h"
+#include "../sources/core/point2d.h"
+#include "../sources/core/point3d.h"
+#include "../sources/core/bounds2d.h"
+#include "../sources/core/bounds3d.h"
+#include "../sources/core/triplet.h"
 #include "../sources/core/interaction.h"
 
 #include "../sources/shape/shape.h"
 
 #include "../sources/random/random.h"
 #include "../sources/random/halton.h"
+
+// --------------------------------------------
+// Accelerators
+// --------------------------------------------
+#include "../sources/accel/bbvh_accel.h"
+
+// --------------------------------------------
+// BxDF
+// --------------------------------------------
+#include "../sources/bxdf/bsdf.h"
+#include "../sources/bxdf/bxdf.h"
+#include "../sources/bxdf/bssrdf.h"
+#include "../sources/bxdf/fresnel.h"
+#include "../sources/bxdf/microfacet.h"
 
 // --------------------------------------------
 // Math
@@ -58,8 +76,19 @@
 // --------------------------------------------
 
 #include "../sources/integrator/render_parameters.h"
-
 #include "../sources/integrator/spica_integrator.h"
+
+// --------------------------------------------
+// Textures
+// --------------------------------------------
+
+#include "../sources/texture/spica_texture.h"
+
+// --------------------------------------------
+// Textures
+// --------------------------------------------
+
+#include "../sources/material/spica_material.h"
 
 // --------------------------------------------
 // Scenes

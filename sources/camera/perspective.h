@@ -19,7 +19,7 @@ public:
     // Public methods
     PerspectiveCamera();
     PerspectiveCamera(const Transform& cameraToWorld,
-                      const RectF& screen, double lensRadius,
+                      const Bounds2d& screen, double lensRadius,
                       double focalLength, double fov, Film* film);
 
     PerspectiveCamera(const PerspectiveCamera&) = default;

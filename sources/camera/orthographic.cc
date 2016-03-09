@@ -12,7 +12,7 @@ OrthographicCamera::OrthographicCamera()
 }
 
 OrthographicCamera::OrthographicCamera(const Transform& cameraToWorld,
-                                       const RectF& screen, double lensRadius,
+                                       const Bounds2d& screen, double lensRadius,
                                        double focalLength, Film* film)
     : Camera{ cameraToWorld, Transform::orthographic(0.0, 1.0), screen,
               lensRadius, focalLength, film }

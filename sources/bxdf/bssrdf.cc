@@ -136,45 +136,37 @@ BSSRDF::BSSRDF(const SurfaceInteraction& po, double eta)
     , eta_{ eta } {
 }
 
-
 // -----------------------------------------------------------------------------
-// DiffuseBSSRDF method definitions
+// SeparableBSSRDF method definitions
 // -----------------------------------------------------------------------------
-
-DiffuseBSSRDF::DiffuseBSSRDF(const SurfaceInteraction& po,
-                             const Material* material,
-                             double eta, const Spectrum& sigmaAbsorb,
-                             const Spectrum& sigmaScatter,
-                             const CatmullRom2D& table) 
+SeparableBSSRDF::SeparableBSSRDF(const SurfaceInteraction& po,
+                                 double eta, const Material* material)
     : BSSRDF{ po, eta }
     , normal_{ po.normal().normalized() }
     , tangent_{ po.dpdu().normalized() }
     , binormal_{ po.dpdv().normalized() }
-    , material_{ material }
-    , table_{ table }
-    , sigmaExt_{ sigmaAbsorb + sigmaScatter }
-    , albedo_{ sigmaScatter / (sigmaExt_ + EPS) } {
+    , material_{ material } {
 }
 
-Spectrum DiffuseBSSRDF::S(const SurfaceInteraction& pi,
+Spectrum SeparableBSSRDF::S(const SurfaceInteraction& pi,
                           const Vector3d& wi) const {
     const double Ft = FrDielectric(vect::cosTheta(po_.wo()), 1.0, eta_);
     return (1.0 - Ft) * Sp(pi) * Sw(wi);
 }
 
-Spectrum DiffuseBSSRDF::sample(const Scene& scene, double rand1,
+Spectrum SeparableBSSRDF::sample(const Scene& scene, double rand1,
                                const Point2d& rand2, MemoryArena& arena,
                                SurfaceInteraction* pi, double* pdf) const {
     Spectrum sp = sampleSp(scene, rand1, rand2, arena, pi, pdf);
     if (!sp.isBlack()) {
         pi->setBSDF(arena.allocate<BSDF>(*pi));
-        pi->bsdf()->add(arena.allocate<DiffuseBSSRDFAdapter>(this));
+        pi->bsdf()->add(arena.allocate<SeparableBSSRDFAdapter>(this));
         pi->wo_ = Vector3d(pi->normal());
     }
     return sp;
 }
 
-Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
+Spectrum SeparableBSSRDF::sampleSp(const Scene& scene, double rand1,
                                  const Point2d& rand2, MemoryArena& arena,
                                  SurfaceInteraction* pi, double* pdf) const {
     // Choose coordinate system for sampling
@@ -252,7 +244,7 @@ Spectrum DiffuseBSSRDF::sampleSp(const Scene& scene, double rand1,
     return Sp(*pi);
 }
 
-double DiffuseBSSRDF::pdfSp(const SurfaceInteraction& pi) const {
+double SeparableBSSRDF::pdfSp(const SurfaceInteraction& pi) const {
     Vector3d d = po_.pos() - pi.pos();
     Vector3d dLocal(vect::dot(tangent_, d), vect::dot(binormal_, d),
                     vect::dot(normal_, d));
@@ -275,14 +267,29 @@ double DiffuseBSSRDF::pdfSp(const SurfaceInteraction& pi) const {
     return pdf;
 }
 
-Spectrum DiffuseBSSRDF::Sp(const SurfaceInteraction& pi) const {
+Spectrum SeparableBSSRDF::Sp(const SurfaceInteraction& pi) const {
     return Sr((po_.pos() - pi.pos()).norm());
 }
 
-Spectrum DiffuseBSSRDF::Sw(const Vector3d& wi) const {
+Spectrum SeparableBSSRDF::Sw(const Vector3d& wi) const {
     double c = 1.0 - 2.0 * FresnelMoment1(1.0 / eta_);
     double Ft = FrDielectric(vect::cosTheta(wi), 1.0, eta_);
     return Spectrum((1.0 - Ft) / (c * PI));
+}
+
+// -----------------------------------------------------------------------------
+// DiffuseBSSRDF method definitions
+// -----------------------------------------------------------------------------
+
+DiffuseBSSRDF::DiffuseBSSRDF(const SurfaceInteraction& po,
+                             const Material* material,
+                             double eta, const Spectrum& sigmaAbsorb,
+                             const Spectrum& sigmaScatter,
+                             const CatmullRom2D& table) 
+    : SeparableBSSRDF{ po, eta, material }
+    , table_{ table }
+    , sigmaExt_{ sigmaAbsorb + sigmaScatter }
+    , albedo_{ sigmaScatter / (sigmaExt_ + EPS) } {
 }
 
 Spectrum DiffuseBSSRDF::Sr(double r) const {
@@ -391,12 +398,12 @@ double FresnelMoment2(double eta) {
     }
 }
 
-DiffuseBSSRDFAdapter::DiffuseBSSRDFAdapter(const DiffuseBSSRDF* bssrdf)
+SeparableBSSRDFAdapter::SeparableBSSRDFAdapter(const SeparableBSSRDF* bssrdf)
     : BxDF{ BxDFType::Reflection | BxDFType::Diffuse }
     , bssrdf_{ bssrdf } {
 }
 
-Spectrum DiffuseBSSRDFAdapter::f(const Vector3d& wo, const Vector3d& wi) const {
+Spectrum SeparableBSSRDFAdapter::f(const Vector3d& wo, const Vector3d& wi) const {
     Spectrum f = bssrdf_->Sw(wi);
     // TODO: Should the transport mode be considered??
     return f;

@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
                                        std::move(filter),
                                        kOutputDirectory + "pathtrace_%03d.png");
 
-    RectF screen(-2.5, -2.5, 5.0, 5.0);
+    Bounds2d screen(-2.5, -2.5, 2.5, 2.5);
     double fov = PI / 24.0;
 
     Point3d  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));

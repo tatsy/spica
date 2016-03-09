@@ -61,7 +61,7 @@ protected:
     MediumInterface mediumInterface_;
 
 private:
-    friend class DiffuseBSSRDF;
+    friend class SeparableBSSRDF;
 };
 
 class SPICA_EXPORTS SurfaceInteraction : public Interaction {

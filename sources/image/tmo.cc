@@ -209,7 +209,7 @@ namespace spica {
             for (int x = 0; x < width; x++) {
                 const double logCompressed = logBase(x, y).luminance() * compressionFactor + logDetail(x, y).luminance() - logAbsolute;
                 const RGBSpectrum compressed = tmp(x, y) * pow(10.0, logCompressed);
-                ret.pixel(x, y) = compressed.clamp(RGBSpectrum(0.0, 0.0, 0.0), RGBSpectrum(1.0, 1.0, 1.0));                
+                ret.pixel(x, y) = Spectrum::clamp(compressed, RGBSpectrum(0.0, 0.0, 0.0), RGBSpectrum(1.0, 1.0, 1.0));                
             }
         }
 

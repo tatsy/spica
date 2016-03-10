@@ -8,7 +8,8 @@
 #include <vector>
 #include <type_traits>
 
-#include "../shape/spica_shape.h"
+#include "../core/common.h"
+#include "../core/forward_decl.h"
 
 extern void* enabler;
 

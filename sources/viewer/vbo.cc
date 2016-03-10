@@ -4,6 +4,8 @@
 #include <typeinfo>
 #include <string>
 
+#include "../shape/triangle.h"
+
 namespace spica {
 
 VBO::VBO()

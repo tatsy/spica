@@ -7,17 +7,17 @@
 namespace spica {
 
 VBO::VBO()
-    : _vertices()
-    , _normals()
-    , _colors()
-    , _indices() {
+    : vertices_()
+    , normals_()
+    , colors_()
+    , indices_() {
 }
 
 VBO::VBO(const VBO& vbo)
-    : _vertices()
-    , _normals()
-    , _colors()
-    , _indices() {
+    : vertices_()
+    , normals_()
+    , colors_()
+    , indices_() {
     operator=(vbo);
 }
 
@@ -25,23 +25,34 @@ VBO::~VBO() {
 }
 
 VBO& VBO::operator=(const VBO& vbo) {
-    this->_vertices = vbo._vertices;
-    this->_normals  = vbo._normals;
-    this->_colors   = vbo._colors;
-    this->_indices  = vbo._indices;
+    this->vertices_ = vbo.vertices_;
+    this->normals_  = vbo.normals_;
+    this->colors_   = vbo.colors_;
+    this->indices_  = vbo.indices_;
     return *this;
 }
 
+void VBO::add(const Triangle& t, const RGBSpectrum& color) {
+    const int triID = static_cast<int>(vertices_.size()) / 3;
+    add(t[0], t.normal(0), color);
+    add(t[1], t.normal(1), color);
+    add(t[2], t.normal(2), color);
+
+    indices_.push_back(triID + 0);
+    indices_.push_back(triID + 1);
+    indices_.push_back(triID + 2);
+}
+
 void VBO::add(const Point3d& v, const Normal3d& normal, const RGBSpectrum& color) {
-    _vertices.push_back(v.x());
-    _vertices.push_back(v.y());
-    _vertices.push_back(v.z());
-    _normals.push_back(normal.x());
-    _normals.push_back(normal.y());
-    _normals.push_back(normal.z());
-    _colors.push_back(color.red());
-    _colors.push_back(color.green());
-    _colors.push_back(color.blue());
+    vertices_.push_back(v.x());
+    vertices_.push_back(v.y());
+    vertices_.push_back(v.z());
+    normals_.push_back(normal.x());
+    normals_.push_back(normal.y());
+    normals_.push_back(normal.z());
+    colors_.push_back(color.red());
+    colors_.push_back(color.green());
+    colors_.push_back(color.blue());
 }
 
 }  // namespace spica

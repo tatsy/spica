@@ -26,7 +26,8 @@ public:
     explicit SceneViewer(QWidget *parent = 0);
     ~SceneViewer();
 
-    void setScene(const Scene& scene,
+    void setScene(const std::vector<Triangle>& tris,
+                  const std::vector<Spectrum>& Kd,
                   const std::shared_ptr<const Camera>& camera);
 
 private:

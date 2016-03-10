@@ -20,7 +20,8 @@ namespace spica {
         explicit QGLRenderWidget(QWidget *parent = 0);
         ~QGLRenderWidget();
 
-        void setScene(const Scene& scene,
+        void setScene(const std::vector<spica::Triangle>& tris,
+                      const std::vector<spica::Spectrum>& Kd,
                       const std::shared_ptr<const Camera>& camera);
 
     protected:
@@ -35,8 +36,6 @@ namespace spica {
 
         void updateMouse();
         QVector3D getArcBallVector(int x, int y);
-
-        void cameraToProj(QMatrix4x4* mat) const;
 
     protected slots:
         void animate();

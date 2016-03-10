@@ -36,18 +36,16 @@ namespace spica {
         delete shaderProgram;
     }
 
-    void QGLRenderWidget::setScene(const Scene& scene,
+    void QGLRenderWidget::setScene(const std::vector<spica::Triangle>& tris,
+                                   const std::vector<spica::Spectrum>& Kd,
                                    const std::shared_ptr<const Camera>& camera_) {
         this->camera = camera_;
 
         const Point2i res = camera_->film()->resolution();
         this->resize(res.x(), res.y());
-
-        /*
-        for (int i = 0; i < scene.numTriangles(); i++) {
-            vbo.add(scene.getTriangle(i), scene.getBsdf(i).reflectance());
+        for (int i = 0; i < tris.size(); i++) {
+            vbo.add(tris[i], Kd[i]);
         }
-        */
     }
 
     void QGLRenderWidget::initializeGL() {
@@ -84,17 +82,17 @@ namespace spica {
         if (camera->film()->resolution().x() == 0 ||
             camera->film()->resolution().y() == 0) return;
 
-        const Point3d  eye; //    = camera->;
-        const Point3d  lookTo; // = eye + camera.direction();
-        const Vector3d up; //     = camera.up();
-
         QMatrix4x4 projMat, viewMat, modelMat, normalMat;
-        cameraToProj(&projMat);
-        
-        viewMat.lookAt(QVector3D(eye.x(), eye.y(), eye.z()),
-                       QVector3D(lookTo.x(), lookTo.y(), lookTo.z()),
-                       QVector3D(up.x(), up.y(), up.z()));
-        
+
+        spica::Matrix4x4 c2s = camera->cameraToScreen().getMat();
+        spica::Matrix4x4 w2c = camera->cameraToWorld().getInvMat();
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                projMat(i, j) = c2s(i, j);
+                viewMat(i, j) = w2c(i, j);
+            }
+        }
+                
         modelMat.setToIdentity();
         modelMat = modelMat * rotationMat;
         modelMat.scale(1.0 - _scrallDelta * 0.1);
@@ -158,29 +156,6 @@ namespace spica {
         }
 
         return pt;
-    }
-
-    void QGLRenderWidget::cameraToProj(QMatrix4x4* mat) const {
-        /*
-        ICamera* ptr = camera._ptr.get();    
-        if (typeid(*ptr) == typeid(OrthographicCamera)) {
-            OrthographicCamera* cam = reinterpret_cast<OrthographicCamera*>(ptr);
-            const Rect& rect = cam->rect();
-            QRect qrect(rect.x(), rect.y(), rect.width(), rect.height());
-            mat->ortho(qrect);
-        } else if (typeid(*ptr) == typeid(PerspectiveCamera)) {
-            PerspectiveCamera* cam = reinterpret_cast<PerspectiveCamera*>(ptr);
-            const double verticalAngle = 180.0 * cam->fov() / PI;
-            mat->perspective(verticalAngle, (float)width() / (float)height(), 1.0f, 1000.0f);
-        } else if (typeid(*ptr) == typeid(DoFCamera)) {
-            DoFCamera* cam = reinterpret_cast<DoFCamera*>(ptr);
-            const double verticalAngle = 360.0 / PI * atan(cam->sensorH() / (2.0 * cam->distSL()));
-            mat->perspective(verticalAngle, (float)width() / (float)height(), 1.0f, 1000.0f);
-        } else {
-            std::cerr << "[ERROR] unknown camera projection type detected: " << (typeid(*ptr).name()) << std::endl;
-            std::abort();
-        }
-        */
     }
 
     void QGLRenderWidget::wheelEvent(QWheelEvent* e) {

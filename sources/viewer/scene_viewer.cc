@@ -60,9 +60,10 @@ SceneViewer::~SceneViewer() {
     delete renderThread;
 }
 
-void SceneViewer::setScene(const Scene& scene,
+void SceneViewer::setScene(const std::vector<Triangle>& tris,
+                           const std::vector<Spectrum>& Kd,
                            const std::shared_ptr<const Camera>& camera) {
-    qglWidget->setScene(scene, camera);
+    qglWidget->setScene(tris, Kd, camera);
 }
 
 void SceneViewer::setSignalSlots() {

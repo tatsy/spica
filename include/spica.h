@@ -99,4 +99,10 @@
 #include "../sources/scenes/yaml_parser.h"
 #include "../sources/scenes/scene_loader.h"
 
+// --------------------------------------------
+// Viewer
+// --------------------------------------------
+
+#include "../sources/viewer/vbo.h"
+
 #endif  // _SPICA_H_

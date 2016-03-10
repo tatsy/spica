@@ -186,6 +186,16 @@ std::vector<Triangle> Triangle::triangulate() const {
     return std::move(tris);
 }
 
+const Normal3d& Triangle::normal(int i) const {
+    Assertion(i >= 0 && i <= 2, "Index out of bounds: %d specified.", i);
+    return normals_[i];
+}
+
+const Point2d& Triangle::uv(int i) const {
+    Assertion(i >= 0 && i <= 2, "Index out of bounds: %d specified.", i);
+    return uvs_[i];
+}
+
 Point3d Triangle::gravity() const {
     return (points_[0] + points_[1] + points_[2]) / 3.0;
 }

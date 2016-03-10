@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 
     std::shared_ptr<Sampler> sampler = std::make_unique<Random>(0);
 
-    cornellBox(&scene, nullptr, 0, 0);
+    cornellBox(&scene);
     // kittenBox(&scene, &camera, width, height);
     // kittenEnvmap(&scene, &camera, width, height);
     

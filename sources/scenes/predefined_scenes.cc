@@ -18,27 +18,43 @@
 #include "../texture/constant.h"
 
 namespace spica {
-    void cornellBox(Scene* scene, Camera* camera, const int width, const int height) {
+    void cornellBox(Scene* scene,
+                    std::vector<Triangle>* tris,
+                    std::vector<Spectrum>* Kd) {
         std::vector<std::shared_ptr<Primitive>> primitives;
         std::vector<std::shared_ptr<Light>> lights;
 
+        if (tris) tris->clear();
+        if (Kd)   Kd->clear();
+
         // Light
         {
-            Point3d l00(-5.0, 9.99, -5.0);
-            Point3d l01(-5.0, 9.99,  5.0);
-            Point3d l10( 5.0, 9.99, -5.0);
-            Point3d l11( 5.0, 9.99,  5.0);
+            Point3d l00(-5.0, 9.9, -5.0);
+            Point3d l01(-5.0, 9.9,  5.0);
+            Point3d l10( 5.0, 9.9, -5.0);
+            Point3d l11( 5.0, 9.9,  5.0);
             Spectrum Le(8.0, 8.0, 8.0);
             auto t1 = std::make_shared<Triangle>(l00, l10, l11);
             auto t2 = std::make_shared<Triangle>(l00, l11, l01);
             auto l1 = std::make_shared<AreaLight>(t1, Transform(), Le);
             auto l2 = std::make_shared<AreaLight>(t2, Transform(), Le);
-            auto lightKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            Spectrum kd = Spectrum(0.999, 0.999, 0.999);
+            auto lightKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto lightMtrl = std::make_shared<LambertianMaterial>(lightKd); 
             primitives.emplace_back(new GeometricPrimitive(t1, lightMtrl, l1));
             primitives.emplace_back(new GeometricPrimitive(t2, lightMtrl, l2));
             lights.push_back(l1);
             lights.push_back(l2);
+
+            if (tris) {
+                tris->push_back(*t1.get());
+                tris->push_back(*t2.get());
+            }
+
+            if (Kd) {
+                Kd->push_back(kd);
+                Kd->push_back(kd);
+            }
         }
 
         Point3d v000(-10.0, -10.0, -10.0);
@@ -54,50 +70,107 @@ namespace spica {
         {
             auto t1 = std::make_shared<Triangle>(v010, v110, v111);
             auto t2 = std::make_shared<Triangle>(v010, v111, v011);
-            auto ceilKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.75, 0.75, 0.75));
+            Spectrum kd(0.75, 0.75, 0.75);
+            auto ceilKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto ceilMtrl = std::make_shared<LambertianMaterial>(ceilKd);
             primitives.emplace_back(new GeometricPrimitive(t1, ceilMtrl, nullptr));
             primitives.emplace_back(new GeometricPrimitive(t2, ceilMtrl, nullptr));
+
+            if (tris) {
+                tris->push_back(*t1.get());
+                tris->push_back(*t2.get());
+            }
+
+            if (Kd) {
+                Kd->push_back(kd);
+                Kd->push_back(kd);
+            }
         }
 
         // Floor
         {
             auto t1 = std::make_shared<Triangle>(v000, v001, v101);
             auto t2 = std::make_shared<Triangle>(v000, v101, v100);
-            auto floorKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.75, 0.75, 0.75));
+            Spectrum kd(0.75, 0.75, 0.75);
+            auto floorKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto floorMtrl = std::make_shared<LambertianMaterial>(floorKd);
             primitives.emplace_back(new GeometricPrimitive(t1, floorMtrl, nullptr));
             primitives.emplace_back(new GeometricPrimitive(t2, floorMtrl, nullptr));
+
+            if (tris) {
+                tris->push_back(*t1.get());
+                tris->push_back(*t2.get());
+            }
+
+            if (Kd) {
+                Kd->push_back(kd);
+                Kd->push_back(kd);
+            }
         }
 
         // Back
         {
             auto t1 = std::make_shared<Triangle>(v000, v100, v110);
             auto t2 = std::make_shared<Triangle>(v000, v110, v010);
-            auto backKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.75, 0.75, 0.75));
+            Spectrum kd(0.75, 0.75, 0.75);
+            auto backKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto backMtrl = std::make_shared<LambertianMaterial>(backKd);
             primitives.emplace_back(new GeometricPrimitive(t1, backMtrl, nullptr));
             primitives.emplace_back(new GeometricPrimitive(t2, backMtrl, nullptr));
+
+            if (tris) {
+                tris->push_back(*t1.get());
+                tris->push_back(*t2.get());
+            }
+
+            if (Kd) {
+                Kd->push_back(kd);
+                Kd->push_back(kd);
+            }
+
         }
 
         // Left
         {
             auto t1 = std::make_shared<Triangle>(v000, v010, v011);
             auto t2 = std::make_shared<Triangle>(v000, v011, v001);
-            auto leftKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.75, 0.25, 0.25));
+            Spectrum kd(0.75, 0.25, 0.25);
+            auto leftKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto leftMtrl = std::make_shared<LambertianMaterial>(leftKd);
             primitives.emplace_back(new GeometricPrimitive(t1, leftMtrl, nullptr));
             primitives.emplace_back(new GeometricPrimitive(t2, leftMtrl, nullptr));
+
+            if (tris) {
+                tris->push_back(*t1.get());
+                tris->push_back(*t2.get());
+            }
+
+            if (Kd) {
+                Kd->push_back(kd);
+                Kd->push_back(kd);
+            }
         }
 
         // Right
         {
             auto t1 = std::make_shared<Triangle>(v100, v101, v111);
             auto t2 = std::make_shared<Triangle>(v100, v111, v110);
-            auto rightKd   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.25, 0.75, 0.25));
+            Spectrum kd(0.25, 0.75, 0.25);
+            auto rightKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto rightMtrl = std::make_shared<LambertianMaterial>(rightKd);
             primitives.emplace_back(new GeometricPrimitive(t1, rightMtrl, nullptr));
             primitives.emplace_back(new GeometricPrimitive(t2, rightMtrl, nullptr));
+
+            if (tris) {
+                tris->push_back(*t1.get());
+                tris->push_back(*t2.get());
+            }
+
+            if (Kd) {
+                Kd->push_back(kd);
+                Kd->push_back(kd);
+            }
+
         }
 
         // Mirror ball

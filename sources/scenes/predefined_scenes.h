@@ -5,14 +5,18 @@
 #ifndef _SPICA_PREDEFINED_SCENES_H_
 #define _SPICA_PREDEFINED_SCENES_H_
 
+#include <vector>
+
 #include "../core/common.h"
+#include "../core/forward_decl.h"
+#include "../core/spectrum.h"
 
 namespace spica {
 
-    class Scene;
-    class Camera;
 
-    SPICA_EXPORTS void cornellBox(Scene* scene, Camera* camera, const int width, const int height);
+    SPICA_EXPORTS void cornellBox(Scene* scene,
+                                  std::vector<Triangle>* tris = nullptr,
+                                  std::vector<Spectrum>* Kd = nullptr);
 
     SPICA_EXPORTS void cornellBoxBunny(Scene* scene, Camera* camera, const int width, const int height);
    

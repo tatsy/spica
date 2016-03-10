@@ -30,6 +30,8 @@ public:
                          double* pdfDir = nullptr) const = 0;
 
     inline Film* film() const { return film_; }
+    inline const Transform& cameraToWorld() const { return cameraToWorld_; }
+    inline const Transform& cameraToScreen() const { return cameraToScreen_; }
 
 protected:
     // Private fields

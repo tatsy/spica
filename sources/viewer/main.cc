@@ -15,11 +15,11 @@ int main(int argc, char** argv) {
     std::unique_ptr<Filter> filter =
         std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
     auto film = std::make_unique<Film>(Point2i(width, height),
-                                       filter,
+                                       std::move(filter),
                                        kOutputDirectory + "pathtrace_%03d.png");
 
-    RectF screen(-2.5, -2.5, 5.0, 5.0);
-    double fov = PI / 24.0;
+    Bounds2d screen(-1.0, -1.0, 1.0, 1.0);
+    double fov = PI / 3.0;
 
     Point3d  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));
     Point3d  look(0.0, 0.0, 0.0);
@@ -33,12 +33,14 @@ int main(int argc, char** argv) {
         Transform::lookAt(eye, look, up),
         screen, lensR, focal, fov, film.get());
 
-    cornellBox(&scene, nullptr, 640, 480);
+    std::vector<Triangle> tris;
+    std::vector<Spectrum> Kd;
+    cornellBox(&scene, &tris, &Kd);
 
     SceneViewer viewer;
     viewer.showMaximized();
 
-    viewer.setScene(scene, camera);
+    viewer.setScene(tris, Kd, camera);
 
     return app.exec();
 }

@@ -7,6 +7,7 @@
 
 #include "pathtrace.h"
 #include "volpath.h"
+#include "directlighting.h"
 // #include "bdpt.h"
 // #include "mlt.h"
 // #include "ppmprob.h"

@@ -53,8 +53,8 @@ struct SPPMIntegrator::SPPMPixel {
 
 const double SPPMIntegrator::kAlpha_ = 0.7;
 
-SPPMIntegrator::SPPMIntegrator(std::shared_ptr<Camera>& camera,
-                               std::shared_ptr<Sampler>& sampler)
+SPPMIntegrator::SPPMIntegrator(const std::shared_ptr<Camera>& camera,
+                               const std::shared_ptr<Sampler>& sampler)
     : Integrator{ camera }
     , sampler_{ sampler } {
 }

@@ -33,69 +33,13 @@
 
 namespace spica {
 
-PathIntegrator::PathIntegrator(std::shared_ptr<Camera>& camera,
-                               std::shared_ptr<Sampler>& sampler)
-    : Integrator{ camera }
+PathIntegrator::PathIntegrator(const std::shared_ptr<Camera>& camera,
+                               const std::shared_ptr<Sampler>& sampler)
+    : SamplerIntegrator{ camera, sampler }
     , sampler_{ sampler } {
 }
 
 PathIntegrator::~PathIntegrator() {
-}
-
-void PathIntegrator::render(const Scene& scene,
-                            const RenderParameters& params) const {
-    // Preparation for accouting for BSSRDF
-    // _integrator->initialize(scene);
-
-    const int width = camera_->film()->resolution().x();
-    const int height = camera_->film()->resolution().y();
-
-    // Prepare samplers and memory arenas
-    auto samplers = std::vector<std::unique_ptr<Sampler>>(kNumThreads);
-    auto arenas   = std::vector<MemoryArena>(kNumThreads);
-
-    // Distribute rendering tasks
-    const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
-    std::vector<std::vector<int> > tasks(kNumThreads);
-    for (int y = 0; y < height; y++) {
-        tasks[y % kNumThreads].push_back(y);
-    }
-
-    // Trace rays
-    for (int i = 0; i < params.samplePerPixel(); i++) {
-        if (i % kNumThreads == 0) {
-            // _integrator->construct(scene, params);
-        }
-
-        if (i % 16 == 0) {
-            for (int t = 0; t < kNumThreads; t++) {
-                auto seed = static_cast<unsigned int>(time(0) + kNumThreads * i + t);
-                samplers[t] = sampler_->clone(seed);
-            }
-        }
-
-        for (int t = 0; t < taskPerThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-                samplers[threadID]->startNextSample();
-                if (t < tasks[threadID].size()) {
-                    const int y = tasks[threadID][t];
-                    for (int x = 0; x < width; x++) {
-                        const Point2d randFilm = samplers[threadID]->get2D();
-                        const Point2d randLens = samplers[threadID]->get2D();
-                        const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
-
-                        const Point2i pixel(width - x - 1, y);
-                        camera_->film()->
-                            addPixel(pixel, randFilm,
-                                     Li(scene, params, ray, *samplers[threadID], arenas[threadID]));
-                    }
-                }
-                arenas[threadID].reset();
-            }
-        }
-        camera_->film()->save(i);
-    }
-    std::cout << "Finish!!" << std::endl;
 }
 
 Spectrum PathIntegrator::Li(const Scene& scene,

@@ -130,6 +130,8 @@ void Engine::start(const std::string& filename) const {
         xml.get<std::string>("scene.integrator.<xmlattr>.type");
     if (intgrName == "path") {
         integrator.reset(new PathIntegrator(camera, sampler));
+    } else if (intgrName == "direct") {
+        integrator.reset(new DirectLightingIntegrator(camera, sampler));
     } else if (intgrName == "sppm") {
         integrator.reset(new SPPMIntegrator(camera, sampler));
     } else {

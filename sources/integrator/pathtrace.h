@@ -18,25 +18,23 @@ namespace spica {
  * Unidirectional path tracing
  * @ingroup renderer_module
  */
-class SPICA_EXPORTS PathIntegrator : public Integrator {
+class SPICA_EXPORTS PathIntegrator : public SamplerIntegrator {
 public:
     // Public methods
-    PathIntegrator(std::shared_ptr<Camera>& camera,
-                   std::shared_ptr<Sampler>& sampler);
+    PathIntegrator(const std::shared_ptr<Camera>& camera,
+                   const std::shared_ptr<Sampler>& sampler);
     ~PathIntegrator();
-    virtual void render(const Scene& scene,
-                        const RenderParameters& params) const override;
 
 protected:
-    // Private methods
+    // Protected methods
     virtual Spectrum Li(const Scene& scene,
                         const RenderParameters& params,
                         const Ray& ray,
                         Sampler& sampler,
                         MemoryArena& arena,
-                        int depth = 0) const;
+                        int depth = 0) const override;
 
-    // Private fields
+    // Private
     std::shared_ptr<Sampler> sampler_;
 };
 

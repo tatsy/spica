@@ -6,6 +6,7 @@ set(SOURCES
 #    ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.cc
     ${CMAKE_CURRENT_LIST_DIR}/pathtrace.cc
     ${CMAKE_CURRENT_LIST_DIR}/volpath.cc
+    ${CMAKE_CURRENT_LIST_DIR}/directlighting.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/bdpt.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/mlt.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
@@ -23,6 +24,7 @@ set(HEADERS
 #    ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.h
     ${CMAKE_CURRENT_LIST_DIR}/pathtrace.h
     ${CMAKE_CURRENT_LIST_DIR}/volpath.h
+    ${CMAKE_CURRENT_LIST_DIR}/directlighting.h
 #    ${CMAKE_CURRENT_LIST_DIR}/bdpt.h
 #    ${CMAKE_CURRENT_LIST_DIR}/mlt.h
 #    ${CMAKE_CURRENT_LIST_DIR}/photon_map.h

@@ -5,6 +5,7 @@
 #ifndef _SPICA_FRESNEL_H_
 #define _SPICA_FRESNEL_H_
 
+#include "../core/common.h"
 #include "../core/spectrum.h"
 
 namespace spica {
@@ -12,7 +13,7 @@ namespace spica {
 /**
  * The inteface for Fresnel reflections.
  */
-class Fresnel {
+class SPICA_EXPORTS Fresnel {
 public:
     virtual ~Fresnel() {}
     virtual Spectrum evaluate(double cosThetaI) const = 0;
@@ -21,7 +22,7 @@ public:
 /** 
  * Fresnel conductor class.
  */
-class FresnelConductor : public Fresnel {
+class SPICA_EXPORTS FresnelConductor : public Fresnel {
 public:
     FresnelConductor(const Spectrum& etaI, const Spectrum& etaT,
                      const Spectrum& k);
@@ -34,7 +35,7 @@ private:
 /**
  * Fresnel dielectric class.
  */
-class FresnelDielectric : public Fresnel {
+class SPICA_EXPORTS FresnelDielectric : public Fresnel {
 public:
     FresnelDielectric(double etaI, double etaT);
     Spectrum evaluate(double cosThetaI) const override;
@@ -46,7 +47,7 @@ private:
 /**
  * Dammy Fresnel class which returns always one.
  */
-class FresnelNoOp : public Fresnel {
+class SPICA_EXPORTS FresnelNoOp : public Fresnel {
 public:
     FresnelNoOp() {}
     Spectrum evaluate(double cosThetaI) const override {

@@ -54,8 +54,8 @@ public:
 
 protected:
     // Protected methods
+    virtual Spectrum Sp(const SurfaceInteraction& pi) const;
     Spectrum Sw(const Vector3d& w) const;
-    Spectrum Sp(const SurfaceInteraction& pi) const;
     Spectrum sampleSp(const Scene& scene, double rand1, const Point2d& rand2,
                       MemoryArena& arena, SurfaceInteraction* pi,
                       double* pdf) const;

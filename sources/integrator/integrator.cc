@@ -6,6 +6,7 @@
 
 #include "../bxdf/bxdf.h"
 #include "../bxdf/bsdf.h"
+#include "../bxdf/fresnel.h"
 
 #include "../camera/camera.h"
 #include "../image/film.h"

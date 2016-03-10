@@ -5,6 +5,7 @@
 #include "../core/primitive.h"
 #include "../math/vector3d.h"
 #include "../bxdf/bsdf.h"
+#include "../bxdf/fresnel.h"
 #include "../light/area_light.h"
 
 namespace spica {

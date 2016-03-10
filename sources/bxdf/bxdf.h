@@ -11,6 +11,7 @@
 #include "../core/forward_decl.h"
 #include "../core/uncopyable.h"
 #include "../core/spectrum.h"
+#include "fresnel.h"
 
 namespace spica {
 
@@ -45,9 +46,6 @@ public:
     explicit BxDF(BxDFType type = BxDFType::None);
     virtual ~BxDF();
 
-    BxDF(const BxDF&) = default;
-    BxDF& operator=(const BxDF&) = default;
-
     virtual Spectrum f(const Vector3d& wo, const Vector3d& wi) const = 0;
     virtual Spectrum sample(const Vector3d& wo, Vector3d* wi,
                             const Point2d& rands, double* pdf,
@@ -64,7 +62,7 @@ private:
 /**
  * Lambertian refrection.
  */
-class LambertianReflection : public BxDF {
+class SPICA_EXPORTS LambertianReflection : public BxDF {
 public:
     explicit LambertianReflection(const Spectrum& ref);
 
@@ -77,7 +75,7 @@ private:
 /**
  * Lambertian transmission.
  */
-class LambertianTransmission : public BxDF {
+class SPICA_EXPORTS LambertianTransmission : public BxDF {
 public:
     explicit LambertianTransmission(const Spectrum& tr);
 
@@ -90,7 +88,7 @@ private:
 /**
  * Specular reflection (Metal-like effect).
  */
-class SpecularReflection : public BxDF {
+class SPICA_EXPORTS SpecularReflection : public BxDF {
 public:
     // Public methods
     SpecularReflection(const Spectrum& ref, Fresnel* fresnel);
@@ -109,7 +107,7 @@ private:
 /**
  * Specular transmission.
  */
-class SpecularTransmission : public BxDF {
+class SPICA_EXPORTS SpecularTransmission : public BxDF {
 public:
     // Public methods
     SpecularTransmission(const Spectrum& tr, double etaA, double etaB);
@@ -130,7 +128,7 @@ private:
 /**
  * Fresnel specular refraction (Glass-like effect).
  */
-class FresnelSpecular : public BxDF {
+class SPICA_EXPORTS FresnelSpecular : public BxDF {
 public:
     // Public methods
     FresnelSpecular();
@@ -152,7 +150,7 @@ private:
 /**
  * Microfacet reflaction.
  */
-class MicrofacetReflection : public BxDF {
+class SPICA_EXPORTS MicrofacetReflection : public BxDF {
 public:
     MicrofacetReflection(const Spectrum& ref,
                          MicrofacetDistribution* distrib, Fresnel* fresnel);
@@ -170,7 +168,7 @@ private:
 /**
  * Microfacet transmission.
  */
-class MicrofacetTransmission : public BxDF {
+class SPICA_EXPORTS MicrofacetTransmission : public BxDF {
 public:
     // Public methods
     MicrofacetTransmission(const Spectrum& tr,

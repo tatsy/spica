@@ -9,6 +9,7 @@
 #include "../sources/core/engine.h"
 #include "../sources/core/path.h"
 #include "../sources/core/timer.h"
+#include "../sources/core/memory.h"
 #include "../sources/core/sampling.h"
 #include "../sources/core/spica_dirs.h"
 #include "../sources/core/point2d.h"
@@ -85,7 +86,7 @@
 #include "../sources/texture/spica_texture.h"
 
 // --------------------------------------------
-// Textures
+// Materials
 // --------------------------------------------
 
 #include "../sources/material/spica_material.h"

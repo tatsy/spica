@@ -7,6 +7,7 @@
 #include "../math/vect_math.h"
 
 #include "bxdf.h"
+#include "fresnel.h"
 
 namespace spica {
 

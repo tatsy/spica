@@ -16,7 +16,7 @@
 
 namespace spica {
 
-class BSDF {
+class SPICA_EXPORTS BSDF {
 public:
     // Public methods
     BSDF(const SurfaceInteraction& isect, double eta = 1.0);

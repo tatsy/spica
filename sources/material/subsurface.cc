@@ -43,7 +43,6 @@ void SubsurfaceMaterial::setScatterFuncs(SurfaceInteraction* isect,
     double uRough = uRoughness_ ? uRoughness_->evaluate(*isect) : 0.0;
     double vRough = vRoughness_ ? vRoughness_->evaluate(*isect) : 0.0;
 
-    // TODO: check which method "allocate" is called.
     isect->setBSDF(arena.allocate<BSDF>(*isect, eta_));
     
     if (re.isBlack() && tr.isBlack()) return;

@@ -16,8 +16,8 @@ namespace spica {
 
     Point2d UVMapping2D::map(const SurfaceInteraction& intr, 
                              Vector2d* dstdx, Vector2d* dstdy) const {
-        *dstdx = Vector2d(su_ * intr.dudx(), sv_ * intr.dvdx());
-        *dstdy = Vector2d(su_ * intr.dudy(), sv_ * intr.dvdy());
+        if (dstdx) *dstdx = Vector2d(su_ * intr.dudx(), sv_ * intr.dvdx());
+        if (dstdy) *dstdy = Vector2d(su_ * intr.dudy(), sv_ * intr.dvdy());
         return Point2d(su_ * intr.uv()[0] + du_, sv_ * intr.uv()[1] + dv_);
     }
 

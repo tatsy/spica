@@ -12,6 +12,7 @@
 #include "../core/forward_decl.h"
 #include "../core/spectrum.h"
 #include "../core/interaction.h"
+#include "../core/interpolation.h"
 
 #include "bxdf.h"
 
@@ -48,6 +49,9 @@ public:
                     MemoryArena& arena, SurfaceInteraction* po,
                     double* pdf) const override;
 
+    // Public virtual methods
+    virtual Spectrum Sr(double r) const = 0;
+
 protected:
     // Protected methods
     Spectrum Sw(const Vector3d& w) const;
@@ -58,7 +62,6 @@ protected:
     double pdfSp(const SurfaceInteraction& isect) const;
 
     // Protected virtual methods
-    virtual Spectrum Sr(double r) const = 0;
     virtual double sampleSr(int ch, double rand) const = 0;
     virtual double pdfSr(int ch, double r) const = 0;
 
@@ -81,8 +84,12 @@ public:
                   double eta, const Spectrum& sigmaAbsorb,
                   const Spectrum& sigmaScatter, const CatmullRom2D& table);
 
-protected:
     Spectrum Sr(double r) const override;
+
+    inline int nIntervals() const { return table_.ys().size(); }
+    inline std::vector<double> radii() const { return table_.ys(); }
+
+protected:
     double sampleSr(int ch, double rand) const override;
     double pdfSr(int ch, double r) const override;
 

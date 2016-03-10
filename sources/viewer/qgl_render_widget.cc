@@ -8,6 +8,7 @@
 #include "../image/film.h"
 #include "../camera/orthographic.h"
 #include "../camera/perspective.h"
+#include "../shape/triangle.h"
 
 #include "shader_location.h"
 

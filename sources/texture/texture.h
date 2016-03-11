@@ -7,6 +7,7 @@
 
 #include "../core/common.h"
 #include "../core/forward_decl.h"
+#include "../math/vector3d.h"
 
 namespace spica {
 
@@ -21,7 +22,7 @@ namespace spica {
                             Vector2d* dstdy = nullptr) const = 0;
     };
 
-    class UVMapping2D : public TextureMapping2D {
+    class SPICA_EXPORTS UVMapping2D : public TextureMapping2D {
     public:
         explicit UVMapping2D(double su = 1.0, double sv = 1.0,
                              double du = 0.0, double dv = 0.0);
@@ -32,7 +33,7 @@ namespace spica {
         const double su_, sv_, du_, dv_;
     };
 
-    class PlanarMapping2D : public TextureMapping2D {
+    class SPICA_EXPORTS PlanarMapping2D : public TextureMapping2D {
     public:
         PlanarMapping2D(const Vector3d& vs, const Vector3d& vt, double ds = 0.0,
                         double dt = 0.0);

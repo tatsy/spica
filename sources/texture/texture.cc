@@ -30,8 +30,8 @@ PlanarMapping2D::PlanarMapping2D(const Vector3d& vs, const Vector3d& vt,
 }
 
 Point2d PlanarMapping2D::map(const SurfaceInteraction& intr,
-                             Vector2d* dstdx = nullptr,
-                             Vector2d* dstdy = nullptr) const {
+                             Vector2d* dstdx,
+                             Vector2d* dstdy) const {
     Vector3d vec(intr.pos());
     return Point2d(ds_ + vect::dot(vec, vs_), dt_ + vect::dot(vec, vt_));
 }

@@ -15,31 +15,15 @@ int main(int argc, char **argv) {
     std::cout << "   height: " << height  << std::endl;
     std::cout << "  samples: " << samples << std::endl << std::endl;
 
-    std::unique_ptr<Filter> filter =
-        std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
-    auto film = std::make_unique<Film>(Point2i(width, height),
-                                       std::move(filter),
-                                       kOutputDirectory + "pathtrace_%03d.png");
-
-    Bounds2d screen(-2.5, -2.5, 2.5, 2.5);
-    double fov = PI / 24.0;
-
-    Point3d  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));
-    Point3d  look(0.0, 0.0, 0.0);
-    Vector3d up(0.0, 1.0, 0.0);
-
-    double focal = std::abs((look - eye).z());
-    double lensR = 0.5;
 
     Scene scene;
-    std::shared_ptr<Camera> camera = std::make_shared<PerspectiveCamera>(
-        Transform::lookAt(eye, look, up),
-        screen, lensR, focal, fov, film.get());
+    std::shared_ptr<Camera> camera;
 
     // std::shared_ptr<Sampler> sampler = std::make_unique<Random>(0);
     std::shared_ptr<Sampler> sampler = std::make_unique<Halton>(200, true, 0);
 
-    cornellBox(&scene);
+    //cornellBox(&scene);
+    kittenEnvmap(&scene, &camera, Point2i(width, height));
     
     Timer timer;
     timer.start();

@@ -55,10 +55,10 @@ namespace spica {
             for (int y = 0; y < tRes; y++) {
                 for (int x = 0; x < sRes; x++) {
                     pyramid_[i].pixel(x, y) = 0.25 * (
-                            pyramid_[i - 1].pixel(x * 2, y * 2) + 
-                            pyramid_[i - 1].pixel(x * 2 + 1, y * 2) + 
-                            pyramid_[i - 1].pixel(x * 2, y * 2 + 1) + 
-                            pyramid_[i - 1].pixel(x * 2 + 1, y * 2 + 1));
+                            texel(i - 1, x * 2, y * 2) + 
+                            texel(i - 1, x * 2 + 1, y * 2) + 
+                            texel(i - 1, x * 2, y * 2 + 1) + 
+                            texel(i - 1, x * 2 + 1, y * 2 + 1));
                 }
             }
         }
@@ -70,7 +70,7 @@ namespace spica {
         if (level < 0) {
             return bilinear(0, st);
         } else if (level >= levels() - 1) {
-            return pyramid_[levels() - 1](0, 0);
+            return texel(levels() - 1, 0, 0);
         } else {
             int l = static_cast<int>(level);
             double delta = level - l;
@@ -88,10 +88,33 @@ namespace spica {
         const int ti = static_cast<int>(t);
         const double ds = s - si;
         const double dt = t - ti;
-        return (1.0 - ds) * (1.0 - dt) * pyramid_[level](si, ti) +
-               ds * (1.0 - dt) * pyramid_[level](si, ti + 1) +
-               (1.0 - ds) * dt * pyramid_[level](si + 1, ti) +
-                ds * dt * pyramid_[level](si + 1, ti + 1);
+        return (1.0 - ds) * (1.0 - dt) * texel(level, si, ti) +
+               ds * (1.0 - dt) * texel(level, si, ti + 1) +
+               (1.0 - ds) * dt * texel(level, si + 1, ti) +
+                ds * dt * texel(level, si + 1, ti + 1);
+    }
+
+    Spectrum MipMap::texel(int level, int s, int t) const {
+        Assertion(level < pyramid_.size(), "Level is too high!");
+        const int w = pyramid_[level].width();
+        const int h = pyramid_[level].height();
+        switch (imageWrap_) {
+        case ImageWrap::Repeat:
+            s = (s % w + w) % w;
+            t = (t % h + h) % h;
+            break;
+
+        case ImageWrap::Clamp:
+            s = clamp(s, 0, w - 1);
+            t = clamp(t, 0, h - 1);
+            break;
+
+        case ImageWrap::Black:
+            if (s < 0.0 || s >= w || t < 0.0 || t >= h) {
+                return Spectrum(0.0);
+            }
+        }
+        return pyramid_[level](s, t);
     }
 
 }  // namespace spica

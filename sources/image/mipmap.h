@@ -31,6 +31,7 @@ namespace spica {
 
     private:
         Spectrum bilinear(int level, const Point2d& st) const;
+        Spectrum texel(int level, int s, int t) const;
 
         ImageWrap imageWrap_;
         std::vector<Image> pyramid_;

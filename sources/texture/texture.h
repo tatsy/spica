@@ -32,6 +32,19 @@ namespace spica {
         const double su_, sv_, du_, dv_;
     };
 
+    class PlanarMapping2D : public TextureMapping2D {
+    public:
+        PlanarMapping2D(const Vector3d& vs, const Vector3d& vt, double ds = 0.0,
+                        double dt = 0.0);
+        Point2d map(const SurfaceInteraction& intr,
+                    Vector2d* dstdx = nullptr,
+                    Vector2d* dstdy = nullptr) const override;
+
+    private:
+        const Vector3d vs_, vt_;
+        const double ds_, dt_;
+    };
+
     /**
      * Texture interface.
      */

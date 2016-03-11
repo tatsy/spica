@@ -35,14 +35,20 @@ namespace spica {
 
         double pdfLi(const Interaction& pObj, const Vector3d& dir) const override;
 
+        Spectrum sampleLe(const Point2d& rand1, const Point2d& rand2,
+                          Ray* ray, Normal3d* nLight, double* pdfPos,
+                          double* pdfDir) const override;
+        void pdfLe(const Ray& ray, const Normal3d& nLight, double* pdfPos,
+                   double* pdfDir) const override;
+
         Spectrum Le(const Ray& ray) const override;
         Spectrum power() const override;
 
         Light* clone() const override;
 
     private:
-        const MipMap texmap_;
-        Vector3d worldCenter_;
+        std::unique_ptr<const MipMap> mipmap_;
+        Point3d worldCenter_;
         double   worldRadius_;
         Distribution2D distrib_;
     };

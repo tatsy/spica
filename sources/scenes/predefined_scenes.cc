@@ -1,12 +1,21 @@
 #define SPICA_API_EXPORT
 #include "predefined_scenes.h"
 
+#include <memory>
+
 #include "../core/common.h"
+#include "../core/bounds2d.h"
+
 #include "../image/image.h"
+#include "../image/film.h"
+
+#include "../filter/spica_filter.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
 #include "../light/spica_light.h"
 #include "../shape/spica_shape.h"
+
+#include "../camera/spica_camera.h"
 
 #include "../accel/bbvh_accel.h"
 #include "../accel/qbvh_accel.h"
@@ -19,8 +28,32 @@
 
 namespace spica {
     void cornellBox(Scene* scene,
+                    std::shared_ptr<Camera>* camera,
+                    const Point2i& resolution,
                     std::vector<Triangle>* tris,
                     std::vector<Spectrum>* Kd) {
+        // Camera
+        std::unique_ptr<Filter> filter =
+            std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
+        auto film = new Film(resolution,
+                             std::move(filter),
+                             kOutputDirectory + "pathtrace_%03d.png");
+
+        Bounds2d screen(-2.5, -2.5, 2.5, 2.5);
+        double fov = PI / 12.0;
+
+        Point3d  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));
+        Point3d  look(0.0, 0.0, 0.0);
+        Vector3d up(0.0, 1.0, 0.0);
+
+        double focal = std::abs((look - eye).z());
+        double lensR = 0.0;
+
+        *camera = std::make_shared<PerspectiveCamera>(
+            Transform::lookAt(eye, look, up),
+            screen, lensR, focal, fov, film);
+
+        // Scene
         std::vector<std::shared_ptr<Primitive>> primitives;
         std::vector<std::shared_ptr<Light>> lights;
 
@@ -127,7 +160,6 @@ namespace spica {
                 Kd->push_back(kd);
                 Kd->push_back(kd);
             }
-
         }
 
         // Left
@@ -501,60 +533,97 @@ namespace spica {
                                   1.0,
                                   90.0);
     }
+    */
 
-    void kittenEnvmap(Scene* scene, Camera* camera, const int width, const int height) {
-        scene->clear(); 
+    void kittenEnvmap(Scene* scene,
+                      std::shared_ptr<Camera>* camera,
+                      const Point2i& resolution,
+                      std::vector<Triangle>* tris,
+                      std::vector<Spectrum>* Kd) {
+        // Camera
+        std::unique_ptr<Filter> filter =
+        std::make_unique<TentFilter>(Vector2d(0.5, 0.5));
+        auto film = new Film(resolution,
+                             std::move(filter),
+                             kOutputDirectory + "pathtrace_%03d.png");
 
+        Bounds2d screen(-1.0, -0.8, 1.0, 1.2);
+        double fov = PI / 4.0;
+
+        Point3d  eye(0.0, 50.0, 250.0);
+        Point3d  look(0.0, 0.0, 0.0);
+        Vector3d up(0.0, 1.0, 0.0);
+
+        double focal = std::abs((look - eye).z());
+        double lensR = 0.0;
+
+        *camera = std::make_shared<PerspectiveCamera>(
+            Transform::lookAt(eye, look, up),
+            screen, lensR, focal, fov, film);
+
+        // Scene
+
+        std::vector<std::shared_ptr<Primitive>> primitives;
+        std::vector<std::shared_ptr<Light>> lights;
+        
         // Objects
-        Trimesh kitten(kDataDirectory + "kitten.ply");
-        kitten.scale(0.15, 0.15, 0.15);
-        // kitten.putOnPlane(Plane(10.0, Vector3d(0.0, 1.0, 0.0)));
+        {
+            Transform o2w;
+            o2w *= Transform::translate(Vector3d(0.0, -20.0, 0.0));
+            PLYMeshIO meshio;
+            std::vector<std::shared_ptr<Shape>> shapes =
+                meshio.load(kDataDirectory + "kitten.ply", o2w);
 
-        const Spectrum sigmap_s = Spectrum(2.19, 2.62, 3.00);
-        const Spectrum sigma_a  = Spectrum(0.0021, 0.0041, 0.0071);
-        const BSSRDF bssrdf = DipoleBSSRDF::factory(sigma_a, sigmap_s, 1.5);
+            // Regular milk
+            const double scale = 5.0;
+            const double eta   = 1.3;
+            const double g     = 0.7;
+            Spectrum sigma_a = Spectrum(0.0015333, 0.0046, 0.019933);
+            Spectrum sigma_s = Spectrum(4.5513, 5.8294, 7.136);
 
-        // Set floor
-        const int tiles = 8;
-        const double tileSize = 8.0;
-        for (int i = 0; i <= tiles; i++) {
-            for (int j = 0; j <= tiles; j++) {
-                double ii = (i - tiles / 2) * tileSize;
-                double jj = (j - tiles / 2) * tileSize;
-                Point3d p00(ii, -10.0, jj);
-                Point3d p01(ii + tileSize, -10.0, jj);
-                Point3d p10(ii, -10.0, jj + tileSize);
-                Point3d p11(ii + tileSize, -10.0, jj + tileSize);
-                Spectrum color = (i + j) % 2 == 0 ? Spectrum(0.9, 0.9, 0.9) 
-                                                  : Spectrum(0.2, 0.2, 0.2);
-                BSDF bsdf = (i + j) % 2 == 0 ? LambertianBRDF::factory(color)
-                                             : LambertianBRDF::factory(color); 
-                scene->addShape(Triangle(p00, p11, p01), bsdf);
-                scene->addShape(Triangle(p00, p10, p11), bsdf);
+            auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            auto sigA = std::make_shared<ConstantTexture<Spectrum>>(sigma_a);
+            auto sigS = std::make_shared<ConstantTexture<Spectrum>>(sigma_s);
+            auto mtrl = std::make_shared<SubsurfaceMaterial>(scale, Kr, Kt, sigA, sigS, g, eta);
+
+            for (const auto& s : shapes) {
+                primitives.emplace_back(new GeometricPrimitive(s, mtrl, nullptr));
             }
         }
 
+        // Checkerboard floor
+        {
+            auto Kd = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.999));
 
-        // BSDF kittenBsdf = PhongBRDF::factory(Spectrum(0.999, 0.999, 0.999));
-        BSDF kittenBsdf = LambertianBRDF::factory(Spectrum(0.75, 0.75, 0.25));
-        kittenBsdf.setBssrdf(bssrdf);
-        scene->addShape(kitten, kittenBsdf);
+            const double tileSize = 10.0;
+            Point3d p00(-tileSize, -10.0, -tileSize);
+            Point3d p01( tileSize, -10.0, -tileSize);
+            Point3d p10(-tileSize, -10.0,  tileSize);
+            Point3d p11( tileSize, -10.0,  tileSize);
 
-        Point3d eye(0.0, 10.0, 100.0);
-        (*camera) = Camera::asDoF(width, height, eye, -Vector3d(eye).normalized(),
-                                  Vector3d(0.0, 1.0, 0.0),
-                                  20.0,
-                                  42.0,
-                                  58.0,
-                                  1.0e-1,
-                                  9000.0);
+            auto t1 = std::make_shared<Triangle>(p00, p11, p01);
+            auto t2 = std::make_shared<Triangle>(p00, p10, p11);
+
+            auto mtrl = std::make_shared<LambertianMaterial>(Kd);
+            primitives.emplace_back(new GeometricPrimitive(t1, mtrl, nullptr));
+            primitives.emplace_back(new GeometricPrimitive(t2, mtrl, nullptr));
+        }
 
         // Envmap
-        Image envmap = Image::fromFile(kDataDirectory + "gold_room.hdr");
-        scene->setEnvmap(envmap);
+        Image texmap = Image::fromFile(kDataDirectory + "uffizi.hdr");
+        Matrix4x4 mat = { 1.0, 0.0, 0.0, 0.0, 
+                          0.0, 0.0, 1.0, 0.0,
+                          0.0, 1.0, 0.0, 0.0,
+                          0.0, 0.0, 0.0, 1.0 };
+        auto envmap =
+            std::make_shared<Envmap>(texmap, Transform{mat}, Spectrum(0.5), 1);
+        lights.push_back(envmap);
 
-        scene->finalize();
+        // BVH
+        auto bvh = std::make_shared<BBVHAccel>(primitives);
+
+        (*scene) = Scene(bvh, lights);
     }
-    */
 
 }  // namespace spica

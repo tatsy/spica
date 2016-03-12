@@ -12,7 +12,7 @@ set(SOURCES
 #    ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/ppmprob.cc
     ${CMAKE_CURRENT_LIST_DIR}/sppm.cc
-#    ${CMAKE_CURRENT_LIST_DIR}/subsurface_integrator.cc
+    ${CMAKE_CURRENT_LIST_DIR}/hierarchical.cc
     PARENT_SCOPE)
 
 set(HEADERS
@@ -30,5 +30,5 @@ set(HEADERS
 #    ${CMAKE_CURRENT_LIST_DIR}/photon_map.h
 #    ${CMAKE_CURRENT_LIST_DIR}/ppmprob.h
     ${CMAKE_CURRENT_LIST_DIR}/sppm.h
-#    ${CMAKE_CURRENT_LIST_DIR}/subsurface_integrator.h
+    ${CMAKE_CURRENT_LIST_DIR}/hierarchical.h
     PARENT_SCOPE)

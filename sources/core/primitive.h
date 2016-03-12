@@ -6,6 +6,7 @@
 #define _SPICA_PRIMITIVE_H_
 
 #include <memory>
+#include <vector>
 
 #include "common.h"
 #include "forward_decl.h"
@@ -20,6 +21,7 @@ public:
     virtual bool    intersect(Ray& ray) const = 0;
     virtual const   AreaLight* areaLight() const = 0;
     virtual const   Material*  material()  const = 0;
+    virtual std::vector<Triangle> triangulate() const = 0;
     virtual void    setScatterFuncs(SurfaceInteraction* intr,
                                     MemoryArena& arena) const = 0;
 };  // class Primitive
@@ -38,6 +40,7 @@ public:
 
     const AreaLight* areaLight() const override;
     const Material*  material()  const override;
+    std::vector<Triangle> triangulate() const override;
     void setScatterFuncs(SurfaceInteraction* intr,
                          MemoryArena& arena) const override;
 

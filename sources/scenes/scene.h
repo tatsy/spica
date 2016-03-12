@@ -23,7 +23,7 @@ namespace spica {
 class SPICA_EXPORTS Scene : private Uncopyable {
 public:
     Scene();
-    Scene(const std::shared_ptr<Primitive>& aggregate,
+    Scene(const std::shared_ptr<Accelerator>& aggregate,
             const std::vector<std::shared_ptr<Light> >& lights);
     Scene(Scene&& scene);
 
@@ -36,14 +36,14 @@ public:
     bool intersectTr(Ray& ray, Sampler& sampler, SurfaceInteraction* isect,
                      Spectrum* tr) const;
 
+    std::vector<Triangle> triangulate() const;
     inline const Bounds3d& worldBound() const { return worldBound_; }
-
     inline const std::vector<std::shared_ptr<Light> >& lights() const {
         return lights_;
     }
 
 private:
-    std::shared_ptr<Primitive> aggregate_;
+    std::shared_ptr<Accelerator> aggregate_;
     std::vector<std::shared_ptr<Light> > lights_;
     Bounds3d worldBound_;
 

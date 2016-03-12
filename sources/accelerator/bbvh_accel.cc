@@ -265,4 +265,13 @@ std::stack<BBvhNode*> nodeStack;
     return false;    
 }
 
+std::vector<Triangle> BBVHAccel::triangulate() const {
+    std::vector<Triangle> tris;
+    for (const auto& p : primitives_) {
+        auto ts = p->triangulate();
+        tris.insert(tris.end(), ts.begin(), ts.end());
+    }
+    return std::move(tris);
+}
+
 }  // namespace spica

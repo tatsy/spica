@@ -58,4 +58,8 @@ namespace spica {
         }
     }
 
+    std::vector<Triangle> Scene::triangulate() const {
+        return std::move(aggregate_->triangulate());
+    }
+
 }  // namespace spica

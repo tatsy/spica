@@ -23,6 +23,7 @@ public:
 
     void construct() override;
     bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
+    std::vector<Triangle> triangulate() const override;
 
 private:
     // Private internal classes

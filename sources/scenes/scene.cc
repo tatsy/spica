@@ -12,7 +12,7 @@ namespace spica {
         , worldBound_{} {
     }
 
-    Scene::Scene(const std::shared_ptr<Primitive>& aggregate,
+    Scene::Scene(const std::shared_ptr<Accelerator>& aggregate,
                  const std::vector<std::shared_ptr<Light> >& lights)
         : aggregate_{ aggregate }
         , lights_{ lights }
@@ -56,10 +56,6 @@ namespace spica {
             if (isect->primitive()->material() != nullptr) return true;
             ray = isect->spawnRay(ray.dir());
         }
-    }
-
-    std::vector<Triangle> Scene::triangulate() const {
-        return std::move(aggregate_->triangulate());
     }
 
 }  // namespace spica

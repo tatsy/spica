@@ -2,8 +2,8 @@
 #pragma once
 #endif
 
-#ifndef _SPICA_ACCEL_INTERFACE_H_
-#define _SPICA_ACCEL_INTERFACE_H_
+#ifndef _SPICA_ACCELERATOR_H_
+#define _SPICA_ACCELERATOR_H_
 
 #include <vector>
 #include <map>
@@ -18,27 +18,22 @@
 
 namespace spica {
 
-/** Accelerator type enum
- *  @ingroup accel_module
- *  @brief Enumerator for acclerator types.
- */
-enum class AccelType : int {
-    KdTree,   /**< K-D tree acclerator */
-    BBVH,     /**< binary BVH accelerator */
-    QBVH      /**< SIMD-acclerated QBVH acclerator */
-};
-
 /** Interface for intersection test accelerators.
-    *  @ingroup accel_module
-    */
-class SPICA_EXPORTS AccelInterface : public Aggregate, Uncopyable {
+ *  @ingroup accel_module
+ */
+class SPICA_EXPORTS Accelerator : public Aggregate, Uncopyable {
 public:
     // Public methods
-    explicit AccelInterface(AccelType type) : type_{ type } {}
-    virtual ~AccelInterface() {}
+    explicit Accelerator(const std::vector<std::shared_ptr<Primitive>>& primitives)
+        : primitives_{ primitives } {}
+    virtual ~Accelerator() {}
     virtual void construct() = 0;
     virtual Bounds3d worldBound() const override {
         return worldBound_;
+    }
+
+    inline const std::vector<std::shared_ptr<Primitive>>& primitives() const {
+        return primitives_;
     }
 
 protected:
@@ -47,37 +42,10 @@ protected:
     struct AxisComparator;
 
     // Protected fields
-    AccelType type_;
+    std::vector<std::shared_ptr<Primitive>> primitives_;
     Bounds3d   worldBound_;
-};
-
-struct AccelInterface::IndexedTriangle {
-    IndexedTriangle()
-        : idx(-1)
-        , tri() {
-    }
-    IndexedTriangle(int i, const Triangle& t)
-        : idx(i)
-        , tri(t) {
-    }
-
-    int idx;
-    Triangle tri;
-};
-
-struct AccelInterface::AxisComparator {
-    int dim;
-    explicit AxisComparator(int dim_ = 0)
-        : dim(dim_)
-    {
-        Assertion(0 <= dim_ && dim_ <= 2, "Dimension must be between 0 and 2");
-    }
-
-    bool operator()(const IndexedTriangle& t1, const IndexedTriangle& t2) const {
-        return t1.tri.gravity()[dim] < t2.tri.gravity()[dim];
-    }
 };
 
 }  // namespace spica
 
-#endif  // _SPICA_ACCEL_INTERFACE_H_
+#endif  // _SPICA_ACCELERATOR_H_

@@ -17,8 +17,7 @@
 
 #include "../camera/spica_camera.h"
 
-#include "../accel/bbvh_accel.h"
-#include "../accel/qbvh_accel.h"
+#include "../accelerator/spica_accelerator.h"
 
 #include "../medium/medium.h"
 #include "../medium/homogeneous.h"

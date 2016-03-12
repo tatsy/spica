@@ -11,7 +11,7 @@
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 
-#include "../core/primitive.h"
+#include "../accelerator/accelerator.h"
 #include "../core/bounds3d.h"
 #include "../light/light.h"
 
@@ -36,8 +36,10 @@ public:
     bool intersectTr(Ray& ray, Sampler& sampler, SurfaceInteraction* isect,
                      Spectrum* tr) const;
 
-    std::vector<Triangle> triangulate() const;
     inline const Bounds3d& worldBound() const { return worldBound_; }
+    inline const std::vector<std::shared_ptr<Primitive>>& primitives() const {
+        return aggregate_->primitives();
+    }
     inline const std::vector<std::shared_ptr<Light> >& lights() const {
         return lights_;
     }

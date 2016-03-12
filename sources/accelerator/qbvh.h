@@ -8,7 +8,7 @@
 #include <vector>
 #include <xmmintrin.h>
 
-#include "accel_interface.h"
+#include "accelerator.h"
 
 namespace spica {
 
@@ -16,7 +16,7 @@ namespace spica {
  * Quad BVH accelerator class
  * @ingroup accel_module
  */
-class SPICA_EXPORTS QBVHAccel : public AccelInterface {
+class SPICA_EXPORTS QBVHAccel : public Accelerator {
 public:
     QBVHAccel();
     virtual ~QBVHAccel();

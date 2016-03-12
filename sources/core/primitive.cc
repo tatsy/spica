@@ -3,6 +3,7 @@
 
 #include "../core/interaction.h"
 #include "../shape/shape.h"
+#include "../shape/triangle.h"
 #include "../material/material.h"
 
 namespace spica {

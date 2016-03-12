@@ -1,5 +1,5 @@
 #define SPICA_API_EXPORT
-#include "bbvh_accel.h"
+#include "bvh.h"
 
 #include <stack>
 #include <functional>
@@ -92,10 +92,9 @@ struct BBVHAccel::CompareToBucket {
 };
 
 BBVHAccel::BBVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims,
-                        int maxPrimsInNode)
-    : AccelInterface{ AccelType::BBVH }
+                     int maxPrimsInNode)
+    : Accelerator{ prims }
     , maxPrimInNode_{ maxPrimsInNode }
-    , primitives_{ prims }
     , _root{ nullptr } {
     construct();
 }

@@ -27,7 +27,7 @@
 // --------------------------------------------
 // Accelerators
 // --------------------------------------------
-#include "../sources/accel/bbvh_accel.h"
+#include "../sources/accelerator/spica_accelerator.h"
 
 // --------------------------------------------
 // BxDF

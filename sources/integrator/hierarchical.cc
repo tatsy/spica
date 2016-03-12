@@ -14,6 +14,7 @@
 #include "../scenes/scene.h"
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bssrdf.h"
+#include "../material/material.h"
 #include "../random/sampler.h"
 
 namespace spica {
@@ -155,28 +156,28 @@ HierarchicalIntegrator::Octree::constructRec(
     return node;
 }
 
-Spectrum HierarchicalIntegrator::
-        Octree::iradSubsurface(const Point3d& pos,
-                                const BSSRDF& bssrdf) const {
-    return iradSubsurfaceRec(_root, pos, bssrdf);
+Spectrum HierarchicalIntegrator::Octree::iradSubsurface(
+    const SurfaceInteraction& po) const {
+    return iradSubsurfaceRec(_root, po);
 }
 
-Spectrum HierarchicalIntegrator::
-        Octree::iradSubsurfaceRec(OctreeNode* node,
-                                  const Point3d& pos,
-                                  const BSSRDF& bssrdf) const {
-    if (node == NULL) return Spectrum(0.0, 0.0, 0.0);
+Spectrum HierarchicalIntegrator::Octree::iradSubsurfaceRec(
+    OctreeNode* node,
+    const SurfaceInteraction& po) const {
+    if (node == nullptr) {
+        return Spectrum(0.0);
+    }
 
-    const double distSquared = (node->pt.pos - pos).squaredNorm();
+    const double distSquared = (node->pt.pos - po.pos()).squaredNorm();
     double dw = node->pt.area / distSquared;
-    if (node->isLeaf ||
-        (dw < _parent->_maxError && !node->bbox.inside(pos))) {
-        return bssrdf.S(pos, node->pt.pos) * (node->pt.irad) * node->pt.area;
+    if (node->isLeaf || (dw < _parent->maxError_ &&
+                         !node->bbox.inside(po.pos()))) {
+        return po.bssrdf()->Sr(node->pt.pos) * (node->pt.irad) * node->pt.area;
     } else {
         Spectrum ret(0.0, 0.0, 0.0);
         for (int i = 0; i < 8; i++) {
             if (node->children[i] != NULL) {
-                ret += iradSubsurfaceRec(node->children[i], pos, bssrdf);
+                ret += iradSubsurfaceRec(node->children[i], po);
             }
         }
         return ret;
@@ -197,42 +198,46 @@ HierarchicalIntegrator::~HierarchicalIntegrator() {
 void HierarchicalIntegrator::initialize(const Scene& scene,
                                       const double maxError) {
     // Extract triangles with BSSRDF
-    triangles_ = scene.triangulate();
-    double avgArea = 0.0;
-    for (const auto& t : triangles_) {
-        if (scene.getBsdf(i).type() & BsdfType::Bssrdf) {
-            const Triangle& tri = scene.getTriangle(i);
-            _triangles.push_back(tri);
-            avgArea += tri.area();
+    triangles_.clear();
+    const auto& prims = scene.primitives();
+    for (const auto& p : prims) {
+        if (p->material()->isSubsurface()) {
+            const auto& tris = p->triangulate();
+            triangles_.insert(triangles_.end(), tris.begin(), tris.end());
         }
     }
 
+    double avgArea = 0.0;
+    for (const auto& t : triangles_) {
+        avgArea += t.area();
+    }
+
     // Compute dA and copy maxError
-    _radius   = sqrt(avgArea / _triangles.size());
-    _dA       = (0.5 * _radius) * (0.5 * _radius) * PI;
-    _maxError = maxError;
+    radius_   = std::sqrt(avgArea / triangles_.size());
+    dA_       = (0.5 * radius_) * (0.5 * radius_) * PI;
+    maxError_ = maxError;
 }
 
 void HierarchicalIntegrator::construct(const Scene& scene,
-                                        const RenderParameters& params) {
+                                       const RenderParameters& params) {
     // If there are no scattering triangle, do nothing
-    if (_triangles.empty()) return;
+    if (triangles_.empty()) return;
 
     // Poisson disk sampling
     std::vector<Point3d> points;
     std::vector<Normal3d> normals;
-    sampler::poissonDisk(_triangles, _radius, &points, &normals);
+    samplePoissonDisk(triangles_, radius_, &points, &normals);
 
     // Cast photons to compute irradiance at sample points
-    _photonMap.construct(scene, params, BsdfType::Bssrdf);
+    _photonMap.construct(scene, params);
 
     // Compute irradiance at sample points
     buildOctree(points, normals, params);
 }
 
-void HierarchicalIntegrator::buildOctree(const std::vector<Point>& points,
-                                       const std::vector<Normal>& normals,
-                                       const RenderParameters& params) {
+void HierarchicalIntegrator::buildOctree(const std::vector<Point3d>& points,
+                                         const std::vector<Normal3d>& normals,
+                                         const RenderParameters& params) {
     // Compute irradiance on each sampled point
     const int numPoints = static_cast<int>(points.size());
     std::vector<Spectrum> irads(numPoints);
@@ -250,18 +255,16 @@ void HierarchicalIntegrator::buildOctree(const std::vector<Point>& points,
     for (int i = 0; i < numPoints; i++) {
         iradPoints[i].pos = points[i];
         iradPoints[i].normal = normals[i];
-        iradPoints[i].area = _dA;
+        iradPoints[i].area = dA_;
         iradPoints[i].irad = irads[i];
     }
-    _octree.construct(this, iradPoints);
+    octree_.construct(this, iradPoints);
     std::cout << "Octree constructed !!" << std::endl;
 }
 
-Spectrum HierarchicalIntegrator::irradiance(const Point3d& p,
-                                          const BSDF& bsdf) const {
-    Assertion(bsdf._bssrdf != NULL,
-                "Specified object does not have BSSRDF !!");
-    const Spectrum Mo = _octree.iradSubsurface(p, *bsdf._bssrdf);
+Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po) const {
+    Assertion(po.bssrdf(), "BSSRDF not found!!");
+    const Spectrum Mo = octree_.iradSubsurface(po);
     return Spectrum(INV_PI * (1.0 - bsdf._bssrdf->Fdr()) * Mo);
 }
 

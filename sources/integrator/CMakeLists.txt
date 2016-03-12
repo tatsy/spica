@@ -9,10 +9,10 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/directlighting.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/bdpt.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/mlt.cc
-#    ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
 #    ${CMAKE_CURRENT_LIST_DIR}/ppmprob.cc
     ${CMAKE_CURRENT_LIST_DIR}/sppm.cc
-    ${CMAKE_CURRENT_LIST_DIR}/hierarchical.cc
+#    ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
+#    ${CMAKE_CURRENT_LIST_DIR}/hierarchical.cc
     PARENT_SCOPE)
 
 set(HEADERS
@@ -27,8 +27,8 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/directlighting.h
 #    ${CMAKE_CURRENT_LIST_DIR}/bdpt.h
 #    ${CMAKE_CURRENT_LIST_DIR}/mlt.h
-#    ${CMAKE_CURRENT_LIST_DIR}/photon_map.h
 #    ${CMAKE_CURRENT_LIST_DIR}/ppmprob.h
     ${CMAKE_CURRENT_LIST_DIR}/sppm.h
-    ${CMAKE_CURRENT_LIST_DIR}/hierarchical.h
+#    ${CMAKE_CURRENT_LIST_DIR}/photon_map.h
+#    ${CMAKE_CURRENT_LIST_DIR}/hierarchical.h
     PARENT_SCOPE)

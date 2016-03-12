@@ -41,7 +41,7 @@ process_subdirectory(random)
 process_subdirectory(light)
 process_subdirectory(camera)
 process_subdirectory(scenes)
-process_subdirectory(accel)
+process_subdirectory(accelerator)
 process_subdirectory(material)
 process_subdirectory(texture)
 

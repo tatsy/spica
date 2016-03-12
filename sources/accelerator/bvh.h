@@ -7,14 +7,14 @@
 
 #include <memory>
 
-#include "accel_interface.h"
+#include "accelerator.h"
 
 namespace spica {
 
 /** Binary BVH accelerator class
     *  @ingroup accel_module
     */
-class SPICA_EXPORTS BBVHAccel : public AccelInterface {
+class SPICA_EXPORTS BBVHAccel : public Accelerator {
 public:
     BBVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
               int maxPrimsInNode = 1);
@@ -40,11 +40,8 @@ private:
 
     // Private fields
     const int maxPrimInNode_;
-    std::vector<std::shared_ptr<Primitive>> primitives_;
     BBvhNode* _root;
-    //std::vector<Triangle>     _tris;
     std::vector<std::unique_ptr<BBvhNode> > _nodes;
-    //void release();
 
 };  // class BBVHAccel
 

@@ -11,7 +11,7 @@
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 
-#include "../core/primitive.h"
+#include "../accelerator/accelerator.h"
 #include "../core/bounds3d.h"
 #include "../light/light.h"
 
@@ -23,7 +23,7 @@ namespace spica {
 class SPICA_EXPORTS Scene : private Uncopyable {
 public:
     Scene();
-    Scene(const std::shared_ptr<Primitive>& aggregate,
+    Scene(const std::shared_ptr<Accelerator>& aggregate,
             const std::vector<std::shared_ptr<Light> >& lights);
     Scene(Scene&& scene);
 
@@ -37,13 +37,15 @@ public:
                      Spectrum* tr) const;
 
     inline const Bounds3d& worldBound() const { return worldBound_; }
-
+    inline const std::vector<std::shared_ptr<Primitive>>& primitives() const {
+        return aggregate_->primitives();
+    }
     inline const std::vector<std::shared_ptr<Light> >& lights() const {
         return lights_;
     }
 
 private:
-    std::shared_ptr<Primitive> aggregate_;
+    std::shared_ptr<Accelerator> aggregate_;
     std::vector<std::shared_ptr<Light> > lights_;
     Bounds3d worldBound_;
 

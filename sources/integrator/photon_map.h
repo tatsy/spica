@@ -5,7 +5,8 @@
 #ifndef _SPICA_PHOTON_MAP_H_
 #define _SPICA_PHOTON_MAP_H_
 
-// #include "../bsdf/bsdf.h"
+#include "../core/common.h"
+#include "../core/forward_decl.h"
 
 #include "../core/spectrum.h"
 #include "../core/kdtree.h"
@@ -19,71 +20,72 @@
 
 namespace spica {
 
-    // Forward declarations
-    class Ray;
-    class Scene;
-    class Camera;
-    class RenderParameters;
+enum class PhotonMapFlag : int {
+    Diffuse,
+    Subsurface
+};
 
-    // ------------------------------------------------------------------------
-    // Photon
-    // ------------------------------------------------------------------------
-    class SPICA_EXPORTS Photon  {
-    public:
-        Photon();
-        Photon(const Point& position, const Spectrum& flux, 
-               const Vector3D& direction, const Normal& normal);
-        Photon(const Photon& photon);
-        ~Photon();
+// ------------------------------------------------------------------------
+// Photon
+// ------------------------------------------------------------------------
+class SPICA_EXPORTS Photon  {
+public:
+    Photon();
+    Photon(const Point3d& pos, const Spectrum& beta, 
+           const Vector3d& wi, const Normal3d& normal);
+    Photon(const Photon& photon);
+    ~Photon();
 
-        Photon& operator=(const Photon& photon);
+    Photon& operator=(const Photon& photon);
 
-        inline double get(int id) const;
-        static double distance(const Photon& p1, const Photon& p2);
+    inline double get(int id) const;
+    static double distance(const Photon& p1, const Photon& p2);
 
-        inline Point    position()  const { return _position;  }
-        inline Spectrum flux()      const { return _flux;      }
-        inline Vector3D direction() const { return _direction; }
-        inline Normal   normal()    const { return _normal;    }
+    inline Point3d  pos()    const { return pos_; }
+    inline Spectrum beta()   const { return beta_; }
+    inline Vector3d wi()     const { return wi_; }
+    inline Normal3d normal() const { return normal_; }
 
-    private:
-        Point _position;
-        Spectrum _flux;
-        Vector3D _direction;
-        Normal _normal;
-    };
+private:
+    Point3d  pos_;
+    Spectrum beta_;
+    Vector3d wi_;
+    Normal3d normal_;
+};
 
-    // ------------------------------------------------------------------------
-    // Photon map
-    // ------------------------------------------------------------------------
-    class SPICA_EXPORTS PhotonMap : public Uncopyable {
-    private:
-        KdTree<Photon> _kdtree;
+// ------------------------------------------------------------------------
+// Photon map
+// ------------------------------------------------------------------------
+class SPICA_EXPORTS PhotonMap : public Uncopyable {
+private:
+    KdTree<Photon> _kdtree;
 
-    public:
-        PhotonMap();
-        ~PhotonMap();
+public:
+    PhotonMap();
+    ~PhotonMap();
 
-        void clear();
-        void construct(const Scene& scene,
-                       const RenderParameters& params,
-                       BsdfType absorbBsdf);
+    void clear();
+    void construct(const Scene& scene,
+                   const RenderParameters& params,
+                   Sampler& sampler,
+                   PhotonMapFlag flag);
 
-        Spectrum evaluate(const Point& position,
-                          const Normal& normal,
-                          int gatherPhotons, double gatherRadius) const;
+    Spectrum evaluate(const SurfaceInteraction& po,
+                      int gatherPhotons, double gatherRadius) const;
         
-    private:
-        void knnFind(const Photon& photon, std::vector<Photon>* photons, 
-                     int gatherPhotons, double gatherRadius) const;
+private:
+    void knnFind(const Photon& photon, std::vector<Photon>* photons, 
+                    int gatherPhotons, double gatherRadius) const;
 
-        void tracePhoton(const Scene& scene, const Ray& ray,
-                         const RenderParameters& params,
-                         const Spectrum& flux, Stack<double>& rstk,
-                         int bounces, BsdfType absorbBsdf,
-                         std::vector<Photon>* photons);
-    };
+    void tracePhoton(const Scene& scene,
+                     const RenderParameters& params,
+                     const Ray& r,
+                     const Spectrum& b,
+                     Sampler& sampler,
+                     MemoryArena& arena,
+                     std::vector<Photon>* photons);
+};
 
-}
+}  // namespace spica
 
-#endif
+#endif  // _SPICA_PHOTON_MAP_H_

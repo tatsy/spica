@@ -12,7 +12,7 @@ namespace spica {
         , worldBound_{} {
     }
 
-    Scene::Scene(const std::shared_ptr<Primitive>& aggregate,
+    Scene::Scene(const std::shared_ptr<Accelerator>& aggregate,
                  const std::vector<std::shared_ptr<Light> >& lights)
         : aggregate_{ aggregate }
         , lights_{ lights }
@@ -35,8 +35,7 @@ namespace spica {
     }
 
     bool Scene::intersect(Ray& ray, SurfaceInteraction* isect) const {
-        bool ist = aggregate_->intersect(ray, isect);
-        return ist;
+        return aggregate_->intersect(ray, isect);
     }
 
     bool Scene::intersect(Ray& ray) const {

@@ -22,7 +22,7 @@
 #include "../random/random.h"
 #include "../random/halton.h"
 
-#include "../accel/bbvh_accel.h"
+#include "../accelerator/spica_accelerator.h"
 #include "../scenes/scene.h"
 
 #include <boost/property_tree/ptree.hpp>

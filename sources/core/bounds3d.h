@@ -38,6 +38,7 @@ public:
 
     void merge(const Bounds3_<T>& b);
     void merge(const Point3_<T>& p);
+    bool inside(const Point3_<T>& p) const;
 
     T area() const;
 

@@ -5,8 +5,6 @@
 #include "../include/spica.h"
 using namespace spica;
 
-#include "test_macros.h"
-
 // ------------------------------
 // Sphere class test
 // ------------------------------
@@ -61,16 +59,16 @@ TEST(SphereTest, AreaTest) {
 // ------------------------------
 TEST(TriangleTest, InstanceTest) {
     Triangle t0;
-    EXPECT_EQ_VEC(Point3d(), t0[0]);
-    EXPECT_EQ_VEC(Point3d(), t0[1]);
-    EXPECT_EQ_VEC(Point3d(), t0[2]);
+    EXPECT_EQ(Point3d(), t0[0]);
+    EXPECT_EQ(Point3d(), t0[1]);
+    EXPECT_EQ(Point3d(), t0[2]);
 
     Triangle t1(Point3d(0, 0, 0),
                 Point3d(0, 1, 0),
                 Point3d(1, 1, 0));
-    EXPECT_EQ_VEC(Point3d(0, 0, 0), t1[0]);
-    EXPECT_EQ_VEC(Point3d(0, 1, 0), t1[1]);
-    EXPECT_EQ_VEC(Point3d(1, 1, 0), t1[2]);
+    EXPECT_EQ(Point3d(0, 0, 0), t1[0]);
+    EXPECT_EQ(Point3d(0, 1, 0), t1[1]);
+    EXPECT_EQ(Point3d(1, 1, 0), t1[2]);
 }
 
 TEST(TriangleTest, IntersectionTest) {

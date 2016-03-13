@@ -17,6 +17,7 @@ public:
     virtual ~Material() {}
     virtual void setScatterFuncs(SurfaceInteraction* intr, MemoryArena& arena) const = 0;
     // static void bump(SurfaceInteraction* intr, const std::shared_ptr<Texture<double> > &bumpmap);
+
 };  // class Material
 
 }  // namespace spica

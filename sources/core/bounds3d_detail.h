@@ -98,6 +98,13 @@ void Bounds3_<T>::merge(const Point3_<T>& p) {
 }
 
 template <class T>
+bool Bounds3_<T>::inside(const Point3_<T>& p) const {
+    return (posMin_.x() < p.x() && p.x() < posMax_.x() &&
+            posMin_.x() < p.y() && p.x() < posMax_.y() &&
+            posMin_.x() < p.z() && p.x() < posMax_.z());
+}
+
+template <class T>
 T Bounds3_<T>::area() const {
     Vector3_<T> diff = posMax_ - posMin_;
     const double xy = std::abs(diff.x() * diff.y());

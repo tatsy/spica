@@ -1,22 +1,31 @@
 #include "gtest/gtest.h"
 
+#include <string>
+#include <type_traits>
+
 #include "../include/spica.h"
 using namespace spica;
 
-#include "test_macros.h"
+// -----------------------------------------------------------------------------
+// Scene Typed Tests
+// -----------------------------------------------------------------------------
 
-class SceneTest : public ::testing::Test {
+template <class AccelType>
+class SceneTypedTest : public ::testing::Test {
 protected:
-    SceneTest() {}
+    SceneTypedTest() {}
 
-    virtual ~SceneTest() {}
+    virtual ~SceneTypedTest() {}
 
     virtual void SetUp() {
-        nTrial = 100;
-        s1 = Sphere(Point(0.0, 0.0, 0.0), 5.0);
-        s2 = Sphere(Point(0.0, 10.0, 0.0), 2.0);
-        scene.addShape(s1, LambertianBRDF::factory(Spectrum(0.3, 0.5, 0.7)));
-        scene.setAreaLight(s2, Spectrum(32.0, 32.0, 32.0));
+        std::vector<std::shared_ptr<Primitive>> prims;
+        std::vector<std::shared_ptr<Light>> lights;
+        auto s1 = std::make_shared<Sphere>(Point3d(0.0, 0.0, 0.0), 5.0);
+        auto s2 = std::make_shared<Sphere>(Point3d(0.0, 10.0, 0.0), 2.0);
+        prims.emplace_back(new GeometricPrimitive(s1, nullptr, nullptr));
+        prims.emplace_back(new GeometricPrimitive(s2, nullptr, nullptr));
+        auto bvh = std::make_shared<AccelType>(prims);
+        scene = Scene(bvh, lights);
     }
 
     virtual void TearDown() {
@@ -24,138 +33,99 @@ protected:
 
 protected:
     Scene scene;
-    Sphere s1;
-    Sphere s2;
-    int nTrial;
+
+private:
+    static_assert(std::is_base_of<Accelerator, AccelType>::value,
+                  "Type should derive Accelerator!!");
 };
 
-TEST_F(SceneTest, InstanceTest) {
-    EXPECT_GT(scene.numTriangles(), 0);
+TYPED_TEST_CASE_P(SceneTypedTest);
+
+TYPED_TEST_P(SceneTypedTest, IntersectionTest) {
+    SurfaceInteraction isect;
+    Ray ray(Point3d(0.0, 0.0, 10.0), Vector3d(0.0, 0.0, -1.0));
+    EXPECT_TRUE(scene.intersect(ray));
+    EXPECT_TRUE(scene.intersect(ray, &isect));
+
+    EXPECT_NE(isect.primitive(), nullptr);
+    EXPECT_EQ(Point3d(0.0, 0.0, 5.0), isect.pos());
+
+    ray = Ray(Point3d(0.0, 0.0, 10.0), Vector3d(0.0, 1.0, 0.0));
+    EXPECT_FALSE(scene.intersect(ray));
+    EXPECT_FALSE(scene.intersect(ray, &isect));
 }
 
-TEST_F(SceneTest, AccelNotPrepared) {
-    Intersection isect;
-    Ray ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
-    ASSERT_DEATH(scene.intersect(ray, &isect), "");
-}
+REGISTER_TYPED_TEST_CASE_P(SceneTypedTest, IntersectionTest);
 
-TEST_F(SceneTest, BoundingSphere) {
-    Camera cam = Camera::perspective(Point{0.0, 0.0, 100.0},
-                                     Vector3D{0.0, 0.0, -1.0},
-                                     Vector3D{0.0, 1.0, 0.0},
-                                     45.0,
-                                     800,
-                                     600,
-                                     1.0);
-    Sphere bounds = scene.boundingSphere();
+using AccelTypes = ::testing::Types<BBVHAccel, QBVHAccel>;
+INSTANTIATE_TYPED_TEST_CASE_P(, SceneTypedTest, AccelTypes);
 
-    EXPECT_LE((s1.center() - bounds.center()).norm(), bounds.radius() - s1.radius() + EPS);
-    EXPECT_LE((s2.center() - bounds.center()).norm(), bounds.radius() - s2.radius() + EPS);
-}
 
-TEST_F(SceneTest, IsTextured) {
-    Trimesh mesh(kDataDirectory + "tex_cube.ply");
-    int curTris = scene.numTriangles();
-    scene.addShape(mesh, LambertianBRDF::factory(Spectrum(0.5, 0.5, 0.5)));
-    for (int i = curTris; i < scene.numTriangles(); i++) {
-        EXPECT_TRUE(scene.isTextured(i));
+// -----------------------------------------------------------------------------
+// Scene Value-parameterized Tests
+// -----------------------------------------------------------------------------
+
+class SceneIntersectionTest : public ::testing::TestWithParam<std::string> {
+protected:
+    SceneIntersectionTest()
+        : nTrial{ 100 } {
     }
-}
 
-TEST_F(SceneTest, BBVHIntersectionTest) {
-    scene.setAccelType(AccelType::BBVH);
-    scene.computeAccelerator();
+    virtual ~SceneIntersectionTest() {
+    }
 
-    Intersection isect;
-    Ray ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0).normalized());
-    EXPECT_TRUE(scene.intersect(ray, &isect));
+    virtual void SetUp() {
+        PLYMeshIO meshio;
+        auto shapes = meshio.load(kDataDirectory + GetParam());
+        for (const auto& s : shapes) {
+            prims.emplace_back(new GeometricPrimitive(s, nullptr, nullptr));            
+        }
+    }
 
-    EXPECT_NE(isect.objectID(), -1);
-    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), isect.position());
+    virtual void TearDown() {
+    }
 
-    ray = Ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
-    EXPECT_FALSE(scene.intersect(ray, &isect));
-    EXPECT_EQ(isect.objectID(), -1);
-}
+    int nTrial;
+    std::vector<std::shared_ptr<Primitive>> prims;
+    std::vector<std::shared_ptr<Light>> lights;
+};
 
-TEST_F(SceneTest, QBVHIntersectionTest) {
-    scene.setAccelType(AccelType::QBVH);
-    scene.computeAccelerator();
+TEST_P(SceneIntersectionTest, BBVHvsQBVH) {
+    auto bvh = std::make_shared<BBVHAccel>(prims);
+    auto qbvh = std::make_shared<QBVHAccel>(prims);
+    Scene scene1(bvh, lights);
+    Scene scene2(qbvh, lights);
 
-    Intersection isect;
-    Ray ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0).normalized());
-    EXPECT_TRUE(scene.intersect(ray, &isect));
+    Random rng((unsigned int)time(0));
 
-    EXPECT_NE(isect.objectID(), -1);
-    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), isect.position());
+    Bounds3d bounds = scene1.worldBound();
+    Vector3d bsize = bounds.posMax() - bounds.posMin();
+    Point3d centroid = bounds.posMin() + bsize * 0.5;
+    bounds = Bounds3d(centroid - bsize, centroid + bsize);
 
-    ray = Ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
-    EXPECT_FALSE(scene.intersect(ray, &isect));
-    EXPECT_EQ(isect.objectID(), -1);
-}
 
-TEST_F(SceneTest, KdTreeIntersectionTest) {
-    scene.setAccelType(AccelType::KdTree);
-    scene.computeAccelerator();
-
-    Intersection isect;
-    Ray ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 0.0, -1.0));
-    EXPECT_TRUE(scene.intersect(ray, &isect));
-
-    EXPECT_NE(isect.objectID(), -1);
-    EXPECT_EQ_VEC(Vector3D(0.0, 0.0, 5.0), isect.position());
-
-    ray = Ray(Point(0.0, 0.0, 10.0), Vector3D(0.0, 1.0, 0.0));
-    EXPECT_FALSE(scene.intersect(ray, &isect));
-    EXPECT_EQ(isect.objectID(), -1);
-}
-
-TEST_F(SceneTest, QBVHvsKdTree) {
-    Scene scene1, scene2;
-    Camera cam1, cam2;
-    cornellBox(&scene1, &cam1, 400, 300);
-    cornellBox(&scene2, &cam2, 400, 300);
-    scene1.setAccelType(AccelType::QBVH);
-    scene1.computeAccelerator();
-    scene2.setAccelType(AccelType::KdTree);
-    scene2.computeAccelerator();
-
-    Random rng = Random((unsigned int)time(NULL));
+    Point3d f(0.0, 0.0, 2.0);
+    Point3d t(0.0, 0.0, -2.0);
+    Vector3d dir = (t - f).normalized();
+    Ray ray(f, dir);
 
     for (int i = 0; i < nTrial; i++) {
-        Point from   = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
-        Point to     = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
-        Vector3D dir = (to - from).normalized();
-        Ray ray(from, dir);
+        Point3d f = bounds.posMin() + Vector3d(bsize.x() * rng.get1D(), bsize.y() * rng.get1D(), bsize.z() * rng.get1D());
+        Point3d t = bounds.posMin() + Vector3d(bsize.x() * rng.get1D(), bsize.y() * rng.get1D(), bsize.z() * rng.get1D());
+        Vector3d dir = (t - f).normalized();
+        Ray ray(f, dir);
 
-        Intersection isect1, isect2;
+        SurfaceInteraction isect1, isect2;
+        EXPECT_EQ(scene1.intersect(ray), scene2.intersect(ray)) << 
+            "org : " << ray.org() << std::endl <<
+            "dir : " << ray.dir() << std::endl;
         EXPECT_EQ(scene1.intersect(ray, &isect1), scene2.intersect(ray, &isect2));
-        EXPECT_EQ(isect1.objectID(), isect2.objectID());
-        EXPECT_NEAR(isect1.distance(), isect2.distance(), 1.0e-4);
+        EXPECT_EQ(isect1.primitive(), isect2.primitive());
+        EXPECT_EQ(isect1.pos(), isect2.pos());
     }
 }
 
-TEST_F(SceneTest, BBVHvsQBVH) {
-    Scene scene1, scene2;
-    Camera cam1, cam2;
-    cornellBox(&scene1, &cam1, 400, 300);
-    cornellBox(&scene2, &cam2, 400, 300);
-    scene1.setAccelType(AccelType::BBVH);
-    scene1.computeAccelerator();
-    scene2.setAccelType(AccelType::QBVH);
-    scene2.computeAccelerator();
-
-    Random rng = Random();
-
-    for (int i = 0; i < nTrial; i++) {
-        Point  from  = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
-        Point  to    = Point(rng.nextReal(), rng.nextReal(), rng.nextReal()) * 20.0 - Vector3D(10.0, 10.0, 10.0);
-        Vector3D dir = (to - from).normalized();
-        Ray ray(from, dir);
-
-        Intersection isect1, isect2;
-        EXPECT_EQ(scene1.intersect(ray, &isect1), scene2.intersect(ray, &isect2));
-        EXPECT_EQ(isect1.objectID(), isect2.objectID());
-        EXPECT_NEAR(isect1.distance(), isect2.distance(), 1.0e-4);
-    }
-}
+INSTANTIATE_TEST_CASE_P(, SceneIntersectionTest,
+                        ::testing::Values(std::string("box.ply"),
+                                          std::string("bunny.ply"), 
+                                          std::string("kitten.ply")));

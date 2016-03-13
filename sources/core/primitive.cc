@@ -3,6 +3,7 @@
 
 #include "../core/interaction.h"
 #include "../shape/shape.h"
+#include "../shape/triangle.h"
 #include "../material/material.h"
 
 namespace spica {
@@ -70,6 +71,10 @@ const Material* GeometricPrimitive::material() const {
 
 const AreaLight* GeometricPrimitive::areaLight() const {
     return areaLight_.get();
+}
+
+std::vector<Triangle> GeometricPrimitive::triangulate() const {
+    return std::move(shape_->triangulate());
 }
 
 void GeometricPrimitive::setScatterFuncs(SurfaceInteraction* isect, MemoryArena& arena) const {

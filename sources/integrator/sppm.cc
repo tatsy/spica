@@ -248,7 +248,6 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
     int proc = 0;
     for (int t = 0; t < tasksThread; t++) {
         ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-        // for (int threadID = 0; threadID < kNumThreads; threadID++) {
             const std::unique_ptr<Sampler>& sampler = samplers[threadID];
 
             // Sample light source

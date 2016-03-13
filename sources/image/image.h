@@ -39,7 +39,7 @@ namespace spica {
         void save(const std::string& filename) const;
 
         inline unsigned int width() const { return _width; }
-        inline unsigned int height() const { return _height; }
+        inline unsigned int height() const { return _height; }        
 
     protected:
         /** 

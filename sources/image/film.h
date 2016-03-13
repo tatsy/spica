@@ -8,9 +8,11 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include "../core/common.h"
 #include "../core/forward_decl.h"
+#include "../core/uncopyable.h"
 #include "../core/point2d.h"
 
 #include "../image/image.h"
@@ -18,17 +20,14 @@
 
 namespace spica {
 
-class SPICA_EXPORTS Film {
+class SPICA_EXPORTS Film : public Uncopyable {
 public:
     // Public methods
-    Film();
-    Film(const Point2i& resolution, std::unique_ptr<Filter> filter,
-         const std::string& filename);
-    Film(const Film& film) = default;
+    Film(const Point2i& resolution, std::unique_ptr<Filter>&& filter,
+         const std::string& filename,
+         std::unique_ptr<std::function<void(const Image&)>>&& callback = nullptr);
 
     ~Film() = default;
-
-    Film& operator=(const Film&) = default;
 
     inline Point2i resolution() const { return resolution_; }
     inline double aspect() const { 
@@ -40,6 +39,10 @@ public:
     void addPixel(const Point2i& pixel, const Point2d& pInPixel,
                   const Spectrum& color);
 
+    inline void setSaveCallback(std::unique_ptr<std::function<void(const Image&)>>&& callback) {
+        this->saveCallback_ = std::move(callback);        
+    }
+
 private:
     // Private methods
     Point2i resolution_;
@@ -47,6 +50,7 @@ private:
     std::string filename_;
     Image image_;
     std::vector<std::vector<double>> weights_;
+    std::unique_ptr<std::function<void(const Image&)>> saveCallback_;
 
 };  // class Film
 

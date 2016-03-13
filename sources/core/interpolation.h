@@ -29,7 +29,7 @@ public:
     }
 
     inline double f(int i) const {
-        Assertion(i >= 0 && i < size(), "Index out of bounds!!: %d for %ld", i, fs_.size());
+        Assertion(i >= 0 && i < size(), "Index out of bounds!!: %d for %zu", i, fs_.size());
         return fs_[i];
     }
 

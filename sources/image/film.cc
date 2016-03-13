@@ -5,21 +5,16 @@
 
 namespace spica {
 
-Film::Film()
-    : resolution_{}
-    , filter_{ nullptr }
-    , filename_{}
-    , image_{} {
-}
-
-Film::Film(const Point2i& resolution, std::unique_ptr<Filter> filter,
-           const std::string& filename)
+Film::Film(const Point2i& resolution, std::unique_ptr<Filter>&& filter,
+           const std::string& filename,
+           std::unique_ptr<std::function<void(const Image&)>>&& callback)
     : resolution_{ resolution }
     , filter_{ std::move(filter) }
     , filename_{ filename }
     , image_{ (unsigned int)resolution.x(),
               (unsigned int)resolution.y() }
-    , weights_{} {
+    , weights_{}
+    , saveCallback_{ std::move(callback) } {
     image_.fill(RGBSpectrum(0.0, 0.0, 0.0));
     weights_.assign(resolution_.x(), std::vector<double>(resolution_.y(), 0.0));
 }
@@ -41,6 +36,9 @@ void Film::save(int id) const {
     res.save(savefile);
 
     MsgInfo("save: %s", savefile);
+    if (saveCallback_) {
+        (*saveCallback_)(res);
+    }
 }
 
 void Film::setImage(const Image& image) {

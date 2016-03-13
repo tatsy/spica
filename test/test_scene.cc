@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include <memory>
 #include <string>
 #include <type_traits>
 
@@ -25,7 +26,7 @@ protected:
         prims.emplace_back(new GeometricPrimitive(s1, nullptr, nullptr));
         prims.emplace_back(new GeometricPrimitive(s2, nullptr, nullptr));
         auto bvh = std::make_shared<AccelType>(prims);
-        scene = Scene(bvh, lights);
+        this->scene = Scene(bvh, lights);
     }
 
     virtual void TearDown() {
@@ -44,15 +45,15 @@ TYPED_TEST_CASE_P(SceneTypedTest);
 TYPED_TEST_P(SceneTypedTest, IntersectionTest) {
     SurfaceInteraction isect;
     Ray ray(Point3d(0.0, 0.0, 10.0), Vector3d(0.0, 0.0, -1.0));
-    EXPECT_TRUE(scene.intersect(ray));
-    EXPECT_TRUE(scene.intersect(ray, &isect));
+    EXPECT_TRUE(this->scene.intersect(ray));
+    EXPECT_TRUE(this->scene.intersect(ray, &isect));
 
     EXPECT_NE(isect.primitive(), nullptr);
     EXPECT_EQ(Point3d(0.0, 0.0, 5.0), isect.pos());
 
     ray = Ray(Point3d(0.0, 0.0, 10.0), Vector3d(0.0, 1.0, 0.0));
-    EXPECT_FALSE(scene.intersect(ray));
-    EXPECT_FALSE(scene.intersect(ray, &isect));
+    EXPECT_FALSE(this->scene.intersect(ray));
+    EXPECT_FALSE(this->scene.intersect(ray, &isect));
 }
 
 REGISTER_TYPED_TEST_CASE_P(SceneTypedTest, IntersectionTest);

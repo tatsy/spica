@@ -29,7 +29,7 @@ public:
 
     bool startNextSample() override;
 
-    std::unique_ptr<Sampler> clone(unsigned int seed = 0) const;
+    std::unique_ptr<Sampler> clone(unsigned int seed = 0) const override;
 
 private:
     double radicalInverse(int n, int base, const int* p) const;

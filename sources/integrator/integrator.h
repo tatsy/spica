@@ -56,7 +56,7 @@ public:
                         Sampler& sampler,
                         MemoryArena& arena,
                         int depth = 0) const = 0;
-
+    
     Spectrum specularReflect(const Scene& scene,
                              const RenderParameters& params,
                              const Ray& ray,

@@ -82,9 +82,9 @@ void SamplerIntegrator::render(const Scene& scene,
                         const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
 
                         const Point2i pixel(width - x - 1, y);
-                        camera_->film()->
-                            addPixel(pixel, randFilm,
-                                     Li(scene, params, ray, *samplers[threadID], arenas[threadID]));
+                        camera_->film()->addPixel(pixel, randFilm,
+                                                  Li(scene, params, ray, *samplers[threadID],
+                                                     arenas[threadID]));
                     }
                 }
                 arenas[threadID].reset();

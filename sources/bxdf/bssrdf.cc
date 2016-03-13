@@ -197,7 +197,6 @@ Spectrum SeparableBSSRDF::sampleSp(const Scene& scene, double rand1,
     const double r = sampleSr(ch, rand2[0]);
     if (r < 0.0) return Spectrum(0.0);
     const double phi = 2.0 * PI * rand2[1];
-
     // Compute z-coordinate
     const double rMax = sampleSr(ch, 0.9999);
     if (r >= rMax) return Spectrum(0.0);

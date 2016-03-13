@@ -49,7 +49,6 @@ void SamplerIntegrator::render(const Scene& scene,
 
     // Prepare samplers and memory arenas
     auto samplers = std::vector<std::unique_ptr<Sampler>>(kNumThreads);
-    auto arenas   = std::vector<MemoryArena>(kNumThreads);
 
     // Distribute rendering tasks
     const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
@@ -71,6 +70,7 @@ void SamplerIntegrator::render(const Scene& scene,
             }
         }
 
+        auto arenas = std::make_unique<MemoryArena[]>(kNumThreads);
         for (int t = 0; t < taskPerThread; t++) {
             ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
                 samplers[threadID]->startNextSample();
@@ -90,6 +90,7 @@ void SamplerIntegrator::render(const Scene& scene,
                 arenas[threadID].reset();
             }
         }
+        arenas.reset(nullptr);
         camera_->film()->save(i + 1);
     }
     std::cout << "Finish!!" << std::endl;

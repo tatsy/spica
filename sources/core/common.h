@@ -143,14 +143,20 @@ do { \
 inline void* align_alloc(size_t size, size_t alignsize) {
     return _aligned_malloc(size, alignsize);
 }
-inline void align_free(void* mem) { _aligned_free(mem); }
+inline void align_free(void* mem) { 
+    if (!mem) return;
+    _aligned_free(mem);
+}
 #else
 inline void* align_alloc(size_t size, size_t alignsize) {
     void* mem = nullptr;
     int ret = posix_memalign((void**)&mem, alignsize, size);
     return (ret == 0) ? mem : nullptr;
 }
-inline void align_free(void* mem) { free(mem); }
+inline void align_free(void* mem) {
+    if (!mem) return;
+    free(mem);
+}
 #endif
 
 // ----------------------------------------------------------------------------

@@ -26,39 +26,6 @@ int findInterval(int lower, int upper, const Pred& pred) {
     return clamp(lo - 1, lower, upper - 2);
 }
 
-double integrateCatmullRom(const std::vector<double>& xs,
-                           const std::vector<double>& fs,
-                           std::vector<double>* cdf) {
-    const int size = static_cast<int>(xs.size());
-    cdf->resize(size);
-    (*cdf)[0] = 0.0;
-    double sum = 0.0;
-    for (int i = 0; i < size - 1; i++) {
-        const double x0 = xs[i];
-        const double x1 = xs[i + 1];
-        const double f0 = fs[i];
-        const double f1 = fs[i + 1];
-        const double dx = x1 - x0;
-
-        double df0, df1;
-        if (i > 0) {
-            df0 = dx * (f1 - fs[i - 1]) / (x1 - xs[i - 1]);
-        } else {
-            df0 = f1 - f0;
-        }
-
-        if (i < size - 2) {
-            df1 = dx * (fs[i + 2] - f0) / (xs[i +2] - x0);
-        } else {
-            df1 = f1 - f0;
-        }
-
-        sum += ((df0 - df1) / 12.0 + (f0 + f1) * 0.5) * dx;
-        (*cdf)[i + 1] = sum;
-    }
-    return sum;
-}
-
 }  // anonymous namespace
 
 bool catmullRomWeight(const std::vector<double>& nodes, double x,
@@ -103,6 +70,44 @@ bool catmullRomWeight(const std::vector<double>& nodes, double x,
         *w3 = 0.0;
     }
     return true;   
+}
+
+double integrateCatmullRom(const std::vector<double>& xs,
+                           const std::vector<double>& fs,
+                           std::vector<double>* cdf) {
+    const int size = static_cast<int>(xs.size());
+    if (cdf) {
+        cdf->resize(size);
+        (*cdf)[0] = 0.0;
+    }
+
+    double sum = 0.0;
+    for (int i = 0; i < size - 1; i++) {
+        const double x0 = xs[i];
+        const double x1 = xs[i + 1];
+        const double f0 = fs[i];
+        const double f1 = fs[i + 1];
+        const double dx = x1 - x0;
+
+        double df0, df1;
+        if (i > 0) {
+            df0 = dx * (f1 - fs[i - 1]) / (x1 - xs[i - 1]);
+        } else {
+            df0 = f1 - f0;
+        }
+
+        if (i < size - 2) {
+            df1 = dx * (fs[i + 2] - f0) / (xs[i +2] - x0);
+        } else {
+            df1 = f1 - f0;
+        }
+
+        sum += ((df0 - df1) / 12.0 + (f0 + f1) * 0.5) * dx;
+        if (cdf) {
+            (*cdf)[i + 1] = sum;
+        }
+    }
+    return sum;
 }
 
 // -----------------------------------------------------------------------------
@@ -208,9 +213,9 @@ double CatmullRom::sample(double rand, double* fval, double* pdf) const {
     double t;
     if (df0 != df1) {
         t = (f0 - std::sqrt(std::max(0.0, f0 * f0 + 2.0 * ft * (f1 - f0)))) / 
-            (f0 - f1); 
+            ((f0 - f1) + EPS); 
     } else {
-        t = ft / f0;
+        t = ft / (f0 + EPS);
     }
 
     double lo = 0.0, hi = 1.0;
@@ -225,7 +230,7 @@ double CatmullRom::sample(double rand, double* fval, double* pdf) const {
                (df0 + df1 + 2.0 * (f0 - f1)) * t3;
         const double Fhat = f0 * t + 0.5 * df0 * t2 + 
                (1.0 / 3.0) * (-2.0 * df0 - df1 + 3.0 * (f1 - f0)) * t3 +
-               0.25  *(df0 + df1 + 2.0 * (f0 - f1)) * t4;
+               0.25  * (df0 + df1 + 2.0 * (f0 - f1)) * t4;
 
         if (std::abs(Fhat - ft) < 1.0e-6 || hi - lo < 1.0e-6) break;
 

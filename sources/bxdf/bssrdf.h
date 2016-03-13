@@ -59,7 +59,7 @@ protected:
     Spectrum sampleSp(const Scene& scene, double rand1, const Point2d& rand2,
                       MemoryArena& arena, SurfaceInteraction* pi,
                       double* pdf) const;
-    double pdfSp(const SurfaceInteraction& isect) const;
+    virtual double pdfSp(const SurfaceInteraction& isect) const;
 
     // Protected virtual methods
     virtual double sampleSr(int ch, double rand) const = 0;

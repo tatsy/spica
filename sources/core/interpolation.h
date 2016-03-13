@@ -29,8 +29,8 @@ public:
     }
 
     inline double f(int i) const {
-        Assertion(i >= 0 && i < size(), "Index out of bounds!!");
-        return fs_[i];    
+        Assertion(i >= 0 && i < size(), "Index out of bounds!!: %d for %ld", i, fs_.size());
+        return fs_[i];
     }
 
     double evaluate(double x) const;
@@ -90,6 +90,11 @@ SPICA_EXPORTS
 bool catmullRomWeight(const std::vector<double>& nodes, double x,
                       double* w0, double* w1, double* w2, double* w3,
                       int* offset);
+
+SPICA_EXPORTS
+double integrateCatmullRom(const std::vector<double>& xs,
+                           const std::vector<double>& fs,
+                           std::vector<double>* cdf = nullptr);
 
 }  // namespace spica
 

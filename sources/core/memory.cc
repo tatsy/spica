@@ -35,7 +35,7 @@ void* MemoryArena::allocate(size_t nBytes) {
         }
 
         for (auto iter = availableBlocks_.begin();
-             iter != availableBlocks_.end(); ++iter) {
+            iter != availableBlocks_.end(); ++iter) {
             if (iter->first >= nBytes) {
                 currentAllocSize_ = iter->first;
                 currentBlock_     = iter->second;

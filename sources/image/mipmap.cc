@@ -89,8 +89,8 @@ namespace spica {
         const double ds = s - si;
         const double dt = t - ti;
         return (1.0 - ds) * (1.0 - dt) * texel(level, si, ti) +
-               ds * (1.0 - dt) * texel(level, si, ti + 1) +
-               (1.0 - ds) * dt * texel(level, si + 1, ti) +
+               ds * (1.0 - dt) * texel(level, si + 1, ti) +
+               (1.0 - ds) * dt * texel(level, si, ti + 1) +
                 ds * dt * texel(level, si + 1, ti + 1);
     }
 

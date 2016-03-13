@@ -10,18 +10,7 @@
 
 namespace spica {
 
-struct BBVHAccel::BVHPrimitiveInfo {
-    int primIdx;
-    Point3d centroid;
-    Bounds3d bounds;
-    BVHPrimitiveInfo() {}
-    BVHPrimitiveInfo(int pid, const Bounds3d& b)
-        : primIdx(pid)
-        , centroid()
-        , bounds(b) {
-        centroid = (b.posMax() + b.posMin()) * 0.5;
-    }
-};
+
 
 struct BBVHAccel::BucketInfo {
     int count;
@@ -29,32 +18,6 @@ struct BBVHAccel::BucketInfo {
     BucketInfo()
         : count(0)
         , bounds() {
-    }
-};
-
-struct BBVHAccel::BBvhNode {
-    Bounds3d bounds;
-    BBvhNode* left;
-    BBvhNode* right;
-    int splitAxis;
-    int triIdx;
-
-    void initLeaf(const Bounds3d& b, int tid) {
-        this->bounds = bounds;
-        this->splitAxis = -1;
-        this->triIdx = tid;
-    }
-
-    void initFork(const Bounds3d& b, BBvhNode* l, BBvhNode* r, int axis) {
-        this->bounds = b;
-        this->left  = l;
-        this->right = r;
-        this->splitAxis = axis;
-        this->triIdx = -1;
-    }
-
-    bool isLeaf() const {
-        return triIdx >= 0;
     }
 };
 
@@ -91,11 +54,9 @@ struct BBVHAccel::CompareToBucket {
     }
 };
 
-BBVHAccel::BBVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims,
-                     int maxPrimsInNode)
+BBVHAccel::BBVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims)
     : Accelerator{ prims }
-    , maxPrimInNode_{ maxPrimsInNode }
-    , _root{ nullptr } {
+    , root_{ nullptr } {
     construct();
 }
 
@@ -103,7 +64,7 @@ BBVHAccel::~BBVHAccel() {
 }
 
 Bounds3d BBVHAccel::worldBound() const {
-    return _nodes.empty() ? Bounds3d() : _nodes[0]->bounds;
+    return nodes_.empty() ? Bounds3d() : nodes_[0]->bounds;
 }
 
 void BBVHAccel::construct() {
@@ -114,16 +75,15 @@ void BBVHAccel::construct() {
         primitiveInfo[i] = { i, primitives_[i]->worldBound() };
     }
 
-    _root = constructRec(primitiveInfo, 0, primitives_.size());
+    root_ = constructRec(primitiveInfo, 0, primitives_.size());
 }
 
-BBVHAccel::BBvhNode*
-BBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
+BVHNode* BBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
                         int start, int end) {
     if (start == end) return nullptr;
 
-    BBvhNode* node = new BBvhNode();
-    _nodes.emplace_back(node);
+    BVHNode* node = new BVHNode();
+    nodes_.emplace_back(node);
 
     Bounds3d bounds;
     for (int i = start; i < end; i++) {
@@ -200,29 +160,29 @@ BBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
             }
         }
 
-        BBvhNode* left  = constructRec(buildData, start, mid);
-        BBvhNode* right = constructRec(buildData, mid, end);
+        BVHNode* left  = constructRec(buildData, start, mid);
+        BVHNode* right = constructRec(buildData, mid, end);
         node->initFork(bounds, left, right, splitAxis);
     }
     return std::move(node);
 }
 
 bool BBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
-    std::stack<BBvhNode*> nodeStack;
-    nodeStack.push(_root);
+    std::stack<BVHNode*> nodeStack;
+    nodeStack.push(root_);
 
     bool hit = false;
     while (!nodeStack.empty()) {
-        BBvhNode* node = nodeStack.top();
+        BVHNode* node = nodeStack.top();
         nodeStack.pop();
 
         if (node->isLeaf()) {
             // Leaf
-            const auto& prim = primitives_[node->triIdx];
+            const auto& prim = primitives_[node->primIdx];
             SurfaceInteraction temp;
             if (prim->intersect(ray, &temp)) {
                 *isect = temp;
-                isect->setPrimitive(primitives_[node->triIdx].get());
+                isect->setPrimitive(prim.get());
                 hit = true;
             }
         } else {
@@ -238,17 +198,17 @@ bool BBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
 }
 
 bool BBVHAccel::intersect(Ray& ray) const {
-std::stack<BBvhNode*> nodeStack;
-    nodeStack.push(_root);
+std::stack<BVHNode*> nodeStack;
+    nodeStack.push(root_);
 
     bool hit = false;
     while (!nodeStack.empty()) {
-        BBvhNode* node = nodeStack.top();
+        BVHNode* node = nodeStack.top();
         nodeStack.pop();
 
         if (node->isLeaf()) {
             // Leaf
-            const auto& prim = primitives_[node->triIdx];
+            const auto& prim = primitives_[node->primIdx];
             if (prim->intersect(ray)) {
                 return true;
             }

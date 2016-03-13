@@ -68,8 +68,20 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     const double sinPhi = sin(phi);
     const double u = phi / (2.0 * PI);
     const double v = theta  / PI;
-    const Vector3d dpdu = { -2.0 * PI * pObj.y(), 2.0 * PI * pObj.x(), 0.0 };
-    const Vector3d dpdv = -PI * Vector3d(cosPhi * pObj.z(), sinPhi * pObj.z(), -radius_ * sin(theta));
+    Vector3d dpdu = Vector3d{ -2.0 * PI * pObj.y(), 2.0 * PI * pObj.x(), 0.0 };
+    Vector3d dpdv = -PI * Vector3d(cosPhi * pObj.z(), sinPhi * pObj.z(),
+                                   -radius_ * sin(theta));
+    
+    // Prevent dpdu becomes zero when the ray intersect on either north or south pole.
+    if (dpdu.norm() < EPS) {
+        double sz = pObj.z() > 0.0 ? 1.0 : -1.0;
+        if (dpdv.cross(Vector3d(sz, 0.0, 0.0)).z() > EPS) {
+            dpdu = dpdv.cross(Vector3d(sz, 0.0, 0.0));
+        } else {
+            dpdu = dpdv.cross(Vector3d(0.0, sz, 0.0));
+        }
+    }
+
 
     Vector3d d2pdudu = - (2.0 * PI) * (2.0 * PI) * Vector3d(pObj.x(), pObj.y(), 0.0);
     Vector3d d2pdudv = PI * pObj.z() * (2.0 * PI) * Vector3d(sinPhi, -cosPhi, 0.0);

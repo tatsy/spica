@@ -3,13 +3,11 @@
 #include "../include/spica.h"
 using namespace spica;
 
-#include "test_macros.h"
-
 TEST(RayTest, DefaultInstanceTest) {
     Ray ray;
-    EXPECT_EQ_VEC(Vector3d{}, ray.org());
-    EXPECT_EQ_VEC(Vector3d{}, ray.dir());
-    EXPECT_EQ_VEC(Vector3d(INFTY, INFTY, INFTY), ray.invdir());
+    EXPECT_EQ(Vector3d{}, ray.org());
+    EXPECT_EQ(Vector3d{}, ray.dir());
+    EXPECT_EQ(Vector3d(INFTY, INFTY, INFTY), ray.invdir());
 }
 
 TEST(RayTest, InstanceTest) {
@@ -17,9 +15,9 @@ TEST(RayTest, InstanceTest) {
     Vector3d dir(1.0, 0.0, 0.0);
     Ray ray(orig, dir);
     
-    EXPECT_EQ_VEC(orig, ray.org());
-    EXPECT_EQ_VEC(dir, ray.dir());
-    EXPECT_EQ_VEC(Vector3d(1.0, INFTY, INFTY), ray.invdir());
+    EXPECT_EQ(orig, ray.org());
+    EXPECT_EQ(dir, ray.dir());
+    EXPECT_EQ(Vector3d(1.0, INFTY, INFTY), ray.invdir());
 
     ASSERT_DEATH(Ray(orig, Vector3d(0.0, 0.0, 0.0)), "");
 }
@@ -30,7 +28,7 @@ TEST(RayTest, CopyTest) {
     Ray ray(orig, dir);
 
     Ray cp = ray;
-    EXPECT_EQ_VEC(orig, cp.org());
-    EXPECT_EQ_VEC(dir, cp.dir());
-    EXPECT_EQ_VEC(Vector3d(1.0, INFTY, INFTY), cp.invdir());
+    EXPECT_EQ(orig, cp.org());
+    EXPECT_EQ(dir, cp.dir());
+    EXPECT_EQ(Vector3d(1.0, INFTY, INFTY), cp.invdir());
 }

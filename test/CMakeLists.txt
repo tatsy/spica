@@ -31,7 +31,6 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
   set(TEST_NAME spica_tests)
   set(SOURCE_FILES
       all_tests.cc
-      test_macros.h
 #      test_stack.cc
       test_geometry.cc
       test_point3d.cc
@@ -50,7 +49,7 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
 #      test_sampler.cc
 #      test_trimesh.cc
 #      test_kdtree.cc
-#      test_scene.cc
+      test_scene.cc
 #      test_random.cc
 #      test_renderer_helper.cc
 #      test_path.cc

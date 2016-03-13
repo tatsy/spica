@@ -35,8 +35,7 @@ namespace spica {
     }
 
     bool Scene::intersect(Ray& ray, SurfaceInteraction* isect) const {
-        bool ist = aggregate_->intersect(ray, isect);
-        return ist;
+        return aggregate_->intersect(ray, isect);
     }
 
     bool Scene::intersect(Ray& ray) const {

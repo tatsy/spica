@@ -7,7 +7,7 @@
 
 #include "accelerator.h"
 #include "bvh.h"
+#include "qbvh.h"
 // #include "kdtree.h"
-// #include "qbvh.h"
 
 #endif  // _SPICA_ACCELERATOR_HEADERS_H_

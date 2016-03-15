@@ -3,6 +3,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
                @ONLY)
 
  set(SOURCES ${SOURCES}
+     ${CMAKE_CURRENT_LIST_DIR}/parallel.cc
      ${CMAKE_CURRENT_LIST_DIR}/engine.cc
      ${CMAKE_CURRENT_LIST_DIR}/memory.cc
      ${CMAKE_CURRENT_LIST_DIR}/spectrum.cc
@@ -16,6 +17,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
 
  set(HEADERS ${HEADERS}
      ${CMAKE_CURRENT_LIST_DIR}/common.h
+     ${CMAKE_CURRENT_LIST_DIR}/parallel.h
      ${CMAKE_CURRENT_LIST_DIR}/engine.h
      ${CMAKE_CURRENT_LIST_DIR}/memory.h
      ${CMAKE_CURRENT_LIST_DIR}/forward_decl.h

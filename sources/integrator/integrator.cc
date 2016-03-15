@@ -2,6 +2,7 @@
 #include "integrator.h"
 
 #include "../core/memory.h"
+#include "../core/parallel.h"
 #include "../core/interaction.h"
 
 #include "../bxdf/bxdf.h"
@@ -72,7 +73,8 @@ void SamplerIntegrator::render(const Scene& scene,
 
         auto arenas = std::make_unique<MemoryArena[]>(kNumThreads);
         for (int t = 0; t < taskPerThread; t++) {
-            ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
+            // ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
+            parallel_for(0, kNumThreads, [&](int threadID) {
                 samplers[threadID]->startNextSample();
                 if (t < tasks[threadID].size()) {
                     const int y = tasks[threadID][t];
@@ -88,7 +90,7 @@ void SamplerIntegrator::render(const Scene& scene,
                     }
                 }
                 arenas[threadID].reset();
-            }
+            });
         }
         arenas.reset(nullptr);
         camera_->film()->save(i + 1);

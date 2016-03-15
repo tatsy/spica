@@ -238,12 +238,14 @@ bool QBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
             }
         } else {
             // Leaf
-            const auto& prim = primitives_[item.node.index];
-            SurfaceInteraction temp;
-            if (primitives_[item.node.index]->intersect(ray, &temp)) {
-                *isect = temp;
-                isect->setPrimitive(prim.get());
-                hit = true;
+            if (item.node.index >= 0) {
+                const auto& prim = primitives_[item.node.index];
+                SurfaceInteraction temp;
+                if (primitives_[item.node.index]->intersect(ray, &temp)) {
+                    *isect = temp;
+                    isect->setPrimitive(prim.get());
+                    hit = true;
+                }
             }
         }
     }

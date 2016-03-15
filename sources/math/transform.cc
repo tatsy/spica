@@ -154,6 +154,11 @@ namespace spica {
         m[2][1] = a.y() * a.z() * (1.0 - cosTheta) + a.x() * sinTheta;
         m[2][2] = a.z() * a.z() + (1.0 - a.z() * a.z()) * cosTheta;
         m[2][3] = 0.0;
+
+        m[3][0] = 0.0;
+        m[3][1] = 0.0;
+        m[3][2] = 0.0;
+        m[3][3] = 1.0;
         
         Matrix4x4 mat(m);
         return Transform{ mat, mat.transposed() };

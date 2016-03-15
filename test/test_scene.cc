@@ -117,9 +117,7 @@ TEST_P(SceneIntersectionTest, BBVHvsQBVH) {
         Ray ray(f, dir);
 
         SurfaceInteraction isect1, isect2;
-        EXPECT_EQ(scene1.intersect(ray), scene2.intersect(ray)) << 
-            "org : " << ray.org() << std::endl <<
-            "dir : " << ray.dir() << std::endl;
+        EXPECT_EQ(scene1.intersect(ray), scene2.intersect(ray));
         EXPECT_EQ(scene1.intersect(ray, &isect1), scene2.intersect(ray, &isect2));
         EXPECT_EQ(isect1.primitive(), isect2.primitive());
         EXPECT_EQ(isect1.pos(), isect2.pos());

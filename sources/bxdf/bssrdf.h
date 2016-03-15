@@ -44,7 +44,7 @@ public:
     // Public methods
     SeparableBSSRDF(const SurfaceInteraction& po, double eta,
                     const Material* material);
-    Spectrum S(const SurfaceInteraction& pi, const Vector3d& wi) const;
+    Spectrum S(const SurfaceInteraction& pi, const Vector3d& wi) const override;
     Spectrum sample(const Scene& scene, double rand1, const Point2d& rand2,
                     MemoryArena& arena, SurfaceInteraction* po,
                     double* pdf) const override;

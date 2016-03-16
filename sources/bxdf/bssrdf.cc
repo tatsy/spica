@@ -397,6 +397,15 @@ double FresnelMoment2(double eta) {
     }
 }
 
+double FresnelDiffuseReflect(double eta) {
+    if (eta >= 1)
+        return -1.4399 / (eta * eta) + 0.7099 / eta + 0.6681 +
+               0.0636f * eta;
+    else
+        return -0.4399f + 0.7099 / eta - 0.3319 / (eta * eta) +
+               0.0636 / (eta * eta * eta);
+}
+
 SeparableBSSRDFAdapter::SeparableBSSRDFAdapter(const SeparableBSSRDF* bssrdf)
     : BxDF{ BxDFType::Reflection | BxDFType::Diffuse }
     , bssrdf_{ bssrdf } {

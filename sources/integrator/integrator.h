@@ -29,7 +29,7 @@ public:
     explicit Integrator(const std::shared_ptr<const Camera>& camera);
     virtual ~Integrator();
     virtual void render(const Scene& scene,
-                        const RenderParameters& params) const = 0;
+                        const RenderParameters& params) = 0;
 
 protected:
     std::shared_ptr<const Camera> camera_;
@@ -48,7 +48,11 @@ public:
                       const std::shared_ptr<Sampler>& sampler);
     virtual ~SamplerIntegrator();
     virtual void render(const Scene& scene,
-                        const RenderParameters& params) const;
+                        const RenderParameters& params) override;
+
+    virtual void initialize(const Scene& scene,
+                            const RenderParameters& params,
+                            Sampler& sampler);
 
     virtual Spectrum Li(const Scene& scene,
                         const RenderParameters& params,

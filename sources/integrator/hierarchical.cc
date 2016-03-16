@@ -6,16 +6,17 @@
 #include <typeinfo>
 
 #include "../core/common.h"
-
-#include "renderer_helper.h"
-#include "render_parameters.h"
-
 #include "../core/sampling.h"
+
 #include "../scenes/scene.h"
+#include "../shape/visibility_tester.h"
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bssrdf.h"
 #include "../material/material.h"
 #include "../random/sampler.h"
+
+#include "mis.h"
+#include "render_parameters.h"
 
 namespace spica {
 
@@ -172,7 +173,9 @@ Spectrum HierarchicalIntegrator::Octree::iradSubsurfaceRec(
     double dw = node->pt.area / distSquared;
     if (node->isLeaf || (dw < _parent->maxError_ &&
                          !node->bbox.inside(po.pos()))) {
-        return po.bssrdf()->Sr(node->pt.pos) * (node->pt.irad) * node->pt.area;
+        auto bssrdf = static_cast<DiffuseBSSRDF*>(po.bssrdf());
+        const double r = (node->pt.pos - po.pos()).norm() * 0.1;
+        return bssrdf->Sr(r) * (node->pt.irad) * node->pt.area;
     } else {
         Spectrum ret(0.0, 0.0, 0.0);
         for (int i = 0; i < 8; i++) {
@@ -184,27 +187,118 @@ Spectrum HierarchicalIntegrator::Octree::iradSubsurfaceRec(
     }
 }
 
-HierarchicalIntegrator::HierarchicalIntegrator()
-    : octree_()
-    , _photonMap()
-    , dA_(0.0)
-    , radius_()
-    , triangles_() {
+HierarchicalIntegrator::HierarchicalIntegrator(
+    const std::shared_ptr<const Camera>& camera,
+    const std::shared_ptr<Sampler>& sampler,
+    double maxError)
+    : SamplerIntegrator{ camera, sampler }
+    , octree_{}
+    , dA_{ 0.0 }
+    , radius_{}
+    , maxError_{ maxError }
+    , triangles_{} {
 }
 
 HierarchicalIntegrator::~HierarchicalIntegrator() {
 }
 
+Spectrum HierarchicalIntegrator::Li(const Scene& scene,
+                                    const RenderParameters& params,
+                                    const Ray& r,
+                                    Sampler& sampler,
+                                    MemoryArena& arena,
+                                    int depth) const {
+    Ray ray(r);
+    Spectrum L(0.0);
+    Spectrum beta(1.0);
+    bool specularBounce = false;
+    int bounces;
+    for (bounces = 0; ; bounces++) {
+        SurfaceInteraction isect;
+        bool isIntersect = scene.intersect(ray, &isect);
+
+        // Sample Le which contributes without any loss
+        if (bounces == 0 || specularBounce) {
+            if (isIntersect) {
+                L += beta * isect.Le(-ray.dir());
+            } else {
+                for (const auto& light : scene.lights()) {
+                    L += beta * light->Le(ray);
+                }
+            }
+        }
+
+        if (!isIntersect || bounces >= params.bounceLimit()) break;
+
+        isect.setScatterFuncs(ray, arena);
+        if (!isect.bsdf()) {
+            ray = isect.spawnRay(ray.dir());
+            bounces--;
+            continue;
+        }
+
+        if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
+            Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+            L += Ld;
+        }
+
+        // Process BxDF
+        Vector3d wo = -ray.dir();
+        Vector3d wi;
+        double pdf;
+        BxDFType sampledType;
+        Spectrum ref = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdf,
+                                            BxDFType::All, &sampledType);
+
+        if (ref.isBlack() || pdf == 0.0) break;
+
+        beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+        specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+        ray = isect.spawnRay(wi);
+
+        // Account for BSSRDF
+        if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+            L += beta * this->irradiance(isect, 1.3);
+            break;
+            /*
+            SurfaceInteraction pi;
+            Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                sampler.get2D(), arena, &pi, &pdf);
+
+            if (S.isBlack() || pdf == 0.0) break;
+            beta *= S / pdf;
+
+            L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+
+            Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
+                                           BxDFType::All, &sampledType);
+            if (f.isBlack() || pdf == 0.0) break;
+            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+
+            specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+            ray = pi.spawnRay(wi);
+            */
+        }
+
+        // Russian roulette
+        if (bounces > 3) {
+            double continueProbability = std::min(0.95, beta.luminance());
+            if (sampler.get1D() > continueProbability) break;
+            beta /= continueProbability;
+        }
+    }
+    return L;
+}
+
 void HierarchicalIntegrator::initialize(const Scene& scene,
-                                      const double maxError) {
+                                        const RenderParameters& params,
+                                        Sampler& sampler) {
     // Extract triangles with BSSRDF
     triangles_.clear();
     const auto& prims = scene.primitives();
     for (const auto& p : prims) {
-        if (p->material()->isSubsurface()) {
-            const auto& tris = p->triangulate();
-            triangles_.insert(triangles_.end(), tris.begin(), tris.end());
-        }
+        const auto& tris = p->triangulate();
+        triangles_.insert(triangles_.end(), tris.begin(), tris.end());
     }
 
     double avgArea = 0.0;
@@ -215,46 +309,57 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
     // Compute dA and copy maxError
     radius_   = std::sqrt(avgArea / triangles_.size());
     dA_       = (0.5 * radius_) * (0.5 * radius_) * PI;
-    maxError_ = maxError;
+
+    // Construct octree
+    construct(scene, sampler, params);
 }
 
 void HierarchicalIntegrator::construct(const Scene& scene,
+                                       Sampler& sampler,
                                        const RenderParameters& params) {
     // If there are no scattering triangle, do nothing
     if (triangles_.empty()) return;
 
     // Poisson disk sampling
-    std::vector<Point3d> points;
-    std::vector<Normal3d> normals;
-    samplePoissonDisk(triangles_, radius_, &points, &normals);
-
-    // Cast photons to compute irradiance at sample points
-    _photonMap.construct(scene, params);
+    std::vector<Interaction> points;
+    samplePoissonDisk(triangles_, radius_, &points);
 
     // Compute irradiance at sample points
-    buildOctree(points, normals, params);
+    buildOctree(scene, sampler, points, params);
 }
 
-void HierarchicalIntegrator::buildOctree(const std::vector<Point3d>& points,
-                                         const std::vector<Normal3d>& normals,
+void HierarchicalIntegrator::buildOctree(const Scene& scene,
+                                         Sampler& sampler,
+                                         const std::vector<Interaction>& points,
                                          const RenderParameters& params) {
     // Compute irradiance on each sampled point
     const int numPoints = static_cast<int>(points.size());
     std::vector<Spectrum> irads(numPoints);
 
+    Vector3d wi;
+    double lightPdf;
+    VisibilityTester vis;
     for(int i = 0; i < numPoints; i++) {
         // Estimate irradiance with photon map
-        Spectrum irad = _photonMap.evaluate(points[i], normals[i],
-                                            params.gatherPhotons(),
-                                            params.gatherRadius());
-        irads[i] = irad;
+        Spectrum E(0.0);
+        for (const auto& l : scene.lights()) {
+            Spectrum Li = l->sampleLi(points[i], sampler.get2D(), &wi, &lightPdf, &vis);
+
+            if (vect::dot(wi, points[i].normal()) <= 0.0) continue;
+            if (Li.isBlack() || lightPdf == 0.0) continue;
+            Li *= vis.transmittance(scene, sampler);
+            if (vis.unoccluded(scene)) {
+                E += Li * vect::absDot(wi, points[i].normal()) / lightPdf;
+            }
+        }
+        irads[i] = E;
     }
 
     // Octree construction
     std::vector<IrradiancePoint> iradPoints(numPoints);
     for (int i = 0; i < numPoints; i++) {
-        iradPoints[i].pos = points[i];
-        iradPoints[i].normal = normals[i];
+        iradPoints[i].pos    = points[i].pos();
+        iradPoints[i].normal = points[i].normal();
         iradPoints[i].area = dA_;
         iradPoints[i].irad = irads[i];
     }
@@ -262,10 +367,11 @@ void HierarchicalIntegrator::buildOctree(const std::vector<Point3d>& points,
     std::cout << "Octree constructed !!" << std::endl;
 }
 
-Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po) const {
+Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po, double eta) const {
     Assertion(po.bssrdf(), "BSSRDF not found!!");
     const Spectrum Mo = octree_.iradSubsurface(po);
-    return Spectrum(INV_PI * (1.0 - bsdf._bssrdf->Fdr()) * Mo);
+    const double Fdr = FresnelDiffuseReflect(eta);
+    return (INV_PI * (1.0 - Fdr)) * Mo;
 }
 
 }  // namespace spica

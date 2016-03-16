@@ -50,11 +50,11 @@ public:
                     double* pdf) const override;
 
     // Public virtual methods
+    virtual Spectrum Sp(const SurfaceInteraction& pi) const;
     virtual Spectrum Sr(double r) const = 0;
 
 protected:
     // Protected methods
-    virtual Spectrum Sp(const SurfaceInteraction& pi) const;
     Spectrum Sw(const Vector3d& w) const;
     Spectrum sampleSp(const Scene& scene, double rand1, const Point2d& rand2,
                       MemoryArena& arena, SurfaceInteraction* pi,
@@ -118,6 +118,7 @@ private:
 
 SPICA_EXPORTS double FresnelMoment1(double eta);
 SPICA_EXPORTS double FresnelMoment2(double eta);
+SPICA_EXPORTS double FresnelDiffuseReflect(double eta);
 
 SPICA_EXPORTS
 void subsurfaceFromDiffuse(const CatmullRom2D& table, const Spectrum& albedoEff,

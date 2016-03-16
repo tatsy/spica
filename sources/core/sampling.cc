@@ -179,14 +179,14 @@ void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const 
     *direction = (u * cos(t) * z2s + v * sin(t) * z2s + w * sqrt(1.0 - z2)).normalized();        
 }
 
-void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minDist, std::vector<Point3d>* points, std::vector<Normal3d>* normals) {
+void samplePoissonDisk(const std::vector<Triangle>& triangles, double minDist,
+                       std::vector<Interaction>* points) {
     Random rng((unsigned int)time(0));
 
     // Sample random points on trimesh
-    /*
     Bounds3d bbox;
-    std::vector<Point> candPoints;
-    std::vector<Normal> candNormals;
+    std::vector<Point3d> candPoints;
+    std::vector<Normal3d> candNormals;
     for (int i = 0; i < triangles.size(); i++) {
         const Triangle& tri = triangles[i];
         const double A = tri.area();
@@ -200,7 +200,7 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
             }
 
             Point3d p = (1.0 - u - v) * tri[0] + u * tri[1] + v * tri[2];
-            Normal n = (1.0 - u - v) * tri.normal(0) + u * tri.normal(1) + v * tri.normal(2);
+            Normal3d n = (1.0 - u - v) * tri.normal(0) + u * tri.normal(1) + v * tri.normal(2);
             candPoints.push_back(p);
             candNormals.push_back(n);
             bbox.merge(p);
@@ -246,10 +246,8 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, const double minD
     // Store sampled points
     std::vector<int>::iterator it;
     for (it = sampledIDs.begin(); it != sampledIDs.end(); ++it) {
-        points->push_back(candPoints[*it]);
-        normals->push_back(candNormals[*it]);
+        points->emplace_back(candPoints[*it], candNormals[*it]);
     }
-    */
 }
 
 }  // namespace spica

@@ -40,10 +40,16 @@ SamplerIntegrator::SamplerIntegrator(const std::shared_ptr<const Camera>& camera
 SamplerIntegrator::~SamplerIntegrator() {
 }
 
+void SamplerIntegrator::initialize(const Scene& scene,
+                                   const RenderParameters& parmas,
+                                   Sampler& sampler) {
+}
+
 void SamplerIntegrator::render(const Scene& scene,
-                               const RenderParameters& params) const {
-    // Preparation for accouting for BSSRDF
-    // _integrator->initialize(scene);
+                               const RenderParameters& params) {
+    // Initialization
+    auto initSampler = sampler_->clone((unsigned int)time(0));
+    initialize(scene, params, *initSampler);
 
     const int width = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();

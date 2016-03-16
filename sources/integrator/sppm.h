@@ -24,7 +24,7 @@ public:
     ~SPPMIntegrator();
 
     void render(const Scene& scene,
-                const RenderParameters& params) const override;
+                const RenderParameters& params) override;
         
 private:
     // Private internal class

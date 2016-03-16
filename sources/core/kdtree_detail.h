@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "common.h"
+#include "../math/vector3d.h"
 
 namespace spica {
 

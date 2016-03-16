@@ -67,7 +67,6 @@ public:
     void clear();
     void construct(const Scene& scene,
                    const RenderParameters& params,
-                   Sampler& sampler,
                    PhotonMapFlag flag);
 
     Spectrum evaluate(const SurfaceInteraction& po,

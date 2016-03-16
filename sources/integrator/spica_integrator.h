@@ -12,6 +12,7 @@
 // #include "mlt.h"
 // #include "ppmprob.h"
 #include "sppm.h"
+#include "hierarchical.h"
 // #include "subsurface_sppm_renderer.h"
 
 #endif  // _SPICA_RENDERER_H_

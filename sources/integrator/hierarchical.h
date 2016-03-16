@@ -5,9 +5,10 @@
 #ifndef _SPICA_SUBSURFACE_INTEGRATOR_H_
 #define _SPICA_SUBSURFACE_INTEGRATOR_H_
 
+#include "../core/common.h"
 #include "../core/forward_decl.h"
 #include "../core/bounds3d.h"
-#include "photon_map.h"
+#include "integrator.h"
 
 namespace spica {
 
@@ -55,19 +56,24 @@ struct IrradiancePoint {
 /** Irradiance integrator for subsurface scattering objects
  *  @ingroup renderer_module
  */
-class SPICA_EXPORTS HierarchicalIntegrator : private Uncopyable {
+class SPICA_EXPORTS HierarchicalIntegrator : public SamplerIntegrator {
 public:
     // Public methods
-    HierarchicalIntegrator();
+    HierarchicalIntegrator(const std::shared_ptr<const Camera>& camera,
+                           const std::shared_ptr<Sampler>& smapler,
+                           double maxError = 0.05);
     ~HierarchicalIntegrator();
 
     void initialize(const Scene& scene,
-                    const double maxError = 0.05);
+                    const RenderParameters& params,
+                    Sampler& sampler) override;
 
-    void construct(const Scene& scene,
-                    const RenderParameters& params);
-
-    Spectrum irradiance(const SurfaceInteraction& po) const;
+    Spectrum Li(const Scene& scene,
+                const RenderParameters& params,
+                const Ray& ray,
+                Sampler& sampler,
+                MemoryArena& arena,
+                int depth = 0) const override;
 
 private:
     // Private internal classes
@@ -118,12 +124,18 @@ private:
     };
 
     // Private methods
-    void buildOctree(const std::vector<Point3d>& points,
-                     const std::vector<Normal3d>& normals,
-                     const RenderParameters& params);
+    void construct(const Scene& scene,
+                   Sampler& sampler,
+                   const RenderParameters& params);
 
+    Spectrum irradiance(const SurfaceInteraction& po, double eta) const;
+
+    void buildOctree(const Scene& scene,
+                     Sampler& sampler,
+                     const std::vector<Interaction>& points,
+                     const RenderParameters& params);
+    
     // Private fields
-    PhotonMap _photonMap;
     Octree    octree_;
     double    dA_;
     double    radius_;

@@ -67,7 +67,7 @@ SPPMIntegrator::~SPPMIntegrator() {
 }
 
 void SPPMIntegrator::render(const Scene& scene,
-                            const RenderParameters& params) const {
+                            const RenderParameters& params) {
     const int width  = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
     const int numPoints = width * height;

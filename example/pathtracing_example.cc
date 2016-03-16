@@ -33,8 +33,10 @@ int main(int argc, char **argv) {
     params.castPhotons(500000);
     params.saveFilenameFormat();
 
-    VolPathIntegrator integr(camera, sampler);
+    // VolPathIntegrator integr(camera, sampler);
     // PathIntegrator integr(camera, sampler);
+    
+    HierarchicalIntegrator integr(camera, sampler);
     integr.render(scene, params);
 
     printf("Timer: %f sec\n", timer.stop());

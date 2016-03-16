@@ -4,6 +4,7 @@
 #include <ctime>
 #include <fstream>
 
+#include "../core/memory.h"
 #include "../core/sampling.h"
 #include "../core/interaction.h"
 
@@ -71,7 +72,6 @@ void PhotonMap::clear() {
 
 void PhotonMap::construct(const Scene& scene,
                           const RenderParameters& params,
-                          Sampler& sampler,
                           PhotonMapFlag flag) {
 
     std::cout << "Shooting photons..." << std::endl;
@@ -82,7 +82,7 @@ void PhotonMap::construct(const Scene& scene,
     // Random number generator
     std::vector<std::unique_ptr<Sampler>> samplers(kNumThreads);
     for (int i = 0; i < kNumThreads; i++) {
-        samplers[i] = sampler.clone((unsigned int)time(0) + i);
+        samplers[i] = std::make_unique<Random>((unsigned int)time(0) + i);
     }
     std::vector<MemoryArena> arenas;
 

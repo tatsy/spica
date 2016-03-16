@@ -244,7 +244,7 @@ double CatmullRom::sample(double rand, double* fval, double* pdf) const {
     }
 
     if (fval) *fval = fhat;
-    if (pdf)  *pdf = fhat / Fs_[Fs_.size() - 1];
+    if (pdf)  *pdf  = fhat / Fs_[Fs_.size() - 1];
     return x0 + dx * t;
 }
 

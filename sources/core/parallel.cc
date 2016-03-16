@@ -46,7 +46,6 @@ void AtomicDouble::add(double v) {
 class WorkerTask;
 
 static thread_local int threadID;
-static std::vector<int> threadTasks;
 static std::mutex workerListMutex;
 static std::condition_variable condval;
 static WorkerTask* workerTask;
@@ -60,13 +59,15 @@ public:
     }
 
     bool finished() const {
-        return currentIndex >= nTasks;
+        return currentIndex >= nTasks && activeWorkers == 0;
     }
 
     const std::function<void(int)>& func;
     const int chunkSize;
     const int nTasks;
+    bool isWorking = false;
     int currentIndex = 0;
+    int activeWorkers = 0;
 };
 
 class WorkerTaskManager {
@@ -88,20 +89,26 @@ static void workerThreadFunc(int threadIndex) {
     threadID = threadIndex;
     std::unique_lock<std::mutex> lock(workerListMutex);
     while (!workerTask->finished()) {
-        if (threadTasks.empty()) {
+        if (!workerTask->isWorking) {
             condval.wait(lock);
         } else {
             int indexStart = workerTask->currentIndex;
             int indexEnd   = std::min(workerTask->nTasks, indexStart + workerTask->chunkSize);
             workerTask->currentIndex = indexEnd;
+            if (workerTask->currentIndex == workerTask->nTasks) {
+                workerTask->isWorking = false;
+            }
+            workerTask->activeWorkers++;
             lock.unlock();
 
             for (int i = indexStart; i < indexEnd; i++) {
-                workerTask->func(threadTasks[i]);
+                workerTask->func(i);
             }
             lock.lock();
 
+            workerTask->activeWorkers--;
             if (workerTask->finished()) {
+                printf("OK!!");
                 condval.notify_all();
             }
         }
@@ -122,10 +129,7 @@ void parallel_for(int start, int end, const std::function<void(int)>& func,
     }
 
     workerListMutex.lock();
-    threadTasks.resize(nTasks);
-    for (int i = 0; i < nTasks; i++) {
-        threadTasks[i] = start + i;
-    }
+    workerTask->isWorking = true;
     workerListMutex.unlock();
 
     {
@@ -136,13 +140,19 @@ void parallel_for(int start, int end, const std::function<void(int)>& func,
             int indexStart = workerTask->currentIndex;
             int indexEnd   = std::min(workerTask->nTasks, indexStart + workerTask->chunkSize);
             workerTask->currentIndex = indexEnd;
+            if (workerTask->currentIndex == workerTask->nTasks) {
+                workerTask->isWorking = false;
+            }
+            workerTask->activeWorkers++;
             lock.unlock();
 
             for (int i = indexStart; i < indexEnd; i++) {
-                workerTask->func(threadTasks[i]);
+                workerTask->func(i);
             }
             lock.lock();
+            workerTask->activeWorkers--;
         }
+        condval.notify_all();
     }
 
     for (auto& t : threads) {

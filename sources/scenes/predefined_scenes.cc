@@ -39,7 +39,7 @@ namespace spica {
                              kOutputDirectory + "pathtrace_%03d.png");
 
         Bounds2d screen(-2.5, -2.5, 2.5, 2.5);
-        double fov = PI / 12.0;
+        double fov = PI / 15.0;
 
         Point3d  eye(0.0, 0.0, 5.0 / tan(fov / 2.0));
         Point3d  look(0.0, 0.0, 0.0);
@@ -61,11 +61,11 @@ namespace spica {
 
         // Light
         {
-            Point3d l00(-5.0, 9.9, -5.0);
-            Point3d l01(-5.0, 9.9,  5.0);
-            Point3d l10( 5.0, 9.9, -5.0);
-            Point3d l11( 5.0, 9.9,  5.0);
-            Spectrum Le(8.0, 8.0, 8.0);
+            Point3d l00(-3.0, 9.99, -3.0);
+            Point3d l01(-3.0, 9.99,  3.0);
+            Point3d l10( 3.0, 9.99, -3.0);
+            Point3d l11( 3.0, 9.99,  3.0);
+            Spectrum Le(16.0, 16.0, 16.0);
             auto t1 = std::make_shared<Triangle>(l00, l10, l11);
             auto t2 = std::make_shared<Triangle>(l00, l11, l01);
             auto l1 = std::make_shared<AreaLight>(t1, Transform(), Le);
@@ -217,7 +217,6 @@ namespace spica {
         }
 
         // Subsurface ball
-        /*
         {
             // Regular milk
             const double scale = 5000.0;
@@ -243,7 +242,8 @@ namespace spica {
             auto sigS = std::make_shared<ConstantTexture<Spectrum>>(sigma_s);
             auto mtrl = std::make_shared<SubsurfaceMaterial>(scale, Kr, Kt, sigA, sigS, g, eta);
 
-            Transform o2w = Transform::translate(Vector3d(5.0, -12.0, 5.0)) * Transform::scale(50.0, 50.0, 50.0);
+            Transform o2w = Transform::translate(Vector3d(5.0, -12.0, 0.0)) *
+                            Transform::scale(50.0, 50.0, 50.0);
 
             PLYMeshIO meshio;
             auto tris = meshio.load(kDataDirectory + "bunny.ply", o2w);
@@ -251,9 +251,9 @@ namespace spica {
                 primitives.emplace_back(new GeometricPrimitive(t, mtrl, nullptr));                
             }
         }
-        */
 
         // Volume material
+        /*
         {
             // auto sph = std::make_shared<Sphere>(Point3d(0.0, -7.0, 0.0), 3.0);
             double scale = 10.0;
@@ -291,6 +291,7 @@ namespace spica {
 
             // primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr, mediumInterface));
         }
+        */
         
         // Glass ball
         {

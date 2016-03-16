@@ -48,52 +48,40 @@ void SamplerIntegrator::render(const Scene& scene,
     const int width = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
 
-    // Prepare samplers and memory arenas
-    auto samplers = std::vector<std::unique_ptr<Sampler>>(kNumThreads);
-
-    // Distribute rendering tasks
-    const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
-    std::vector<std::vector<int> > tasks(kNumThreads);
-    for (int y = 0; y < height; y++) {
-        tasks[y % kNumThreads].push_back(y);
-    }
+    const int numThreads = numSystemThreads();
+    auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
+    auto arenas   = std::vector<MemoryArena>(numThreads);
 
     // Trace rays
+    const int numPixels = width * height;
     for (int i = 0; i < params.samplePerPixel(); i++) {
-        if (i % kNumThreads == 0) {
-            // _integrator->construct(scene, params);
-        }
 
-        if (i % 16 == 0) {
-            for (int t = 0; t < kNumThreads; t++) {
-                auto seed = static_cast<unsigned int>(time(0) + kNumThreads * i + t);
+        if (i % numThreads == 0) {
+            for (int t = 0; t < numThreads; t++) {
+                auto seed = static_cast<unsigned int>(time(0) + t);
                 samplers[t] = sampler_->clone(seed);
             }
         }
 
-        auto arenas = std::make_unique<MemoryArena[]>(kNumThreads);
-        for (int t = 0; t < taskPerThread; t++) {
-            // ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-            parallel_for(0, kNumThreads, [&](int threadID) {
-                samplers[threadID]->startNextSample();
-                if (t < tasks[threadID].size()) {
-                    const int y = tasks[threadID][t];
-                    for (int x = 0; x < width; x++) {
-                        const Point2d randFilm = samplers[threadID]->get2D();
-                        const Point2d randLens = samplers[threadID]->get2D();
-                        const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
+        parallel_for(0, numPixels, [&](int pid) {
+            const int threadID = getThreadID();
+            const int y = pid / width;
+            const int x = pid % width;
+            const Point2d randFilm = samplers[threadID]->get2D();
+            const Point2d randLens = samplers[threadID]->get2D();
+            const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
 
-                        const Point2i pixel(width - x - 1, y);
-                        camera_->film()->addPixel(pixel, randFilm,
-                                                  Li(scene, params, ray, *samplers[threadID],
-                                                     arenas[threadID]));
-                    }
-                }
-                arenas[threadID].reset();
-            });
-        }
-        arenas.reset(nullptr);
+            const Point2i pixel(width - x - 1, y);
+            camera_->film()->addPixel(pixel, randFilm,
+                                        Li(scene, params, ray, *samplers[threadID],
+                                            arenas[threadID]));
+        });
+
         camera_->film()->save(i + 1);
+
+        for (int t = 0; t < numThreads; t++) {
+            arenas[t].reset();
+        }
     }
     std::cout << "Finish!!" << std::endl;
 }

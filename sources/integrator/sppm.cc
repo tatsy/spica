@@ -5,8 +5,10 @@
 #include <ctime>
 #include <iostream>
 #include <algorithm>
+#include <atomic>
 
 #include "../core/memory.h"
+#include "../core/parallel.h"
 #include "../core/interaction.h"
 #include "../core/sampling.h"
 
@@ -15,7 +17,9 @@
 
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
+
 #include "../bxdf/bsdf.h"
+#include "../bxdf/bssrdf.h"
 
 #include "mis.h"
 #include "render_parameters.h"
@@ -45,10 +49,10 @@ struct SPPMIntegrator::SPPMPixel {
     } vp;
 
     Spectrum tau;
-    Spectrum phi;
+    AtomicDouble phi[Spectrum::channels];
     double r2 = 0.0;
     double n  = 0;
-    int m = 0;
+    std::atomic<int> m = 0;
 };
 
 const double SPPMIntegrator::kAlpha_ = 0.7;
@@ -107,14 +111,19 @@ void SPPMIntegrator::render(const Scene& scene,
             if (pixel.m > 0) {
                 double nnew  = static_cast<int>(pixel.n + kAlpha_ * pixel.m);
                 double r2new = pixel.r2 * nnew / (pixel.n + pixel.m);
-                Spectrum phi = pixel.phi;
+                Spectrum phi;
+                for (int ch = 0; ch < Spectrum::channels; ch++) {
+                    phi.ref(ch) = pixel.phi[ch];
+                }
                 pixel.tau = (pixel.tau + pixel.vp.beta * phi) * 
                             (r2new / pixel.r2);
 
                 pixel.n  = nnew;
                 pixel.r2 = r2new;
                 pixel.m = 0;
-                pixel.phi = Spectrum(0.0);
+                for (int ch = 0; ch < Spectrum::channels; ch++) {
+                    pixel.phi[ch] = 0.0;
+                }
             }
             pixel.vp.beta = Spectrum(0.0);
             pixel.vp.bsdf = nullptr;
@@ -138,7 +147,7 @@ void SPPMIntegrator::render(const Scene& scene,
             }
         }
         camera_->film()->setImage(image);
-        camera_->film()->save(t);
+        camera_->film()->save(t + 1);
     }
 }
 
@@ -199,33 +208,23 @@ void SPPMIntegrator::traceRays(const Scene& scene,
     // Generate a ray to cast
     std::cout << "Tracing rays from camera ..." << std::endl;
 
-    // Distribute Hitpoints to each thread
-    std::vector<std::vector<int> > pixelIDs(kNumThreads);
-    for (int i = 0; i < numPixels; i++) {
-        pixelIDs[i % kNumThreads].push_back(i);
-    }
-
-    int proc = 0;
+    std::atomic<int> proc = 0;
     const int tasksThread = (numPixels + kNumThreads - 1) / kNumThreads;
-    for (int t = 0; t < tasksThread; t++) {
-        ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-            if (t < pixelIDs[threadID].size()) {
-                const int pid = pixelIDs[threadID][t];
-                const int px  = pid % width;
-                const int py  = pid / width;
-                const Point2d randFilm = samplers[threadID]->get2D();
-                const Point2d randLens = samplers[threadID]->get2D();
-                const Ray ray = camera_->spawnRay(Point2i(px, py), randFilm, randLens);
-                pathTrace(scene, params, ray, *samplers[threadID],
-                          arenas[threadID], &hpoints[pid]);
-            }
-        }
+    parallel_for(0, numPixels, [&](int pid) {
+        const int threadID = getThreadID();
+        const int px  = pid % width;
+        const int py  = pid / width;
+        const Point2d randFilm = samplers[threadID]->get2D();
+        const Point2d randLens = samplers[threadID]->get2D();
+        const Ray ray = camera_->spawnRay(Point2i(px, py), randFilm, randLens);
+        pathTrace(scene, params, ray, *samplers[threadID],
+                    arenas[threadID], &hpoints[pid]);
 
-        proc += kNumThreads;
+        proc++;
         if (proc % width == 0) {
             printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
         }
-    }
+    });
     printf("\nFinish !!\n");
 
     // Construct hash grid
@@ -245,38 +244,38 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
     const int tasksThread = (numPhotons + kNumThreads - 1) / kNumThreads;
 
     // Trace photons
-    int proc = 0;
-    for (int t = 0; t < tasksThread; t++) {
-        ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-            const std::unique_ptr<Sampler>& sampler = samplers[threadID];
+    std::atomic<int> proc = 0;
+    parallel_for(0, numPhotons, [&](int p) {
+        const int threadID = getThreadID();
+        const std::unique_ptr<Sampler>& sampler = samplers[threadID];
 
-            // Sample light source
-            double lightPdf;
-            int lightID = lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf);
-            const std::shared_ptr<Light>& light = scene.lights()[lightID];
+        // Sample light source
+        double lightPdf;
+        int lightID = lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf);
+        const std::shared_ptr<Light>& light = scene.lights()[lightID];
 
-            Point2d rand0 = sampler->get2D();
-            Point2d rand1 = sampler->get2D();
-            Ray photonRay;
-            Normal3d nLight;
-            double pdfPos, pdfDir;
-            Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
-                                          &nLight, &pdfPos, &pdfDir);
+        Point2d rand0 = sampler->get2D();
+        Point2d rand1 = sampler->get2D();
+        Ray photonRay;
+        Normal3d nLight;
+        double pdfPos, pdfDir;
+        Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
+                                        &nLight, &pdfPos, &pdfDir);
 
-            if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
-                Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
-                                (lightPdf * pdfPos * pdfDir);
-                if (!beta.isBlack()) {
-                    tracePhotonsSub(scene, params, photonRay, beta, *sampler, arenas[threadID]);
-                }
+        if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
+            Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
+                            (lightPdf * pdfPos * pdfDir);
+            if (!beta.isBlack()) {
+                tracePhotonsSub(scene, params, photonRay, beta,
+                                *sampler, arenas[threadID]);
             }
         }
 
-        proc += kNumThreads;
+        proc++;
         if (proc % 100 == 0) {
             printf("%6.2f %% processed ...\r", 100.0 * proc / numPhotons);
         }
-    }
+    });
     printf("\nFinish !!\n\n");
 }
 
@@ -294,23 +293,24 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
 
         if (bounces > 0) {
             std::vector<SPPMPixel*> results;
-            omplock {
-                results = hashgrid_[isect.pos()];
+
+            results = hashgrid_[isect.pos()];
             
-                for (SPPMPixel* pixel : results) {
-                    if ((pixel->vp.p - isect.pos()).squaredNorm() > pixel->r2) {
-                        continue;
-                    }
-
-                    if (!pixel->vp.bsdf) {
-                        continue;
-                    }
-
-                    Vector3d wi = -ray.dir();
-                    Spectrum phi = beta * pixel->vp.bsdf->f(pixel->vp.wo, wi);
-                    pixel->phi += phi;
-                    pixel->m += 1;
+            for (SPPMPixel* pixel : results) {
+                if ((pixel->vp.p - isect.pos()).squaredNorm() > pixel->r2) {
+                    continue;
                 }
+
+                if (!pixel->vp.bsdf) {
+                    continue;
+                }
+
+                Vector3d wi = -ray.dir();
+                Spectrum phi = beta * pixel->vp.bsdf->f(pixel->vp.wo, wi);
+                for (int ch = 0; ch < Spectrum::channels; ch++) {
+                    pixel->phi[ch].add(phi[ch]);
+                }
+                pixel->m += 1;
             }
         }
     
@@ -336,6 +336,23 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
         if (sampler.get1D() > continueProb) break;
         beta = bnew / continueProb;
         ray = isect.spawnRay(wi);
+
+        // Account for BSSRDF
+        if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+            SurfaceInteraction pi;
+            Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                sampler.get2D(), arena, &pi, &pdf);
+            
+            if (S.isBlack() || pdf == 0.0) break;
+            beta *= S / pdf;
+
+            Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
+                                           BxDFType::All, &sampledType);
+            if (f.isBlack() || pdf == 0.0) break;
+            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+
+            ray = pi.spawnRay(wi);
+        }
     }
 }
 
@@ -346,7 +363,6 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
                                MemoryArena& arena,
                                SPPMPixel* pixel) const {
     Ray ray(r);
-    Spectrum L(0.0);
     Spectrum beta(1.0);
     bool specularBounce = false;
     int bounces;
@@ -406,22 +422,25 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
             }           
             ray = isect.spawnRay(wi);
 
-            // TODO: material with property both of Lambertian and BSSRDF should be accounted for.
-            /*
-            if (bsdf.type() & BsdfType::Bssrdf) {
-                Assertion(_integrator != nullptr,
-                            "Subsurface integrator is NULL !!");
+            // Account for BSSRDF
+            if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+                SurfaceInteraction pi;
+                Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                    sampler.get2D(), arena, &pi, &pdf);
 
-                double refPdf = 1.0;
-                Spectrum bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
-                                                    isect.position(),
-                                                    isect.normal(),
-                                                    *_integrator,
-                                                    &refPdf);
-                throughput += weight * bssrdfRad;
-                pdf *= refPdf;
+                if (S.isBlack() || pdf == 0.0) break;
+                beta *= S / pdf;
+
+                pixel->Ld += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+
+                Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(),
+                    &pdf, BxDFType::All, &sampledType);
+                if (f.isBlack() || pdf == 0.0) break;
+                beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+
+                specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+                ray = pi.spawnRay(wi);
             }
-            */
         }
     }
 }

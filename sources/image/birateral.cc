@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include "../core/parallel.h"
 #include "image.h"
 
 namespace spica {
@@ -24,7 +25,7 @@ namespace spica {
             }
 
             // if openmp is available, compute in parallel
-            ompfor (int x = 0; x < width; x++) {
+            parallel_for (0, width, [&](int x) {
                 for (int y = 1; y < height; y++) {
                     double p = V[y - 1][x];
                     for (int c = 0; c < dim; c++) {
@@ -42,7 +43,7 @@ namespace spica {
                         out->pixel(x, y).ref(c) = val1 + p * (val2 - val1);
                     }
                 }
-            }
+            });
         }
 
         // Recursive filter for horizontal direction
@@ -60,7 +61,7 @@ namespace spica {
             }
 
             // if openmp is available, compute in parallel
-            ompfor (int y = 0; y < height; y++) {
+            parallel_for (0, height, [&](int y) {
                 for (int x = 1; x < width; x++) {
                     const double p = V[y][x - 1];
                     for (int c = 0; c < dim; c++) {
@@ -78,7 +79,7 @@ namespace spica {
                         out->pixel(x, y).ref(c) = val1 + p * (val2 - val1);
                     }
                 }
-            }
+            });
         }
 
         // Domain transform filtering

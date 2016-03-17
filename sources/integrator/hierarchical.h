@@ -115,7 +115,9 @@ private:
         void construct(HierarchicalIntegrator* parent,
                         std::vector<IrradiancePoint>& ipoints);
 
-        Spectrum iradSubsurface(const SurfaceInteraction& intr) const;
+        Spectrum iradSubsurface(
+            const SurfaceInteraction& intr,
+            const std::unique_ptr<DiffusionReflectance>& Rd) const;
 
     private:
         void release();
@@ -123,8 +125,10 @@ private:
         OctreeNode* constructRec(std::vector<IrradiancePoint>& pointers,
                                     const Bounds3d& bbox);
 
-        Spectrum iradSubsurfaceRec(OctreeNode* node,
-                                   const SurfaceInteraction& po) const;
+        Spectrum iradSubsurfaceRec(
+            OctreeNode* node,
+            const SurfaceInteraction& po,
+            const std::unique_ptr<DiffusionReflectance>& Rd) const;
     };
 
     // Private methods
@@ -132,10 +136,9 @@ private:
                    Sampler& sampler,
                    const RenderParameters& params);
 
-    Spectrum irradiance(const SurfaceInteraction& po, double eta) const;
+    Spectrum irradiance(const SurfaceInteraction& po) const;
 
     void buildOctree(const Scene& scene,
-                     Sampler& sampler,
                      const std::vector<Interaction>& points,
                      const RenderParameters& params);
     

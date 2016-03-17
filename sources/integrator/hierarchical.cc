@@ -7,7 +7,7 @@
 
 #include "../core/common.h"
 #include "../core/sampling.h"
-
+#include "../math/vect_math.h"
 #include "../scenes/scene.h"
 #include "../shape/visibility_tester.h"
 #include "../bxdf/bsdf.h"
@@ -19,43 +19,6 @@
 #include "render_parameters.h"
 
 namespace spica {
-
-struct DiffusionReflectance {
-    // DiffusionReflectance Public Methods
-    DiffusionReflectance(const Spectrum &sigma_a, const Spectrum &sigmap_s,
-                         float eta) {
-        A = (1.f + FresnelDiffuseReflect(eta)) / (1.f - FresnelDiffuseReflect(eta));
-        sigmap_t = sigma_a + sigmap_s;
-        sigma_tr = Spectrum::sqrt(3.f * sigma_a * sigmap_t);
-        alphap = sigmap_s / sigmap_t;
-        zpos = Spectrum(1.f) / sigmap_t;
-        zneg = -zpos * (1.f + (4.f/3.f) * A);
-    }
-    Spectrum operator()(float d2) const {
-        Spectrum dpos = Spectrum::sqrt(Spectrum(d2) + zpos * zpos);
-        Spectrum dneg = Spectrum::sqrt(Spectrum(d2) + zneg * zneg);
-        Spectrum Rd = (alphap / (4.f * PI)) *
-            ((zpos * (dpos * sigma_tr + Spectrum(1.f)) *
-              Spectrum::exp(-sigma_tr * dpos)) / (dpos * dpos * dpos) -
-             (zneg * (dneg * sigma_tr + Spectrum(1.f)) *
-              Spectrum::exp(-sigma_tr * dneg)) / (dneg * dneg * dneg));
-        return Spectrum::clamp(Rd);
-    }
-
-    // DiffusionReflectance Data
-    Spectrum zpos, zneg, sigmap_t, sigma_tr, alphap;
-    float A;
-};
-
-static Spectrum sigma_a = Spectrum(0.0015333, 0.0046, 0.019933);
-static Spectrum sigma_s = Spectrum(4.5513, 5.8294, 7.136);
-static const DiffusionReflectance Rd(sigma_a * 1.0, sigma_s * 1.0, 1.3);
-
-
-
-
-
-
 
 HierarchicalIntegrator::Octree::Octree()
     : _root(NULL)
@@ -104,6 +67,7 @@ void HierarchicalIntegrator::Octree::deleteNode(
             deleteNode(node->children[i]);
         }
         delete node;
+        node = nullptr;
     }
 }
 
@@ -193,30 +157,31 @@ HierarchicalIntegrator::Octree::constructRec(
 }
 
 Spectrum HierarchicalIntegrator::Octree::iradSubsurface(
-    const SurfaceInteraction& po) const {
-    return iradSubsurfaceRec(_root, po);
+    const SurfaceInteraction& po,
+    const std::unique_ptr<DiffusionReflectance>& Rd) const {
+    return iradSubsurfaceRec(_root, po, Rd);
 }
 
 Spectrum HierarchicalIntegrator::Octree::iradSubsurfaceRec(
     OctreeNode* node,
-    const SurfaceInteraction& po) const {
+    const SurfaceInteraction& po,
+    const std::unique_ptr<DiffusionReflectance>& Rd) const {
     if (node == nullptr) {
         return Spectrum(0.0);
     }
 
-    const double distSquared = (node->pt.pos - po.pos()).squaredNorm();
+    double distSquared = (node->pt.pos - po.pos()).squaredNorm();
     double dw = node->pt.area / distSquared;
     if (node->isLeaf || (dw < _parent->maxError_ &&
                          !node->bbox.inside(po.pos()))) {
         auto bssrdf = static_cast<DiffuseBSSRDF*>(po.bssrdf());
         const double r = std::sqrt(distSquared);
-        return Rd(r * r) * node->pt.irad * node->pt.area;
-        // return bssrdf->Sr(r) * node->pt.irad * node->pt.area;
+        return (*Rd)(r) * node->pt.irad * node->pt.area;
     } else {
         Spectrum ret(0.0);
         for (int i = 0; i < 8; i++) {
             if (node->children[i] != nullptr) {
-                ret += iradSubsurfaceRec(node->children[i], po);
+                ret += iradSubsurfaceRec(node->children[i], po, Rd);
             }
         }
         return ret;
@@ -295,26 +260,8 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
 
         // Account for BSSRDF
         if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
-            L += beta * this->irradiance(isect, 1.3);
+            L += beta * this->irradiance(isect);
             break;
-            /*
-            SurfaceInteraction pi;
-            Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
-                sampler.get2D(), arena, &pi, &pdf);
-
-            if (S.isBlack() || pdf == 0.0) break;
-            beta *= S / pdf;
-
-            L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
-
-            Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
-                                           BxDFType::All, &sampledType);
-            if (f.isBlack() || pdf == 0.0) break;
-            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
-
-            specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
-            ray = pi.spawnRay(wi);
-             */
         }
 
         // Russian roulette
@@ -345,7 +292,7 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
     avgArea /= triangles_.size();
 
     // Compute dA and copy maxError
-    radius_   = std::sqrt(avgArea / PI);
+    radius_   = std::sqrt(avgArea);
     dA_       = (0.5 * radius_) * (0.5 * radius_) * PI;
 
     // Construct octree
@@ -370,15 +317,13 @@ void HierarchicalIntegrator::construct(const Scene& scene,
     samplePoissonDisk(triangles_, radius_, &points);
 
     // Construct photon map
-    photonmap_.clear();
     photonmap_.construct(scene, params);
 
     // Compute irradiance at sample points
-    buildOctree(scene, sampler, points, params);
+    buildOctree(scene, points, params);
 }
 
 void HierarchicalIntegrator::buildOctree(const Scene& scene,
-                                         Sampler& sampler,
                                          const std::vector<Interaction>& points,
                                          const RenderParameters& params) {
     // Compute irradiance on each sampled point
@@ -403,11 +348,11 @@ void HierarchicalIntegrator::buildOctree(const Scene& scene,
     std::cout << "Octree constructed !!" << std::endl;
 }
 
-Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po, double eta) const {
+Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po) const {
     Assertion(po.bssrdf(), "BSSRDF not found!!");
-    const Spectrum Mo = octree_.iradSubsurface(po);
-    const double Fdr = FresnelDiffuseReflect(eta);
-    return (INV_PI * (1.0 - Fdr)) * Mo;
+    auto Rd = static_cast<DiffuseBSSRDF*>(po.bssrdf())->Rd();
+    const Spectrum Mo = octree_.iradSubsurface(po, Rd);
+    return (INV_PI * (1.0 - Rd->Ft(po.wo())) * (1.0 - Rd->Fdr())) * Mo;
 }
 
 }  // namespace spica

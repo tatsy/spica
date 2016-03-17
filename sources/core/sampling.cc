@@ -181,7 +181,8 @@ void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const 
 
 void samplePoissonDisk(const std::vector<Triangle>& triangles, double minDist,
                        std::vector<Interaction>* points) {
-    Random rng((unsigned int)time(0));
+    const auto seed = static_cast<unsigned int>(time(0));
+    Random rng(seed);
 
     // Sample random points on trimesh
     Bounds3d bbox;
@@ -215,7 +216,7 @@ void samplePoissonDisk(const std::vector<Triangle>& triangles, double minDist,
     HashGrid<int> hashgrid;
     hashgrid.init(numPoints, scale, bbox);
 
-    RandomQueue<int> que;
+    RandomQueue<int> que(seed);
     for (int i = 0; i < numCands; i++) {
         que.push(i);
     }

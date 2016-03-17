@@ -132,6 +132,7 @@ namespace spica {
     class MicrofacetDistribution;
     class BSSRDF;
     class DiffuseBSSRDF;
+    class DiffusionReflectance;
 
     // Random module
     class Random;

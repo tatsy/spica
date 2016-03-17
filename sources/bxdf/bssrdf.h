@@ -86,6 +86,8 @@ public:
 
     Spectrum Sr(double r) const override;
 
+    virtual std::unique_ptr<DiffusionReflectance> Rd() const;
+
     inline int nIntervals() const { return table_.ys().size(); }
     inline std::vector<double> radii() const { return table_.ys(); }
 
@@ -96,7 +98,9 @@ protected:
 private:
     // Private fields
     const CatmullRom2D& table_;
-    Spectrum sigmaExt_, albedo_;
+    Spectrum sigmaAbsorb_, sigmaScatter_;
+    double eta_;
+    Spectrum  sigmaExt_, albedo_;
 };
 
 /**
@@ -112,13 +116,27 @@ private:
     const SeparableBSSRDF* bssrdf_;
 };
 
+class DiffusionReflectance {
+public:
+    DiffusionReflectance(const Spectrum &sigma_a, const Spectrum &sigmap_s,
+                         float eta);
+    
+    Spectrum operator()(double r) const;
+
+    double Ft(const Vector3d& w) const;
+    double Fdr() const;
+
+private:
+    Spectrum zpos_, zneg_, sigmap_t_, sigma_tr_, alphap_;
+    float eta_, A_;
+};
+
 // -----------------------------------------------------------------------------
 // BSSRDF utility functions
 // -----------------------------------------------------------------------------
 
 SPICA_EXPORTS double FresnelMoment1(double eta);
 SPICA_EXPORTS double FresnelMoment2(double eta);
-SPICA_EXPORTS double FresnelDiffuseReflect(double eta);
 
 SPICA_EXPORTS
 void subsurfaceFromDiffuse(const CatmullRom2D& table, const Spectrum& albedoEff,

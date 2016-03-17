@@ -34,9 +34,9 @@ int main(int argc, char **argv) {
     params.saveFilenameFormat();
 
     //VolPathIntegrator integr(camera, sampler);
-    PathIntegrator integr(camera, sampler);
+    //PathIntegrator integr(camera, sampler);
     
-    //HierarchicalIntegrator integr(camera, sampler);
+    HierarchicalIntegrator integr(camera, sampler);
     // PPMProbIntegrator integr(camera, sampler);
     integr.render(scene, params);
 

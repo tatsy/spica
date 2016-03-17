@@ -242,7 +242,7 @@ namespace spica {
             auto sigS = std::make_shared<ConstantTexture<Spectrum>>(sigma_s);
             auto mtrl = std::make_shared<SubsurfaceMaterial>(scale, Kr, Kt, sigA, sigS, g, eta);
 
-            Transform o2w = Transform::translate(Vector3d(5.0, -12.0, 0.0)) *
+            Transform o2w = Transform::translate(Vector3d(5.0, -11.7, 0.0)) *
                             Transform::scale(50.0, 50.0, 50.0);
 
             PLYMeshIO meshio;

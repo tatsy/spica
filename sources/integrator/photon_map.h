@@ -40,12 +40,14 @@ public:
     inline Spectrum beta()   const { return beta_; }
     inline Vector3d wi()     const { return wi_; }
     inline Normal3d normal() const { return normal_; }
+    inline const Material* const material() const { return material_; }
 
 private:
     Point3d  pos_;
     Spectrum beta_;
     Vector3d wi_;
     Normal3d normal_;
+    const Material* material_;
 };
 
 // ------------------------------------------------------------------------

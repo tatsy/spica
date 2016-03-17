@@ -45,11 +45,16 @@ void SamplerIntegrator::initialize(const Scene& scene,
                                    Sampler& sampler) {
 }
 
+void SamplerIntegrator::startNextLoop(const Scene& scene,
+                                      const RenderParameters& parmas,
+                                      Sampler& sampler) {
+}
+
 void SamplerIntegrator::render(const Scene& scene,
                                const RenderParameters& params) {
     // Initialization
     auto initSampler = sampler_->clone((unsigned int)time(0));
-    //initialize(scene, params, *initSampler);
+    initialize(scene, params, *initSampler);
 
     const int width = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
@@ -61,8 +66,6 @@ void SamplerIntegrator::render(const Scene& scene,
     // Trace rays
     const int numPixels = width * height;
     for (int i = 0; i < params.samplePerPixel(); i++) {
-        initialize(scene, params, *initSampler);
-
         if (i % numThreads == 0) {
             for (int t = 0; t < numThreads; t++) {
                 auto seed = static_cast<unsigned int>(time(0) + t);
@@ -89,6 +92,8 @@ void SamplerIntegrator::render(const Scene& scene,
         for (int t = 0; t < numThreads; t++) {
             arenas[t].reset();
         }
+
+        startNextLoop(scene, params, *initSampler);
     }
     std::cout << "Finish!!" << std::endl;
 }

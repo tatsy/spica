@@ -10,7 +10,7 @@
 #include "directlighting.h"
 // #include "bdpt.h"
 // #include "mlt.h"
-// #include "ppmprob.h"
+#include "ppmprob.h"
 #include "sppm.h"
 #include "hierarchical.h"
 // #include "subsurface_sppm_renderer.h"

@@ -5,45 +5,47 @@
 #ifndef _SPICA_PHOTON_MAPPING_H_
 #define _SPICA_PHOTON_MAPPING_H_
 
+#include "../core/common.h"
 #include "../core/forward_decl.h"
 
-#include "renderer_interface.h"
 #include "photon_map.h"
+#include "integrator.h"
 
 namespace spica {
 
-    /** Progressive photon mapping: a probabilistic approach
-     *  @ingroup renderer_module
-     */
-    class SPICA_EXPORTS PPMPRenderer : public IRenderer {
+/** Progressive photon mapping: a probabilistic approach
+ *  @ingroup renderer_module
+ */
+class SPICA_EXPORTS PPMProbIntegrator : public SamplerIntegrator {
+public:
+    /** Constructor. */
+    PPMProbIntegrator(const std::shared_ptr<const Camera>& camera,
+                        const std::shared_ptr<Sampler>& sampler,
+                        double alpha = 0.8);
+    /** Destructor. */
+    ~PPMProbIntegrator();
 
-    private:
-        PhotonMap photonMap;
-        double    globalRadius;
-        static const double kAlpha;
+    void initialize(const Scene& scene,
+                    const RenderParameters& params,
+                    Sampler& sampler) override;
 
-    public:
-        /** Constructor.
-         */
-        PPMPRenderer();
+    void startNextLoop(const Scene& scene,
+                       const RenderParameters& params,
+                       Sampler& sampler) override;
 
-        /** Destructor.
-         */
-        ~PPMPRenderer();
+    Spectrum Li(const Scene& scene,
+                const RenderParameters& params,
+                const Ray& ray,
+                Sampler& sampler,
+                MemoryArena& arena,
+                int depth = 0) const override;
 
-        /** Rendering process.
-         */
-        void render(const Scene& scne, const Camera& camera, 
-                    const RenderParameters& params) override;
-
-    private:
-        Spectrum tracePath(const Scene& scene, const Camera& camera,
-                           const RenderParameters& params, Stack<double>& rstk, 
-                           int pixelX, int pixelY) const;
-
-        Spectrum radiance(const Scene& scene, const RenderParameters& params, 
-                          const Ray& ray, Stack<double>& rstk, int bounces) const;
-    };
+private:
+    // Private fields
+    PhotonMap photonmap_;
+    double    globalRadius_;
+    const double alpha_;
+};
 
 }  // namespace spica
 

@@ -54,6 +54,10 @@ public:
                             const RenderParameters& params,
                             Sampler& sampler);
 
+    virtual void startNextLoop(const Scene& scene,
+                               const RenderParameters& params,
+                               Sampler& sampler);
+
     virtual Spectrum Li(const Scene& scene,
                         const RenderParameters& params,
                         const Ray& ray,

@@ -6,207 +6,143 @@
 #include <cstdio>
 #include <algorithm>
 
-#include "renderer_helper.h"
+#include "mis.h"
 #include "render_parameters.h"
-#include "subsurface_integrator.h"
 
-#include "../image/tmo.h"
-
+#include "../core/interaction.h"
 #include "../core/sampling.h"
+#include "../scenes/scene.h"
 
-#include "../random/random_sampler.h"
-#include "../random/random.h"
-#include "../random/halton.h"
+#include "../bxdf/bsdf.h"
+#include "../bxdf/bxdf.h"
+#include "../bxdf/bssrdf.h"
 
 namespace spica {
 
-    const double PPMPRenderer::kAlpha = 0.7;
+PPMProbIntegrator::PPMProbIntegrator(
+    const std::shared_ptr<const Camera>& camera,
+    const std::shared_ptr<Sampler>& sampler,
+    double alpha)
+    : SamplerIntegrator{ camera, sampler }
+    , photonmap_{}
+    , globalRadius_{}
+    , alpha_{ alpha } {
+}
 
-    PPMPRenderer::PPMPRenderer()
-        : IRenderer{RendererType::PhotonMap}
-        , photonMap{}
-        , globalRadius{0.0} {
-    }
+PPMProbIntegrator::~PPMProbIntegrator() {
+}
 
-    PPMPRenderer::~PPMPRenderer() {
-    }
+void PPMProbIntegrator::initialize(const Scene& scene,
+                                   const RenderParameters& params,
+                                   Sampler& sampler) {
+    // Compute global radius
+    Bounds3d bounds = scene.worldBound();
+    globalRadius_ = (bounds.posMax() - bounds.posMin()).norm() * 0.5;
 
-    void PPMPRenderer::render(const Scene& scene, const Camera& camera, 
-                            const RenderParameters& params) {
-        const int width   = camera.imageW();
-        const int height  = camera.imageH();
-        const int samples = params.samplePerPixel();
+    // Construct photon map
+    photonmap_.construct(scene, params);
+}
 
-        // Preparation for  accouting for BSSRDF
-        _integrator->initialize(scene);
+void PPMProbIntegrator::startNextLoop(const Scene& scene,
+                                      const RenderParameters& params,
+                                      Sampler& sampler) {
+    // Scale global radius
+    globalRadius_ *= alpha_;   
 
-        // Random number generator
-        RandomSampler* samplers = new RandomSampler[kNumThreads];
-        for (int i = 0; i < kNumThreads; i++) {
-            switch (params.randomType()) {
-            case RandomType::MT19937:
-                samplers[i] = Random::factory((unsigned int)i);
-                break;
+    // Construct photon map
+    photonmap_.construct(scene, params);
+}
 
-            case RandomType::Halton:
-                samplers[i] = Halton::factory(250, true, (unsigned int)i);
-                break;
+Spectrum PPMProbIntegrator::Li(const Scene& scene,
+                               const RenderParameters& params,
+                               const Ray& r,
+                               Sampler& sampler,
+                               MemoryArena& arena,
+                               int depth) const {
+    Ray ray(r);
+    Spectrum L(0.0);
+    Spectrum beta(1.0);
+    bool specularBounce = false;
+    int bounces;
+    for (bounces = 0; ; bounces++) {
+        SurfaceInteraction isect;
+        bool isIntersect = scene.intersect(ray, &isect);
 
-            default:
-                std::cerr << "[ERROR] unknown random sampler type !!"
-                          << std::endl;
-                std::abort();
-            }
-        }
-
-        // Compute global radius for PPMP
-        BBox bbox;
-        for (int i = 0;  i < scene.numTriangles(); i++) {
-            bbox.merge(scene.getTriangle(i));
-        }
-        globalRadius = (bbox.posMax() - bbox.posMin()).norm() * 0.5;
-
-        // Distribute tasks
-        const int tasksThread = (height + kNumThreads - 1) / kNumThreads;
-        std::vector<std::vector<int> > tasks(kNumThreads);
-        for (int y = 0; y < height; y++) {
-            tasks[y % kNumThreads].push_back(y);
-        }
-
-        // Rendering
-        Image buffer(width, height);
-        buffer.fill(RGBSpectrum(0.0, 0.0, 0.0));
-        _result.resize(width, height);
-        for (int i = 0; i < params.samplePerPixel(); i++) {
-            // Precomputation for subsurface scattering
-            _integrator->construct(scene, params);
-
-            // 1th pass: Construct photon map
-            photonMap.construct(scene, params, BsdfType::Lambertian);
-
-            // 2nd pass: Path tracing
-            for (int t = 0; t < tasksThread; t++) {
-                ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-                    if (t < tasks[threadID].size()) {
-                        Stack<double> rstk;            
-                        const int y = tasks[threadID][t];
-                        for (int x = 0; x < width; x++) {
-                            samplers[threadID].request(&rstk, 250);
-                            buffer.pixel(width - x - 1, y) += 
-                                tracePath(scene, camera, params, rstk, x, y);
-                        }
-                    }
-                }
-                printf("%6.2f %%  processed ... \r",
-                       100.0 * (t + 1) / tasksThread);
-            }
-            printf("\n");
-
-            // Update gather radius
-            globalRadius = ((i + 1) + kAlpha) / ((i + 1) + 1.0) * globalRadius;
-
-            // Buffer accumulation
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    _result.pixel(x, y) = buffer(x, y) / (i + 1);
+        // Sample Le which contributes without any loss
+        if (bounces == 0 || specularBounce) {
+            if (isIntersect) {
+                L += beta * isect.Le(-ray.dir());
+            } else {
+                for (const auto& light : scene.lights()) {
+                    L += beta * light->Le(ray);
                 }
             }
-
-            // Save image
-            char filename[512];
-            sprintf(filename, params.saveFilenameFormat().c_str(), i + 1);
-            _result = GammaTmo(2.2).apply(_result);
-            _result.save(filename);
-
-            printf("save: %s\n (%d / %d)\n", filename, i + 1, samples);
-        }
-        printf("\nFinish!!\n");
-
-        // Deallocate memories
-        delete[] samplers;
-    }
-
-    // Path tracing
-    Spectrum PPMPRenderer::tracePath(const Scene& scene,
-                                     const Camera& camera,
-                                     const RenderParameters& params, 
-                                     Stack<double>& rstk, 
-                                     const int pixelX,
-                                     const int pixelY) const {
-        CameraSample camSample = camera.sample(pixelX, pixelY, rstk);
-        const Ray    ray       = camSample.ray();
-        const double invpdf    = (camera.sensitivity() / camSample.pdf());
-
-        return Spectrum(radiance(scene, params, ray, rstk, 0) * invpdf);
-    }    
-
-    // Recursive function to compute radiance
-    Spectrum PPMPRenderer::radiance(const Scene& scene, 
-                                    const RenderParameters& params, 
-                                    const Ray& ray,
-                                    Stack<double>& rseq,
-                                    int bounces) const {
-        // Too many bounces terminate recursion
-        if (bounces >= params.bounceLimit()) {
-            return Spectrum(0.0, 0.0, 0.0);
         }
 
-        // Intersection test
-        Intersection isect;
-        if (!scene.intersect(ray, &isect)) {
-            return scene.globalLight(ray.direction());
+        if (!isIntersect || bounces >= params.bounceLimit()) break;
+
+        isect.setScatterFuncs(ray, arena);
+        if (!isect.bsdf()) {
+            ray = isect.spawnRay(ray.dir());
+            bounces--;
+            continue;
         }
 
-        // Intersected object
-        const int objID = isect.objectID();
-        const BSDF& bsdf = scene.getBsdf(objID);
-
-        const Spectrum emission = scene.isLightCheck(objID) ? scene.directLight(ray.direction()) : Spectrum(0.0, 0.0, 0.0);
-        const bool into = vect::dot(ray.direction(), isect.normal()) < 0.0;
-        const Normal orientNormal = into ?  isect.normal() 
-                                         : -isect.normal();
-
-        // Russian roulette
-        const Spectrum& refl = isect.color();
-        double roulette = max3(refl.red(), refl.green(), refl.blue());
-        if (bounces > params.bounceStartRoulette()) {
-            if (rseq.pop() > roulette) {
-                return emission;
-            }
+        if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
+            Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+            L += Ld;
         }
-        roulette = 1.0;
 
-        // Variables for next bounce
-        Spectrum bssrdfRad(0.0, 0.0, 0.0);
-        Vector3D nextdir;
-        double pdf = 1.0;
+        // Process BxDF
+        Vector3d wo = -ray.dir();
+        Vector3d wi;
+        double pdf;
+        BxDFType sampledType;
+        Spectrum ref = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdf,
+                                            BxDFType::All, &sampledType);
 
-        // Next radiance
-        Spectrum nextRad(0.0, 0.0, 0.0);
-        if (bsdf.type() & BsdfType::Lambertian) {
-            nextRad = photonMap.evaluate(isect.position(),
-                                         isect.normal(),
-                                         params.gatherPhotons(),
-                                         globalRadius);
-        } else {
-            bsdf.sample(ray.direction(), isect.normal(), 
-                        rseq.pop(), rseq.pop(), &nextdir, &pdf);
-            const Ray nextRay(isect.position(), nextdir);
-            nextRad = radiance(scene, params, nextRay, rseq, bounces + 1);
+        if (ref.isBlack() || pdf == 0.0) break;
+
+        if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
+            (sampledType & BxDFType::Reflection) != BxDFType::None) {
+            L += beta * photonmap_.evaluateL(isect, params.gatherPhotons(),
+                                             params.gatherRadius());
+            break;
         }
+
+        beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+        specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+        ray = isect.spawnRay(wi);
 
         // Account for BSSRDF
-        if (bsdf.type() & BsdfType::Bssrdf) {
-            double refPdf = 1.0;
-            bssrdfRad = bsdf.evalBSSRDF(ray.direction(),
-                                        isect.position(),
-                                        isect.normal(),
-                                        *_integrator,
-                                        &refPdf);
-            pdf *= refPdf;
+        if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+            SurfaceInteraction pi;
+            Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                sampler.get2D(), arena, &pi, &pdf);
+
+            if (S.isBlack() || pdf == 0.0) break;
+            beta *= S / pdf;
+
+            L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+
+            Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
+                                           BxDFType::All, &sampledType);
+            if (f.isBlack() || pdf == 0.0) break;
+            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+
+            specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+            ray = pi.spawnRay(wi);
         }
-        return emission + (bssrdfRad + isect.color() * nextRad / pdf) / roulette;
+
+        // Russian roulette
+        if (bounces > 3) {
+            double continueProbability = std::min(0.95, beta.luminance());
+            if (sampler.get1D() > continueProbability) break;
+            beta /= continueProbability;
+        }
     }
+    return L;
+}
 
 }  // namespace spica
 

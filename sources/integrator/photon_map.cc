@@ -1,10 +1,12 @@
 #define SPICA_API_EXPORT
 #include "photon_map.h"
 
+#include <atomic>
 #include <ctime>
 #include <fstream>
 
 #include "../core/memory.h"
+#include "../core/parallel.h"
 #include "../core/interaction.h"
 #include "../core/sampling.h"
 #include "../core/interaction.h"
@@ -15,6 +17,7 @@
 
 #include "../bxdf/bxdf.h"
 #include "../bxdf/bsdf.h"
+#include "../bxdf/bssrdf.h"
 
 #include "mis.h"
 #include "render_parameters.h"
@@ -29,7 +32,7 @@ Photon::Photon()
 }
 
 Photon::Photon(const Point3d& pos, const Spectrum& beta, 
-                const Vector3d& wi, const Normal3d& normal)
+               const Vector3d& wi, const Normal3d& normal)
     : pos_{ pos }
     , beta_{ beta }
     , wi_{ wi }
@@ -80,53 +83,52 @@ void PhotonMap::construct(const Scene& scene,
     Distribution1D lightDistrib = mis::calcLightPowerDistrib(scene);
 
     // Random number generator
-    std::vector<std::unique_ptr<Sampler>> samplers(kNumThreads);
-    for (int i = 0; i < kNumThreads; i++) {
+    const int nThreads = numSystemThreads();
+    std::vector<std::unique_ptr<Sampler>> samplers(nThreads);
+    for (int i = 0; i < nThreads; i++) {
         samplers[i] = std::make_unique<Random>((unsigned int)time(0) + i);
     }
-    std::vector<MemoryArena> arenas(kNumThreads);
+    std::vector<MemoryArena> arenas(nThreads);
 
     // Distribute tasks
     const int np = params.castPhotons();
-    const int taskPerThread = (np + kNumThreads - 1) / kNumThreads;
-    std::vector<std::vector<Photon> > photons(kNumThreads);
+    std::vector<std::vector<Photon>> photons(nThreads);
 
     // Shooting photons
-    int proc = 0;
-    for (int t = 0; t < taskPerThread; t++) {
-        ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-            const std::unique_ptr<Sampler>& sampler = samplers[threadID];
-            sampler->startNextSample();
+    std::atomic<int> proc = 0;
+    parallel_for(0, np, [&](int i) {
+        const int threadID = getThreadID();
+        const std::unique_ptr<Sampler>& sampler = samplers[threadID];
+        sampler->startNextSample();
 
-            // Sample light source
-            double lightPdf;
-            int lightID = lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf);
-            const std::shared_ptr<Light>& light = scene.lights()[lightID];
+        // Sample light source
+        double lightPdf;
+        int lightID = lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf);
+        const std::shared_ptr<Light>& light = scene.lights()[lightID];
 
-            Point2d rand0 = sampler->get2D();
-            Point2d rand1 = sampler->get2D();
-            Ray photonRay;
-            Normal3d nLight;
-            double pdfPos, pdfDir;
-            Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
-                                          &nLight, &pdfPos, &pdfDir);
+        Point2d rand0 = sampler->get2D();
+        Point2d rand1 = sampler->get2D();
+        Ray photonRay;
+        Normal3d nLight;
+        double pdfPos, pdfDir;
+        Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
+                                        &nLight, &pdfPos, &pdfDir);
 
-            if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
-                Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
-                                (lightPdf * pdfPos * pdfDir * np);
-                if (!beta.isBlack()) {
-                    tracePhoton(scene, params, photonRay, beta, *sampler,
-                                arenas[threadID], &photons[threadID]);
-                }
+        if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
+            Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
+                            (lightPdf * pdfPos * pdfDir * np);
+            if (!beta.isBlack()) {
+                tracePhoton(scene, params, photonRay, beta, *sampler,
+                            arenas[threadID], &photons[threadID]);
             }
         }
 
-        proc += kNumThreads;
+        proc++;
         if (proc % 1000 == 0) {
             printf("%6.2f %% processed...\r", 
                     100.0 * proc / params.castPhotons());
         }
-    }
+    });
     printf("\n");
 
     int numStored = 0;
@@ -255,7 +257,7 @@ void PhotonMap::tracePhoton(const Scene& scene,
         if (bounces > 0) {
             photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
         }
-    
+
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
             bounces--;
@@ -278,6 +280,23 @@ void PhotonMap::tracePhoton(const Scene& scene,
         if (sampler.get1D() > continueProb) break;
         beta = bnew / continueProb;
         ray = isect.spawnRay(wi);
+
+        // Account for BSSRDF
+        if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+            SurfaceInteraction pi;
+            Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                sampler.get2D(), arena, &pi, &pdf);
+            
+            if (S.isBlack() || pdf == 0.0) break;
+            beta *= S / pdf;
+
+            Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
+                                           BxDFType::All, &sampledType);
+            if (f.isBlack() || pdf == 0.0) break;
+            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+
+            ray = pi.spawnRay(wi);
+        }
     }
 }
 

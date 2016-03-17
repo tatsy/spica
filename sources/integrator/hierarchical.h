@@ -70,6 +70,10 @@ public:
                     const RenderParameters& params,
                     Sampler& sampler) override;
 
+    void startNextLoop(const Scene& scene,
+                       const RenderParameters& params,
+                       Sampler& sampler) override;
+
     Spectrum Li(const Scene& scene,
                 const RenderParameters& params,
                 const Ray& ray,

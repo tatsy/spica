@@ -20,6 +20,43 @@
 
 namespace spica {
 
+struct DiffusionReflectance {
+    // DiffusionReflectance Public Methods
+    DiffusionReflectance(const Spectrum &sigma_a, const Spectrum &sigmap_s,
+                         float eta) {
+        A = (1.f + FresnelDiffuseReflect(eta)) / (1.f - FresnelDiffuseReflect(eta));
+        sigmap_t = sigma_a + sigmap_s;
+        sigma_tr = Spectrum::sqrt(3.f * sigma_a * sigmap_t);
+        alphap = sigmap_s / sigmap_t;
+        zpos = Spectrum(1.f) / sigmap_t;
+        zneg = -zpos * (1.f + (4.f/3.f) * A);
+    }
+    Spectrum operator()(float d2) const {
+        Spectrum dpos = Spectrum::sqrt(Spectrum(d2) + zpos * zpos);
+        Spectrum dneg = Spectrum::sqrt(Spectrum(d2) + zneg * zneg);
+        Spectrum Rd = (alphap / (4.f * PI)) *
+            ((zpos * (dpos * sigma_tr + Spectrum(1.f)) *
+              Spectrum::exp(-sigma_tr * dpos)) / (dpos * dpos * dpos) -
+             (zneg * (dneg * sigma_tr + Spectrum(1.f)) *
+              Spectrum::exp(-sigma_tr * dneg)) / (dneg * dneg * dneg));
+        return Spectrum::clamp(Rd);
+    }
+
+    // DiffusionReflectance Data
+    Spectrum zpos, zneg, sigmap_t, sigma_tr, alphap;
+    float A;
+};
+
+static Spectrum sigma_a = Spectrum(0.0015333, 0.0046, 0.019933);
+static Spectrum sigma_s = Spectrum(4.5513, 5.8294, 7.136);
+static const DiffusionReflectance Rd(sigma_a * 1.0, sigma_s * 1.0, 1.3);
+
+
+
+
+
+
+
 HierarchicalIntegrator::Octree::Octree()
     : _root(NULL)
     , _numCopies(NULL)
@@ -173,9 +210,10 @@ Spectrum HierarchicalIntegrator::Octree::iradSubsurfaceRec(
                          !node->bbox.inside(po.pos()))) {
         auto bssrdf = static_cast<DiffuseBSSRDF*>(po.bssrdf());
         const double r = std::sqrt(distSquared);
-        return bssrdf->Sr(r) * node->pt.irad * node->pt.area;
+        return Rd(r * r) * node->pt.irad * node->pt.area;
+        // return bssrdf->Sr(r) * node->pt.irad * node->pt.area;
     } else {
-        Spectrum ret(0.0, 0.0, 0.0);
+        Spectrum ret(0.0);
         for (int i = 0; i < 8; i++) {
             if (node->children[i] != nullptr) {
                 ret += iradSubsurfaceRec(node->children[i], po);
@@ -276,7 +314,7 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
 
             specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
             ray = pi.spawnRay(wi);
-            */
+             */
         }
 
         // Russian roulette
@@ -310,6 +348,13 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
     radius_   = std::sqrt(avgArea / PI);
     dA_       = (0.5 * radius_) * (0.5 * radius_) * PI;
 
+    // Construct octree
+    construct(scene, sampler, params);
+}
+
+void HierarchicalIntegrator::startNextLoop(const Scene& scene,
+                                           const RenderParameters& params,
+                                           Sampler& sampler) {
     // Construct octree
     construct(scene, sampler, params);
 }

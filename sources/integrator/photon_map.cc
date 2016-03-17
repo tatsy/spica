@@ -223,7 +223,7 @@ Spectrum PhotonMap::evaluateE(const Interaction& intr,
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
         const Spectrum v =
-            photons[i].beta() * vect::absDot(intr.normal(), photons[i].wi());
+            photons[i].beta() * vect::absDot(intr.normal(), photons[i].wi()) * (2.0 * PI);
         totalFlux += w * v;
     }
     totalFlux /= (1.0 - 2.0 / (3.0 * k));
@@ -254,9 +254,9 @@ void PhotonMap::tracePhoton(const Scene& scene,
     for (int bounces = 0; bounces < params.bounceLimit(); bounces++) {
         if (!scene.intersect(ray, &isect)) break;
 
-        if (bounces > 0) {
+        //if (bounces > 0) {
             photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
-        }
+        //}
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {

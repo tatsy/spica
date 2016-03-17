@@ -219,7 +219,7 @@ namespace spica {
         // Subsurface ball
         {
             // Regular milk
-            const double scale = 5.0; //5000.0;
+            const double scale = 1.0; //5000.0;
             const double eta   = 1.3;
             const double g     = 0.7;
             // Regular milk

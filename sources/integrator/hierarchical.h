@@ -8,7 +8,9 @@
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 #include "../core/bounds3d.h"
+
 #include "integrator.h"
+#include "photon_map.h"
 
 namespace spica {
 
@@ -84,15 +86,13 @@ private:
         bool isLeaf;
 
         OctreeNode()
-            : pt()
-            , bbox()
-            , isLeaf(false)
-        {
+            : pt{}
+            , bbox{}
+            , isLeaf{ false } {
             for (int i = 0; i < 8; i++) {
-                children[i] = NULL;
+                children[i] = nullptr;
             }
-        }
-                
+        }                
     };
 
     class Octree {
@@ -136,6 +136,7 @@ private:
                      const RenderParameters& params);
     
     // Private fields
+    PhotonMap photonmap_;
     Octree    octree_;
     double    dA_;
     double    radius_;

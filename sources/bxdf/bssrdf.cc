@@ -149,7 +149,7 @@ SeparableBSSRDF::SeparableBSSRDF(const SurfaceInteraction& po,
 }
 
 Spectrum SeparableBSSRDF::S(const SurfaceInteraction& pi,
-                          const Vector3d& wi) const {
+                            const Vector3d& wi) const {
     const double Ft = FrDielectric(vect::cosTheta(po_.wo()), 1.0, eta_);
     return (1.0 - Ft) * Sp(pi) * Sw(wi);
 }

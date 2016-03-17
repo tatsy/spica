@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "../core/memory.h"
+#include "../core/interaction.h"
 #include "../core/sampling.h"
 #include "../core/interaction.h"
 
@@ -71,8 +72,7 @@ void PhotonMap::clear() {
 }
 
 void PhotonMap::construct(const Scene& scene,
-                          const RenderParameters& params,
-                          PhotonMapFlag flag) {
+                          const RenderParameters& params) {
 
     std::cout << "Shooting photons..." << std::endl;
 
@@ -84,7 +84,7 @@ void PhotonMap::construct(const Scene& scene,
     for (int i = 0; i < kNumThreads; i++) {
         samplers[i] = std::make_unique<Random>((unsigned int)time(0) + i);
     }
-    std::vector<MemoryArena> arenas;
+    std::vector<MemoryArena> arenas(kNumThreads);
 
     // Distribute tasks
     const int np = params.castPhotons();
@@ -113,7 +113,7 @@ void PhotonMap::construct(const Scene& scene,
 
             if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
                 Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
-                                (lightPdf * pdfPos * pdfDir);
+                                (lightPdf * pdfPos * pdfDir * np);
                 if (!beta.isBlack()) {
                     tracePhoton(scene, params, photonRay, beta, *sampler,
                                 arenas[threadID], &photons[threadID]);
@@ -142,13 +142,13 @@ void PhotonMap::construct(const Scene& scene,
     std::vector<Photon> photonsAll;
     for (int i = 0; i < kNumThreads; i++) {
         photonsAll.insert(photonsAll.end(), 
-                            photons[i].begin(), photons[i].end());
+                          photons[i].begin(), photons[i].end());
     }
     _kdtree.construct(photonsAll);
     printf("OK\n");
 }
 
-Spectrum PhotonMap::evaluate(const SurfaceInteraction& po,
+Spectrum PhotonMap::evaluateL(const SurfaceInteraction& po,
                              int gatherPhotons, double gatherRadius) const {
     // Find k-nearest neightbors
     Photon query(po.pos(), Spectrum(), po.wo(), po.normal());
@@ -157,6 +157,7 @@ Spectrum PhotonMap::evaluate(const SurfaceInteraction& po,
 
     const int numPhotons = static_cast<int>(photons.size());
 
+    // Extract valid photons using the normals
     std::vector<Photon> validPhotons;
     std::vector<double> distances;
     double maxdist = 0.0;
@@ -187,7 +188,48 @@ Spectrum PhotonMap::evaluate(const SurfaceInteraction& po,
         return Spectrum(totalFlux / (PI * maxdist * maxdist));
     }
     return Spectrum(0.0, 0.0, 0.0);
+}
 
+Spectrum PhotonMap::evaluateE(const Interaction& intr,
+                              int gatherPhotons, double gatherRadius) const {
+    // Find k-nearest neightbors
+    Photon query(intr.pos(), Spectrum(), Vector3d(), intr.normal());
+    std::vector<Photon> photons;
+    knnFind(query, &photons, gatherPhotons, gatherRadius);
+
+    const int numPhotons = static_cast<int>(photons.size());
+
+    // Extract valid photons using the normals
+    std::vector<Photon> validPhotons;
+    std::vector<double> distances;
+    double maxdist = 0.0;
+    for (int i = 0; i < numPhotons; i++) {
+        const Vector3d diff = query.pos() - photons[i].pos();
+        const double dist = diff.norm();
+        const double dt   = vect::dot(intr.normal(), diff) / dist;
+        if (std::abs(dt) < gatherRadius * gatherRadius * 0.01) {
+            validPhotons.push_back(photons[i]);
+            distances.push_back(dist);
+            maxdist = std::max(maxdist, dist);
+        }
+    }
+
+    // Cone filter
+    const int numValidPhotons = static_cast<int>(validPhotons.size());
+    const double k = 1.1;
+    Spectrum totalFlux = Spectrum(0.0);
+    for (int i = 0; i < numValidPhotons; i++) {
+        const double w = 1.0 - (distances[i] / (k * maxdist));
+        const Spectrum v =
+            photons[i].beta() * vect::absDot(intr.normal(), photons[i].wi());
+        totalFlux += w * v;
+    }
+    totalFlux /= (1.0 - 2.0 / (3.0 * k));
+
+    if (maxdist > EPS) {
+        return Spectrum(totalFlux / (PI * maxdist * maxdist));
+    }
+    return Spectrum(0.0);
 }
 
 void PhotonMap::knnFind(const Photon& photon, std::vector<Photon>* photons,

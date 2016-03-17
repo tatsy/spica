@@ -30,11 +30,11 @@ int main(int argc, char **argv) {
 
     RenderParameters params(samples);
     params.bounceLimit(256);
-    params.castPhotons(500000);
+    params.castPhotons(200000);
     params.saveFilenameFormat();
 
-    // VolPathIntegrator integr(camera, sampler);
-    // PathIntegrator integr(camera, sampler);
+    //VolPathIntegrator integr(camera, sampler);
+    //PathIntegrator integr(camera, sampler);
     
     HierarchicalIntegrator integr(camera, sampler);
     integr.render(scene, params);

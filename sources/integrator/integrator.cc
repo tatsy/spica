@@ -49,7 +49,7 @@ void SamplerIntegrator::render(const Scene& scene,
                                const RenderParameters& params) {
     // Initialization
     auto initSampler = sampler_->clone((unsigned int)time(0));
-    initialize(scene, params, *initSampler);
+    //initialize(scene, params, *initSampler);
 
     const int width = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
@@ -61,6 +61,7 @@ void SamplerIntegrator::render(const Scene& scene,
     // Trace rays
     const int numPixels = width * height;
     for (int i = 0; i < params.samplePerPixel(); i++) {
+        initialize(scene, params, *initSampler);
 
         if (i % numThreads == 0) {
             for (int t = 0; t < numThreads; t++) {

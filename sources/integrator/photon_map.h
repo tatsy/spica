@@ -20,11 +20,6 @@
 
 namespace spica {
 
-enum class PhotonMapFlag : int {
-    Diffuse,
-    Subsurface
-};
-
 // ------------------------------------------------------------------------
 // Photon
 // ------------------------------------------------------------------------
@@ -66,11 +61,19 @@ public:
 
     void clear();
     void construct(const Scene& scene,
-                   const RenderParameters& params,
-                   PhotonMapFlag flag);
+                   const RenderParameters& params);
 
-    Spectrum evaluate(const SurfaceInteraction& po,
+    /**
+     * Evaluate radiance at the point and to the direction.
+     */
+    Spectrum evaluateL(const SurfaceInteraction& po,
                       int gatherPhotons, double gatherRadius) const;
+
+    /**
+     * Evaluate irradiance at the point.
+     */
+    Spectrum evaluateE(const Interaction& intr,
+                       int gatherPhotons, double gatherRadius) const;
         
 private:
     void knnFind(const Photon& photon, std::vector<Photon>* photons, 

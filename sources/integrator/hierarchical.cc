@@ -40,12 +40,10 @@ HierarchicalIntegrator::Octree::Octree(const Octree& octree)
 HierarchicalIntegrator::Octree&
 HierarchicalIntegrator::Octree::operator=(const Octree& octree) {
     release();
-
     _numCopies = octree._numCopies;
     (*_numCopies) += 1;
     _root = octree._root;
     _parent = octree._parent;
-
     return *this;
 }
 
@@ -54,7 +52,7 @@ void HierarchicalIntegrator::Octree::release() {
         if ((*_numCopies) == 0) {
             deleteNode(_root);
             delete _numCopies;
-            _numCopies = NULL;
+            _numCopies = nullptr;
         }
         else {
             (*_numCopies) -= 1;
@@ -62,9 +60,9 @@ void HierarchicalIntegrator::Octree::release() {
     }
 }
 
-void HierarchicalIntegrator::
-        Octree::deleteNode(HierarchicalIntegrator::OctreeNode* node) {
-    if (node != NULL) {
+void HierarchicalIntegrator::Octree::deleteNode(
+    HierarchicalIntegrator::OctreeNode* node) {
+    if (node != nullptr) {
         for (int i = 0; i < 8; i++) {
             deleteNode(node->children[i]);
         }
@@ -72,9 +70,9 @@ void HierarchicalIntegrator::
     }
 }
 
-void HierarchicalIntegrator::
-        Octree::construct(HierarchicalIntegrator* parent,
-                        std::vector<IrradiancePoint>& ipoints) {
+void HierarchicalIntegrator::Octree::construct(
+    HierarchicalIntegrator* parent,
+    std::vector<IrradiancePoint>& ipoints) {
     release();
 
     this->_parent = parent;
@@ -93,7 +91,7 @@ HierarchicalIntegrator::Octree::constructRec(
     std::vector<IrradiancePoint>& ipoints,
     const Bounds3d& bbox) {
     if (ipoints.empty()) {
-        return NULL;
+        return nullptr;
     } else if (ipoints.size() == 1) {
         OctreeNode* node = new OctreeNode();
         node->pt = ipoints[0];
@@ -109,8 +107,8 @@ HierarchicalIntegrator::Octree::constructRec(
     for (int i = 0; i < numPoints; i++) {
         const Point3d& v = ipoints[i].pos;
         int id = (v.x() < posMid.x() ? 0 : 4) + 
-                    (v.y() < posMid.y() ? 0 : 2) + 
-                    (v.z() < posMid.z() ? 0 : 1);
+                 (v.y() < posMid.y() ? 0 : 2) + 
+                 (v.z() < posMid.z() ? 0 : 1);
         childPoints[id].push_back(ipoints[i]);
     }
 
@@ -174,12 +172,12 @@ Spectrum HierarchicalIntegrator::Octree::iradSubsurfaceRec(
     if (node->isLeaf || (dw < _parent->maxError_ &&
                          !node->bbox.inside(po.pos()))) {
         auto bssrdf = static_cast<DiffuseBSSRDF*>(po.bssrdf());
-        const double r = (node->pt.pos - po.pos()).norm() * 0.1;
-        return bssrdf->Sr(r) * (node->pt.irad) * node->pt.area;
+        const double r = std::sqrt(distSquared);
+        return bssrdf->Sr(r) * node->pt.irad * node->pt.area;
     } else {
         Spectrum ret(0.0, 0.0, 0.0);
         for (int i = 0; i < 8; i++) {
-            if (node->children[i] != NULL) {
+            if (node->children[i] != nullptr) {
                 ret += iradSubsurfaceRec(node->children[i], po);
             }
         }
@@ -192,6 +190,7 @@ HierarchicalIntegrator::HierarchicalIntegrator(
     const std::shared_ptr<Sampler>& sampler,
     double maxError)
     : SamplerIntegrator{ camera, sampler }
+    , photonmap_{}
     , octree_{}
     , dA_{ 0.0 }
     , radius_{}
@@ -305,9 +304,10 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
     for (const auto& t : triangles_) {
         avgArea += t.area();
     }
+    avgArea /= triangles_.size();
 
     // Compute dA and copy maxError
-    radius_   = std::sqrt(avgArea / triangles_.size());
+    radius_   = std::sqrt(avgArea / PI);
     dA_       = (0.5 * radius_) * (0.5 * radius_) * PI;
 
     // Construct octree
@@ -324,6 +324,10 @@ void HierarchicalIntegrator::construct(const Scene& scene,
     std::vector<Interaction> points;
     samplePoissonDisk(triangles_, radius_, &points);
 
+    // Construct photon map
+    photonmap_.clear();
+    photonmap_.construct(scene, params);
+
     // Compute irradiance at sample points
     buildOctree(scene, sampler, points, params);
 }
@@ -336,23 +340,10 @@ void HierarchicalIntegrator::buildOctree(const Scene& scene,
     const int numPoints = static_cast<int>(points.size());
     std::vector<Spectrum> irads(numPoints);
 
-    Vector3d wi;
-    double lightPdf;
-    VisibilityTester vis;
     for(int i = 0; i < numPoints; i++) {
         // Estimate irradiance with photon map
-        Spectrum E(0.0);
-        for (const auto& l : scene.lights()) {
-            Spectrum Li = l->sampleLi(points[i], sampler.get2D(), &wi, &lightPdf, &vis);
-
-            if (vect::dot(wi, points[i].normal()) <= 0.0) continue;
-            if (Li.isBlack() || lightPdf == 0.0) continue;
-            Li *= vis.transmittance(scene, sampler);
-            if (vis.unoccluded(scene)) {
-                E += Li * vect::absDot(wi, points[i].normal()) / lightPdf;
-            }
-        }
-        irads[i] = E;
+        irads[i] = photonmap_.evaluateE(points[i], params.gatherPhotons(),
+                                        params.gatherRadius());
     }
 
     // Octree construction

@@ -147,7 +147,7 @@ namespace spica {
 
         m[1][0] = a.x() * a.y() * (1.0 - cosTheta) + a.z() * sinTheta;
         m[1][1] = a.y() * a.y() + (1.0 - a.y() * a.y()) * cosTheta;
-        m[1][2] = a.x() * a.z() * (1.0 - cosTheta) + a.y() * sinTheta;
+        m[1][2] = a.y() * a.z() * (1.0 - cosTheta) - a.x() * sinTheta;
         m[1][3] = 0.0;
 
         m[2][0] = a.x() * a.z() * (1.0 - cosTheta) - a.y() * sinTheta;

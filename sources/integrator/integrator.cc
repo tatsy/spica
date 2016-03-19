@@ -73,6 +73,7 @@ void SamplerIntegrator::render(const Scene& scene,
             }
         }
 
+        std::atomic<int> proc = 0;
         parallel_for(0, numPixels, [&](int pid) {
             const int threadID = getThreadID();
             const int y = pid / width;
@@ -85,6 +86,11 @@ void SamplerIntegrator::render(const Scene& scene,
             camera_->film()->addPixel(pixel, randFilm,
                                         Li(scene, params, ray, *samplers[threadID],
                                             arenas[threadID]));
+
+            proc++;
+            if (proc % 1000 == 0) {
+                printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
+            }
         });
 
         camera_->film()->save(i + 1);

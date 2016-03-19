@@ -17,6 +17,8 @@ namespace spica {
     class SPICA_EXPORTS TextureMapping2D {
     public:
         virtual ~TextureMapping2D() {}
+
+        virtual Point2d map(const Point3d& p) const = 0;
         virtual Point2d map(const SurfaceInteraction& intr,
                             Vector2d* dstdx = nullptr,
                             Vector2d* dstdy = nullptr) const = 0;
@@ -26,6 +28,8 @@ namespace spica {
     public:
         explicit UVMapping2D(double su = 1.0, double sv = 1.0,
                              double du = 0.0, double dv = 0.0);
+
+        Point2d map(const Point3d& p) const override;
         Point2d map(const SurfaceInteraction& intr, Vector2d* dstdx,
                     Vector2d* dstdy) const override;
 
@@ -37,6 +41,8 @@ namespace spica {
     public:
         PlanarMapping2D(const Vector3d& vs, const Vector3d& vt, double ds = 0.0,
                         double dt = 0.0);
+
+        Point2d map(const Point3d& p) const override;
         Point2d map(const SurfaceInteraction& intr,
                     Vector2d* dstdx = nullptr,
                     Vector2d* dstdy = nullptr) const override;

@@ -119,7 +119,7 @@ void parallel_for(int start, int end, const std::function<void(int)>& func,
                   ParallelSchedule schedule) {
     const int nTasks = (end - start);
     const int nThreads = numSystemThreads();
-    const int chunkSize = (nTasks + nThreads - 1) / nThreads;
+    const int chunkSize = schedule == ParallelSchedule::Dynamic ? 1 : (nTasks + nThreads - 1) / nThreads;
     WorkerTaskManager manager(func, chunkSize, nTasks);    
 
     std::vector<std::thread> threads;

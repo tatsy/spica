@@ -112,7 +112,7 @@ void PhotonMap::construct(const Scene& scene,
         Normal3d nLight;
         double pdfPos, pdfDir;
         Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
-                                        &nLight, &pdfPos, &pdfDir);
+                                      &nLight, &pdfPos, &pdfDir);
 
         if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
             Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
@@ -132,7 +132,7 @@ void PhotonMap::construct(const Scene& scene,
     printf("\n");
 
     int numStored = 0;
-    for (int i = 0; i < kNumThreads; i++) {
+    for (int i = 0; i < nThreads; i++) {
         numStored += photons[i].size();
     }
     printf("[INFO] %d photons stored.\n", numStored);
@@ -142,7 +142,7 @@ void PhotonMap::construct(const Scene& scene,
         
     clear();
     std::vector<Photon> photonsAll;
-    for (int i = 0; i < kNumThreads; i++) {
+    for (int i = 0; i < nThreads; i++) {
         photonsAll.insert(photonsAll.end(), 
                           photons[i].begin(), photons[i].end());
     }
@@ -181,7 +181,7 @@ Spectrum PhotonMap::evaluateL(const SurfaceInteraction& po,
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
         const Spectrum v =
-            photons[i].beta() * po.bsdf()->f(po.wo(), photons[i].wi());
+            validPhotons[i].beta() * po.bsdf()->f(po.wo(), validPhotons[i].wi());
         totalFlux += w * v;
     }
     totalFlux /= (1.0 - 2.0 / (3.0 * k));
@@ -223,7 +223,7 @@ Spectrum PhotonMap::evaluateE(const Interaction& intr,
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
         const Spectrum v =
-            photons[i].beta() * vect::absDot(intr.normal(), photons[i].wi()) * (2.0 * PI);
+            validPhotons[i].beta() * vect::absDot(intr.normal(), validPhotons[i].wi()) * (2.0 * PI);
         totalFlux += w * v;
     }
     totalFlux /= (1.0 - 2.0 / (3.0 * k));

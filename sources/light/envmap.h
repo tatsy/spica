@@ -25,7 +25,7 @@ namespace spica {
     class SPICA_EXPORTS Envmap : public Light {
     public:
         /** The Envmap constructor. */
-        Envmap(const Image& texmap, const Transform& lightToWorld,
+        Envmap(const Sphere& worldSphere, const Image& texmap, const Transform& lightToWorld,
                const Spectrum& L, int numSamples);
 
         virtual ~Envmap();

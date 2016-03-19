@@ -9,16 +9,17 @@
 #include "../core/point2d.h"
 #include "../core/normal3d.h"
 #include "../core/sampling.h"
+#include "../scenes/scene.h"
 #include "../shape/visibility_tester.h"
 
 namespace spica {
 
-Envmap::Envmap(const Image& texmap, const Transform& lightToWorld,
-                const Spectrum& L, int numSamples)
+Envmap::Envmap(const Sphere& worldSphere, const Image& texmap, const Transform& lightToWorld,
+               const Spectrum& L, int numSamples)
     : Light{ LightType::Envmap, lightToWorld, numSamples }
     , mipmap_{ nullptr }
-    , worldCenter_{}
-    , worldRadius_{}
+    , worldCenter_{ worldSphere.center() }
+    , worldRadius_{ worldSphere.radius() }
     , distrib_{} {
     const int width = texmap.width();
     const int height = texmap.height();

@@ -26,7 +26,7 @@ namespace spica {
         RenderParameters(int samplePerPixel = 8,
                          int bounceLimit = 32,
                          int bounceStartRoulette = 5,
-                         int castPhotons = 1000000,
+                         int castPhotons = 200000,
                          int gatherPhotons = 64,
                          double gatherRadius = 32.0,
                          std::string saveFilenameFormat = "%03d.png")

@@ -52,6 +52,7 @@ public:
     // Public virtual methods
     virtual Spectrum Sp(const SurfaceInteraction& pi) const;
     virtual Spectrum Sr(double r) const = 0;
+    virtual std::unique_ptr<DiffusionReflectance> Rd() const = 0;
 
 protected:
     // Protected methods
@@ -86,10 +87,9 @@ public:
 
     Spectrum Sr(double r) const override;
 
-    virtual std::unique_ptr<DiffusionReflectance> Rd() const;
-
     inline int nIntervals() const { return table_.ys().size(); }
     inline std::vector<double> radii() const { return table_.ys(); }
+    std::unique_ptr<DiffusionReflectance> Rd() const override;
 
 protected:
     double sampleSr(int ch, double rand) const override;
@@ -116,19 +116,28 @@ private:
     const SeparableBSSRDF* bssrdf_;
 };
 
-class DiffusionReflectance {
+class SPICA_EXPORTS DiffusionReflectance {
 public:
-    DiffusionReflectance(const Spectrum &sigma_a, const Spectrum &sigmap_s,
-                         float eta);
-    
-    Spectrum operator()(double r) const;
+    DiffusionReflectance(double eta);
+    virtual Spectrum operator()(const Point3d& po, const Point3d& pi) const = 0;
 
     double Ft(const Vector3d& w) const;
     double Fdr() const;
 
+protected:
+    double eta_;
+};
+
+class DipoleDiffusionReflectance : public DiffusionReflectance {
+public:
+    DipoleDiffusionReflectance(const Spectrum &sigma_a, const Spectrum &sigmap_s,
+                               float eta);
+    
+    Spectrum operator()(const Point3d& po, const Point3d& pi) const override;
+
 private:
+    double A_;
     Spectrum zpos_, zneg_, sigmap_t_, sigma_tr_, alphap_;
-    float eta_, A_;
 };
 
 // -----------------------------------------------------------------------------

@@ -7,6 +7,7 @@
 
 #include "../core/common.h"
 #include "../core/sampling.h"
+#include "../core/timer.h"
 #include "../math/vect_math.h"
 #include "../scenes/scene.h"
 #include "../shape/visibility_tester.h"
@@ -174,9 +175,8 @@ Spectrum HierarchicalIntegrator::Octree::iradSubsurfaceRec(
     double dw = node->pt.area / distSquared;
     if (node->isLeaf || (dw < _parent->maxError_ &&
                          !node->bbox.inside(po.pos()))) {
-        auto bssrdf = static_cast<DiffuseBSSRDF*>(po.bssrdf());
         const double r = std::sqrt(distSquared);
-        return (*Rd)(r) * node->pt.irad * node->pt.area;
+        return (*Rd)(node->pt.pos, po.pos()) * node->pt.irad * node->pt.area;
     } else {
         Spectrum ret(0.0);
         for (int i = 0; i < 8; i++) {
@@ -281,8 +281,10 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
     triangles_.clear();
     const auto& prims = scene.primitives();
     for (const auto& p : prims) {
-        const auto& tris = p->triangulate();
-        triangles_.insert(triangles_.end(), tris.begin(), tris.end());
+        if (p->material()->isSubsurface()) {
+            const auto& tris = p->triangulate();
+            triangles_.insert(triangles_.end(), tris.begin(), tris.end());
+        }
     }
 
     double avgArea = 0.0;
@@ -315,6 +317,7 @@ void HierarchicalIntegrator::construct(const Scene& scene,
     // Poisson disk sampling
     std::vector<Interaction> points;
     samplePoissonDisk(triangles_, radius_, &points);
+    MsgInfo("%zu points sampled with PDS.", points.size());
 
     // Construct photon map
     photonmap_.construct(scene, params);
@@ -350,7 +353,7 @@ void HierarchicalIntegrator::buildOctree(const Scene& scene,
 
 Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po) const {
     Assertion(po.bssrdf(), "BSSRDF not found!!");
-    auto Rd = static_cast<DiffuseBSSRDF*>(po.bssrdf())->Rd();
+    auto Rd = static_cast<SeparableBSSRDF*>(po.bssrdf())->Rd();
     const Spectrum Mo = octree_.iradSubsurface(po, Rd);
     return (INV_PI * (1.0 - Rd->Ft(po.wo())) * (1.0 - Rd->Fdr())) * Mo;
 }

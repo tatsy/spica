@@ -30,6 +30,8 @@ public:
     void setScatterFuncs(SurfaceInteraction* isect,
                          MemoryArena& arena) const override;
 
+    bool isSubsurface() const override { return true; }
+
 private:
     // Private fields
     double scale_;

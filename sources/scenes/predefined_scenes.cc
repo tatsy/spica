@@ -610,18 +610,24 @@ namespace spica {
             primitives.emplace_back(new GeometricPrimitive(t2, mtrl, nullptr));
         }
 
+        // BVH
+        auto bvh = std::make_shared<BBVHAccel>(primitives);
+
         // Envmap
         Image texmap = Image::fromFile(kDataDirectory + "uffizi.hdr");
         Matrix4x4 mat = { 1.0, 0.0, 0.0, 0.0, 
                           0.0, 0.0, 1.0, 0.0,
                           0.0, 1.0, 0.0, 0.0,
                           0.0, 0.0, 0.0, 1.0 };
+
+        Bounds3d bbox = bvh->worldBound();
+        Point3d center = 0.5 * (bbox.posMin() + bbox.posMax());
+        double  radius = (center - bbox.posMin()).norm();
+        Sphere  sphere(center, radius);
         auto envmap =
-            std::make_shared<Envmap>(texmap, Transform{mat}, Spectrum(0.5), 1);
+            std::make_shared<Envmap>(sphere, texmap, Transform{mat}, Spectrum(0.5), 1);
         lights.push_back(envmap);
 
-        // BVH
-        auto bvh = std::make_shared<BBVHAccel>(primitives);
 
         (*scene) = Scene(bvh, lights);
     }

@@ -211,11 +211,11 @@ double CatmullRom::sample(double rand, double* fval, double* pdf) const {
 
     const double ft = (f - Fs_[idx]) / dx;
     double t;
-    if (df0 != df1) {
+    if (f0 != f1) {
         t = (f0 - std::sqrt(std::max(0.0, f0 * f0 + 2.0 * ft * (f1 - f0)))) / 
-            ((f0 - f1) + EPS); 
+            (f0 - f1); 
     } else {
-        t = ft / (f0 + EPS);
+        t = ft / f0;
     }
 
     double lo = 0.0, hi = 1.0;

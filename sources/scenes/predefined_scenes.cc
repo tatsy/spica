@@ -36,7 +36,7 @@ namespace spica {
             std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
         auto film = new Film(resolution,
                              std::move(filter),
-                             kOutputDirectory + "pathtrace_%03d.png");
+                             kOutputDirectory + "%03d.png");
 
         Bounds2d screen(-2.5, -2.5, 2.5, 2.5);
         double fov = PI / 15.0;
@@ -545,7 +545,7 @@ namespace spica {
         std::make_unique<TentFilter>(Vector2d(0.5, 0.5));
         auto film = new Film(resolution,
                              std::move(filter),
-                             kOutputDirectory + "pathtrace_%03d.png");
+                             kOutputDirectory + "%03d.png");
 
         Bounds2d screen(-1.0, -0.8, 1.0, 1.2);
         double fov = PI / 4.0;

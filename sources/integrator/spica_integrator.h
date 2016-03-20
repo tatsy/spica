@@ -12,6 +12,7 @@
 // #include "mlt.h"
 #include "ppmprob.h"
 #include "sppm.h"
+#include "irradcache.h"
 #include "hierarchical.h"
 // #include "subsurface_sppm_renderer.h"
 

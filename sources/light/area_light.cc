@@ -46,7 +46,7 @@ namespace spica {
         *nLight = pShape.normal();
 
         Vector3d w = sampleCosineHemisphere(randDir);
-        *pdfDir = cosineHemispherePdf(w.z());
+        *pdfDir = cosineHemispherePdf(vect::cosTheta(w));
 
         Vector3d v1, v2, n(pShape.normal());
         vect::coordinateSystem(n, &v1, &v2);

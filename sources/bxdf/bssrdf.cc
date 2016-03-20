@@ -400,23 +400,23 @@ DipoleDiffusionReflectance::DipoleDiffusionReflectance(const Spectrum &sigma_a,
                                                        const Spectrum &sigmap_s,
                                                        float eta)
     : DiffusionReflectance{ eta } {
-    A_ = (1.f + Fdr()) / (1.f - Fdr());
+    A_ = (1.0 + Fdr()) / (1.0 - Fdr());
     sigmap_t_ = sigma_a + sigmap_s;
-    sigma_tr_ = Spectrum::sqrt(3.f * sigma_a * sigmap_t_);
+    sigma_tr_ = Spectrum::sqrt(3.0 * sigma_a * sigmap_t_);
     alphap_   = sigmap_s / sigmap_t_;
-    zpos_     = Spectrum(1.f) / sigmap_t_;
-    zneg_     = -zpos_ * (1.f + (4.f/3.f) * A_);
+    zpos_     = Spectrum(1.0) / sigmap_t_;
+    zneg_     = -zpos_ * (1.0 + (4.0 / 3.0) * A_);
 }
 
 Spectrum DipoleDiffusionReflectance::operator()(const Point3d& po,
                                                 const Point3d& pi) const {
     const double d2 = (po - pi).squaredNorm();
-    Spectrum dpos = Spectrum::sqrt(Spectrum(d2) + zpos_ * zpos_);
-    Spectrum dneg = Spectrum::sqrt(Spectrum(d2) + zneg_ * zneg_);
-    Spectrum Rd = (alphap_ / (4.f * PI)) *
-        ((zpos_ * (dpos * sigma_tr_ + Spectrum(1.f)) *
+    Spectrum dpos = Spectrum::sqrt(d2 + zpos_ * zpos_);
+    Spectrum dneg = Spectrum::sqrt(d2 + zneg_ * zneg_);
+    Spectrum Rd = (alphap_ / (4.0 * PI)) *
+        ((zpos_ * (dpos * sigma_tr_ + 1.0) *
             Spectrum::exp(-sigma_tr_ * dpos)) / (dpos * dpos * dpos) -
-            (zneg_ * (dneg * sigma_tr_ + Spectrum(1.f)) *
+            (zneg_ * (dneg * sigma_tr_ + 1.0) *
             Spectrum::exp(-sigma_tr_ * dneg)) / (dneg * dneg * dneg));
     return Spectrum::clamp(Rd);
 }

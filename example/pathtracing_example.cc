@@ -36,8 +36,9 @@ int main(int argc, char **argv) {
     //VolPathIntegrator integr(camera, sampler);
     //PathIntegrator integr(camera, sampler);
     
-    HierarchicalIntegrator integr(camera, sampler);
-    // PPMProbIntegrator integr(camera, sampler);
+    IrradCacheIntegrator integr(camera, sampler);
+    //HierarchicalIntegrator integr(camera, sampler);
+    //PPMProbIntegrator integr(camera, sampler);
     integr.render(scene, params);
 
     printf("Timer: %f sec\n", timer.stop());

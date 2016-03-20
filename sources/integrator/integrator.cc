@@ -45,9 +45,14 @@ void SamplerIntegrator::initialize(const Scene& scene,
                                    Sampler& sampler) {
 }
 
-void SamplerIntegrator::startNextLoop(const Scene& scene,
-                                      const RenderParameters& parmas,
-                                      Sampler& sampler) {
+void SamplerIntegrator::loopStarted(const Scene& scene,
+                                    const RenderParameters& parmas,
+                                    Sampler& sampler) {
+}
+
+void SamplerIntegrator::loopFinished(const Scene& scene,
+                                     const RenderParameters& parmas,
+                                     Sampler& sampler) {
 }
 
 void SamplerIntegrator::render(const Scene& scene,
@@ -66,6 +71,10 @@ void SamplerIntegrator::render(const Scene& scene,
     // Trace rays
     const int numPixels = width * height;
     for (int i = 0; i < params.samplePerPixel(); i++) {
+        // Before loop computations
+        loopStarted(scene, params, *initSampler);
+
+        // Prepare samplers
         if (i % numThreads == 0) {
             for (int t = 0; t < numThreads; t++) {
                 auto seed = static_cast<unsigned int>(time(0) + t);
@@ -99,7 +108,8 @@ void SamplerIntegrator::render(const Scene& scene,
             arenas[t].reset();
         }
 
-        startNextLoop(scene, params, *initSampler);
+        // After loop computations
+        loopFinished(scene, params, *initSampler);
     }
     std::cout << "Finish!!" << std::endl;
 }

@@ -2,28 +2,23 @@
 #pragma once
 #endif
 
-#ifndef _SPICA_PHOTON_MAPPING_H_
-#define _SPICA_PHOTON_MAPPING_H_
+#ifndef _SPICA_IRRADCACHE_H_
+#define _SPICA_IRRADCACHE_H_
 
 #include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "../core/interaction.h"
+#include "../core/spectrum.h"
 
-#include "photon_map.h"
+#include "../core/kdtree.h"
 #include "integrator.h"
 
 namespace spica {
 
-/** Progressive photon mapping: a probabilistic approach
- *  @ingroup renderer_module
- */
-class SPICA_EXPORTS PPMProbIntegrator : public SamplerIntegrator {
+class SPICA_EXPORTS IrradCacheIntegrator : public SamplerIntegrator {
 public:
-    /** Constructor. */
-    PPMProbIntegrator(const std::shared_ptr<const Camera>& camera,
-                        const std::shared_ptr<Sampler>& sampler,
-                        double alpha = 0.8);
-    /** Destructor. */
-    ~PPMProbIntegrator();
+    IrradCacheIntegrator(const std::shared_ptr<const Camera>& camera,
+                         const std::shared_ptr<Sampler>& sampler);
+    ~IrradCacheIntegrator();
 
     void initialize(const Scene& scene,
                     const RenderParameters& params,
@@ -34,7 +29,7 @@ public:
                      Sampler& sampler) override;
 
     void loopFinished(const Scene& scene,
-                      const RenderParameters& parmas,
+                      const RenderParameters& params,
                       Sampler& sampler) override;
 
     Spectrum Li(const Scene& scene,
@@ -45,12 +40,16 @@ public:
                 int depth = 0) const override;
 
 private:
-    // Private fields
-    PhotonMap photonmap_;
-    double    globalRadius_;
-    const double alpha_;
+    
+
+    int  nGathering_;
+    bool cacheMode_;
+
+    class IrradCache;
+    const std::unique_ptr<IrradCache> cache_;
+
 };
 
 }  // namespace spica
 
-#endif  // _SPICA_PHOTON_MAPPING_H_
+#endif  // _SPICA_IRRADCACHE_H_

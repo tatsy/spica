@@ -38,20 +38,22 @@ void PPMProbIntegrator::initialize(const Scene& scene,
     // Compute global radius
     Bounds3d bounds = scene.worldBound();
     globalRadius_ = (bounds.posMax() - bounds.posMin()).norm() * 0.5;
-
-    // Construct photon map
-    photonmap_.construct(scene, params);
 }
 
-void PPMProbIntegrator::startNextLoop(const Scene& scene,
+void PPMProbIntegrator::loopStarted(const Scene& scene,
                                       const RenderParameters& params,
                                       Sampler& sampler) {
-    // Scale global radius
-    globalRadius_ *= alpha_;   
-
     // Construct photon map
     photonmap_.construct(scene, params);
 }
+
+void PPMProbIntegrator::loopFinished(const Scene& scene,
+                                     const RenderParameters& params,
+                                     Sampler& sampler) {
+    // Scale global radius
+    globalRadius_ *= alpha_;   
+}
+
 
 Spectrum PPMProbIntegrator::Li(const Scene& scene,
                                const RenderParameters& params,
@@ -88,9 +90,9 @@ Spectrum PPMProbIntegrator::Li(const Scene& scene,
             continue;
         }
 
+        Spectrum Ld(0.0);
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-            Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
-            L += Ld;
+            Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
         }
 
         // Process BxDF
@@ -108,6 +110,8 @@ Spectrum PPMProbIntegrator::Li(const Scene& scene,
             L += beta * photonmap_.evaluateL(isect, params.gatherPhotons(),
                                              params.gatherRadius());
             break;
+        } else {
+            L += Ld;
         }
 
         beta *= ref * vect::absDot(wi, isect.normal()) / pdf;

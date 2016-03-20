@@ -8,6 +8,7 @@
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 #include "../core/bounds3d.h"
+#include "../core/interaction.h"
 
 #include "integrator.h"
 #include "photon_map.h"
@@ -70,9 +71,9 @@ public:
                     const RenderParameters& params,
                     Sampler& sampler) override;
 
-    void startNextLoop(const Scene& scene,
-                       const RenderParameters& params,
-                       Sampler& sampler) override;
+    void loopStarted(const Scene& scene,
+                     const RenderParameters& params,
+                     Sampler& sampler) override;
 
     Spectrum Li(const Scene& scene,
                 const RenderParameters& params,
@@ -132,23 +133,18 @@ private:
     };
 
     // Private methods
-    void construct(const Scene& scene,
-                   Sampler& sampler,
-                   const RenderParameters& params);
-
     Spectrum irradiance(const SurfaceInteraction& po) const;
 
     void buildOctree(const Scene& scene,
-                     const std::vector<Interaction>& points,
-                     const RenderParameters& params);
+                     const RenderParameters& params,
+                     Sampler& sampler);
     
     // Private fields
-    PhotonMap photonmap_;
+    std::vector<SurfaceInteraction> points_;
     Octree    octree_;
     double    dA_;
     double    radius_;
     double    maxError_;
-    std::vector<Triangle> triangles_;
 
 };  // class HierarchicalIntegrator
 

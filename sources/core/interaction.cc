@@ -125,6 +125,9 @@ SurfaceInteraction& SurfaceInteraction::operator=(const SurfaceInteraction& intr
     this->dpdv_ = intr.dpdv_;
     this->dndu_ = intr.dndu_;
     this->shape_ = intr.shape_;
+    this->primitive_ = intr.primitive_;
+    this->bsdf_ = intr.bsdf_;
+    this->bssrdf_ = intr.bssrdf_;
     return *this;
 }
 

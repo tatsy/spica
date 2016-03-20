@@ -32,8 +32,8 @@ public:
     ~Photon();
 
     Photon& operator=(const Photon& photon);
+    double operator[](int i) const;
 
-    inline double get(int id) const;
     static double distance(const Photon& p1, const Photon& p2);
 
     inline Point3d  pos()    const { return pos_; }

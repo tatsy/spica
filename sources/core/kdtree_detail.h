@@ -52,6 +52,28 @@ namespace spica {
     }
 
     template <class Ty>
+    void KdTree<Ty>::add(const Ty& point) {
+        _nodes = addRec(_nodes, point, 0);
+    }
+
+    template <class Ty>
+    typename KdTree<Ty>::KdTreeNode* KdTree<Ty>::addRec(KdTreeNode* node, const Ty& point, int dim) {
+        if (node == nullptr) {
+            KdTreeNode* ret = new KdTreeNode;
+            ret->point = point;
+            ret->axis = dim;
+            return ret;
+        } else {
+            if (point[dim] < node->point[dim]) {
+                node->left = addRec(node->left, point, (dim + 1) % 3);
+            } else {
+                node->right = addRec(node->right, point, (dim + 1) % 3);
+            }
+            return node;
+        }
+    }
+
+    template <class Ty>
     void KdTree<Ty>::construct(const std::vector<Ty>& points) {
         // Compute tree size
         const int numPoints = static_cast<int>(points.size());
@@ -116,7 +138,7 @@ namespace spica {
         }
 
         int axis = node->axis;
-        double delta = point.get(axis) - node->point.get(axis);
+        double delta = point[axis] - node->point[axis];
         if (delta < 0.0) {
             knnSearchRec(node->left, point, query, results);
             if (std::abs(delta) <= query.epsilon) {

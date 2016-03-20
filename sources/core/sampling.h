@@ -64,8 +64,8 @@ SPICA_EXPORTS inline double   cosineHemispherePdf(double cosTheta) { return cosT
 SPICA_EXPORTS void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const Point2d& rands);
 
 SPICA_EXPORTS
-void samplePoissonDisk(const std::vector<Triangle>& triangles, double minDist,
-                       std::vector<Interaction>* points);
+void samplePoissonDisk(const Scene& scene, const Point3d& pCamera, 
+                       double minDist, std::vector<SurfaceInteraction>* points);
 
 }  // namespace spica
 

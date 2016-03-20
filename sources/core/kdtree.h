@@ -65,7 +65,7 @@ namespace spica {
             int dim;
             explicit AxisComparator(int d) : dim(d) {}
             bool operator()(const Ty* t1, const Ty* t2) {
-                return t1->get(dim) < t2->get(dim);
+                return (*t1)[dim] < (*t2)[dim];
             }
         };
 
@@ -79,6 +79,7 @@ namespace spica {
 
         KdTree& operator=(const KdTree<Ty>& kdtree);
 
+        void add(const Ty& point);
         void construct(const std::vector<Ty>& points);
         void knnSearch(const Ty& point, const KnnQuery& query, std::vector<Ty>* results) const;
 
@@ -86,6 +87,7 @@ namespace spica {
 
     private:
         KdTreeNode* constructRec(std::vector<const Ty*>& points, const int nodeID, const int startID, const int endID, const int dim);
+        KdTreeNode* addRec(KdTreeNode* node, const Ty& point, int dim);
         void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const;
 
         static double distance(const Ty& p1, const Ty& p2);

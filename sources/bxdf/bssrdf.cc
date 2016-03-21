@@ -384,7 +384,7 @@ double DiffusionReflectance::Ft(const Vector3d& w) const {
 double DiffusionReflectance::Fdr() const {
     if (eta_ >= 1.0) {
         return -1.4399 / (eta_ * eta_) + 0.7099 / eta_ + 0.6681 +
-               0.0636f * eta_;
+               0.0636 * eta_;
     } else {
         return -0.4399f + 0.7099 / eta_ - 0.3319 / (eta_ * eta_) +
                0.0636 / (eta_ * eta_ * eta_);    

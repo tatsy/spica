@@ -185,6 +185,87 @@ void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const 
 }
 
 void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
+                       double minDist, std::vector<Interaction>* points) {
+    std::vector<Triangle> tris;
+    for (const auto& p : scene.primitives()) {
+        if (p->material()->isSubsurface()) {
+            auto ts = p->triangulate();
+            tris.insert(tris.end(), ts.begin(), ts.end());
+        }
+    }
+
+    // Initialize utility variables in this method
+    const auto seed = static_cast<unsigned int>(time(0));
+    Random rng(seed);
+
+    // Sample random points on trimesh
+    Bounds3d bounds;
+    std::vector<Point3d> candPoints;
+    std::vector<Normal3d> candNormals;
+    for (int i = 0; i < tris.size(); i++) {
+        const Triangle& tri = tris[i];
+        const double A = tri.area();
+        const int nSample = static_cast<int>(std::ceil(4.0 * A / (minDist * minDist)));
+        for (int k = 0; k < nSample; k++) {
+            double u = rng.nextReal();
+            double v = rng.nextReal();
+            if (u + v >= 1.0) {
+                u = 1.0 - u;
+                v = 1.0 - v;
+            }
+            Point3d  p = (1.0 - u - v) * tri[0] + u * tri[1] + v * tri[2];
+            Normal3d n = (1.0 - u  -v) * tri.normal(0) + u * tri.normal(1) + 
+                         v * tri.normal(2);
+            candPoints.push_back(p);
+            candNormals.push_back(n);
+            bounds.merge(p);
+        }
+    }
+
+    // Create hash grid
+    const int numCands = static_cast<int>(candPoints.size());
+    Vector3d bsize = bounds.posMax() - bounds.posMin();
+    const double scale = 1.0 / (2.0 * minDist);
+    const int numPoints = candPoints.size();
+    HashGrid<int> hashgrid;
+    hashgrid.init(numPoints, scale, bounds);
+
+    RandomQueue<int> que;
+    for (int i = 0; i < numCands; i++) {
+        que.push(i);
+    }
+
+    std::vector<int> sampledIDs;
+    Vector3d margin(2.0 * minDist, 2.0 * minDist, 2.0 * minDist);
+    while (!que.empty()) {
+        int id = que.pop();
+        Point3d v = candPoints[id];
+        const std::vector<int>& cellvs = hashgrid[v];
+
+        bool accept = true;
+        for (int k = 0; k < cellvs.size(); k++) {
+            if ((candPoints[cellvs[k]] - v).squaredNorm() < minDist * minDist) {
+                accept = false;
+                break;
+            }
+        }
+
+        if (accept) {
+            Point3d boxMin = v - margin;
+            Point3d boxMax = v + margin;
+            hashgrid.add(id, boxMin, boxMax);
+            sampledIDs.push_back(id);
+        }
+    }
+
+    // Store sampled points
+    std::vector<int>::iterator it;
+    for (auto i : sampledIDs) {
+        points->emplace_back(candPoints[i], candNormals[i]);
+    }
+}
+
+void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
                        double minDist, std::vector<SurfaceInteraction>* points) {
     // Initialize utility variables in this method
     const auto seed = static_cast<unsigned int>(time(0));

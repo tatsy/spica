@@ -65,6 +65,10 @@ SPICA_EXPORTS void sampleUniformHemisphere(const Normal3d& normal, Vector3d* dir
 
 SPICA_EXPORTS
 void samplePoissonDisk(const Scene& scene, const Point3d& pCamera, 
+                       double minDist, std::vector<Interaction>* points);
+
+SPICA_EXPORTS
+void samplePoissonDisk(const Scene& scene, const Point3d& pCamera, 
                        double minDist, std::vector<SurfaceInteraction>* points);
 
 }  // namespace spica

@@ -24,183 +24,185 @@
 
 namespace spica {
 
-HierarchicalIntegrator::Octree::Octree()
-    : _root(NULL)
-    , _numCopies(NULL)
-    , _parent(NULL) {
-}
-
-HierarchicalIntegrator::Octree::~Octree() {
-    release();
-}
-
-HierarchicalIntegrator::Octree::Octree(const Octree& octree)
-    : _root(NULL)
-    , _numCopies(NULL)
-    , _parent(NULL) {
-    this->operator=(octree);
-}
-
-HierarchicalIntegrator::Octree&
-HierarchicalIntegrator::Octree::operator=(const Octree& octree) {
-    release();
-    _numCopies = octree._numCopies;
-    (*_numCopies) += 1;
-    _root = octree._root;
-    _parent = octree._parent;
-    return *this;
-}
-
-void HierarchicalIntegrator::Octree::release() {
-    if (_numCopies != NULL) {
-        if ((*_numCopies) == 0) {
-            deleteNode(_root);
-            _root = nullptr;
-            delete _numCopies;
-            _numCopies = nullptr;
-        }
-        else {
-            (*_numCopies) -= 1;
-        }
+struct IrradiancePoint {
+    IrradiancePoint()
+        : pos{ 0.0, 0.0, 0.0 }
+        , area{ 0.0 }
+        , E{ 0.0 } {
     }
-}
 
-void HierarchicalIntegrator::Octree::deleteNode(
-    HierarchicalIntegrator::OctreeNode* node) {
-    if (node != nullptr) {
+    IrradiancePoint(const Point3d& p, double A, const Spectrum& ir)
+        : pos{ p }
+        , area{ A }
+        , E{ ir } {
+    }
+
+    Point3d  pos;
+    double   area;
+    Spectrum E;
+};
+
+struct OctreeNode {
+    OctreeNode()
+        : pt{}
+        , bbox{}
+        , isLeaf{ false } {
         for (int i = 0; i < 8; i++) {
-            deleteNode(node->children[i]);
+            children[i] = nullptr;
         }
-        delete node;
-    }
-}
+    }              
 
-void HierarchicalIntegrator::Octree::construct(
-    HierarchicalIntegrator* parent,
-    std::vector<IrradiancePoint>& ipoints) {
-    release();
-
-    this->_parent = parent;
-    const int numHitpoints = static_cast<int>(ipoints.size());
-        
+    IrradiancePoint pt;
     Bounds3d bbox;
-    for (int i = 0; i < numHitpoints; i++) {
-        bbox.merge(ipoints[i].pos);
+    OctreeNode* children[8];
+    bool isLeaf;
+};
+
+class HierarchicalIntegrator::Octree : public Uncopyable {
+public:
+    // Public methods
+    Octree(double maxError)
+        : root_{ nullptr }
+        , maxError_{ maxError } {
     }
 
-    _root = constructRec(ipoints, bbox);
-}
+    ~Octree() {
+        release();
+    }
 
-HierarchicalIntegrator::OctreeNode*
-HierarchicalIntegrator::Octree::constructRec(
-    std::vector<IrradiancePoint>& ipoints,
-    const Bounds3d& bbox) {
+    void release() {
+        deleteNode(root_);
+        root_ = nullptr;
+    }
+
+    void deleteNode(OctreeNode* node) {
+        if (node != nullptr) {
+            for (int i = 0; i < 8; i++) {
+                deleteNode(node->children[i]);
+                node->children[i] = nullptr;
+            }
+            delete node;
+        }
+    }
+
+    void construct(HierarchicalIntegrator* parent,
+                   const std::vector<IrradiancePoint>& ipoints) {
+        release();
+        
+        Bounds3d bounds;
+        for (const auto& p : ipoints) {
+            bounds.merge(p.pos);
+        }
+
+        root_ = constructRec(ipoints, bounds);
+    }
+
+    Spectrum Mo(const SurfaceInteraction& po,
+                const std::unique_ptr<DiffusionReflectance>& Rd) const {
+        return MoRec(root_, po, Rd);
+    }
+
+private:
+    // Private methods
+    OctreeNode* constructRec(const std::vector<IrradiancePoint>& ipoints,
+                             const Bounds3d& bbox) {
     
-    // Zero or one child case
-    if (ipoints.empty()) {
-        return nullptr;
-    } else if (ipoints.size() == 1) {
+        // Zero or one child case
+        if (ipoints.empty()) {
+            return nullptr;
+        } else if (ipoints.size() == 1) {
+            OctreeNode* node = new OctreeNode();
+            node->pt = ipoints[0];
+            node->bbox = bbox;
+            node->isLeaf = true;
+            return node;
+        }
+
+        // Divide children into eight groups
+        Point3d posMid = (bbox.posMin() + bbox.posMax()) * 0.5;
+        const int numPoints = static_cast<int>(ipoints.size());
+        std::vector<std::vector<IrradiancePoint>> childPoints(8);
+        for (int i = 0; i < numPoints; i++) {
+            const Point3d& v = ipoints[i].pos;
+            int id = (v.x() < posMid.x() ? 0 : 4) + 
+                     (v.y() < posMid.y() ? 0 : 2) + 
+                     (v.z() < posMid.z() ? 0 : 1);
+            childPoints[id].push_back(ipoints[i]);
+        }
+
+        // Compute child nodes
         OctreeNode* node = new OctreeNode();
-        node->pt = ipoints[0];
-        node->bbox = bbox;
-        node->isLeaf = true;
+        for (int i = 0; i < 8; i++) {
+            Bounds3d childBox;
+            for (int j = 0; j < childPoints[i].size(); j++) {
+                childBox.merge(childPoints[i][j].pos);
+            }
+            node->children[i] = constructRec(childPoints[i], childBox);
+        }
+        node->bbox   = bbox;
+        node->isLeaf = false;
+
+        // Accumulate child nodes
+        node->pt.pos  = Point3d(0.0, 0.0, 0.0);
+        node->pt.area = 0.0;
+
+        double sumWgt    = 0.0;
+        int    nChildren = 0;
+        for (int i = 0; i < 8; i++) {
+            if (node->children[i] != nullptr) {
+                const double weight = node->children[i]->pt.E.luminance();
+                node->pt.pos  += weight * node->children[i]->pt.pos;
+                node->pt.area += node->children[i]->pt.area;
+                node->pt.E    += node->children[i]->pt.E;
+                sumWgt        += weight;
+                nChildren     += 1;
+            }
+        }
+
+        if (sumWgt > 0.0) {
+            node->pt.pos /= sumWgt;
+        }
+        node->pt.E /= nChildren;
+
         return node;
     }
 
-    // Divide children into eight groups
-    Point3d posMid = (bbox.posMin() + bbox.posMax()) * 0.5;
-    const int numPoints = static_cast<int>(ipoints.size());
-    std::vector<std::vector<IrradiancePoint> > childPoints(8);
-    for (int i = 0; i < numPoints; i++) {
-        const Point3d& v = ipoints[i].pos;
-        int id = (v.x() < posMid.x() ? 0 : 4) + 
-                 (v.y() < posMid.y() ? 0 : 2) + 
-                 (v.z() < posMid.z() ? 0 : 1);
-        childPoints[id].push_back(ipoints[i]);
-    }
-
-    // Compute child nodes
-    OctreeNode* node = new OctreeNode();
-    for (int i = 0; i < 8; i++) {
-        Bounds3d childBox;
-        for (int j = 0; j < childPoints[i].size(); j++) {
-            childBox.merge(childPoints[i][j].pos);
+    Spectrum MoRec(OctreeNode* node,
+                   const SurfaceInteraction& po,
+                   const std::unique_ptr<DiffusionReflectance>& Rd) const {
+        if (node == nullptr) {
+            return Spectrum(0.0);
         }
-        node->children[i] = constructRec(childPoints[i], childBox);
-    }
-    node->bbox   = bbox;
-    node->isLeaf = false;
 
-    // Accumulate child nodes
-    node->pt.pos    = Point3d(0.0, 0.0, 0.0);
-    node->pt.normal = Normal3d(0.0, 0.0, 0.0);
-    node->pt.area = 0.0;
-
-    double sumWgt    = 0.0;
-    int    nChildren = 0;
-    for (int i = 0; i < 8; i++) {
-        if (node->children[i] != nullptr) {
-            const double weight = node->children[i]->pt.irad.luminance();
-            node->pt.pos    += weight * node->children[i]->pt.pos;
-            node->pt.normal += weight * node->children[i]->pt.normal;
-            node->pt.area   += node->children[i]->pt.area;
-            node->pt.irad   += node->children[i]->pt.irad;
-            sumWgt    += weight;
-            nChildren += 1;
-        }
-    }
-
-    if (sumWgt > 0.0) {
-        node->pt.pos    /= sumWgt;
-        node->pt.normal /= sumWgt;
-    }
-
-    if (nChildren != 0) {
-        node->pt.irad /= nChildren;
-    }
-
-    return node;
-}
-
-Spectrum HierarchicalIntegrator::Octree::iradSubsurface(
-    const SurfaceInteraction& po,
-    const std::unique_ptr<DiffusionReflectance>& Rd) const {
-    return iradSubsurfaceRec(_root, po, Rd);
-}
-
-Spectrum HierarchicalIntegrator::Octree::iradSubsurfaceRec(
-    OctreeNode* node,
-    const SurfaceInteraction& po,
-    const std::unique_ptr<DiffusionReflectance>& Rd) const {
-    if (node == nullptr) {
-        return Spectrum(0.0);
-    }
-
-    double distSquared = (node->pt.pos - po.pos()).squaredNorm();
-    double dw = node->pt.area / distSquared;
-    if (node->isLeaf || (dw < _parent->maxError_ &&
-                         !node->bbox.inside(po.pos()))) {
-        return (*Rd)(node->pt.pos, po.pos()) * node->pt.irad * node->pt.area;
-    } else {
-        Spectrum ret(0.0);
-        for (int i = 0; i < 8; i++) {
-            if (node->children[i] != nullptr) {
-                ret += iradSubsurfaceRec(node->children[i], po, Rd);
+        double distSquared = (node->pt.pos - po.pos()).squaredNorm();
+        double dw = node->pt.area / distSquared;
+        if (node->isLeaf || (dw < maxError_ && !node->bbox.inside(po.pos()))) {
+            return (*Rd)(node->pt.pos, po.pos()) * node->pt.E * node->pt.area;
+        } else {
+            Spectrum ret(0.0);
+            for (int i = 0; i < 8; i++) {
+                if (node->children[i] != nullptr) {
+                    ret += MoRec(node->children[i], po, Rd);
+                }
             }
+            return ret;
         }
-        return ret;
     }
-}
+
+private:
+    OctreeNode* root_;
+    double maxError_;
+
+};  // class Octree
 
 HierarchicalIntegrator::HierarchicalIntegrator(
     const std::shared_ptr<const Camera>& camera,
     const std::shared_ptr<Sampler>& sampler,
     double maxError)
     : SamplerIntegrator{ camera, sampler }
-    , octree_{}
+    , octree_{ std::make_unique<Octree>(maxError) }
     , dA_{ 0.0 }
-    , radius_{}
-    , maxError_{ maxError } {
+    , radius_{} {
 }
 
 HierarchicalIntegrator::~HierarchicalIntegrator() {
@@ -222,7 +224,7 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
         bool isIntersect = scene.intersect(ray, &isect);
 
         // Sample Le which contributes without any loss
-        if (bounces == 0 || specularBounce) {
+        if ((bounces == 0 && depth >= 0) || specularBounce) {
             if (isIntersect) {
                 L += beta * isect.Le(-ray.dir());
             } else {
@@ -318,17 +320,34 @@ void HierarchicalIntegrator::buildOctree(const Scene& scene,
         const int threadID = getThreadID();
         Spectrum E(0.0);
         for (int s = 0; s < nSamples; s++) {
+            // Indirect lighting
             Vector3d n(points_[i].normal());
             Vector3d u, v;
             vect::coordinateSystem(n, &u, &v);
-            Vector3d dir = sampleCosineHemisphere(samplers[threadID]->get2D());
+            Vector3d dir  = sampleCosineHemisphere(samplers[threadID]->get2D());
             double pdfDir = cosineHemispherePdf(vect::cosTheta(dir));
             if (pdfDir == 0.0) continue;
 
             dir = u * dir.x() + v * dir.y() + n * dir.z();
-            Ray ray(points_[i].pos(), dir);
-            E += Li(scene, params, ray, *samplers[threadID], arenas[threadID]) *
+            Ray ray = points_[i].spawnRay(dir);
+            E += Li(scene, params, ray, *samplers[threadID], arenas[threadID], -1) *
                  vect::dot(n, dir) / pdfDir;
+
+            // Direct lighting
+            for (const auto& l : scene.lights()) {
+                Vector3d wi;
+                double lightPdf;
+                VisibilityTester vis;
+                Spectrum Li = l->sampleLi(points_[i], samplers[threadID]->get2D(), &wi, &lightPdf, &vis);
+
+                if (vect::dot(wi, points_[i].normal()) < 0.0) continue;
+                if (Li.isBlack() || lightPdf == 0.0) continue;
+
+                Li *= vis.transmittance(scene, *samplers[threadID]);
+                if (vis.unoccluded(scene)) {
+                    E += Li * vect::absDot(wi, points_[i].normal()) / lightPdf;
+                }
+            }
         }
         irads[i] = E / nSamples;
     });
@@ -336,19 +355,18 @@ void HierarchicalIntegrator::buildOctree(const Scene& scene,
     // Octree construction
     std::vector<IrradiancePoint> iradPoints(numPoints);
     for (int i = 0; i < numPoints; i++) {
-        iradPoints[i].pos    = points_[i].pos();
-        iradPoints[i].normal = points_[i].normal();
-        iradPoints[i].area   = dA_;
-        iradPoints[i].irad   = irads[i];
+        iradPoints[i].pos  = points_[i].pos();
+        iradPoints[i].area = dA_;
+        iradPoints[i].E    = irads[i];
     }
-    octree_.construct(this, iradPoints);
+    octree_->construct(this, iradPoints);
     std::cout << "Octree constructed !!" << std::endl;
 }
 
 Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po) const {
     Assertion(po.bssrdf(), "BSSRDF not found!!");
     auto Rd = static_cast<SeparableBSSRDF*>(po.bssrdf())->Rd();
-    const Spectrum Mo = octree_.iradSubsurface(po, Rd);
+    const Spectrum Mo = octree_->Mo(po, Rd);
     return (INV_PI * (1.0 - Rd->Fdr())) * Mo;
 }
 

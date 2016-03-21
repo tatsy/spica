@@ -14,8 +14,13 @@
 
 namespace spica {
 
+/**
+ * Irraciance caching.
+ * @ingroup integrator_module
+ */
 class SPICA_EXPORTS IrradCacheIntegrator : public SamplerIntegrator {
 public:
+    // Public methods
     IrradCacheIntegrator(const std::shared_ptr<const Camera>& camera,
                          const std::shared_ptr<Sampler>& sampler);
     ~IrradCacheIntegrator();
@@ -40,8 +45,9 @@ public:
                 int depth = 0) const override;
 
 private:
-    
+    // Private methods
 
+    // Private fields
     int  nGathering_;
     bool cacheMode_;
 

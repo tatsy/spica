@@ -203,6 +203,7 @@ void IrradCacheIntegrator::loopStarted(const Scene& scene,
 void IrradCacheIntegrator::loopFinished(const Scene& scene,
                                         const RenderParameters& params,
                                         Sampler& sampler) {
+    // Release and rebuild cache data structure for the next iteration
     cache_->release();
 }
 
@@ -212,6 +213,11 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
                                   Sampler& sampler,
                                   MemoryArena& arena,
                                   int depth) const {
+    // Static parameters for irradiance caching
+    static const double threshold = 50.0;
+    static const double Rmax = 100.0;
+    static const double radius = (1.0 / threshold) * Rmax;
+
     Ray ray(r);
     Spectrum L(0.0);
     Spectrum beta(1.0);
@@ -256,18 +262,11 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
 
         if (ref.isBlack() || pdf == 0.0) break;
 
-        Spectrum bold = beta;
-        beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
-        specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
-        ray = isect.spawnRay(wi);
-
-        if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
+        // Estimate radiance using irradiance cache
+        if ((sampledType & BxDFType::Diffuse)    != BxDFType::None &&
             (sampledType & BxDFType::Reflection) != BxDFType::None && depth == 0) {
 
-            const double threshold = 50.0;
-            const double Rmax = 100.0;
-            const double radius = (1.0 / threshold) * Rmax;
-
+            // Correct neighboring caches
             CacheQuery query(isect.pos(), isect.normal(), radius * radius, threshold);
             std::vector<CacheData> results;
             cache_->search(query, &results);
@@ -275,6 +274,7 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
             Spectrum E(0.0);
             Vector3d avgWi(0.0, 0.0, 0.0);
             if (results.empty() || cacheMode_) {
+                // Create new cache
                 double Ri = 0.0;
                 for (int k = 0; k < nGathering_; k++) {
                     Vector3d n(isect.normal());
@@ -289,8 +289,10 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
 
                     SurfaceInteraction intr;
                     if (scene.intersect(subRay, &intr)) {
-                        Ri += 1.0 / (intr.pos() - subRay.org()).norm();
-                        Spectrum Es = Li(scene, params, Ray(subRay.org(), subRay.dir()), sampler, arena, bounces + 1) *
+                        const double t = (intr.pos() - subRay.org()).norm();
+                        Ri += 1.0 / t;
+                        subRay = Ray(subRay.org(), subRay.dir());
+                        Spectrum Es = Li(scene, params, subRay, sampler, arena, bounces + 1) *
                                       vect::dot(n, dir) / pdfDir;
                         avgWi += Es.luminance() * dir;
                         E += Es;
@@ -300,6 +302,7 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
                 Ri = 1.0 / (Ri / nGathering_);
                 cache_->add(CacheData(isect.pos(), isect.normal(), avgWi, E, Ri));
             } else {
+                // Estimate radiance from corrected caches
                 double sumWgt = 0.0;
                 for (const auto& irr : results) {
                     double weight = irr.weight(isect.pos(), isect.normal());
@@ -313,12 +316,18 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
                 }
             }
 
+            // Accumurate estimated irradiance
             if (!E.isBlack()) {
                 avgWi = avgWi.normalized();
-                L += bold * isect.bsdf()->f(avgWi, wo) * E;
+                L += beta * isect.bsdf()->f(avgWi, wo) * E;
             }
             break;
         }
+
+        // Update beta for non-diffuse materials
+        beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+        specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+        ray = isect.spawnRay(wi);
 
         // Account for BSSRDF
         if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {

@@ -1,6 +1,6 @@
 /**
- * @defgroup renderer_module Renderers
- * @brief Renderer implementations
+ * @defgroup integrator_module Integrators
+ * @brief Integrating rendering equation.
  */
 
 #ifdef _MSC_VER
@@ -22,6 +22,7 @@ namespace spica {
 
 /**
  * The integrator interface.
+ * @ingroup integrator_module
  */
 class SPICA_EXPORTS Integrator : public Uncopyable {
 public:
@@ -38,6 +39,7 @@ protected:
 
 /**
  * The sampler integrator interface.
+ * @ingroup integrator_group
  * @details
  * This interface class is for integrating with sampling.
  */

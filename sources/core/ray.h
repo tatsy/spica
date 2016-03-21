@@ -30,7 +30,7 @@ public:
 
     Ray& operator=(const Ray& ray);
 
-    inline Point3d    org()     const { return org_; }
+    inline Point3d  org()     const { return org_; }
     inline Vector3d dir()     const { return dir_; }
     inline Vector3d invdir()  const { return invdir_; }
     inline double   maxDist() const { return maxDist_; }
@@ -42,7 +42,7 @@ private:
     void calcInvdir();
 
     // Private fields
-    Point3d    org_     = { 0.0, 0.0, 0.0 };
+    Point3d  org_     = { 0.0, 0.0, 0.0 };
     Vector3d dir_     = { 0.0, 0.0, 0.0 };
     Vector3d invdir_  = { INFTY, INFTY, INFTY };
     double   maxDist_ = INFTY;

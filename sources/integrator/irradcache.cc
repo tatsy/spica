@@ -23,21 +23,25 @@ namespace spica {
 
 struct CacheData {
     Point3d pos;
-    Spectrum E;
     Normal3d nrm;
+    Vector3d wi;
+    Spectrum E;
     double Ri;
 
     CacheData()
         : pos{}
-        , E{}
         , nrm{}
+        , wi{}
+        , E{}
         , Ri{} {
     }
 
-    CacheData(const Point3d& p, const Spectrum& e, const Normal3d& n, double t)
+    CacheData(const Point3d& p, const Normal3d& n, const Vector3d& w,
+              const Spectrum& e, double t)
         : pos{ p }
-        , E{ e }
         , nrm{ n }
+        , wi { w }
+        , E{ e }
         , Ri{ t } {
     }
 
@@ -185,8 +189,8 @@ void IrradCacheIntegrator::loopStarted(const Scene& scene,
     cacheMode_ = true;
     parallel_for (0, 5000, [&](int i) {
         const int threadID = getThreadID();
-        int px = camera_->film()->resolution().x() * sampler.get1D();
-        int py = camera_->film()->resolution().y() * sampler.get1D();
+        int px = camera_->film()->resolution().x() * samplers[threadID]->get1D();
+        int py = camera_->film()->resolution().y() * samplers[threadID]->get1D();
         double pdfPos, pdfDir;
         Ray ray = camera_->spawnRay(Point2i(px, py), samplers[threadID]->get2D(),
                                     samplers[threadID]->get2D(), &pdfPos, &pdfDir);
@@ -213,12 +217,12 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
     Spectrum beta(1.0);
     bool specularBounce = false;
     int bounces;
-    for (bounces = 0; ; bounces++) {
+    for (bounces = depth; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
 
         // Sample Le which contributes without any loss
-        if (depth >= 0 && (bounces == 0 || specularBounce)) {
+        if (bounces == 0 || specularBounce) {
             if (isIntersect) {
                 L += beta * isect.Le(-ray.dir());
             } else {
@@ -239,7 +243,7 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
 
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
             Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
-            L += Ld;
+            L  += Ld;
         }
 
         // Process BxDF
@@ -252,12 +256,13 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
 
         if (ref.isBlack() || pdf == 0.0) break;
 
+        Spectrum bold = beta;
         beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
         specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
         ray = isect.spawnRay(wi);
 
         if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
-            (sampledType & BxDFType::Reflection) != BxDFType::None && depth >= 0) {
+            (sampledType & BxDFType::Reflection) != BxDFType::None && depth == 0) {
 
             const double threshold = 50.0;
             const double Rmax = 100.0;
@@ -268,6 +273,7 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
             cache_->search(query, &results);
 
             Spectrum E(0.0);
+            Vector3d avgWi(0.0, 0.0, 0.0);
             if (results.empty() || cacheMode_) {
                 double Ri = 0.0;
                 for (int k = 0; k < nGathering_; k++) {
@@ -279,22 +285,26 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
                     if (pdfDir == 0.0) continue;
 
                     dir = u * dir.x() + v * dir.y() + n * dir.z();
-                    Ray ray(isect.pos(), dir);
-                    SurfaceInteraction isect;
-                    if (scene.intersect(ray, &isect)) {
-                        Ri += 1.0 / (isect.pos() - ray.org()).norm();
-                        E  += Li(scene, params, ray, sampler, arena, -1) *
-                              vect::dot(n, dir) / pdfDir;                        
+                    Ray subRay = isect.spawnRay(dir);
+
+                    SurfaceInteraction intr;
+                    if (scene.intersect(subRay, &intr)) {
+                        Ri += 1.0 / (intr.pos() - subRay.org()).norm();
+                        Spectrum Es = Li(scene, params, Ray(subRay.org(), subRay.dir()), sampler, arena, bounces + 1) *
+                                      vect::dot(n, dir) / pdfDir;
+                        avgWi += Es.luminance() * dir;
+                        E += Es;
                     }
                 }
-                E  = E / nGathering_;
+                E  = E   / nGathering_;
                 Ri = 1.0 / (Ri / nGathering_);
-                cache_->add(CacheData(isect.pos(), E, isect.normal(), Ri));
+                cache_->add(CacheData(isect.pos(), isect.normal(), avgWi, E, Ri));
             } else {
                 double sumWgt = 0.0;
                 for (const auto& irr : results) {
                     double weight = irr.weight(isect.pos(), isect.normal());
                     E      += weight * irr.E;
+                    avgWi  += weight * irr.wi;
                     sumWgt += weight;
                 }
 
@@ -302,7 +312,11 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
                     E = E / sumWgt;
                 }
             }
-            L += beta * E / PI;
+
+            if (!E.isBlack()) {
+                avgWi = avgWi.normalized();
+                L += bold * isect.bsdf()->f(avgWi, wo) * E;
+            }
             break;
         }
 
@@ -333,6 +347,7 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
             beta /= continueProbability;
         }
     }
+
     return L;
 }
 

@@ -19,8 +19,8 @@ int main(int argc, char **argv) {
     Scene scene;
     std::shared_ptr<Camera> camera;
 
-    // std::shared_ptr<Sampler> sampler = std::make_unique<Random>(0);
-    std::shared_ptr<Sampler> sampler = std::make_unique<Halton>(200, true, 0);
+     std::shared_ptr<Sampler> sampler = std::make_unique<Random>(0);
+    //std::shared_ptr<Sampler> sampler = std::make_unique<Halton>(200, true, 0);
 
     cornellBox(&scene, &camera, Point2i(width, height));
     // kittenEnvmap(&scene, &camera, Point2i(width, height));
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     timer.start();
 
     RenderParameters params(samples);
-    params.bounceLimit(256);
+    params.bounceLimit(64);
     params.castPhotons(200000);
     params.saveFilenameFormat();
 

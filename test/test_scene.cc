@@ -91,7 +91,7 @@ protected:
     std::vector<std::shared_ptr<Light>> lights;
 };
 
-TEST_P(SceneIntersectionTest, BBVHvsQBVH) {
+TEST_P(SceneIntersectionTest, DISABLED_BBVHvsQBVH) {
     auto bvh = std::make_shared<BBVHAccel>(prims);
     auto qbvh = std::make_shared<QBVHAccel>(prims);
     Scene scene1(bvh, lights);

@@ -95,7 +95,7 @@ void PhotonMap::construct(const Scene& scene,
     std::vector<std::vector<Photon>> photons(nThreads);
 
     // Shooting photons
-    std::atomic<int> proc = 0;
+    std::atomic<int> proc(0);
     parallel_for(0, np, [&](int i) {
         const int threadID = getThreadID();
         const std::unique_ptr<Sampler>& sampler = samplers[threadID];

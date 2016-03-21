@@ -52,7 +52,7 @@ struct SPPMIntegrator::SPPMPixel {
     AtomicDouble phi[Spectrum::channels];
     double r2 = 0.0;
     double n  = 0;
-    std::atomic<int> m = 0;
+    std::atomic<int> m = { 0 };
 };
 
 const double SPPMIntegrator::kAlpha_ = 0.7;
@@ -208,7 +208,7 @@ void SPPMIntegrator::traceRays(const Scene& scene,
     // Generate a ray to cast
     std::cout << "Tracing rays from camera ..." << std::endl;
 
-    std::atomic<int> proc = 0;
+    std::atomic<int> proc(0);
     const int tasksThread = (numPixels + kNumThreads - 1) / kNumThreads;
     parallel_for(0, numPixels, [&](int pid) {
         const int threadID = getThreadID();
@@ -244,7 +244,7 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
     const int tasksThread = (numPhotons + kNumThreads - 1) / kNumThreads;
 
     // Trace photons
-    std::atomic<int> proc = 0;
+    std::atomic<int> proc(0);
     parallel_for(0, numPhotons, [&](int p) {
         const int threadID = getThreadID();
         const std::unique_ptr<Sampler>& sampler = samplers[threadID];

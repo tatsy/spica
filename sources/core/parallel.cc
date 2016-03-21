@@ -1,5 +1,6 @@
 #include "parallel.h"
 
+#include <cstring>
 #include <vector>
 #include <queue>
 #include <thread>

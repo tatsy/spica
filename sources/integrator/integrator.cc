@@ -82,7 +82,7 @@ void SamplerIntegrator::render(const Scene& scene,
             }
         }
 
-        std::atomic<int> proc = 0;
+        std::atomic<int> proc(0);
         parallel_for(0, numPixels, [&](int pid) {
             const int threadID = getThreadID();
             const int y = pid / width;

@@ -17,7 +17,7 @@ public:
     HomogeneousMedium(const Spectrum& sigmaAbsorb,
                       const Spectrum& sigmaScatter, double g);
 
-    Spectrum Tr(const Ray& ray, Sampler& sampler) const;
+    Spectrum Tr(const Ray& ray, Sampler& sampler) const override;
     Spectrum sample(const Ray& ray, Sampler& sampler, MemoryArena& arena,
                     MediumInteraction* mi) const override;
 

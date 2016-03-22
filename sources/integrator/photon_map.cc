@@ -281,6 +281,8 @@ void PhotonMap::tracePhoton(const Scene& scene,
 
         // Account for BSSRDF
         if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+            break;
+
             SurfaceInteraction pi;
             Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
                 sampler.get2D(), arena, &pi, &pdf);

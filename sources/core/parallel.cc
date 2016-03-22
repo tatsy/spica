@@ -1,3 +1,4 @@
+#define SPICA_API_EXPORT
 #include "parallel.h"
 
 #include <cstring>

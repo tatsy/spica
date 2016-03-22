@@ -5,6 +5,7 @@
 #ifndef _SPICA_RENDERER_H_
 #define _SPICA_RENDERER_H_
 
+#include "mis.h"
 #include "pathtrace.h"
 #include "volpath.h"
 #include "directlighting.h"

@@ -8,6 +8,8 @@
 #include <atomic>
 #include <functional>
 
+#include "common.h"
+
 namespace spica {
 
 class AtomicDouble {
@@ -28,10 +30,10 @@ enum class ParallelSchedule {
     Dynamic = 0x02
 };
 
-void parallel_for(int start, int end, const std::function<void(int)>& func,
-                  ParallelSchedule schedule = ParallelSchedule::Dynamic);
+SPICA_EXPORTS void parallel_for(int start, int end, const std::function<void(int)>& func,
+                                ParallelSchedule schedule = ParallelSchedule::Dynamic);
 
-int numSystemThreads();
-int getThreadID();
+SPICA_EXPORTS int numSystemThreads();
+SPICA_EXPORTS int getThreadID();
 
 #endif  // _SPICA_PARALLEL_H_

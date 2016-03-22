@@ -85,8 +85,7 @@ public:
         }
     }
 
-    void construct(HierarchicalIntegrator* parent,
-                   const std::vector<IrradiancePoint>& ipoints) {
+    void construct(const std::vector<IrradiancePoint>& ipoints) {
         release();
         
         Bounds3d bounds;
@@ -285,16 +284,18 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
     Bounds3d bounds = scene.worldBound();
     radius_ = (bounds.posMax() - bounds.posMin()).norm() * 0.001;
     dA_     = (0.5 * radius_) * (0.5 * radius_) * PI;
-
-    // Sample points with dart throwing
-    Point3d pCamera = camera_->cameraToWorld().apply(Point3d(0.0, 0.0, 0.0));
-    samplePoissonDisk(scene, pCamera, radius_, &points_);
-    MsgInfo("%zu points sampled with PDS.", points_.size());
 }
 
 void HierarchicalIntegrator::loopStarted(const Scene& scene,
                                          const RenderParameters& params,
                                          Sampler& sampler) {
+    // Sample points with dart throwing
+    points_.clear();
+    octree_->release();
+    Point3d pCamera = camera_->cameraToWorld().apply(Point3d(0.0, 0.0, 0.0));
+    samplePoissonDisk(scene, pCamera, radius_, &points_);
+    MsgInfo("%zu points sampled with PDS.", points_.size());
+
     // Compute irradiance at sample points
     buildOctree(scene, params, sampler);
 }
@@ -359,12 +360,14 @@ void HierarchicalIntegrator::buildOctree(const Scene& scene,
         iradPoints[i].area = dA_;
         iradPoints[i].E    = irads[i];
     }
-    octree_->construct(this, iradPoints);
+    octree_->construct(iradPoints);
     std::cout << "Octree constructed !!" << std::endl;
 }
 
 Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po) const {
     Assertion(po.bssrdf(), "BSSRDF not found!!");
+    if (!octree_) return Spectrum(0.0);
+
     auto Rd = static_cast<SeparableBSSRDF*>(po.bssrdf())->Rd();
     const Spectrum Mo = octree_->Mo(po, Rd);
     return (INV_PI * (1.0 - Rd->Fdr())) * Mo;

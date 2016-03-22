@@ -11,5 +11,6 @@
 #include "sphere.h"
 
 #include "meshio.h"
+#include "visibility_tester.h"
 
 #endif  // _SPICA_SHAPE_HEADERS_H_

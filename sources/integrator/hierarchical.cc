@@ -282,7 +282,7 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
                                         Sampler& sampler) {
     // Compute dA and copy maxError
     Bounds3d bounds = scene.worldBound();
-    radius_ = (bounds.posMax() - bounds.posMin()).norm() * 0.001;
+    radius_ = std::min(0.05, (bounds.posMax() - bounds.posMin()).norm() * 0.001);
     dA_     = (0.5 * radius_) * (0.5 * radius_) * PI;
 }
 

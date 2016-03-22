@@ -188,7 +188,7 @@ void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
                        double minDist, std::vector<Interaction>* points) {
     std::vector<Triangle> tris;
     for (const auto& p : scene.primitives()) {
-        if (p->material()->isSubsurface()) {
+        if (p->material() && p->material()->isSubsurface()) {
             auto ts = p->triangulate();
             tris.insert(tris.end(), ts.begin(), ts.end());
         }

@@ -310,7 +310,7 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
                 for (int ch = 0; ch < Spectrum::channels; ch++) {
                     pixel->phi[ch].add(phi[ch]);
                 }
-                pixel->m += 1;
+                ++pixel->m;
             }
         }
     

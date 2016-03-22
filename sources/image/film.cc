@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "film.h"
 
+#include "../core/path.h"
 #include "tmo.h"
 
 namespace spica {
@@ -27,12 +28,16 @@ void Film::save(int id) const {
         }
     }
 
+    std::string ext = path::getExtension(filename_);
+
     char savefile[512];
     const char* format = filename_.c_str();
     sprintf(savefile, format, id);
-    
-    GammaTmo tmo(2.2);
-    res = tmo.apply(res);
+
+    if (ext == ".hdr") {
+        GammaTmo tmo(2.2);
+        res = tmo.apply(res);
+    }
     res.save(savefile);
 
     MsgInfo("save: %s", savefile);

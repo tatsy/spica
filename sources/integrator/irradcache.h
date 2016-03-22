@@ -15,7 +15,7 @@
 namespace spica {
 
 /**
- * Irraciance caching.
+ * Irradiance caching.
  * @ingroup integrator_module
  */
 class SPICA_EXPORTS IrradCacheIntegrator : public SamplerIntegrator {

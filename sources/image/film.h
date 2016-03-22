@@ -39,6 +39,10 @@ public:
     void addPixel(const Point2i& pixel, const Point2d& pInPixel,
                   const Spectrum& color);
 
+    inline void setFilename(const std::string filename) {
+        this->filename_ = filename;
+    }
+
     inline void setSaveCallback(std::unique_ptr<std::function<void(const Image&)>>&& callback) {
         this->saveCallback_ = std::move(callback);        
     }

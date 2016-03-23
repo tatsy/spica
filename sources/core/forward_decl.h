@@ -40,6 +40,7 @@ namespace spica {
     class Image;
     class Film;
     class MipMap;
+    enum class ImageWrap;
 
     // Math module
     template <class T>

@@ -34,7 +34,7 @@ void Film::save(int id) const {
     const char* format = filename_.c_str();
     sprintf(savefile, format, id);
 
-    if (ext == ".hdr") {
+    if (ext != ".hdr") {
         GammaTmo tmo(2.2);
         res = tmo.apply(res);
     }

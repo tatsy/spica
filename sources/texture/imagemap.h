@@ -16,10 +16,10 @@
 
 namespace spica {
 
-class ImageTexture : public Texture<Spectrum> {
+class SPICA_EXPORTS ImageTexture : public Texture<Spectrum> {
 public:
     ImageTexture(const Image& image,
-                 std::unique_ptr<TextureMapping2D> texmap,
+                 const std::shared_ptr<TextureMapping2D>& texmap,
                  ImageWrap wrap);
 
     Spectrum evaluate(const SurfaceInteraction& intr) const;
@@ -27,7 +27,7 @@ public:
 private:
     // Private field
     std::unique_ptr<MipMap> mipmap_;
-    std::unique_ptr<TextureMapping2D> texmap_;
+    std::shared_ptr<TextureMapping2D> texmap_;
 };
 
 }  // namespace spica

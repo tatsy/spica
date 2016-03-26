@@ -8,10 +8,10 @@
 namespace spica {
 
 ImageTexture::ImageTexture(const Image& image,
-                           std::unique_ptr<TextureMapping2D> texmap,
+                           const std::shared_ptr<TextureMapping2D>& texmap,
                            ImageWrap wrap)
     : mipmap_{ std::make_unique<MipMap>(image, wrap) }
-    , texmap_{ std::move(texmap) } {
+    , texmap_{ texmap } {
 }
 
 Spectrum ImageTexture::evaluate(const SurfaceInteraction& intr) const {

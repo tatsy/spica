@@ -7,6 +7,7 @@
 
 #include "texture.h"
 #include "constant.h"
+#include "imagemap.h"
 #include "uv.h"
 
 #endif  // _SPICA_TEXTURE_HEADERS_H_

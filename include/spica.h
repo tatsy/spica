@@ -19,6 +19,7 @@
 #include "../sources/core/bounds3d.h"
 #include "../sources/core/triplet.h"
 #include "../sources/core/interaction.h"
+#include "../sources/core/random_queue.h"
 
 #include "../sources/shape/shape.h"
 

@@ -332,8 +332,17 @@ std::vector<std::shared_ptr<Shape>> OBJMeshIO::load(const std::string& filename,
 
 void OBJMeshIO::save(const std::string& filename,
                      const std::vector<Triangle>& trimesh) const {
-    std::cerr << "[ERROR] not implemented yet" << std::endl;
-    std::abort();
+    std::ofstream ofs(filename, std::ios::out);
+    for (const auto& t : trimesh) {
+        ofs << "v " << t[0].x() << " " << t[0].y() << " " << t[0].z() << std::endl;
+        ofs << "v " << t[1].x() << " " << t[1].y() << " " << t[1].z() << std::endl;
+        ofs << "v " << t[2].x() << " " << t[2].y() << " " << t[2].z() << std::endl;
+    }
+
+    for (int i = 0; i < trimesh.size(); i++) {
+        ofs << "f " << (3 * i + 1) << " " << (i * 3 + 2) << " " << (i * 3 + 3) << std::endl;
+    }
+    ofs.close();
 }
 
 Image OBJMeshIO::getTexture(const std::string& filename) {

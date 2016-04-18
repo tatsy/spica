@@ -184,8 +184,8 @@ double Sphere::area() const {
 }
 
 std::vector<Triangle> Sphere::triangulate() const {
-    static const int nTheta = 64;
-    static const int nPhi   = 128;
+    static const int nTheta = 32;
+    static const int nPhi   = 64;
 
     std::vector<Triangle> tris;
     for (int i = 0; i < nTheta; i++) {

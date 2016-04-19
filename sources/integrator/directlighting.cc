@@ -2,10 +2,10 @@
 #include "directlighting.h"
 
 #include "../core/interaction.h"
+#include "../core/renderparams.h"
 #include "../scenes/scene.h"
 
 #include "mis.h"
-#include "render_parameters.h"
 
 namespace spica {
 
@@ -16,7 +16,7 @@ DirectLightingIntegrator::DirectLightingIntegrator(
 }
 
 Spectrum DirectLightingIntegrator::Li(const Scene& scene,
-                                      const RenderParameters& params,
+                                      const RenderParams& params,
                                       const Ray& r,
                                       Sampler& sampler,
                                       MemoryArena& arena,
@@ -46,7 +46,7 @@ Spectrum DirectLightingIntegrator::Li(const Scene& scene,
         L += mis::uniformSampleOneLight(isect, scene, arena, sampler);
     }
 
-    if (depth + 1 < params.bounceLimit()) {
+    if (depth + 1 < params.get<int>("MAX_BOUNCES")) {
         L += specularReflect(scene, params, ray, isect, sampler, arena, depth + 1);
         L += specularTransmit(scene, params, ray, isect, sampler, arena, depth + 1);
     }

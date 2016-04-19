@@ -14,7 +14,7 @@
 #include "../filter/spica_filter.h"
 #include "../camera/spica_camera.h"
 #include "../integrator/spica_integrator.h"
-#include "../integrator/render_parameters.h"
+#include "../core/renderparams.h"
 #include "../material/spica_material.h"
 #include "../texture/constant.h"
 #include "../light/spica_light.h"
@@ -285,10 +285,10 @@ void Engine::start(const std::string& filename) const {
     Scene scene(bbvh, lights);
         
     // Start rendering
-    RenderParameters params;
-    params.samplePerPixel(option_.nSamples);
-    params.saveFilenameFormat(option_.outfile);
-    omp_set_num_threads(option_.nThreads);
+    RenderParams params;
+    params.set("NUM_SAMPLES", option_.nSamples);
+    params.set("OUTPUT_FILE", option_.outfile);
+    params.set("NUM_THREADS", option_.nThreads);
     integrator->render(scene, params);
 }
 

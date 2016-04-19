@@ -10,6 +10,7 @@
 #include "../core/spectrum.h"
 #include "../core/sampling.h"
 #include "../core/interaction.h"
+#include "../core/renderparams.h"
 
 #include "../image/film.h"
 
@@ -28,7 +29,6 @@
 
 #include "../camera/camera.h"
 
-#include "render_parameters.h"
 // #include "subsurface_integrator.h"
 
 namespace spica {
@@ -43,7 +43,7 @@ PathIntegrator::~PathIntegrator() {
 }
 
 Spectrum PathIntegrator::Li(const Scene& scene,
-                          const RenderParameters& params,
+                          const RenderParams& params,
                           const Ray& r,
                           Sampler& sampler,
                           MemoryArena& arena,
@@ -68,7 +68,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
             }
         }
 
-        if (!isIntersect || bounces >= params.bounceLimit()) break;
+        if (!isIntersect || bounces >= params.get<int>("MAX_BOUNCES")) break;
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {

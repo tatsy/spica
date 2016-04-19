@@ -20,11 +20,14 @@
 #include "../sources/core/triplet.h"
 #include "../sources/core/interaction.h"
 #include "../sources/core/random_queue.h"
+#include "../sources/core/renderparams.h"
 
 #include "../sources/shape/shape.h"
 
 #include "../sources/random/random.h"
 #include "../sources/random/halton.h"
+
+
 
 // --------------------------------------------
 // Accelerators
@@ -78,7 +81,6 @@
 // Integrators
 // --------------------------------------------
 
-#include "../sources/integrator/render_parameters.h"
 #include "../sources/integrator/spica_integrator.h"
 
 // --------------------------------------------

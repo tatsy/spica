@@ -6,16 +6,16 @@
 #include <cstdio>
 #include <algorithm>
 
-#include "mis.h"
-#include "render_parameters.h"
-
 #include "../core/interaction.h"
 #include "../core/sampling.h"
 #include "../scenes/scene.h"
+#include "../core/renderparams.h"
 
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bxdf.h"
 #include "../bxdf/bssrdf.h"
+
+#include "mis.h"
 
 namespace spica {
 
@@ -33,7 +33,7 @@ PPMProbIntegrator::~PPMProbIntegrator() {
 }
 
 void PPMProbIntegrator::initialize(const Scene& scene,
-                                   const RenderParameters& params,
+                                   const RenderParams& params,
                                    Sampler& sampler) {
     // Compute global radius
     Bounds3d bounds = scene.worldBound();
@@ -41,14 +41,14 @@ void PPMProbIntegrator::initialize(const Scene& scene,
 }
 
 void PPMProbIntegrator::loopStarted(const Scene& scene,
-                                      const RenderParameters& params,
+                                      const RenderParams& params,
                                       Sampler& sampler) {
     // Construct photon map
     photonmap_.construct(scene, params);
 }
 
 void PPMProbIntegrator::loopFinished(const Scene& scene,
-                                     const RenderParameters& params,
+                                     const RenderParams& params,
                                      Sampler& sampler) {
     // Scale global radius
     globalRadius_ *= alpha_;   
@@ -56,7 +56,7 @@ void PPMProbIntegrator::loopFinished(const Scene& scene,
 
 
 Spectrum PPMProbIntegrator::Li(const Scene& scene,
-                               const RenderParameters& params,
+                               const RenderParams& params,
                                const Ray& r,
                                Sampler& sampler,
                                MemoryArena& arena,
@@ -65,8 +65,10 @@ Spectrum PPMProbIntegrator::Li(const Scene& scene,
     Spectrum L(0.0);
     Spectrum beta(1.0);
     bool specularBounce = false;
-    int bounces;
-    for (bounces = 0; ; bounces++) {
+    const int maxBounces      = params.get<int>("MAX_BOUNCES");
+    const int gatherPhotons   = params.get<int>("GATHER_PHOTONS");
+    const double gatherRadius = params.get<double>("GATHER_RADIUS");
+    for (int bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
 
@@ -81,7 +83,7 @@ Spectrum PPMProbIntegrator::Li(const Scene& scene,
             }
         }
 
-        if (!isIntersect || bounces >= params.bounceLimit()) break;
+        if (!isIntersect || bounces >= maxBounces) break;
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
@@ -107,8 +109,8 @@ Spectrum PPMProbIntegrator::Li(const Scene& scene,
 
         if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
             (sampledType & BxDFType::Reflection) != BxDFType::None) {
-            L += beta * photonmap_.evaluateL(isect, params.gatherPhotons(),
-                                             params.gatherRadius());
+            L += beta * photonmap_.evaluateL(isect, gatherPhotons, 
+                                             gatherRadius);
             break;
         } else {
             L += Ld;

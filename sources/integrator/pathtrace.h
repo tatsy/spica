@@ -28,7 +28,7 @@ public:
 protected:
     // Protected methods
     virtual Spectrum Li(const Scene& scene,
-                        const RenderParameters& params,
+                        const RenderParams& params,
                         const Ray& ray,
                         Sampler& sampler,
                         MemoryArena& arena,

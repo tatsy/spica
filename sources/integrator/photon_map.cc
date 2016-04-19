@@ -10,6 +10,7 @@
 #include "../core/interaction.h"
 #include "../core/sampling.h"
 #include "../core/interaction.h"
+#include "../core/renderparams.h"
 
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
@@ -20,7 +21,6 @@
 #include "../bxdf/bssrdf.h"
 
 #include "mis.h"
-#include "render_parameters.h"
 
 namespace spica {
 
@@ -75,7 +75,7 @@ void PhotonMap::clear() {
 }
 
 void PhotonMap::construct(const Scene& scene,
-                          const RenderParameters& params) {
+                          const RenderParams& params) {
 
     std::cout << "Shooting photons..." << std::endl;
 
@@ -91,12 +91,12 @@ void PhotonMap::construct(const Scene& scene,
     std::vector<MemoryArena> arenas(nThreads);
 
     // Distribute tasks
-    const int np = params.castPhotons();
+    const int castPhotons = params.get<int>("CAST_PHOTONS");
     std::vector<std::vector<Photon>> photons(nThreads);
 
     // Shooting photons
     std::atomic<int> proc(0);
-    parallel_for(0, np, [&](int i) {
+    parallel_for(0, castPhotons, [&](int i) {
         const int threadID = getThreadID();
         const std::unique_ptr<Sampler>& sampler = samplers[threadID];
         sampler->startNextSample();
@@ -116,7 +116,7 @@ void PhotonMap::construct(const Scene& scene,
 
         if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
             Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
-                            (lightPdf * pdfPos * pdfDir * np);
+                            (lightPdf * pdfPos * pdfDir * castPhotons);
             if (!beta.isBlack()) {
                 tracePhoton(scene, params, photonRay, beta, *sampler,
                             arenas[threadID], &photons[threadID]);
@@ -126,7 +126,7 @@ void PhotonMap::construct(const Scene& scene,
         proc++;
         if (proc % 1000 == 0) {
             printf("%6.2f %% processed...\r", 
-                    100.0 * proc / params.castPhotons());
+                   100.0 * proc / castPhotons);
         }
     });
     printf("\n");
@@ -242,7 +242,7 @@ void PhotonMap::knnFind(const Photon& photon, std::vector<Photon>* photons,
 }
 
 void PhotonMap::tracePhoton(const Scene& scene,
-                            const RenderParameters& params,
+                            const RenderParams& params,
                             const Ray& r,
                             const Spectrum& b,
                             Sampler& sampler,
@@ -251,7 +251,8 @@ void PhotonMap::tracePhoton(const Scene& scene,
     Ray ray(r);
     Spectrum beta(b);
     SurfaceInteraction isect;
-    for (int bounces = 0; bounces < params.bounceLimit(); bounces++) {
+    const int maxBounces = params.get<int>("MAX_BOUNCES");
+    for (int bounces = 0; bounces < maxBounces; bounces++) {
         if (!scene.intersect(ray, &isect)) break;
 
         photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());

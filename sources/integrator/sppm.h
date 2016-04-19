@@ -24,7 +24,7 @@ public:
     ~SPPMIntegrator();
 
     void render(const Scene& scene,
-                const RenderParameters& params) override;
+                const RenderParams& params) override;
         
 private:
     // Private internal class
@@ -32,28 +32,28 @@ private:
 
     // 1st pass: Trace rays from camera
     void traceRays(const Scene& scene,
-                    const RenderParameters& params,
+                    const RenderParams& params,
                     const std::vector<std::unique_ptr<Sampler>>& samplers,
                     std::vector<MemoryArena>& arenas,
                     std::vector<SPPMPixel>& hpoints) const;
 
     // 2nd pass: Trace photons from lights
     void tracePhotons(const Scene& scene,
-                      const RenderParameters& params,
+                      const RenderParams& params,
                       const std::vector<std::unique_ptr<Sampler>>& samplers,
                       std::vector<MemoryArena>& arenas,
                       const Distribution1D& lightDistrib,
                       const int numPhotons) const;
 
     void tracePhotonsSub(const Scene& scene,
-                         const RenderParameters& params,
+                         const RenderParams& params,
                          const Ray& r,
                          const Spectrum& b,
                          Sampler& sampler,
                          MemoryArena& arena) const;
 
     void pathTrace(const Scene& scene, 
-                   const RenderParameters& params,
+                   const RenderParams& params,
                    const Ray& ray,
                    Sampler& sampler,
                    MemoryArena& arena,

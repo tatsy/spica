@@ -18,14 +18,24 @@ if (NOT WIN32)
 endif()
 
 # ------------------------------------------------------------------------------
+# Whether use static libraries or not
+# ------------------------------------------------------------------------------
+set(spica_USE_STATIC_LIBS OFF CACHE BOOL "")
+
+# ------------------------------------------------------------------------------
 # Set library prefices and suffices
 # ------------------------------------------------------------------------------
 if (WIN32)
   set(LIB_PREFIX "")
   set(LIB_SUFFIX ".lib")
 else()
-  set(LIB_PREFIX "lib")
-  set(LIB_SUFFIX ".so")
+  if (spica_USE_STATIC_LIBS)
+    set(LIB_PREFIX "lib")
+    set(LIB_SUFFIX ".a")    
+  else()
+    set(LIB_PREFIX "lib")
+    set(LIB_SUFFIX ".so")
+  endif()
 endif()
 
 # ------------------------------------------------------------------------------

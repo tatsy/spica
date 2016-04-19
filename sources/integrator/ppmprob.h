@@ -26,19 +26,19 @@ public:
     ~PPMProbIntegrator();
 
     void initialize(const Scene& scene,
-                    const RenderParameters& params,
+                    const RenderParams& params,
                     Sampler& sampler) override;
 
     void loopStarted(const Scene& scene,
-                     const RenderParameters& params,
+                     const RenderParams& params,
                      Sampler& sampler) override;
 
     void loopFinished(const Scene& scene,
-                      const RenderParameters& parmas,
+                      const RenderParams& parmas,
                       Sampler& sampler) override;
 
     Spectrum Li(const Scene& scene,
-                const RenderParameters& params,
+                const RenderParams& params,
                 const Ray& ray,
                 Sampler& sampler,
                 MemoryArena& arena,

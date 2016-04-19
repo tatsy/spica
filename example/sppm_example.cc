@@ -26,11 +26,11 @@ int main(int argc, char** argv) {
     Timer timer;
     timer.start();
 
-    RenderParameters params(samples);
-    params.bounceLimit(32);
-    params.castPhotons(200000);
-    params.saveFilenameFormat();
-
+    RenderParams params;
+    params.set("NUM_SAMPLES", samples);
+    params.set("MAX_BOUNCES", 32);
+    params.set("CAST_PHOTONS", 200000);
+   
     SPPMIntegrator integr(camera, sampler);
     integr.render(scene, params);
 

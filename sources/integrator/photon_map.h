@@ -63,7 +63,7 @@ public:
 
     void clear();
     void construct(const Scene& scene,
-                   const RenderParameters& params);
+                   const RenderParams& params);
 
     /**
      * Evaluate radiance at the point and to the direction.
@@ -82,7 +82,7 @@ private:
                     int gatherPhotons, double gatherRadius) const;
 
     void tracePhoton(const Scene& scene,
-                     const RenderParameters& params,
+                     const RenderParams& params,
                      const Ray& r,
                      const Spectrum& b,
                      Sampler& sampler,

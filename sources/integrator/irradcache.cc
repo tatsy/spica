@@ -5,6 +5,7 @@
 #include "../core/parallel.h"
 #include "../core/interaction.h"
 #include "../core/sampling.h"
+#include "../core/renderparams.h"
 
 #include "../image/film.h"
 #include "../scenes/scene.h"
@@ -16,7 +17,6 @@
 #include "../bxdf/bssrdf.h"
 
 #include "mis.h"
-#include "render_parameters.h"
 
 
 namespace spica {
@@ -170,12 +170,12 @@ IrradCacheIntegrator::~IrradCacheIntegrator() {
 }
 
 void IrradCacheIntegrator::initialize(const Scene& scene,
-                                      const RenderParameters& params,
+                                      const RenderParams& params,
                                       Sampler& sampler) {
 }
 
 void IrradCacheIntegrator::loopStarted(const Scene& scene,
-                                       const RenderParameters& params,
+                                       const RenderParams& params,
                                        Sampler& sampler) {
     // Prepare samplers and memory arenas
     const int nThreads = numSystemThreads();
@@ -201,14 +201,14 @@ void IrradCacheIntegrator::loopStarted(const Scene& scene,
 }
 
 void IrradCacheIntegrator::loopFinished(const Scene& scene,
-                                        const RenderParameters& params,
+                                        const RenderParams& params,
                                         Sampler& sampler) {
     // Release and rebuild cache data structure for the next iteration
     cache_->release();
 }
 
 Spectrum IrradCacheIntegrator::Li(const Scene& scene,
-                                  const RenderParameters& params,
+                                  const RenderParams& params,
                                   const Ray& r,
                                   Sampler& sampler,
                                   MemoryArena& arena,
@@ -238,7 +238,7 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
             }
         }
 
-        if (!isIntersect || bounces >= params.bounceLimit()) break;
+        if (!isIntersect || bounces >= params.get<int>("MAX_BOUNCES")) break;
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {

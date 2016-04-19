@@ -16,7 +16,7 @@ public:
                              const std::shared_ptr<Sampler>& sampler);
 
     Spectrum Li(const Scene& scene,
-                const RenderParameters& params,
+                const RenderParams& params,
                 const Ray& ray,
                 Sampler& sampler,
                 MemoryArena& arena,

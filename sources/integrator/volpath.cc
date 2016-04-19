@@ -3,6 +3,7 @@
 
 #include "../core/ray.h"
 #include "../core/interaction.h"
+#include "../core/renderparams.h"
 
 #include "../scenes/scene.h"
 
@@ -14,7 +15,6 @@
 #include "../random/sampler.h"
 
 #include "mis.h"
-#include "render_parameters.h"
 
 namespace spica {
 
@@ -24,15 +24,15 @@ VolPathIntegrator::VolPathIntegrator(std::shared_ptr<Camera>& camera,
 }
 
 Spectrum VolPathIntegrator::Li(const Scene& scene,
-                               const RenderParameters& params,
+                               const RenderParams& params,
                                const Ray& r, Sampler& sampler,
                                MemoryArena& arena, int depth) const {
     Ray ray(r);
     Spectrum L(0.0);
     Spectrum beta(1.0);
     bool specularBounce = false;
-    int bounces;
-    for (bounces = 0; ; bounces++) {
+    const int maxBounces = params.get<int>("MAX_BOUNCES");
+    for (int bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
 
@@ -44,7 +44,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
         if (mi.isValid()) {
             L += beta * mis::uniformSampleOneLight(mi, scene, arena, sampler, true);
 
-            if (bounces >= params.bounceLimit()) break;
+            if (bounces >= maxBounces) break;
 
             Vector3d wo = -ray.dir();
             Vector3d wi;
@@ -62,7 +62,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
                 }
             }
 
-            if (!isIntersect || bounces >= params.bounceLimit()) break;
+            if (!isIntersect || bounces >= maxBounces) break;
 
             isect.setScatterFuncs(ray, arena);
             if (!isect.bsdf()) {

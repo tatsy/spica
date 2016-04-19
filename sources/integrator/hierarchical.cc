@@ -10,6 +10,7 @@
 #include "../core/parallel.h"
 #include "../core/sampling.h"
 #include "../core/timer.h"
+#include "../core/renderparams.h"
 #include "../math/vect_math.h"
 #include "../scenes/scene.h"
 #include "../camera/camera.h"
@@ -20,7 +21,6 @@
 #include "../random/sampler.h"
 
 #include "mis.h"
-#include "render_parameters.h"
 
 namespace spica {
 
@@ -208,7 +208,7 @@ HierarchicalIntegrator::~HierarchicalIntegrator() {
 }
 
 Spectrum HierarchicalIntegrator::Li(const Scene& scene,
-                                    const RenderParameters& params,
+                                    const RenderParams& params,
                                     const Ray& r,
                                     Sampler& sampler,
                                     MemoryArena& arena,
@@ -233,7 +233,7 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
             }
         }
 
-        if (!isIntersect || bounces >= params.bounceLimit()) break;
+        if (!isIntersect || bounces >= params.get<int>("MAX_BOUNCES")) break;
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
@@ -278,7 +278,7 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
 }
 
 void HierarchicalIntegrator::initialize(const Scene& scene,
-                                        const RenderParameters& params,
+                                        const RenderParams& params,
                                         Sampler& sampler) {
     // Compute dA and copy maxError
     Bounds3d bounds = scene.worldBound();
@@ -287,7 +287,7 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
 }
 
 void HierarchicalIntegrator::loopStarted(const Scene& scene,
-                                         const RenderParameters& params,
+                                         const RenderParams& params,
                                          Sampler& sampler) {
     // Sample points with dart throwing
     points_.clear();
@@ -301,7 +301,7 @@ void HierarchicalIntegrator::loopStarted(const Scene& scene,
 }
 
 void HierarchicalIntegrator::buildOctree(const Scene& scene,
-                                         const RenderParameters& params,
+                                         const RenderParams& params,
                                          Sampler& sampler) {
     // Compute irradiance on each sampled point
     const int numPoints = static_cast<int>(points_.size());

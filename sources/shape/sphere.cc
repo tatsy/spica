@@ -184,48 +184,79 @@ double Sphere::area() const {
 }
 
 std::vector<Triangle> Sphere::triangulate() const {
-    static const int nTheta = 32;
-    static const int nPhi   = 64;
+    const double phi = (1.0 + std::sqrt(5.0)) * 0.5;
+    std::vector<Point3d> points;
+    points.emplace_back(0.0, -1.0, -phi);
+    points.emplace_back(0.0,  1.0, -phi);
+    points.emplace_back(0.0, -1.0,  phi);
+    points.emplace_back(0.0,  1.0,  phi);
+    points.emplace_back(-phi, 0.0, -1.0);
+    points.emplace_back(-phi, 0.0,  1.0);
+    points.emplace_back( phi, 0.0, -1.0);
+    points.emplace_back( phi, 0.0,  1.0);
+    points.emplace_back(-1.0, -phi, 0.0);
+    points.emplace_back( 1.0, -phi, 0.0);
+    points.emplace_back(-1.0,  phi, 0.0);
+    points.emplace_back( 1.0,  phi, 0.0);
+    for (auto& p : points) {
+        p = vect::normalize(p);
+    }
 
     std::vector<Triangle> tris;
-    for (int i = 0; i < nTheta; i++) {
-        for (int j = 0; j < nPhi; j++) {
-            double theta0 = PI * i / nTheta;
-            double theta1 = PI * (i + 1) / nTheta; 
-            double phi0 = 2.0 * PI * j / nPhi;
-            double phi1 = 2.0 * PI * (j + 1) / nPhi;
+    tris.emplace_back(points[0], points[1], points[6]);
+    tris.emplace_back(points[1], points[0], points[4]);
+    tris.emplace_back(points[2], points[3], points[5]);
+    tris.emplace_back(points[3], points[2], points[7]);
+    tris.emplace_back(points[4], points[5], points[10]);
 
-            double st0 = sin(theta0);
-            double st1 = sin(theta1);
-            double ct0 = cos(theta0);
-            double ct1 = cos(theta1);
-            double sp0 = sin(phi0);
-            double sp1 = sin(phi1);
-            double cp0 = cos(phi0);
-            double cp1 = cos(phi1);
+    tris.emplace_back(points[5], points[4], points[8]);
+    tris.emplace_back(points[6], points[7], points[9]);
+    tris.emplace_back(points[7], points[6], points[11]);
+    tris.emplace_back(points[8], points[9], points[2]);
+    tris.emplace_back(points[9], points[8], points[0]);
 
-            Vector3d n00(cp0 * st0, sp0 * st0, ct0);
-            Vector3d n01(cp0 * st1, sp0 * st1, ct1);
-            Vector3d n10(cp1 * st0, sp1 * st0, ct0);
-            Vector3d n11(cp1 * st1, sp1 * st1, ct1);
+    tris.emplace_back(points[10], points[11], points[1]);
+    tris.emplace_back(points[11], points[10], points[3]);
+    tris.emplace_back(points[0], points[6], points[9]);
+    tris.emplace_back(points[0], points[8], points[4]);
+    tris.emplace_back(points[1], points[4], points[10]);
 
-            Point3d v00 = center_ + radius_ * n00;
-            Point3d v01 = center_ + radius_ * n01;
-            Point3d v10 = center_ + radius_ * n10;
-            Point3d v11 = center_ + radius_ * n11;
+    tris.emplace_back(points[1], points[11], points[6]);
+    tris.emplace_back(points[2], points[5], points[8]);
+    tris.emplace_back(points[2], points[9], points[7]);
+    tris.emplace_back(points[3], points[7], points[11]);
+    tris.emplace_back(points[3], points[10], points[5]);
 
-            if (i != nTheta - 1) {
-                tris.emplace_back(v00, v01, v11,
-                                  Normal3d(n00), Normal3d(n01), Normal3d(n11));
-            }
-
-            if (i != 0) {
-                tris.emplace_back(v00, v11, v10,
-                                  Normal3d(n00), Normal3d(n11), Normal3d(n10));
-            }
+    const int maxDepth = 4;
+    for (int i = 0; i < maxDepth; i++) {
+        std::vector<Triangle> temp;
+        for (const auto& t : tris) {
+            Point3d p0 = t[0];
+            Point3d p1 = t[1];
+            Point3d p2 = t[2];
+            Point3d p01 = vect::normalize(0.5 * (p0 + p1));
+            Point3d p12 = vect::normalize(0.5 * (p1 + p2));
+            Point3d p20 = vect::normalize(0.5 * (p2 + p0));
+            temp.emplace_back(p0, p01, p20);
+            temp.emplace_back(p1, p12, p01);
+            temp.emplace_back(p2, p20, p12);
+            temp.emplace_back(p01, p12, p20);
         }
+        tris = std::move(temp);
     }
-    return std::move(tris);
+
+    std::vector<Triangle> ret;
+    for (const auto& t : tris) {
+        Point3d p0 = t[0] * radius_ + center_;
+        Point3d p1 = t[1] * radius_ + center_;
+        Point3d p2 = t[2] * radius_ + center_;
+        Normal3d n0(t[0]);
+        Normal3d n1(t[1]);
+        Normal3d n2(t[2]);
+        ret.emplace_back(p0, p1, p2, n0, n1, n2);
+    }
+
+    return std::move(ret);
 }
 
 }  // namespace spica

@@ -21,7 +21,6 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/spica_integrator.h
     ${CMAKE_CURRENT_LIST_DIR}/integrator.h
     ${CMAKE_CURRENT_LIST_DIR}/mis.h
-    ${CMAKE_CURRENT_LIST_DIR}/render_parameters.h
 #    ${CMAKE_CURRENT_LIST_DIR}/renderer_helper.h
     ${CMAKE_CURRENT_LIST_DIR}/pathtrace.h
     ${CMAKE_CURRENT_LIST_DIR}/volpath.h

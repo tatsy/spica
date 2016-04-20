@@ -16,7 +16,7 @@ class SPICA_EXPORTS VolPathIntegrator : public PathIntegrator {
 public:
     VolPathIntegrator(std::shared_ptr<Camera>& camera,
                       std::shared_ptr<Sampler>& sampler);
-    Spectrum Li(const Scene& scene, const RenderParameters& params,
+    Spectrum Li(const Scene& scene, const RenderParams& params,
                 const Ray& ray, Sampler& sampler, MemoryArena& arena,
                 int depth) const override;
 };

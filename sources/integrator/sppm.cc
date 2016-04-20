@@ -11,6 +11,7 @@
 #include "../core/parallel.h"
 #include "../core/interaction.h"
 #include "../core/sampling.h"
+#include "../core/renderparams.h"
 
 #include "../image/film.h"
 #include "../image/tmo.h"
@@ -22,7 +23,6 @@
 #include "../bxdf/bssrdf.h"
 
 #include "mis.h"
-#include "render_parameters.h"
 
 
 // #include "subsurface_integrator.h"
@@ -67,7 +67,7 @@ SPPMIntegrator::~SPPMIntegrator() {
 }
 
 void SPPMIntegrator::render(const Scene& scene,
-                            const RenderParameters& params) {
+                            const RenderParams& params) {
     const int width  = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
     const int numPoints = width * height;
@@ -95,7 +95,9 @@ void SPPMIntegrator::render(const Scene& scene,
         samplers[i] = sampler_->clone(seed);
     }
 
-    for (int t = 0; t < params.samplePerPixel(); t++) {
+    const int numSamples = params.get<int>("NUM_SAMPLES");
+    const int castPhotons = params.get<int>("CAST_PHOTONS");
+    for (int t = 0; t < numSamples; t++) {
         std::cout << "--- Iteration No." << (t + 1) << " ---" << std::endl;
 
         // 1st pass: Trace rays from camera
@@ -103,7 +105,7 @@ void SPPMIntegrator::render(const Scene& scene,
 
         // 2nd pass: Trace photons from light source
         tracePhotons(scene, params, samplers, arenas,
-                     lightDistrib, params.castPhotons());
+                     lightDistrib, castPhotons);
 
         // Update pixel values
         for (int i = 0; i < numPoints; i++) {
@@ -135,7 +137,7 @@ void SPPMIntegrator::render(const Scene& scene,
         }
 
         // Save temporal image
-        const int totalPhotons = (t + 1) * params.castPhotons();
+        const int totalPhotons = (t + 1) * castPhotons;
         Image image(width, height);
         image.fill(RGBSpectrum(0.0, 0.0, 0.0));
         for (int y = 0; y < height; y++) {
@@ -197,7 +199,7 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
 }
 
 void SPPMIntegrator::traceRays(const Scene& scene,
-                               const RenderParameters& params,
+                               const RenderParams& params,
                                const std::vector<std::unique_ptr<Sampler>>& samplers,
                                std::vector<MemoryArena>& arenas,
                                std::vector<SPPMPixel>& hpoints) const {
@@ -233,7 +235,7 @@ void SPPMIntegrator::traceRays(const Scene& scene,
 }
 
 void SPPMIntegrator::tracePhotons(const Scene& scene, 
-                                  const RenderParameters& params,
+                                  const RenderParams& params,
                                   const std::vector<std::unique_ptr<Sampler>>& samplers,
                                   std::vector<MemoryArena>& arenas,
                                   const Distribution1D& lightDistrib,
@@ -280,7 +282,7 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
 }
 
 void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
-                                     const RenderParameters& params,
+                                     const RenderParams& params,
                                      const Ray& r,
                                      const Spectrum& b,
                                      Sampler& sampler,
@@ -288,7 +290,8 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
     Ray ray(r);
     Spectrum beta(b);
     SurfaceInteraction isect;
-    for (int bounces = 0; bounces < params.bounceLimit(); bounces++) {
+    const int maxBounces = params.get<int>("MAX_BOUNCES");
+    for (int bounces = 0; bounces < maxBounces; bounces++) {
         if (!scene.intersect(ray, &isect)) break;
 
         if (bounces > 0) {
@@ -357,7 +360,7 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
 }
 
 void SPPMIntegrator::pathTrace(const Scene& scene,
-                               const RenderParameters& params,
+                               const RenderParams& params,
                                const Ray& r,
                                Sampler& sampler,
                                MemoryArena& arena,
@@ -365,8 +368,8 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
     Ray ray(r);
     Spectrum beta(1.0);
     bool specularBounce = false;
-    int bounces;
-    for (bounces = 0; ; bounces++) {
+    const int maxBounces = params.get<int>("MAX_BOUNCES");
+    for (int bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
 
@@ -399,12 +402,12 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
         bool isGlossy  = bsdf.numComponents(
             BxDFType::Glossy | BxDFType::Reflection | BxDFType::Transmission) > 0;
 
-        if (isDiffuse || (isGlossy && bounces == params.bounceLimit() - 1)) {
+        if (isDiffuse || (isGlossy && bounces == maxBounces - 1)) {
             pixel->vp = { isect.pos(), wo, &bsdf, beta };
             break;
         }
 
-        if (bounces < params.bounceLimit() - 1) {
+        if (bounces < maxBounces - 1) {
             Vector3d wi;
             double pdf;
             BxDFType sampledType;

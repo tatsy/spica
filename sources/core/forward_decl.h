@@ -89,7 +89,7 @@ namespace spica {
     class Interaction;
     class SurfaceInteraction;
     class MediumInteraction;
-    class RenderParameters;
+    class RenderParams;
     class Photon;
     class HierarchicalIntegrator;
 

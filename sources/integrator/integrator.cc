@@ -4,6 +4,7 @@
 #include "../core/memory.h"
 #include "../core/parallel.h"
 #include "../core/interaction.h"
+#include "../core/renderparams.h"
 
 #include "../bxdf/bxdf.h"
 #include "../bxdf/bsdf.h"
@@ -12,7 +13,6 @@
 #include "../camera/camera.h"
 #include "../image/film.h"
 #include "../random/sampler.h"
-#include "render_parameters.h"
 
 namespace spica {
 
@@ -41,22 +41,22 @@ SamplerIntegrator::~SamplerIntegrator() {
 }
 
 void SamplerIntegrator::initialize(const Scene& scene,
-                                   const RenderParameters& parmas,
+                                   const RenderParams& parmas,
                                    Sampler& sampler) {
 }
 
 void SamplerIntegrator::loopStarted(const Scene& scene,
-                                    const RenderParameters& parmas,
+                                    const RenderParams& parmas,
                                     Sampler& sampler) {
 }
 
 void SamplerIntegrator::loopFinished(const Scene& scene,
-                                     const RenderParameters& parmas,
+                                     const RenderParams& parmas,
                                      Sampler& sampler) {
 }
 
 void SamplerIntegrator::render(const Scene& scene,
-                               const RenderParameters& params) {
+                               const RenderParams& params) {
     // Initialization
     auto initSampler = sampler_->clone((unsigned int)time(0));
     initialize(scene, params, *initSampler);
@@ -69,8 +69,9 @@ void SamplerIntegrator::render(const Scene& scene,
     auto arenas   = std::vector<MemoryArena>(numThreads);
 
     // Trace rays
-    const int numPixels = width * height;
-    for (int i = 0; i < params.samplePerPixel(); i++) {
+    const int numPixels  = width * height;
+    const int numSamples = params.get<int>("NUM_SAMPLES"); 
+    for (int i = 0; i < numSamples; i++) {
         // Before loop computations
         loopStarted(scene, params, *initSampler);
 
@@ -115,7 +116,7 @@ void SamplerIntegrator::render(const Scene& scene,
 }
 
 Spectrum SamplerIntegrator::specularReflect(const Scene& scene,
-                                            const RenderParameters& params,
+                                            const RenderParams& params,
                                             const Ray& ray,
                                             const SurfaceInteraction& isect,
                                             Sampler& sampler,
@@ -136,7 +137,7 @@ Spectrum SamplerIntegrator::specularReflect(const Scene& scene,
 }
 
 Spectrum SamplerIntegrator::specularTransmit(const Scene& scene,
-                                             const RenderParameters& params,
+                                             const RenderParams& params,
                                              const Ray& ray,
                                              const SurfaceInteraction& isect,
                                              Sampler& sampler,

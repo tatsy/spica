@@ -30,7 +30,7 @@ public:
     explicit Integrator(const std::shared_ptr<const Camera>& camera);
     virtual ~Integrator();
     virtual void render(const Scene& scene,
-                        const RenderParameters& params) = 0;
+                        const RenderParams& params) = 0;
 
 protected:
     std::shared_ptr<const Camera> camera_;
@@ -50,29 +50,29 @@ public:
                       const std::shared_ptr<Sampler>& sampler);
     virtual ~SamplerIntegrator();
     virtual void render(const Scene& scene,
-                        const RenderParameters& params) override;
+                        const RenderParams& params) override;
 
     virtual void initialize(const Scene& scene,
-                            const RenderParameters& params,
+                            const RenderParams& params,
                             Sampler& sampler);
 
     virtual void loopStarted(const Scene& scene,
-                             const RenderParameters& params,
+                             const RenderParams& params,
                              Sampler& sampler);
 
     virtual void loopFinished(const Scene& scene,
-                              const RenderParameters& params,
+                              const RenderParams& params,
                               Sampler& sampler);
 
     virtual Spectrum Li(const Scene& scene,
-                        const RenderParameters& params,
+                        const RenderParams& params,
                         const Ray& ray,
                         Sampler& sampler,
                         MemoryArena& arena,
                         int depth = 0) const = 0;
     
     Spectrum specularReflect(const Scene& scene,
-                             const RenderParameters& params,
+                             const RenderParams& params,
                              const Ray& ray,
                              const SurfaceInteraction& isect,
                              Sampler& sampler,
@@ -80,7 +80,7 @@ public:
                              int depth = 0) const;
 
     Spectrum specularTransmit(const Scene& scene,
-                              const RenderParameters& params,
+                              const RenderParams& params,
                               const Ray& ray,
                               const SurfaceInteraction& isect,
                               Sampler& sampler,

@@ -28,10 +28,10 @@ int main(int argc, char **argv) {
     Timer timer;
     timer.start();
 
-    RenderParameters params(samples);
-    params.bounceLimit(64);
-    params.castPhotons(200000);
-    params.saveFilenameFormat();
+    RenderParams params;
+    params.set("NUM_SAMPLES", samples);
+    params.set("MAX_BOUNCES", 64);
+    params.set("CAST_PHOTONS", 200000);
 
     //VolPathIntegrator integr(camera, sampler);
     //PathIntegrator integr(camera, sampler);

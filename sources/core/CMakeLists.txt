@@ -19,6 +19,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/common.h
      ${CMAKE_CURRENT_LIST_DIR}/parallel.h
      ${CMAKE_CURRENT_LIST_DIR}/engine.h
+     ${CMAKE_CURRENT_LIST_DIR}/renderparams.h
      ${CMAKE_CURRENT_LIST_DIR}/memory.h
      ${CMAKE_CURRENT_LIST_DIR}/forward_decl.h
      ${CMAKE_CURRENT_LIST_DIR}/triplet.h

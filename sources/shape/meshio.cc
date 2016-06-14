@@ -308,8 +308,7 @@ std::vector<std::shared_ptr<Shape>> OBJMeshIO::load(const std::string& filename,
                                            normals[nrmIDs[i][0] - 1],
                                            normals[nrmIDs[i][1] - 1],
                                            normals[nrmIDs[i][2] - 1],
-                                           objectToWorld));
-        
+                                           objectToWorld));        
         } else if (!texIDs.empty()) {
             /*
             tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],

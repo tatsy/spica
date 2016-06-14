@@ -104,7 +104,7 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
     Vector3d dpdu, dpdv;
     Normal3d dndu, dndv;
     if (detUV == 0.0) {
-        vect::coordinateSystem(vect::normalize(vect::cross(points_[1] - points_[0], points_[2] - points_[0])), &dpdu, &dpdv);
+        vect::coordinateSystem(Vector3d(nrm), &dpdu, &dpdv);
     } else {
         const double invdet = 1.0 / detUV;
         const double invM[2][2] = { {  duv02.y() * invdet, -duv01.y() * invdet },

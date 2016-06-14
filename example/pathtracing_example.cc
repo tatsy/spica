@@ -22,22 +22,24 @@ int main(int argc, char **argv) {
      std::shared_ptr<Sampler> sampler = std::make_unique<Random>(0);
     //std::shared_ptr<Sampler> sampler = std::make_unique<Halton>(200, true, 0);
 
-    cornellBox(&scene, &camera, Point2i(width, height));
-    // kittenEnvmap(&scene, &camera, Point2i(width, height));
+    //cornellBox(&scene, &camera, Point2i(width, height));
+    kittenEnvmap(&scene, &camera, Point2i(width, height));
     
     Timer timer;
     timer.start();
 
     RenderParams params;
     params.set("NUM_SAMPLES", samples);
-    params.set("MAX_BOUNCES", 64);
+    params.set("MAX_BOUNCES", 128);
     params.set("CAST_PHOTONS", 200000);
+    params.set("GATHER_RADIUS", 64.0);
+    params.set("GATHER_PHOTONS", 64);
 
-    //VolPathIntegrator integr(camera, sampler);
+    VolPathIntegrator integr(camera, sampler);
     //PathIntegrator integr(camera, sampler);
     
     //IrradCacheIntegrator integr(camera, sampler);
-    HierarchicalIntegrator integr(camera, sampler);
+    //HierarchicalIntegrator integr(camera, sampler);
     //PPMProbIntegrator integr(camera, sampler);
     integr.render(scene, params);
 

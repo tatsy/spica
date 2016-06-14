@@ -31,19 +31,19 @@ public:
     void set(const std::string& key, const int& value) {
         char buf[32];
         sprintf(buf, "%d", value);
-        table_.insert(std::make_pair(key, std::string(buf)));
+        table_[key] = std::string(buf);
     }
 
     template <>
     void set(const std::string& key, const double& value) {
         char buf[32];
         sprintf(buf, "%f", value);
-        table_.insert(std::make_pair(key, std::string(buf)));
+        table_[key] = std::string(buf);
     }
 
     template <>
     void set(const std::string& key, const std::string& value) {
-        table_.insert(std::make_pair(key, value));
+        table_[key] = value;
     }
 
     template <class T>

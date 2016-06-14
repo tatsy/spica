@@ -91,38 +91,43 @@ void Engine::init(const Option& option) {
 void Engine::start(const std::string& filename) const {
     using namespace boost::property_tree;
 
-    // Open XML
+    // Open XML file.
     ptree xml;
     read_xml(filename, xml);
     if (xml.empty()) {
-        printErr("XML file not found: %s\n", filename.c_str());
+        // Failed to open file.
+        fprintf(stderr, "XML file not found: %s\n", filename.c_str());
         return;
     }
 
+    // Find root tag "scene".
     if (xml.get_child("scene").empty()) {
-        printErr("The XML does not have the tag \"scene\"!!\n");
+        fprintf(stderr, "The XML does not have the tag \"scene\"!!\n");
         return;
     }
-
-    const std::string version = xml.get<std::string>("scene.<xmlattr>.version");
-    printOut("Version: %s\n", version.c_str());
-
-    // Parse sensor
-    if (xml.get_child("scene.sensor").empty()) {
-        printErr("XML file does not have \"sensor\" block!!\n");
-        return;
-    }
-
-    std::shared_ptr<Camera> camera = nullptr;
-    std::shared_ptr<Sampler> sampler = nullptr;
-    parseCamera(xml, &camera, &sampler);
     
-    // Parse integrator
+    // Version string.
+    const std::string version = xml.get<std::string>("scene.<xmlattr>.version");
+    fprintf(stdout, "Version: %s\n", version.c_str());
+
+    // Parse sensor and sampler
+    auto sensorNode = xml.get_child("scene.sensor");
+    if (sensorNode.empty()) {
+        fprintf(stderr, "\"sensor\" block not found!!\n");
+        return;
+    }
+
+    std::shared_ptr<Camera>  camera  = nullptr;
+    std::shared_ptr<Sampler> sampler = nullptr;
+    parseCamera(sensorNode, &camera, &sampler);
     Assertion(sampler != nullptr, "Sampler not found!!");
     Assertion(camera  != nullptr, "Camera not found!!");
-    std::unique_ptr<Integrator> integrator;
+    
+    // Parse integrator
+    std::unique_ptr<Integrator> integrator = nullptr;
+    auto integNode = xml.get_child("scene.integrator");
     if (xml.get_child("scene.integrator").empty()) {
-        printErr("Integrator not found!!");
+        fprintf(stderr, "\"integrator\" block not found!!");
         return;
     }
 
@@ -135,7 +140,8 @@ void Engine::start(const std::string& filename) const {
     } else if (intgrName == "sppm") {
         integrator.reset(new SPPMIntegrator(camera, sampler));
     } else {
-        printErr("Unknown integrator name: %s\n", intgrName.c_str());
+        fprintf(stderr, "Unsupported integrator type: %s\n",
+                intgrName.c_str());
         return;
     }
 
@@ -148,9 +154,65 @@ void Engine::start(const std::string& filename) const {
         std::string id   = child.second.get<std::string>("<xmlattr>.id");
         std::shared_ptr<Material> mtrl = nullptr;
         if (type == "diffuse") {
-            Spectrum ref = getSpectrum(child.second.get<std::string>("spectrum.<xmlattr>.value"));
+
+            Spectrum ref(0.0);
+            for (const auto& k : child.second.get_child("")) {
+                if (k.first == "rgb" || k.first == "spectrum") {
+                    ref = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                }
+            }
             mtrl = std::make_shared<LambertianMaterial>(
                    std::make_shared<ConstantTexture<Spectrum>>(ref));
+        } else if (type == "roughplastic") {
+            Spectrum diffuse(0.9999);
+            Spectrum specular(0.9999);                
+            double ior = 1.0;
+            double alpha = 0.0;
+            for (const auto& k : child.second.get_child("")) {
+                if (k.first == "rgb" || k.first == "spectrum") {
+                    std::string refName = k.second.get<std::string>("<xmlattr>.name");
+                    if (refName == "diffuseReflectance") {
+                        diffuse = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                    } else if (refName == "specularReflectance") {
+                        specular = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));                    
+                    }
+                } else if (k.first == "float") {
+                    std::string propName = k.second.get<std::string>("<xmlattr>.name");
+                    if (propName == "alpha") {
+                        alpha = k.second.get<double>("<xmlattr>.value");
+                    } else if (propName == "intIOR") {
+                        ior = k.second.get<double>("<xmlattr>.value");
+                    }
+                }
+            }
+
+            auto Kd = std::make_shared<ConstantTexture<Spectrum>>(diffuse);
+            auto Ks = std::make_shared<ConstantTexture<Spectrum>>(specular);
+            auto rough = std::make_shared<ConstantTexture<double>>(alpha);
+            mtrl = std::make_shared<PlasticMaterial>(Kd, Ks, rough);
+        } else if (type == "metal") {
+            Spectrum eta(1.0);
+            Spectrum specular(0.999);
+            double alpha = 0.0;
+            for (const auto& k : child.second.get_child("")) {
+                if (k.first == "rgb" || k.first == "spectrum") {
+                    std::string refName = k.second.get<std::string>("<xmlattr>.name");
+                    if (refName == "specularReflectance") {
+                        specular = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                    } else if (refName == "eta") {
+                        eta = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                    }
+                }
+
+                if (k.first == "float" && k.second.get<std::string>("<xmlattr>.name") == "alpha") {
+                    alpha = k.second.get<double>("<xmlattr>.value");
+                }
+            }
+
+            auto etaT  = std::make_shared<ConstantTexture<Spectrum>>(eta);
+            auto Ks    = std::make_shared<ConstantTexture<Spectrum>>(specular);
+            auto rough = std::make_shared<ConstantTexture<double>>(alpha);
+            mtrl = std::make_shared<MetalMaterial>(etaT, Ks, rough);
         }
         materials[id] = mtrl;
     }
@@ -164,7 +226,9 @@ void Engine::start(const std::string& filename) const {
 
         // Transform
         Transform toWorld;
-        parseTransform(child.second, &toWorld);
+        if (child.second.find("transform") != child.second.not_found()) {
+            parseTransform(child.second.get_child("transform"), &toWorld);
+        }
 
         // Shape
         std::string type = child.second.get<std::string>("<xmlattr>.type");
@@ -174,6 +238,7 @@ void Engine::start(const std::string& filename) const {
                 const std::string relpath =
                     child.second.get<std::string>("string.<xmlattr>.value");
                 std::string objfile = dir + relpath;
+                fprintf(stdout, "Loading \"%s\" ...\n", objfile.c_str());
 
                 OBJMeshIO loader;
                 shapes = loader.load(objfile, toWorld);
@@ -272,7 +337,7 @@ void Engine::start(const std::string& filename) const {
                 }
             }
         }
-
+        
         // Set geometric primitives
         for (int i = 0; i < shapes.size(); i++) {
             std::shared_ptr<AreaLight> area = lightID >= 0 ? std::static_pointer_cast<AreaLight>(lights[lightID + i]) : nullptr;
@@ -296,24 +361,6 @@ void Engine::start(const std::string& filename) const {
 void Engine::cleanup() {
 }
 
-void Engine::printOut(const char* const format, ...) const {
-    va_list args;
-    if (option_.verbose) {
-        va_start(args, format);
-        vfprintf(stdout, format, args);
-        va_end(args);
-    }
-}
-
-void Engine::printErr(const char* const format, ...) const {
-    va_list args;
-    if (option_.verbose) {
-        va_start(args, format);
-        vfprintf(stderr, format, args);
-        va_end(args);
-    }
-}
-
 bool Engine::parseTransform(const boost::property_tree::ptree& xml,
                             Transform* transform) const {
     *transform = Transform();
@@ -323,6 +370,19 @@ bool Engine::parseTransform(const boost::property_tree::ptree& xml,
             double y = props.second.get<double>("<xmlattr>.y");
             double z = props.second.get<double>("<xmlattr>.z");
             *transform *= Transform::translate(Vector3d(x, y, z));        
+        }
+
+        if (props.first == "scale") {
+            double x = props.second.get<double>("<xmlattr>.x");
+            double y = props.second.get<double>("<xmlattr>.y");
+            double z = props.second.get<double>("<xmlattr>.z");
+            *transform *= Transform::scale(x, y, z);
+        }
+
+        if (props.first == "rotate") {
+            Vector3d axis = getVector3d(props.second.get<std::string>("<xmlattr>.axis"));
+            double angle = props.second.get<double>("<xmlattr>.angle");
+            *transform *= Transform::rotate(angle, axis);
         }
 
         if (props.first == "lookAt") {
@@ -341,14 +401,13 @@ bool Engine::parseTransform(const boost::property_tree::ptree& xml,
 
 bool Engine::parseSampler(const boost::property_tree::ptree& xml,
                           std::shared_ptr<Sampler>* sampler) const {
-    const std::string type =
-        xml.get<std::string>("scene.sensor.sampler.<xmlattr>.type");
+    const std::string type = xml.get<std::string>("<xmlattr>.type");
     if (type == "ldsampler") {
         const int sampleCount =
-            xml.get<int>("scene.sensor.sampler.integer.<xmlattr>.value");
+            xml.get<int>("integer.<xmlattr>.value");
         *sampler = std::make_shared<Halton>(sampleCount, true, (unsigned int)time(0));
     } else {
-        printErr("Unknown sampler type \"%s\" is specified !!", type.c_str());
+        fprintf(stderr, "Unknown sampler type \"%s\" is specified !!", type.c_str());
         return false;
     }
     return true;
@@ -357,27 +416,37 @@ bool Engine::parseSampler(const boost::property_tree::ptree& xml,
 bool Engine::parseCamera(const boost::property_tree::ptree& xml,
                          std::shared_ptr<Camera>* camera,
                          std::shared_ptr<Sampler>* sampler) const {
-    const std::string type = 
-        xml.get<std::string>("scene.sensor.<xmlattr>.type");
-
+    const std::string type = xml.get<std::string>("<xmlattr>.type");
     if (type == "perspective") {
-        printOut("Camera: perspective\n");
+        fprintf(stdout, "Camera: perspective\n");
 
         // Parse sampler
-        if (!parseSampler(xml, sampler)) {
-            printErr("Sampler not found!!\n");
+        auto samplerNode = xml.get_child("sampler");
+        if (samplerNode.empty()) {
+            fprintf(stderr, "\"sampler\" block not found!!\n");
+            return false;
+        }
+
+        if (!parseSampler(samplerNode, sampler)) {
+            fprintf(stderr, "\"Failed to parse \"sampler\" block!!\n");
             return false;
         }
 
         Film* film = nullptr;
-        if (!parseFilm(xml, &film)) {
-            printErr("Failed to parse \"Film\" !!\n");
+        auto filmNode = xml.get_child("film");
+        if (filmNode.empty()) {
+            fprintf(stderr, "\film\" block not found!!\n");
+            return false;
+        }
+
+        if (!parseFilm(filmNode, &film)) {
+            fprintf(stderr, "Failed to parse \"Film\" !!\n");
             return false;
         }
 
         Transform toWorld;
         double fov, nearClip, farClip, focusDistance = 1.0, lensr = 0.0;
-        for (const auto& props : xml.get_child("scene.sensor")) {
+        for (const auto& props : xml.get_child("")) {
             if (props.first == "<xmlattr>") continue;
 
             // Parse transform
@@ -393,9 +462,9 @@ bool Engine::parseCamera(const boost::property_tree::ptree& xml,
                     props.second.get<std::string>("<xmlattr>.name");
                 if (name == "fov") { 
                     fov = props.second.get<double>("<xmlattr>.value") / 180.0 * PI;
-                    if (xml.get<std::string>("scene.sensor.string.<xmlattr>.name") == "fovAxis") {
+                    if (xml.get<std::string>("string.<xmlattr>.name") == "fovAxis") {
                         const std::string val =
-                            xml.get<std::string>("scene.sensor.string.<xmlattr>.value");
+                            xml.get<std::string>("string.<xmlattr>.value");
                         if (val == "smaller") {
                             //fov *= 0.95;
                         } else if (val == "larger") {
@@ -431,7 +500,7 @@ bool Engine::parseFilm(const boost::property_tree::ptree& xml,
     std::unique_ptr<Filter> filter = nullptr;
     
     // Parse width and height
-    for (const auto& props : xml.get_child("scene.sensor.film")) {
+    for (const auto& props : xml.get_child("")) {
         if (props.first != "integer") continue;
         const std::string name =
             props.second.get<std::string>("<xmlattr>.name");
@@ -443,9 +512,7 @@ bool Engine::parseFilm(const boost::property_tree::ptree& xml,
     }
 
     // Parse rfilter
-    const std::string filtType =
-        xml.get<std::string>(
-            "scene.sensor.film.rfilter.<xmlattr>.type");
+    const std::string filtType = xml.get<std::string>("rfilter.<xmlattr>.type");
     if (filtType == "box") {
         filter = std::make_unique<BoxFilter>(Vector2d(0.5, 0.5));
     } else if (filtType == "tent") {
@@ -453,7 +520,7 @@ bool Engine::parseFilm(const boost::property_tree::ptree& xml,
     } else if (filtType == "gaussian") {
         filter = std::make_unique<GaussianFilter>(Vector2d(0.5, 0.5), 2.0);
     } else {
-        printErr("Unknown filter type \"%s\" is specified!!", filtType.c_str());
+        fprintf(stderr, "Unknown filter type \"%s\" is specified!!", filtType.c_str());
         return false;
     }
 

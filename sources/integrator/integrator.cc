@@ -70,7 +70,7 @@ void SamplerIntegrator::render(const Scene& scene,
 
     // Trace rays
     const int numPixels  = width * height;
-    const int numSamples = params.get<int>("NUM_SAMPLES"); 
+    const int numSamples = params.get<int>("NUM_SAMPLES");
     for (int i = 0; i < numSamples; i++) {
         // Before loop computations
         loopStarted(scene, params, *initSampler);

@@ -147,6 +147,7 @@ namespace spica {
             Spectrum kd(0.75, 0.75, 0.75);
             auto backKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto backMtrl = std::make_shared<LambertianMaterial>(backKd);
+
             primitives.emplace_back(new GeometricPrimitive(t1, backMtrl, nullptr));
             primitives.emplace_back(new GeometricPrimitive(t2, backMtrl, nullptr));
 
@@ -165,7 +166,7 @@ namespace spica {
         {
             auto t1 = std::make_shared<Triangle>(v000, v010, v011);
             auto t2 = std::make_shared<Triangle>(v000, v011, v001);
-            Spectrum kd(0.75, 0.25, 0.25);
+            Spectrum kd(0.85, 0.15, 0.15);
             auto leftKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto leftMtrl = std::make_shared<LambertianMaterial>(leftKd);
             primitives.emplace_back(new GeometricPrimitive(t1, leftMtrl, nullptr));
@@ -186,7 +187,7 @@ namespace spica {
         {
             auto t1 = std::make_shared<Triangle>(v100, v101, v111);
             auto t2 = std::make_shared<Triangle>(v100, v111, v110);
-            Spectrum kd(0.25, 0.75, 0.25);
+            Spectrum kd(0.15, 0.85, 0.15);
             auto rightKd   = std::make_shared<ConstantTexture<Spectrum>>(kd);
             auto rightMtrl = std::make_shared<LambertianMaterial>(rightKd);
             primitives.emplace_back(new GeometricPrimitive(t1, rightMtrl, nullptr));
@@ -201,7 +202,6 @@ namespace spica {
                 Kd->push_back(kd);
                 Kd->push_back(kd);
             }
-
         }
 
         // Mirror ball
@@ -211,12 +211,13 @@ namespace spica {
             //auto mtrl = std::make_shared<MirrorMaterial>(Kd);
             auto eta = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.18309, 0.54410, 1.1715));
             auto k   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(3.4241, 2.1404, 1.7544));
-            auto roughness = std::make_shared<ConstantTexture<double>>(0.1);
+            auto roughness = std::make_shared<ConstantTexture<double>>(0.05);
             auto mtrl = std::make_shared<MetalMaterial>(eta, k, roughness);
             primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
         }
 
         // Subsurface ball
+        /*
         {
             // Regular milk
             const double scale = 5.0; //5000.0;
@@ -251,6 +252,7 @@ namespace spica {
                 primitives.emplace_back(new GeometricPrimitive(t, mtrl, nullptr));                
             }
         }
+        */
 
         // Volume material
         /*
@@ -295,12 +297,12 @@ namespace spica {
         
         // Glass ball
         {
-            //auto sph = std::make_shared<Sphere>(Point3d(5.0, -7.0, 5.0), 3.0);
-            //auto Kr  = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
-            //auto rough = std::make_shared<ConstantTexture<double>>(0.0);
-            //auto ior = std::make_shared<ConstantTexture<double>>(1.5);
-            //auto mtrl = std::make_shared<GlassMaterial>(Kr, Kr, rough, rough, ior);
-            //primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
+            auto sph = std::make_shared<Sphere>(Point3d(5.0, -7.0, 5.0), 3.0);
+            auto Kr  = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            auto rough = std::make_shared<ConstantTexture<double>>(0.0);
+            auto ior = std::make_shared<ConstantTexture<double>>(1.5);
+            auto mtrl = std::make_shared<GlassMaterial>(Kr, Kr, rough, rough, ior);
+            primitives.emplace_back(new GeometricPrimitive(sph, mtrl, nullptr));
         }
 
         auto accel = std::make_shared<BBVHAccel>(primitives);
@@ -569,12 +571,15 @@ namespace spica {
         // Objects
         {
             Transform o2w;
-            o2w *= Transform::translate(Vector3d(0.0, -20.0, 0.0));
-            PLYMeshIO meshio;
+            o2w *= Transform::translate(Vector3d(0.0, 20.0, 0.0));
+            o2w *= Transform::scale(600.0, 600.0, 600.0);
+            //o2w *= Transform::translate(Vector3d(0.0, -20.0, 0.0));
+            OBJMeshIO meshio;
             std::vector<std::shared_ptr<Shape>> shapes =
-                meshio.load(kDataDirectory + "kitten.ply", o2w);
+                meshio.load(kDataDirectory + "infinite_head.obj", o2w);
 
             // Regular milk
+            /*
             const double scale = 5.0;
             const double eta   = 1.3;
             const double g     = 0.7;
@@ -586,6 +591,33 @@ namespace spica {
             auto sigA = std::make_shared<ConstantTexture<Spectrum>>(sigma_a);
             auto sigS = std::make_shared<ConstantTexture<Spectrum>>(sigma_s);
             auto mtrl = std::make_shared<SubsurfaceMaterial>(scale, Kr, Kt, sigA, sigS, g, eta);
+            */
+
+            // Skin1
+            /*
+            const double eta = 1.3;
+            const double scale = 2.0;
+            const double g = 0.7;
+            //Spectrum sigma_a = Spectrum(0.0032, 0.17, 0.48);
+            //Spectrum sigma_s = Spectrum(0.74, 0.88, 1.01);
+            // Skin2
+            Spectrum sigma_a = Spectrum(0.013, 0.070, 0.145);
+            Spectrum sigma_s = Spectrum(1.09, 1.59, 1.79);
+            // Marble
+            //const double eta = 1.5;
+            //Spectrum sigma_a = Spectrum(0.0021, 0.0041, 0.0071);
+            //Spectrum sigma_s = Spectrum(2.19, 2.62, 3.00);
+
+            auto rough = std::make_shared<ConstantTexture<double>>(0.0);
+            auto Kr   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.0, 0.0, 0.0));
+            auto Kt   = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.99, 0.99, 0.99));
+            auto sigA = std::make_shared<ConstantTexture<Spectrum>>(sigma_a);
+            auto sigS = std::make_shared<ConstantTexture<Spectrum>>(sigma_s);
+            auto mtrl = std::make_shared<SubsurfaceMaterial>(scale, Kr, Kt, sigA, sigS, g, eta, rough, rough);
+            */
+
+            auto Kd = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.95, 0.65, 0.50) * 0.5);
+            auto mtrl = std::make_shared<LambertianMaterial>(Kd);
 
             for (const auto& s : shapes) {
                 primitives.emplace_back(new GeometricPrimitive(s, mtrl, nullptr));
@@ -593,6 +625,7 @@ namespace spica {
         }
 
         // Checkerboard floor
+        /*
         {
             auto Kd = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.999));
 
@@ -609,6 +642,7 @@ namespace spica {
             primitives.emplace_back(new GeometricPrimitive(t1, mtrl, nullptr));
             primitives.emplace_back(new GeometricPrimitive(t2, mtrl, nullptr));
         }
+        */
 
         // BVH
         auto bvh = std::make_shared<BBVHAccel>(primitives);

@@ -20,7 +20,6 @@ function (process_subdirectory dirname)
   add_subdirectory(${dirname})
   set(ALL_SOURCES ${ALL_SOURCES} ${SOURCES} PARENT_SCOPE)
   set(ALL_HEADERS ${ALL_HEADERS} ${HEADERS} PARENT_SCOPE)
-  # include_directories(${CMAKE_CURRENT_LIST_DIR}/${dirname})
   file(GLOB FILTER_FILES "${dirname}/*.cc" "${dirname}/*.h")
 
   if (MSVC)

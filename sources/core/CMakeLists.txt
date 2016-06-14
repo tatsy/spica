@@ -5,6 +5,7 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
  set(SOURCES ${SOURCES}
      ${CMAKE_CURRENT_LIST_DIR}/parallel.cc
      ${CMAKE_CURRENT_LIST_DIR}/engine.cc
+     ${CMAKE_CURRENT_LIST_DIR}/renderparams.cc
      ${CMAKE_CURRENT_LIST_DIR}/memory.cc
      ${CMAKE_CURRENT_LIST_DIR}/spectrum.cc
      ${CMAKE_CURRENT_LIST_DIR}/sampling.cc

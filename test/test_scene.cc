@@ -76,10 +76,12 @@ protected:
     }
 
     virtual void SetUp() {
-        PLYMeshIO meshio;
-        auto shapes = meshio.load(kDataDirectory + GetParam());
-        for (const auto& s : shapes) {
-            prims.emplace_back(new GeometricPrimitive(s, nullptr, nullptr));            
+        MeshIO meshio;
+        auto groups = meshio.load(kDataDirectory + GetParam());
+        for (const auto& g : groups) {
+            for (const auto& s : g.shapes()) {
+                prims.emplace_back(new GeometricPrimitive(s, nullptr, nullptr));            
+            }
         }
     }
 

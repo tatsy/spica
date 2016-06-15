@@ -46,8 +46,12 @@ Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
                    const Point2d& uv0, const Point2d& uv1, const Point2d& uv2,
                    const Transform& objectToWorld)
     : Shape{ objectToWorld, ShapeType::Triangle }
-    , points_{ p0, p1, p2 }
-    , normals_{ n0, n1, n2 }
+    , points_{ objectToWorld.apply(p0),
+               objectToWorld.apply(p1),
+               objectToWorld.apply(p2) }
+    , normals_{ objectToWorld.apply(n0),
+                objectToWorld.apply(n1),
+                objectToWorld.apply(n2) }
     , uvs_{ uv0, uv1, uv2 } {
 }
 

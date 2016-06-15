@@ -5,6 +5,11 @@
 #include <fstream>
 #include <sstream>
 
+#include <boost/filesystem/path.hpp>
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
+
 #include "../core/common.h"
 #include "../core/triplet.h"
 #include "../core/path.h"
@@ -14,17 +19,85 @@
 
 #include "../image/image.h"
 
+#include "../image/mipmap.h"
+#include "../texture/texture.h"
+#include "../texture/imagemap.h"
+
 namespace spica {
 
-PLYMeshIO::PLYMeshIO()
-    : MeshIO{} {
+// ----------------------------------------------------------------------------
+// ShapeGroup method definitions
+// ----------------------------------------------------------------------------
+
+ShapeGroup::ShapeGroup()
+    : shapes_{} {
 }
 
-PLYMeshIO::~PLYMeshIO() {
+ShapeGroup::~ShapeGroup() {
 }
 
-std::vector<std::shared_ptr<Shape>> PLYMeshIO::load(const std::string& filename,
-                                                    const Transform& objectToWorld) const {
+ShapeGroup::ShapeGroup(
+    const std::vector<std::shared_ptr<Shape>>& shapes,
+    const std::shared_ptr<Texture<Spectrum>>& mapKd,
+    const std::shared_ptr<Texture<double>> & bumpMap)
+    : shapes_{ shapes }
+    , mapKd_{ mapKd }
+    , bumpMap_{ bumpMap } {
+}
+
+ShapeGroup::ShapeGroup(const ShapeGroup& sg)
+    : ShapeGroup{} {
+    this->operator=(sg);
+}
+
+ShapeGroup::ShapeGroup(ShapeGroup&& sg)
+    : ShapeGroup{} {
+    this->operator=(std::move(sg));
+}
+
+ShapeGroup& ShapeGroup::operator=(const ShapeGroup& sg) {
+    this->shapes_  = sg.shapes_;
+    this->mapKd_   = sg.mapKd_;
+    this->bumpMap_ = sg.bumpMap_;
+    return *this;
+}
+
+ShapeGroup& ShapeGroup::operator=(ShapeGroup&& sg) {
+    this->shapes_  = std::move(sg.shapes_);
+    this->mapKd_   = std::move(sg.mapKd_);
+    this->bumpMap_ = std::move(sg.bumpMap_);
+    return *this;
+}
+
+
+// ----------------------------------------------------------------------------
+// MeshIO method definitions
+// ----------------------------------------------------------------------------
+
+MeshIO::MeshIO() {
+}
+
+MeshIO::~MeshIO() {
+}
+
+std::vector<ShapeGroup> MeshIO::load(const std::string& filename,
+                                     const Transform& o2w) const {
+    boost::filesystem::path path(filename);
+    std::string extension = path.extension().string();
+
+    std::vector<ShapeGroup> groups;
+    if (extension == ".obj") {
+        groups = loadObj(filename, o2w);
+    } else if (extension == ".ply") {
+        groups = loadPly(filename, o2w);       
+    } else {
+        FatalError("Unknown 3D mesh file extension: %s", extension.c_str());
+    }
+    return std::move(groups);
+}
+
+std::vector<ShapeGroup> MeshIO::loadPly(const std::string& filename,
+                                        const Transform& objectToWorld) const {
     std::ifstream ifs(filename.c_str(),
                       std::ios::in | std::ios::binary);
 
@@ -108,259 +181,104 @@ std::vector<std::shared_ptr<Shape>> PLYMeshIO::load(const std::string& filename,
             break;
         }
     }
-    ifs.close(); 
+    ifs.close();
 
-    return std::move(tris);
+    std::vector<ShapeGroup> ret;
+    ret.emplace_back(tris, nullptr, nullptr);
+
+    return std::move(ret);
 }
 
-void PLYMeshIO::save(const std::string& filename,
+std::vector<ShapeGroup> MeshIO::loadObj(const std::string& filename,
+                                        const Transform& objectToWorld) const {
+    // Load OBJ file with "tinyobjloader".
+    boost::filesystem::path path(filename);
+    std::string basename = path.parent_path().string();
+
+    std::vector<tinyobj::shape_t> shapes;
+    std::vector<tinyobj::material_t> materials;
+    std::string errors;
+    bool success = tinyobj::LoadObj(shapes, materials, errors, filename.c_str(),
+                                    basename.c_str(), tinyobj::triangulation);
+    if (!errors.empty()) {
+        Warning(errors.c_str());
+    }
+    
+    if (!success) {
+        FatalError("Failed to open OBJ file \"%s\" !!", filename.c_str());    
+    }
+
+    // Prepare return object.
+    std::vector<ShapeGroup> groups;
+    for (int i = 0; i < shapes.size(); i++) {
+        auto& shape = shapes[i];
+        auto& mtrl  = materials[i];
+        
+        std::vector<std::shared_ptr<Shape>> tris;
+        for (int j = 0; j < shape.mesh.indices.size(); j += 3) {
+            const int i0 = shape.mesh.indices[j + 0];
+            const int i1 = shape.mesh.indices[j + 1];
+            const int i2 = shape.mesh.indices[j + 2];
+
+            Point3d p0(shape.mesh.positions[i0 * 3 + 0],
+                       shape.mesh.positions[i0 * 3 + 1],
+                       shape.mesh.positions[i0 * 3 + 2]);
+            Point3d p1(shape.mesh.positions[i1 * 3 + 0],
+                       shape.mesh.positions[i1 * 3 + 1],
+                       shape.mesh.positions[i1 * 3 + 2]);
+            Point3d p2(shape.mesh.positions[i2 * 3 + 0],
+                       shape.mesh.positions[i2 * 3 + 1],
+                       shape.mesh.positions[i2 * 3 + 2]);
+
+            Normal3d n0, n1, n2;
+            if (!shape.mesh.normals.empty()) {
+                n0 = Normal3d(shape.mesh.normals[i0 * 3 + 0],
+                              shape.mesh.normals[i0 * 3 + 1],
+                              shape.mesh.normals[i0 * 3 + 2]);
+                n1 = Normal3d(shape.mesh.normals[i1 * 3 + 0],
+                              shape.mesh.normals[i1 * 3 + 1],
+                              shape.mesh.normals[i1 * 3 + 2]);
+                n2 = Normal3d(shape.mesh.normals[i2 * 3 + 0],
+                              shape.mesh.normals[i2 * 3 + 1],
+                              shape.mesh.normals[i2 * 3 + 2]);
+            }
+
+            Point2d t0, t1, t2;
+            if (!shape.mesh.texcoords.empty()) {
+                t0 = Point2d(shape.mesh.texcoords[i0 * 2 + 0],
+                             shape.mesh.texcoords[i0 * 2 + 1]);
+                t1 = Point2d(shape.mesh.texcoords[i1 * 2 + 0],
+                             shape.mesh.texcoords[i1 * 2 + 1]);
+                t2 = Point2d(shape.mesh.texcoords[i2 * 2 + 0],
+                             shape.mesh.texcoords[i2 * 2 + 1]);
+            }
+            tris.emplace_back(
+                new Triangle(p0, p1, p2, n0, n1, n2, t0, t1, t2, objectToWorld));
+        }
+
+        std::shared_ptr<ImageTexture>    mapKd   = nullptr;
+        std::shared_ptr<Texture<double>> bumpMap = nullptr;
+        if (!materials.empty()) {
+            if (!materials[i].diffuse_texname.empty()) {
+                Image image = Image::fromFile(materials[i].diffuse_texname);
+                auto uvMap = std::shared_ptr<UVMapping2D>();
+                mapKd = std::make_shared<ImageTexture>(image, uvMap, ImageWrap::Black);
+            }
+
+            if (!materials[i].bump_texname.empty()) {
+                Image image = Image::fromFile(materials[i].bump_texname);
+            }
+        }
+        groups.emplace_back(tris, mapKd, bumpMap);
+    }
+
+    return std::move(groups);
+}
+
+void MeshIO::save(const std::string& filename,
                      const std::vector<Triangle>& trimesh) const {
     std::cerr << "[ERROR] not implemented yet" << std::endl;
     std::abort();
-}
-
-
-
-OBJMeshIO::OBJMeshIO()
-    : MeshIO{} {
-}
-
-OBJMeshIO::~OBJMeshIO() {
-}
-
-std::vector<std::shared_ptr<Shape>> OBJMeshIO::load(const std::string& filename,
-                                                    const Transform& objectToWorld) const {
-    std::ifstream ifs(filename.c_str(), std::ios::in);
-    Assertion(ifs.is_open(), "Failed to open mesh file");
-
-    std::stringstream ss;
-    std::string line;
-
-    std::vector<Point3d>  vertices;
-    std::vector<Point2d> texcoords;
-    std::vector<Normal3d> normals;
-
-    std::vector<Triplet> vertIDs;
-    std::vector<Triplet> texIDs;
-    std::vector<Triplet> nrmIDs;
-
-    bool hasTexture = false;
-    Image texture;
-    while (!ifs.eof()) {
-        std::getline(ifs, line);
-
-        // Check first character
-        auto it = line.begin();
-        while (it != line.end() && *it == ' ') ++it;
-                
-        if(it == line.end() || *it == '#') continue;
-
-        ss.clear();
-        ss.str(line);
-
-        std::string typ;
-        ss >> typ;
-
-        if (typ == "mtllib") {
-            // Load material file
-            std::string mtlfile;
-            std::string dir = path::getDirectory(filename);
-            ss >> mtlfile;
-            texture = getTexture(dir + mtlfile);
-            hasTexture = true;
-        } else if (typ[0] == 'v') {
-            if (typ.size() == 1) {
-                double x, y, z;
-                ss >> x >> y >> z;
-                vertices.emplace_back(x, y, z);
-            } else if(typ[1] == 't') {
-                double x, y;
-                ss >> x >> y;
-                texcoords.emplace_back(x, y);
-            } else if(typ[1] == 'n') {
-                double x, y, z;
-                ss >> x >> y >> z;
-                normals.emplace_back(x, y, z);
-            } else {
-                FatalError("Unexpected character detected!!");
-            }
-        } else if (typ[0] == 'f') {
-            char s0[64], s1[64], s2[64], s3[64];
-            int res = sscanf(line.c_str(), "f %s %s %s %s", s0, s1, s2, s3);
-            if (res == 3) {
-                // Triangle mesh
-                int v0, v1, v2;
-                int n0, n1, n2;
-                int t0, t1, t2;
-                if (sscanf(s0, "%d/%d/%d", &v0, &t0, &n0) == 3 &&
-                    sscanf(s1, "%d/%d/%d", &v1, &t1, &n1) == 3 &&
-                    sscanf(s1, "%d/%d/%d", &v2, &t2, &n2) == 3) {
-                    // All vertex, normal, texcoord exist
-                    vertIDs.emplace_back(v0, v1, v2);
-                    texIDs.emplace_back(t0, t1, t2);
-                    nrmIDs.emplace_back(n0, n1, n2);
-                } else if (sscanf(s0, "%d//%d", &v0, &n0) == 2 &&
-                           sscanf(s1, "%d//%d", &v1, &n1) == 2 &&
-                           sscanf(s2, "%d//%d", &v2, &n2) == 2) {
-                    // Vertex and normal
-                    vertIDs.emplace_back(v0, v1, v2);
-                    nrmIDs.emplace_back(n0, n1, n2);
-                } else if (sscanf(s0, "%d/%d", &v0, &t0) == 2 &&
-                           sscanf(s1, "%d/%d", &v1, &t1) == 2 &&
-                           sscanf(s2, "%d/%d", &v2, &t2) == 2) {
-                    // Vertex and texcoord
-                    vertIDs.emplace_back(v0, v1, v2);
-                    texIDs.emplace_back(t0, t1, t2);
-                } else if (sscanf(s0, "%d", &v0) == 1 &&
-                           sscanf(s1, "%d", &v1) == 1 &&
-                           sscanf(s2, "%d", &v2) == 1) {
-                    // Only vertex
-                    vertIDs.emplace_back(v0, v1, v2);
-                } else {
-                    FatalError("Sorry. Unsupported face description was found!!");
-                }
-            } else if (res == 4) {
-                // Quad mesh
-                int v0, v1, v2, v3;
-                int n0, n1, n2, n3;
-                int t0, t1, t2, t3;
-                if (sscanf(s0, "%d/%d/%d", &v0, &t0, &n0) == 3 &&
-                    sscanf(s1, "%d/%d/%d", &v1, &t1, &n1) == 3 &&
-                    sscanf(s2, "%d/%d/%d", &v2, &t2, &n2) == 3 &&
-                    sscanf(s3, "%d/%d/%d", &v3, &t3, &n3) == 3) {
-                    // All vertex, normal, texcoord exist
-                    vertIDs.emplace_back(v0, v1, v2);
-                    vertIDs.emplace_back(v0, v2, v3);
-                    texIDs.emplace_back(t0, t1, t2);
-                    texIDs.emplace_back(t0, t2, t3);
-                    nrmIDs.emplace_back(n0, n1, n2);
-                    nrmIDs.emplace_back(n0, n2, n3);
-                } else if (sscanf(s0, "%d//%d", &v0, &n0) == 2 &&
-                           sscanf(s1, "%d//%d", &v1, &n1) == 2 &&
-                           sscanf(s2, "%d//%d", &v2, &n2) == 2 &&
-                           sscanf(s3, "%d//%d", &v3, &n3) == 2) {
-                    // Vertex and normal
-                    vertIDs.emplace_back(v0, v1, v2);
-                    vertIDs.emplace_back(v0, v2, v3);
-                    nrmIDs.emplace_back(n0, n1, n2);
-                    nrmIDs.emplace_back(n0, n2, n3);
-                } else if (sscanf(s0, "%d/%d", &v0, &t0) == 2 &&
-                           sscanf(s1, "%d/%d", &v1, &t1) == 2 &&
-                           sscanf(s2, "%d/%d", &v2, &t2) == 2 &&
-                           sscanf(s3, "%d/%d", &v3, &t3) == 2) {
-                    // Vertex and texcoord
-                    vertIDs.emplace_back(v0, v1, v2);
-                    vertIDs.emplace_back(v0, v2, v3);
-                    texIDs.emplace_back(t0, t1, t2);
-                    texIDs.emplace_back(t0, t2, t3);
-                } else if (sscanf(s0, "%d", &v0) == 1 &&
-                           sscanf(s1, "%d", &v1) == 1 &&
-                           sscanf(s2, "%d", &v2) == 1 &&
-                           sscanf(s3, "%d", &v3) == 1) {
-                    // Only vertex
-                    vertIDs.emplace_back(v0, v1, v2);
-                    vertIDs.emplace_back(v0, v2, v3);
-                } else {
-                    FatalError("Sorry. Unsupported face description was found!!");
-                }
-            } else {
-                FatalError("Mesh is neither triangle nor quadrangle!!");
-            }
-        } else {
-            FatalError("Unknown type \"%s\" is found while reading .obj file!!", typ.c_str());
-        }
-    }
-    ifs.close();
-
-    /*
-    if (!hasTexture) {
-        (*trimesh) = Trimesh(vertices, vertIDs);
-    } else {
-        trimesh->resize(vertIDs.size() * 3, vertIDs.size());
-        for (int i = 0; i < vertIDs.size(); i++) {
-            for (int k = 0; k < 3; k++) {
-                trimesh->setVertex(i * 3 + k, vertices[vertIDs[i][k]]);
-                trimesh->setTexcoord(i * 3 + k, texcoords[texIDs[i][k]]);
-            }
-            trimesh->setFace(i, Triplet(i * 3 + 0, i * 3 + 1, i * 3 + 2));
-        }
-        trimesh->setTexture(texture);
-    }
-    */
-
-    std::vector<std::shared_ptr<Shape>> tris;
-    for (int i = 0; i < vertIDs.size(); i++) {
-        if (!nrmIDs.empty() && !texIDs.empty()) {
-            tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],
-                                           vertices[vertIDs[i][1] - 1],
-                                           vertices[vertIDs[i][2] - 1],
-                                           normals[nrmIDs[i][0] - 1],
-                                           normals[nrmIDs[i][1] - 1],
-                                           normals[nrmIDs[i][2] - 1],
-                                           texcoords[texIDs[i][0] - 1],
-                                           texcoords[texIDs[i][1] - 1],
-                                           texcoords[texIDs[i][2] - 1],
-                                           objectToWorld));        
-        } else if (!nrmIDs.empty()) {
-            tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],
-                                           vertices[vertIDs[i][1] - 1],
-                                           vertices[vertIDs[i][2] - 1],      
-                                           normals[nrmIDs[i][0] - 1],
-                                           normals[nrmIDs[i][1] - 1],
-                                           normals[nrmIDs[i][2] - 1],
-                                           objectToWorld));        
-        } else if (!texIDs.empty()) {
-            /*
-            tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],
-                                           vertices[vertIDs[i][1] - 1],
-                                           vertices[vertIDs[i][2] - 1],  
-                                           texcoords[texIDs[i][0] - 1],
-                                           texcoords[texIDs[i][1] - 1],
-                                           texcoords[texIDs[i][2] - 1],
-                                           objectToWorld));        
-                                           */
-        } else {
-            tris.emplace_back(new Triangle(vertices[vertIDs[i][0] - 1],
-                                           vertices[vertIDs[i][1] - 1],
-                                           vertices[vertIDs[i][2] - 1],
-                                           objectToWorld));  
-        }
-    }
-    return std::move(tris);
-}
-
-void OBJMeshIO::save(const std::string& filename,
-                     const std::vector<Triangle>& trimesh) const {
-    std::ofstream ofs(filename, std::ios::out);
-    for (const auto& t : trimesh) {
-        ofs << "v " << t[0].x() << " " << t[0].y() << " " << t[0].z() << std::endl;
-        ofs << "v " << t[1].x() << " " << t[1].y() << " " << t[1].z() << std::endl;
-        ofs << "v " << t[2].x() << " " << t[2].y() << " " << t[2].z() << std::endl;
-    }
-
-    for (int i = 0; i < trimesh.size(); i++) {
-        ofs << "f " << (3 * i + 1) << " " << (i * 3 + 2) << " " << (i * 3 + 3) << std::endl;
-    }
-    ofs.close();
-}
-
-Image OBJMeshIO::getTexture(const std::string& filename) {
-    std::ifstream ifs(filename.c_str(), std::ios::in);
-    if (!ifs.is_open()) {
-        FatalError("Failed to open material file!!");
-    }
-
-    std::string ident;
-    std::string texpath;
-    while (ifs >> ident) {
-        if (ident == "map_Kd") {
-            std::string dir = path::getDirectory(filename);
-            ifs >> texpath;
-            return std::move(Image::fromFile(dir + texpath));
-        }
-    }
-    FatalError("map_Kd was not detected!!");
-    return Image{};
 }
 
 }  // namespace spica

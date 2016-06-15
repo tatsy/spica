@@ -574,9 +574,8 @@ namespace spica {
             o2w *= Transform::translate(Vector3d(0.0, 20.0, 0.0));
             o2w *= Transform::scale(600.0, 600.0, 600.0);
             //o2w *= Transform::translate(Vector3d(0.0, -20.0, 0.0));
-            OBJMeshIO meshio;
-            std::vector<std::shared_ptr<Shape>> shapes =
-                meshio.load(kDataDirectory + "infinite_head.obj", o2w);
+            MeshIO meshio;
+            auto groups = meshio.load(kDataDirectory + "infinite_head.obj", o2w);
 
             // Regular milk
             /*
@@ -619,8 +618,10 @@ namespace spica {
             auto Kd = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.95, 0.65, 0.50) * 0.5);
             auto mtrl = std::make_shared<LambertianMaterial>(Kd);
 
-            for (const auto& s : shapes) {
-                primitives.emplace_back(new GeometricPrimitive(s, mtrl, nullptr));
+            for (const auto& g : groups) {
+                for (const auto& s : g.shapes()) {
+                    primitives.emplace_back(new GeometricPrimitive(s, mtrl, nullptr));
+                }
             }
         }
 

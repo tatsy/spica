@@ -31,7 +31,7 @@ if (WIN32)
 else()
   if (spica_USE_STATIC_LIBS)
     set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".a")    
+    set(LIB_SUFFIX ".a")
   else()
     set(LIB_PREFIX "lib")
     set(LIB_SUFFIX ".so")
@@ -76,7 +76,7 @@ file(MAKE_DIRECTORY output)
 # Import 3rd party libraries
 # ------------------------------------------------------------------------------
 add_subdirectory(3rdparty)
-include_directories(${STB_INCLUDE_DIRS})
+include_directories(${THIRD_PARTY_INCLUDE_DIRS})
 
 # ------------------------------------------------------------------------------
 # Import Boost libraries

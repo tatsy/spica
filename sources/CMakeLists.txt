@@ -44,12 +44,16 @@ process_subdirectory(accelerator)
 process_subdirectory(material)
 process_subdirectory(texture)
 
+link_directories(${Boost_LIBRARY_DIRS})
+
 if (spica_USE_STATIC_LIBS)
   add_library(${BUILD_TARGET} ${ALL_SOURCES} ${ALL_HEADERS})
 else()
   add_library(${BUILD_TARGET} SHARED ${ALL_SOURCES} ${ALL_HEADERS})
   set(SPICA_LIBS ${LIB_PREFIX}${BUILD_TARGET}${LIB_SUFFIX} CACHE INTERNAL "")
 endif()
+
+target_link_libraries(${BUILD_TARGET} ${Boost_LIBRARIES})
 
 if (MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")

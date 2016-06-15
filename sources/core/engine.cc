@@ -240,8 +240,11 @@ void Engine::start(const std::string& filename) const {
                 std::string objfile = dir + relpath;
                 fprintf(stdout, "Loading \"%s\" ...\n", objfile.c_str());
 
-                OBJMeshIO loader;
-                shapes = loader.load(objfile, toWorld);
+                MeshIO loader;
+                auto groups = loader.load(objfile, toWorld);
+                for (const auto& g : groups) {
+                    shapes.insert(shapes.end(), g.shapes().begin(), g.shapes().end());
+                }
             }
         } else if (type == "sphere") {
             Point3d center;

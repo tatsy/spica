@@ -565,6 +565,17 @@ RGBSpectrum& RGBSpectrum::operator=(const RGBSpectrum& color) {
     return *this;
 }
 
+bool RGBSpectrum::operator==(const RGBSpectrum& c) const {
+    if (this->r_ != c.r_) return false;
+    if (this->g_ != c.g_) return false;
+    if (this->b_ != c.b_) return false;
+    return true;
+}
+
+bool RGBSpectrum::operator!=(const RGBSpectrum& c) const {
+    return !this->operator==(c);
+}
+
 RGBSpectrum& RGBSpectrum::operator+=(double x) {
     this->r_ += x;
     this->g_ += x;

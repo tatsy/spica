@@ -67,6 +67,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
             isect.setScatterFuncs(ray, arena);
             if (!isect.bsdf()) {
                 ray = isect.spawnRay(ray.dir());
+                //std::cout << ray.org() << std::endl;
                 bounces--;
                 continue;
             }
@@ -99,19 +100,12 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
                 if (S.isBlack() || pdf == 0.0) break;
                 beta *= S / pdf;
 
-                //std::cout << "Hoge: " << (S / pdf) << std::endl; 
-                //std::cout << "S: " << S << std::endl;
-                //printf("pdf = %f\n", pdf);
-
                 L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
 
                 Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                                BxDFType::All, &sampledType);
                 if (f.isBlack() || pdf == 0.0) break;
                 beta *= f * vect::absDot(wi, pi.normal()) / pdf;
-
-                // auto hoge = f * vect::absDot(wi, pi.normal()) / pdf;
-                // std::cout << "hoge: " << hoge << std::endl;
 
                 specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
                 ray = pi.spawnRay(wi);

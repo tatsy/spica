@@ -36,6 +36,10 @@ Ray& Ray::operator=(const Ray& ray) {
     return *this;
 }
 
+Point3d Ray::proceeded(double t) const {
+    return org_ + t * dir_;
+}
+
 void Ray::calcInvdir() {
     invdir_.xRef() = (dir_.x() == 0.0) ? INFTY : 1.0 / dir_.x();
     invdir_.yRef() = (dir_.y() == 0.0) ? INFTY : 1.0 / dir_.y();

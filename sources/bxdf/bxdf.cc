@@ -3,6 +3,7 @@
 
 #include "../core/sampling.h"
 #include "../math/vector3d.h"
+#include "../math/vect_math.h"
 
 #include "fresnel.h"
 #include "microfacet.h"
@@ -191,7 +192,7 @@ Spectrum FresnelSpecular::sample(const Vector3d& wo, Vector3d* wi,
         return ref_ * (refProb / std::abs(vect::cosTheta(*wi)));
     } else {
         // Transmission
-        bool entering = wo.z() > 0.0;
+        bool entering = vect::cosTheta(wo) > 0.0;
         double etaI = entering ? etaA_ : etaB_;
         double etaT = entering ? etaB_ : etaA_;
 

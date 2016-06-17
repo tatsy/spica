@@ -39,7 +39,11 @@ namespace spica {
         ~RGBSpectrum();
 
         /** Assignment operator */
-        RGBSpectrum& operator=(const RGBSpectrum& RGBSpectrum);
+        RGBSpectrum& operator=(const RGBSpectrum& c);
+        /** Equal operator */
+        bool operator==(const RGBSpectrum& c) const;
+        /** Not equal operator */
+        bool operator!=(const RGBSpectrum& c) const;
         /** Plus operator */
         RGBSpectrum& operator+=(const RGBSpectrum& c);
         /** Plus operator.

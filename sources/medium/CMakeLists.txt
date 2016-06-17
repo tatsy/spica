@@ -1,9 +1,12 @@
 set(SOURCES ${SOURCES}
+    ${CMAKE_CURRENT_LIST_DIR}/grid.cc
     ${CMAKE_CURRENT_LIST_DIR}/medium.cc
     ${CMAKE_CURRENT_LIST_DIR}/homogeneous.cc
     PARENT_SCOPE)
 
 set(HEADERS ${HEADERS}
+    ${CMAKE_CURRENT_LIST_DIR}/spica_medium.h
+    ${CMAKE_CURRENT_LIST_DIR}/grid.h
     ${CMAKE_CURRENT_LIST_DIR}/medium.h
     ${CMAKE_CURRENT_LIST_DIR}/homogeneous.h
     PARENT_SCOPE)

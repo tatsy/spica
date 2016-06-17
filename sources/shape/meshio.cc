@@ -199,7 +199,8 @@ std::vector<ShapeGroup> MeshIO::loadObj(const std::string& filename,
     std::vector<tinyobj::material_t> materials;
     std::string errors;
     bool success = tinyobj::LoadObj(shapes, materials, errors, filename.c_str(),
-                                    basename.c_str(), tinyobj::triangulation);
+                                    basename.c_str(),
+                                    tinyobj::triangulation | tinyobj::calculate_normals);
     if (!errors.empty()) {
         Warning(errors.c_str());
     }
@@ -212,7 +213,6 @@ std::vector<ShapeGroup> MeshIO::loadObj(const std::string& filename,
     std::vector<ShapeGroup> groups;
     for (int i = 0; i < shapes.size(); i++) {
         auto& shape = shapes[i];
-        auto& mtrl  = materials[i];
         
         std::vector<std::shared_ptr<Shape>> tris;
         for (int j = 0; j < shape.mesh.indices.size(); j += 3) {

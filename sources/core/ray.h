@@ -30,6 +30,9 @@ public:
 
     Ray& operator=(const Ray& ray);
 
+    //! Return the proceeded position of origin with distance "t".
+    Point3d proceeded(double t) const;
+
     inline Point3d  org()     const { return org_; }
     inline Vector3d dir()     const { return dir_; }
     inline Vector3d invdir()  const { return invdir_; }

@@ -20,15 +20,7 @@ namespace spica {
                                   const Point2i& resolution,
                                   std::vector<Triangle>* tris = nullptr,
                                   std::vector<Spectrum>* Kd = nullptr);
-
-    SPICA_EXPORTS void cornellBoxBunny(Scene* scene, Camera* camera, const int width, const int height);
    
-    SPICA_EXPORTS void cornellBoxOcclusion(Scene* scene, Camera* camera, const int width, const int height);
-
-    SPICA_EXPORTS void cornellBoxDragon(Scene* scene, Camera* camera, const int width, const int height);
-    
-    SPICA_EXPORTS void kittenBox(Scene* scene, Camera* camera, const int width, const int height);
-
     SPICA_EXPORTS void kittenEnvmap(Scene* scene,
                                     std::shared_ptr<Camera>* camera,
                                     const Point2i& resolution,

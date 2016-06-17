@@ -172,6 +172,7 @@ bool BBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
     nodeStack.push(root_);
 
     bool hit = false;
+    int cnt = 0;
     while (!nodeStack.empty()) {
         BVHNode* node = nodeStack.top();
         nodeStack.pop();

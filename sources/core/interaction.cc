@@ -13,7 +13,7 @@ namespace spica {
 namespace {
 
 Point3d offsetRayOrigin(const Point3d& p, const Normal3d& n, const Vector3d& w) {
-    Vector3d offset = EPS * Vector3d(n);
+    Vector3d offset = Vector3d(n) * 1.0e-3;
     if (vect::dot(w, n) < 0.0) offset = -offset;
     return p + offset;
 }

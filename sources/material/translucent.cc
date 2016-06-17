@@ -50,7 +50,7 @@ void TranslucentMaterial::setScatterFuncs(SurfaceInteraction* isect,
 
     Spectrum sp = Spectrum::clamp(Ks_->evaluate(*isect));
     if (!sp.isBlack() && (!re.isBlack() || !tr.isBlack())) {
-        double rough = roughness_->evaluate(*isect);
+        double rough = !roughness_ ? 0.0 : roughness_->evaluate(*isect);
         if (remapRoughness_) {
             rough = TrowbridgeReitzDistribution::roughnessToAlpha(rough);
         }

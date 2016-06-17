@@ -93,7 +93,7 @@ protected:
     std::vector<std::shared_ptr<Light>> lights;
 };
 
-TEST_P(SceneIntersectionTest, DISABLED_BBVHvsQBVH) {
+TEST_P(SceneIntersectionTest, BBVHvsQBVH) {
     auto bvh = std::make_shared<BBVHAccel>(prims);
     auto qbvh = std::make_shared<QBVHAccel>(prims);
     Scene scene1(bvh, lights);
@@ -105,7 +105,6 @@ TEST_P(SceneIntersectionTest, DISABLED_BBVHvsQBVH) {
     Vector3d bsize = bounds.posMax() - bounds.posMin();
     Point3d centroid = bounds.posMin() + bsize * 0.5;
     bounds = Bounds3d(centroid - bsize, centroid + bsize);
-
 
     Point3d f(0.0, 0.0, 2.0);
     Point3d t(0.0, 0.0, -2.0);

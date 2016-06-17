@@ -195,4 +195,8 @@ inline T min3(T a, T b, T c) {
     return std::min(a, std::min(b, c));
 }
 
+inline double lerp(double t, double v1, double v2) {
+    return (1.0 - t) * v1 + t * v2;
+}
+
 #endif  // _SPICA_COMMON_H_

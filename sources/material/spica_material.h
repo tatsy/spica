@@ -13,5 +13,6 @@
 #include "plastic.h"
 #include "subsurface.h"
 #include "kdsubsurface.h"
+#include "translucent.h"
 
 #endif  // _SPICA_MATERIAL_HEADERS_H_

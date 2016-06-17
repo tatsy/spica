@@ -22,8 +22,8 @@ int main(int argc, char **argv) {
      std::shared_ptr<Sampler> sampler = std::make_unique<Random>(0);
     //std::shared_ptr<Sampler> sampler = std::make_unique<Halton>(200, true, 0);
 
-    //cornellBox(&scene, &camera, Point2i(width, height));
-    kittenEnvmap(&scene, &camera, Point2i(width, height));
+    cornellBox(&scene, &camera, Point2i(width, height));
+    //kittenEnvmap(&scene, &camera, Point2i(width, height));
     
     Timer timer;
     timer.start();

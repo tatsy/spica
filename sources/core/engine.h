@@ -7,9 +7,11 @@
 
 #include <string>
 #include <memory>
+#include <vector>
 
 #include "common.h"
 #include "forward_decl.h"
+#include "spectrum.h"
 
 namespace boost {
 namespace property_tree {
@@ -42,23 +44,58 @@ public:
     void cleanup();
 
 private:
-    bool parseTransform(const boost::property_tree::ptree& xml,
-                        Transform* transform) const;
+    template <class T>
+    bool parse(const boost::property_tree::ptree& xml, T* value) const;
 
-    bool parseCamera(const boost::property_tree::ptree& xml,
-                     std::shared_ptr<Camera>* camera,
-                     std::shared_ptr<Sampler>* sampler) const;
+    bool parse_shape(const boost::property_tree::ptree& xml,
+                     std::vector<std::shared_ptr<Shape>>* shapes,
+                     const Transform& toWorld,
+                     const std::string& directory = "") const;
 
-    bool parseSampler(const boost::property_tree::ptree& xml,
-                      std::shared_ptr<Sampler>* sampler) const;
+    bool parse_subsurface(const boost::property_tree::ptree& xml,
+                          std::shared_ptr<Texture<Spectrum>>* sigma_a,
+                          std::shared_ptr<Texture<Spectrum>>* sigma_s,
+                          double* eta, double* scale, double* g) const;
 
-    bool parseFilm(const boost::property_tree::ptree& xml,
-                   Film** film) const;
+    bool parse_subsurface_mtrl(const boost::property_tree::ptree& xml,
+                               std::shared_ptr<Material>* mtrl,
+                               const std::shared_ptr<Texture<Spectrum>>& sigma_a,
+                               const std::shared_ptr<Texture<Spectrum>>& sigma_s,
+                               double eta, double scale, double g) const;
+
+    bool find_field(const boost::property_tree::ptree& xml,
+                    const std::string& field, const std::string& value,
+                    boost::property_tree::ptree* result,
+                    std::string* tag) const;
 
     // Private fields
     Option option_;
 
 };  // class Engine
+
+template <>
+SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
+    Film** film) const;
+
+template <>
+SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
+    Transform* transform) const;
+
+template <>
+SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
+    std::shared_ptr<Camera>* camera) const;
+
+template <>
+SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
+    std::shared_ptr<Sampler>* sampler) const;
+
+template <>
+SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
+   std::shared_ptr<Material>* material) const;
+
+template <>
+SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
+    std::shared_ptr<MediumInterface>* medium) const;
 
 }  // namespace spica
 

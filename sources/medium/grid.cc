@@ -1,6 +1,8 @@
 #define SPICA_API_EXPORT
 #include "grid.h"
 
+#include <cstring>
+
 #include "../core/memory.h"
 #include "../core/interaction.h"
 #include "../bxdf/phase.h"

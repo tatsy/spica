@@ -44,8 +44,6 @@ process_subdirectory(accelerator)
 process_subdirectory(material)
 process_subdirectory(texture)
 
-link_directories(${Boost_LIBRARY_DIRS})
-
 if (spica_USE_STATIC_LIBS)
   add_library(${BUILD_TARGET} ${ALL_SOURCES} ${ALL_HEADERS})
 else()

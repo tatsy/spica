@@ -8,7 +8,7 @@ if (NOT WIN32)
   # Linux or Mac OS X
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O2")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fPIC")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
   if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libomp")
@@ -20,7 +20,7 @@ endif()
 # ------------------------------------------------------------------------------
 # Whether use static libraries or not
 # ------------------------------------------------------------------------------
-set(spica_USE_STATIC_LIBS OFF CACHE BOOL "")
+set(spica_USE_STATIC_LIBS OFF CACHE BOOL OFF)
 
 # ------------------------------------------------------------------------------
 # Set library prefices and suffices
@@ -91,7 +91,7 @@ if (MSVC)
     set(Boost_USE_STATIC_LIBS FALSE CACHE BOOL FALSE)
   endif()
 endif()
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # ------------------------------------------------------------------------------

@@ -231,7 +231,6 @@ void Engine::start(const std::string& filename) const {
         }
 
         // Shape
-        std::string type = child.second.get<std::string>("<xmlattr>.type");
         std::vector<std::shared_ptr<Shape>> shapes;
         parse_shape(child.second, &shapes, toWorld, dir);
 
@@ -338,6 +337,30 @@ void Engine::start(const std::string& filename) const {
 
     // Construct BVH and the scene
     auto bbvh = std::make_shared<BBVHAccel>(primitives);
+
+    // Parse non-area emitters
+    for (const auto& child : xml.get_child("scene")) {
+        if (child.first != "emitter") continue;
+
+        std::string type = child.second.get<std::string>("<xmlattr>.type", "");
+        std::shared_ptr<Light> light = nullptr;
+        if (type == "environment") {
+            Bounds3d bbox = bbvh->worldBound();
+            Point3d center = 0.5 * (bbox.posMin() + bbox.posMax());
+            double  radius = (center - bbox.posMin()).norm();
+            Sphere  sphere(center, radius);
+            if (!parse_envmap(child.second, &light, sphere, dir)) {
+                std::cerr << "Failed to parse Envmap!!" << std::endl;
+                continue;
+            }
+
+            if (light) {
+                lights.push_back(light);
+            }
+        }
+    }
+
+    // Finalize scene.
     Scene scene(bbvh, lights);
         
     // Start rendering
@@ -481,6 +504,52 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
     return true;
 }
 
+bool Engine::parse_envmap(const boost::property_tree::ptree& xml,
+                          std::shared_ptr<Light>* light,
+                          const Sphere& worldSphere,
+                          const std::string& directory) const {
+    const std::string type = xml.get<std::string>("<xmlattr>.type");
+    if (type == "environment") {
+        Image envmap;
+        Transform toWorld;
+        double gamma = 1.0;
+        double scale = 1.0;
+        int numSamples = 1;
+
+        for (const auto& child : xml) {
+            if (child.first == "string") {
+                std::string name = child.second.get<std::string>("<xmlattr>.name", "");
+                if (name == "filename") {
+                    std::string filename = child.second.get<std::string>("<xmlattr>.value", "");
+                    envmap = Image::fromFile(directory + filename);
+                }
+            } else if (child.first == "float") {
+                std::string name = child.second.get<std::string>("<xmlattr>.name", "");
+                if (name == "gamma") {
+                    gamma = child.second.get<double>("<xmlattr>.value", 1.0);                    
+                } else if (name == "scale") {
+                    scale = child.second.get<double>("<xmlattr>.value", 1.0);
+                }
+            } else if (child.first == "transform") {
+                std::string name = child.second.get<std::string>("<xmlattr>.name", "");
+                if (name == "toWorld") {
+                    if (!parse(child.second, &toWorld)) {
+                        std::cerr << "Failed to parse transform!!" << std::endl;
+                        return false;
+                    }
+                }
+            }
+        }
+
+        *light = std::make_shared<Envmap>(worldSphere, envmap, toWorld, Spectrum(scale), numSamples);
+    } else {
+        std::cerr << "This node is not for environment light!!" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
 template <>
 bool Engine::parse(const boost::property_tree::ptree& xml,
                    std::shared_ptr<Sampler>* sampler) const {
@@ -545,7 +614,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
         Spectrum diffuse(0.9999);
         Spectrum specular(0.9999);                
         double ior = 1.0;
-        double alpha = 0.0;
+        double alpha = 1.0;
         for (const auto& k : xml.get_child("")) {
             if (k.first == "rgb" || k.first == "spectrum") {
                 std::string refName = k.second.get<std::string>("<xmlattr>.name");

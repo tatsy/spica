@@ -52,6 +52,11 @@ private:
                      const Transform& toWorld,
                      const std::string& directory = "") const;
 
+    bool parse_envmap(const boost::property_tree::ptree& xml,
+                      std::shared_ptr<Light>* light,
+                      const Sphere& worldSphere,
+                      const std::string& directory = "") const;
+
     bool parse_subsurface(const boost::property_tree::ptree& xml,
                           std::shared_ptr<Texture<Spectrum>>* sigma_a,
                           std::shared_ptr<Texture<Spectrum>>* sigma_s,

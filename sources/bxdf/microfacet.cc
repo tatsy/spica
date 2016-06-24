@@ -1,6 +1,8 @@
 #define SPICA_API_EXPORT
 #include "microfacet.h"
 
+#include <cmath>
+
 #include "../core/point2d.h"
 #include "../math/vector3d.h"
 #include "../math/vect_math.h"
@@ -48,7 +50,7 @@ TrowbridgeReitzDistribution::TrowbridgeReitzDistribution(double alphax,
 
 double TrowbridgeReitzDistribution::D(const Vector3d& wh) const {
     double tan2Theta = vect::tan2Theta(wh);
-    if (isinf(tan2Theta)) return 0.0;
+    if (std::isinf(tan2Theta)) return 0.0;
 
     double cos4Theta = vect::cos2Theta(wh) * vect::cos2Theta(wh);
     double e = (vect::cos2Phi(wh) / (alphax_ * alphax_) +
@@ -100,7 +102,7 @@ double TrowbridgeReitzDistribution::roughnessToAlpha(double rough) {
 
 double TrowbridgeReitzDistribution::lambda(const Vector3d& w) const {
     double absTanTheta = std::abs(vect::tanTheta(w));
-    if (isinf(absTanTheta)) return 0.0;
+    if (std::isinf(absTanTheta)) return 0.0;
 
     double alpha = std::sqrt(vect::cos2Phi(w) * alphax_ * alphax_ + 
                              vect::sin2Phi(w) * alphay_ * alphay_);
@@ -154,8 +156,8 @@ void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
     double slopex1 = B * tmp - D;
     double slopex2 = B * tmp + D;
     *slopex = (A < 0.0 || slopex2 > 1.0 / tanTheta) ? slopex1 : slopex2;
-    Assertion(!isinf(*slopex), "slopex is infinity.");
-    Assertion(!isnan(*slopex), "slopex is NaN.");
+    Assertion(!std::isinf(*slopex), "slopex is infinity.");
+    Assertion(!std::isnan(*slopex), "slopex is NaN.");
 
     double S, U;
     if (rands[1] > 0.5) {
@@ -169,8 +171,8 @@ void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
     double z = (U * (U * (U * 0.27385 - 0.73369) + 0.46341)) / 
                (U * (U * (U * 0.093073 + 0.309420) - 1.0) + 0.597999);
     *slopey = S * z * std::sqrt(1.0 + (*slopex) * (*slopex));
-    Assertion(!isinf(*slopey), "slopey is infinity.");
-    Assertion(!isnan(*slopey), "slopey is NaN");
+    Assertion(!std::isinf(*slopey), "slopey is infinity.");
+    Assertion(!std::isnan(*slopey), "slopey is NaN");
 }
 
 }  // namespace spica

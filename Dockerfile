@@ -24,9 +24,18 @@ RUN pip install gcovr
 RUN apt-get -qq install cppcheck cccc doxygen
 
 #
-## Install Boost, freeglut and glew
+## Install Boost
 #
-RUN apt-get -qq install libboost-dev
+RUN wget https://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.gz/download
+RUN tar zxf download
+RUN \
+  cd boost_1_61_0 && \
+  ./bootstrap.sh --with-libraries=system,filesystem && \
+  ./b2 cxxflags=-fPIC --libdir=/usr/lib/x86_64-linux-gnu/ --includedir=/usr/include/ -j2 install
+
+#
+## Install freeglue and glew
+#
 RUN apt-get -qq install freeglut3-dev libglew-dev
 RUN apt-get -qq install libxmu-dev libxi-dev
 

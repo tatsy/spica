@@ -1,6 +1,7 @@
-CC	       = clang
-CXX        = clang++
-GIT_BRANCH = development
+CC	         = clang
+CXX          = clang++
+GIT_BRANCH   = master
+PULL_REQUEST = false
 
 all: info build run testing coverage cppcheck cccc clean
 
@@ -9,12 +10,12 @@ info:
 
 build:
 	docker pull tatsy/ubuntu-cxx; \
-	sed -e "s/@C_COMPILER@/$(CC)/;s/@CXX_COMPILER@/$(CXX)/;s/@BRANCH_NAME@/$(GIT_BRANCH)/" Dockerfile.in > Dockerfile; \
+	sed -i -e "s/@C_COMPILER@/$(CC)/;s/@CXX_COMPILER@/$(CXX)/;s/@BRANCH_NAME@/$(GIT_BRANCH)/;s/@PULL_REQUEST@/$(PULL_REQUEST)" Dockerfile; \
 	docker build --tag=spica-env .
 
 rebuild:
 	docker pull tatsy/ubuntu-cxx; \
-	sed -e "s/@C_COMPILER@/$(CC)/;s/@CXX_COMPILER@/$(CXX)/;s/@BRANCH_NAME@/$(GIT_BRANCH)/" Dockerfile.in > Dockerfile; \
+	sed -i -e "s/@C_COMPILER@/$(CC)/;s/@CXX_COMPILER@/$(CXX)/;s/@BRANCH_NAME@/$(GIT_BRANCH)/;s/@PULL_REQUEST@/$(PULL_REQUEST)" Dockerfile; \
 	docker build --no-cache --tag=spica-env .
 
 run:

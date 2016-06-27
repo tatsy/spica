@@ -31,7 +31,7 @@ RUN tar zxf download
 RUN \
   cd boost_1_61_0 && \
   ./bootstrap.sh --with-libraries=system,filesystem && \
-  ./b2 cxxflags=-fPIC --libdir=/usr/lib/x86_64-linux-gnu/ --includedir=/usr/include/ -j2 install
+  ./b2 cxxflags=-fPIC --libdir=/usr/lib/x86_64-linux-gnu/ --includedir=/usr/include/ -d0 -j2 install
 
 #
 ## Install freeglue and glew

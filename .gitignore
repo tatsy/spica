@@ -4,3 +4,5 @@ output
 data/tmp
 .cccc
 spica_dirs.h
+
+.DS_Store

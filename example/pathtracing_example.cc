@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
     params.set("GATHER_RADIUS", 64.0);
     params.set("GATHER_PHOTONS", 64);
 
-    VolPathIntegrator integr(camera, sampler);
-    //PathIntegrator integr(camera, sampler);
+    //VolPathIntegrator integr(camera, sampler);
+    PathIntegrator integr(camera, sampler);
     
     //IrradCacheIntegrator integr(camera, sampler);
     //HierarchicalIntegrator integr(camera, sampler);

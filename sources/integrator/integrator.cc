@@ -100,6 +100,7 @@ void SamplerIntegrator::render(const Scene& scene,
             proc++;
             if (proc % 1000 == 0) {
                 printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
+                fflush(stdout);
             }
         });
 

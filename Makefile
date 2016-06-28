@@ -1,4 +1,4 @@
-CC	         = clang
+CC           = clang
 CXX          = clang++
 GIT_BRANCH   = master
 PULL_REQUEST = false

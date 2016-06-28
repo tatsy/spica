@@ -1,14 +1,6 @@
 set(SPICA_TARGET_NAME spica_renderer CACHE INTERNAL "")
 set(BUILD_TARGET ${SPICA_TARGET_NAME})
 
-if(MSVC)
-  find_package(OpenMP)
-  if (OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  endif()
-endif()
-
 set(ALL_SOURCES ${ALL_SOURCES})
 set(ALL_HEADERS ${ALL_HEADERS} ../include/spica.h)
 
@@ -44,7 +36,7 @@ process_subdirectory(accelerator)
 process_subdirectory(material)
 process_subdirectory(texture)
 
-if (spica_USE_STATIC_LIBS)
+if (SPICA_USE_STATIC_LIBS)
   add_library(${BUILD_TARGET} ${ALL_SOURCES} ${ALL_HEADERS})
 else()
   add_library(${BUILD_TARGET} SHARED ${ALL_SOURCES} ${ALL_HEADERS})

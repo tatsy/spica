@@ -4,6 +4,7 @@ project(spica)
 # ------------------------------------------------------------------------------
 # Set compiler options
 # ------------------------------------------------------------------------------
+set(CMAKE_CXX_STANDARD 14)
 if (NOT WIN32)
   # Linux or Mac OS X
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
@@ -11,17 +12,25 @@ if (NOT WIN32)
   if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
   endif()
-  if (NOT MACOS AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libomp")
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+endif()
+
+# ------------------------------------------------------------------------------
+# Find OpenMP
+# ------------------------------------------------------------------------------
+set(SPICA_USE_OPENMP OFF CACHE BOOL OFF)
+if (SPICA_USE_OPENMP)
+  find_package(OpenMP)
+  if (OPENMP_FOUND)
+    message(STATUS "OpenMP Supported!!")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   endif()
 endif()
 
 # ------------------------------------------------------------------------------
 # Whether use static libraries or not
 # ------------------------------------------------------------------------------
-set(spica_USE_STATIC_LIBS OFF CACHE BOOL OFF)
+set(SPICA_USE_STATIC_LIBS OFF CACHE BOOL OFF)
 
 # ------------------------------------------------------------------------------
 # Set library prefices and suffices
@@ -30,7 +39,7 @@ if (WIN32)
   set(LIB_PREFIX "")
   set(LIB_SUFFIX ".lib")
 elseif(APPLE)
-  if (spica_USE_STATIC_LIBS)
+  if (SPICA_USE_STATIC_LIBS)
     set(LIB_PREFIX "lib")
     set(LIB_SUFFIX ".a")
   else()
@@ -38,7 +47,7 @@ elseif(APPLE)
     set(LIB_SUFFIX ".dylib")
   endif()
 else()
-  if (spica_USE_STATIC_LIBS)
+  if (SPICA_USE_STATIC_LIBS)
     set(LIB_PREFIX "lib")
     set(LIB_SUFFIX ".a")
   else()
@@ -55,6 +64,13 @@ if (MSVC)
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
   # Disable comparatively unimportant warning
   add_definitions("/D_CRT_SECURE_NO_WARNINGS /W3 /wd4251")
+endif()
+
+# ------------------------------------------------------------------------------
+# Special settings for MacOSX
+# ------------------------------------------------------------------------------
+if (APPLE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "10.11" FORCE)
 endif()
 
 # ------------------------------------------------------------------------------

@@ -34,10 +34,12 @@ namespace spica {
 
 Vector3d getVector3d(const std::string& attr) {
     double x, y, z;
-    if (sscanf(attr.c_str(), "%lf, %lf, %lf", &x, &y, &z) != 3) {
-        return Vector3d{};
+    if (sscanf(attr.c_str(), "%lf, %lf, %lf", &x, &y, &z) == 3) {
+        return Vector3d{ x, y, z };
+    } else if (sscanf(attr.c_str(), "%lf %lf %lf", &x, &y, &z) == 3) {
+        return Vector3d{ x, y, z };
     }
-    return Vector3d{ x, y, z };
+    return Vector3d{ };
 }
 
 Spectrum getSpectrum(const std::string& attr) {
@@ -105,7 +107,6 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                 props.second.get<std::string>("<xmlattr>.origin"));
             Vector3d target = getVector3d(
                 props.second.get<std::string>("<xmlattr>.target"));
-
             Vector3d up = getVector3d(
                 props.second.get<std::string>("<xmlattr>.up"));
             *transform *= Transform::lookAt(Point3d(origin), Point3d(target), up);
@@ -131,7 +132,13 @@ void Engine::start(const std::string& filename) const {
 
     // Open XML file.
     ptree xml;
-    read_xml(filename, xml);
+    try {
+        read_xml(filename, xml);
+    } catch (const xml_parser_error& err) {
+        std::cerr << "[ERROR] " << err.message() << std::endl;
+        return;
+    }
+
     if (xml.empty()) {
         fprintf(stderr, "XML file not found: %s\n", filename.c_str());
         return;
@@ -584,7 +591,8 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
     } else if (type == "dielectric") {
         Spectrum re  = Spectrum(0.999);
         Spectrum tr  = Spectrum(0.999);
-        double   eta = 1.0;
+        double alpha = 0.0;
+        double eta   = 1.0;
         for (const auto& k : xml) {
             if (k.first == "rgb" || k.first == "spectrum") {
                 std::string refname = k.second.get<std::string>("<xmlattr>.name", "");
@@ -598,7 +606,9 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                 }
             } else if (k.first == "float") {
                 std::string propname = k.second.get<std::string>("<xmlattr>.name", "");
-                if (propname == "intIOR") {
+                if (propname == "alpha") {
+                    alpha = k.second.get<double>("<xmlattr>.value", 0.0);
+                } else if (propname == "intIOR") {
                     eta = k.second.get<double>("<xmlattr>.value", 1.0);   
                 }
             }
@@ -606,7 +616,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
 
         auto Kr = std::make_shared<ConstantTexture<Spectrum>>(re);
         auto Kt = std::make_shared<ConstantTexture<Spectrum>>(tr);
-        auto rough = std::make_shared<ConstantTexture<double>>(0.0);
+        auto rough = std::make_shared<ConstantTexture<double>>(alpha);
         auto index = std::make_shared<ConstantTexture<double>>(eta);
         *material = std::make_shared<GlassMaterial>(Kr, Kt, rough, rough, index);
     } else if (type == "roughplastic") {

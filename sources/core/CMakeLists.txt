@@ -13,7 +13,6 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/interaction.cc
      ${CMAKE_CURRENT_LIST_DIR}/interpolation.cc
      ${CMAKE_CURRENT_LIST_DIR}/ray.cc
-     ${CMAKE_CURRENT_LIST_DIR}/../viewer/vbo.cc
      PARENT_SCOPE)
 
  set(HEADERS ${HEADERS}
@@ -50,5 +49,4 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
      ${CMAKE_CURRENT_LIST_DIR}/random_queue.h
      ${CMAKE_CURRENT_LIST_DIR}/hash_grid.h
      ${CMAKE_CURRENT_LIST_DIR}/hash_grid_detail.h
-     ${CMAKE_CURRENT_LIST_DIR}/../viewer/vbo.h
      PARENT_SCOPE)

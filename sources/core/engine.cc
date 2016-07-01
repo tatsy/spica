@@ -407,8 +407,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml, T* value) const {
     return false;
 }
 
-template <>
-bool Engine::parse(const boost::property_tree::ptree& xml, Film** film) const {
+bool Engine::parse_film(const boost::property_tree::ptree& xml, Film** film) const {
     int width = 0;
     int height = 0;
     std::unique_ptr<Filter> filter = nullptr;
@@ -458,7 +457,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
             return false;
         }
 
-        if (!parse(filmNode, &film)) {
+        if (!parse_film(filmNode, &film)) {
             fprintf(stderr, "Failed to parse \"Film\" !!\n");
             return false;
         }

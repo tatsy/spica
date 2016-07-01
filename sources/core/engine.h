@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <functional>
 
 #include "common.h"
 #include "forward_decl.h"
@@ -37,13 +38,13 @@ class SPICA_EXPORTS Engine {
 public:
     // Public methods
     Engine();
-    ~Engine();
+    virtual ~Engine();
 
     void init(const Option& option);
     void start(const std::string& filename) const;
     void cleanup();
 
-private:
+protected:
     template <class T>
     bool parse(const boost::property_tree::ptree& xml, T* value) const;
 
@@ -68,6 +69,9 @@ private:
                                const std::shared_ptr<Texture<Spectrum>>& sigma_s,
                                double eta, double scale, double g) const;
 
+    virtual bool parse_film(const boost::property_tree::ptree& xml,
+                            Film** film) const;
+
     bool find_field(const boost::property_tree::ptree& xml,
                     const std::string& field, const std::string& value,
                     boost::property_tree::ptree* result,
@@ -77,10 +81,6 @@ private:
     Option option_;
 
 };  // class Engine
-
-template <>
-SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
-    Film** film) const;
 
 template <>
 SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,

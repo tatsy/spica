@@ -1,74 +1,102 @@
 #include "scene_viewer.h"
 
+#include <QtCore/qdebug.h>
+
+#include <QtWidgets/qmenubar.h>
+#include <QtWidgets/qspinbox.h>
+#include <QtWidgets/qfiledialog.h>
+
+#include "report_engine.h"
+
 namespace spica {
 
+class SceneViewer::Ui : public QWidget {
+public:
+    explicit Ui(QWidget* parent = nullptr)
+        : QWidget{ parent } {
+        layout = new QVBoxLayout(this);
+        layout->setAlignment(Qt::AlignTop);
+        setLayout(layout);
+
+        spinBox = new QSpinBox(this);
+        spinBox->setValue(1);
+        layout->addWidget(spinBox);
+    }
+
+    virtual ~Ui() {
+        delete spinBox;
+        delete layout;
+    }
+
+private:
+    QVBoxLayout* layout = nullptr;
+    QSpinBox* spinBox = nullptr;
+};
+
 SceneViewer::SceneViewer(QWidget *parent)
-    : QMainWindow(parent)
-    , mainContainer(new QWidget)
-    , mainLayout(new QHBoxLayout)
-
-    , rightContainer(new QWidget)
-    , leftContainer(new QWidget)
-
-    , rightLayout(new QVBoxLayout)
-    , leftLayout(new QVBoxLayout)
-
-    , qglWidget(new QGLRenderWidget)
-    , paramWidget(new RenderParamWidget)
-
-    , renderer()
-    , renderThread(new RenderThread)
-{
+    : QMainWindow{ parent } {
     setFont(QFont("Meiryo UI"));
 
-    mainContainer->setLayout(mainLayout);
-    mainLayout->addWidget(leftContainer);
-    mainLayout->addWidget(rightContainer);
+    mainWidget = new QWidget();
+    mainLayout = new QGridLayout();
+    mainWidget->setLayout(mainLayout);
+    setCentralWidget(mainWidget);
 
-    rightContainer->setLayout(rightLayout);
-    QSizePolicy rightSize(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    rightSize.setHorizontalStretch(1);
-    rightContainer->setSizePolicy(rightSize);
+    // Right area
+    ui = new Ui(this);
+    mainLayout->setColumnStretch(1, 1);
+    mainLayout->addWidget(ui, 0, 1);
 
-    leftContainer->setLayout(leftLayout);
-    QSizePolicy leftSize(QSizePolicy::Preferred, QSizePolicy::Preferred);
-    leftSize.setHorizontalStretch(4);
-    leftContainer->setSizePolicy(leftSize);
+    // Left area
+    stackedWidget = new QStackedWidget(this);
 
-    leftLayout->addWidget(qglWidget);
+    glViewer = new OpenGLViewer();
+    stackedWidget->addWidget(glViewer);
 
-    rightLayout->addWidget(paramWidget);
+    imageViewer = new ImageViewer(this);
+    stackedWidget->addWidget(imageViewer);
 
-    setCentralWidget(mainContainer);
+    stackedWidget->setCurrentIndex(1);
 
-    setSignalSlots();
+    mainLayout->setColumnStretch(0, 4);
+    mainLayout->addWidget(stackedWidget, 0, 0);
+
+    // Menu
+    fileMenu = menuBar()->addMenu(tr("&File"));
+    openAct = new QAction(tr("&Open"), this);
+    openAct->setShortcut(tr("Ctrl+O"));
+    fileMenu->addAction(openAct);
+
+    // SIGNAL / SLOT settings
+    connect(openAct, SIGNAL(triggered()), this, SLOT(OnOpenActTriggered()));
 }
 
 SceneViewer::~SceneViewer() {
-    delete qglWidget;
-    delete paramWidget;
-        
-    delete rightLayout;
-    delete leftLayout;
-
-    delete rightContainer;
-    delete leftContainer;
+    delete glViewer;
+    delete imageViewer;
+    delete ui;
 
     delete mainLayout;
-    delete mainContainer;
-    
-    delete renderThread;
+    delete mainWidget;
 }
 
-void SceneViewer::setScene(const std::vector<Triangle>& tris,
-                           const std::vector<Spectrum>& Kd,
-                           const std::shared_ptr<const Camera>& camera) {
-    qglWidget->setScene(tris, Kd, camera);
+void SceneViewer::OnOpenActTriggered() {
+    QString filename = QFileDialog::getOpenFileName(this, "Open", QString(kDataDirectory.c_str()), "XML(*.xml)");
+    if (filename == "") return;
+
+    auto engine = std::make_shared<ReportEngine>();
+    connect(engine.get(), SIGNAL(imageSaved(const QImage&)), this, SLOT(OnImageSaved(const QImage&)));
+
+    auto task = std::make_shared<std::function<void()>>([=] {
+        engine->start(filename.toStdString());
+    });
+
+    RenderController* controller = new RenderController(task);
+    controller->operate();
 }
 
-void SceneViewer::setSignalSlots() {
-    connect(paramWidget->renderButton, SIGNAL(clicked()), this, SLOT(onRenderButtonClicked()));
-    connect(paramWidget->loadButton, SIGNAL(clicked()), this, SLOT(onLoadButtonClicked()));
+void SceneViewer::OnImageSaved(const QImage& image) {
+    imageViewer->showImage(image);
 }
 
 }  // namespace spica

@@ -26,20 +26,18 @@ if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
 
   set(SOURCES ${SOURCES}
       main.cc
-      vbo.cc
-      render_thread.cc
+      render_worker.cc
       scene_viewer.cc
-      scene_viewer_slots.cc
-      render_param_widget.cc
-      qgl_render_widget.cc)
+      image_viewer.cc
+      opengl_viewer.cc)
 
   set(HEADERS ${HEADERS}
-      vbo.h
       shader_location.h
       scene_viewer.h
-      render_thread.h
-      render_param_widget.h
-      qgl_render_widget.h)
+      image_viewer.h
+      render_worker.h
+      opengl_viewer.h
+      report_engine.h)
 
   set(SHADERS blinn_phong.vs blinn_phong.fs)
 

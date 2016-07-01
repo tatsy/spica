@@ -9,11 +9,12 @@
 
 #include <QtWidgets/qmainwindow.h>
 #include <QtWidgets/qwidget.h>
-#include <QtWidgets/qboxlayout.h>
+#include <QtWidgets/qgridlayout.h>
+#include <QtWidgets/qstackedwidget.h>
 
-#include "qgl_render_widget.h"
-#include "render_param_widget.h"
-#include "render_thread.h"
+#include "image_viewer.h"
+#include "opengl_viewer.h"
+#include "render_worker.h"
 
 #include "../../include/spica.h"
 
@@ -24,34 +25,25 @@ class SceneViewer : public QMainWindow {
 
 public:
     explicit SceneViewer(QWidget *parent = 0);
-    ~SceneViewer();
-
-    void setScene(const std::vector<Triangle>& tris,
-                  const std::vector<Spectrum>& Kd,
-                  const std::shared_ptr<const Camera>& camera);
-
-private:
-    void setSignalSlots();
+    virtual ~SceneViewer();
         
 private slots:
-    void onRenderButtonClicked();
-    void onLoadButtonClicked();
+    void OnOpenActTriggered();
+    void OnImageSaved(const QImage& image);
 
-protected:
-    QWidget* mainContainer;
-    QHBoxLayout* mainLayout;
-        
-    QWidget* rightContainer;
-    QWidget* leftContainer;
+private:
+    QWidget* mainWidget = nullptr;
+    QGridLayout *mainLayout = nullptr;
 
-    QVBoxLayout* rightLayout;
-    QVBoxLayout* leftLayout;
+    QStackedWidget* stackedWidget = nullptr;
 
-    QGLRenderWidget* qglWidget;
-    RenderParamWidget* paramWidget;
+    class Ui;
+    Ui* ui = nullptr;
+    OpenGLViewer *glViewer = nullptr;
+    ImageViewer* imageViewer = nullptr;
 
-    std::unique_ptr<Integrator> renderer;
-    RenderThread* renderThread;
+    QMenu* fileMenu = nullptr;
+    QAction* openAct = nullptr;
 };
 
 }  // namespace spica

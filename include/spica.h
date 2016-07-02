@@ -100,9 +100,6 @@
 // --------------------------------------------
 
 #include "../sources/scenes/scene.h"
-#include "../sources/scenes/predefined_scenes.h"
-#include "../sources/scenes/yaml_parser.h"
-#include "../sources/scenes/scene_loader.h"
 
 // --------------------------------------------
 // Viewer

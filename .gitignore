@@ -8,6 +8,7 @@ spica_dirs.h
 
 scenes/*
 !scenes/README.md
+!scenes/download.py
 
 # MacOSX ignore files
 .DS_Store

@@ -49,12 +49,10 @@ if (${SPICA_BUILD_TEST} STREQUAL "ON")
 #      test_sampler.cc
 #      test_trimesh.cc
 #      test_kdtree.cc
-      test_scene.cc
+      test_scene.cc)
 #      test_random.cc
 #      test_renderer_helper.cc
 #      test_path.cc
-      test_yaml.cc)
-    # test_renderer.cc)
 
   add_definitions(-DGTEST_LANG_CXX11)
   add_executable(${TEST_NAME} ${SOURCE_FILES})

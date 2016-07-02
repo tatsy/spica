@@ -9,7 +9,7 @@
 
 namespace spica {
 
-std::string kShaderDirectory = "C:/Users/Tatsuya/Documents/Programs/Cpp/spica/sources/viewer/";
+std::string kShaderDirectory = "/Users/tatsuya/Documents/Programs/Cpp/spica/sources/viewer/";
 
 }  // namespace spica
 

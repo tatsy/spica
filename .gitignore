@@ -6,6 +6,9 @@ data/tmp
 .cccc
 spica_dirs.h
 
+scenes/*
+!scenes/README.md
+
 # MacOSX ignore files
 .DS_Store
 .cproject

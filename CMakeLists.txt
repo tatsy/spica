@@ -124,4 +124,3 @@ include_directories(${Boost_INCLUDE_DIRS})
 # ------------------------------------------------------------------------------
 add_subdirectory(sources)
 add_subdirectory(test)
-add_subdirectory(example)

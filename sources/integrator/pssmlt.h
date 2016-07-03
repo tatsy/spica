@@ -21,16 +21,18 @@ public:
     virtual void render(const Scene& scene, const RenderParams& params) override;
 
 private:
-    PathSample calcPathSample() const;
+    class PathSample;
+    PathSample generateSample(const Scene& scene,
+                              const RenderParams& params,
+                              Sampler& sampler,
+                              MemoryArena& arena) const;
+
     Spectrum Li(const Scene& scene,
                 const RenderParams& params,
                 const Ray& r,
                 Sampler& sampler,
                 MemoryArena& arena,
-                int depth) const;
-
-    class PSSSampler;
-    std::shared_ptr<Sampler> sampler_ = nullptr;
+                int depth = 0) const;
 };
 
 }  // namespace spica

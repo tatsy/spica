@@ -13,10 +13,7 @@ function (process_subdirectory dirname)
   set(ALL_SOURCES ${ALL_SOURCES} ${SOURCES} PARENT_SCOPE)
   set(ALL_HEADERS ${ALL_HEADERS} ${HEADERS} PARENT_SCOPE)
   file(GLOB FILTER_FILES "${dirname}/*.cc" "${dirname}/*.h")
-
-  if (MSVC)
-    source_group(${dirname} FILES ${FILTER_FILES})
-  endif()
+  source_group(${dirname} FILES ${FILTER_FILES})
 endfunction()
 
 # Process subdirectories

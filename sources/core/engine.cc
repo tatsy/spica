@@ -200,6 +200,8 @@ void Engine::start(const std::string& filename) const {
             integrator = std::make_unique<PPMProbIntegrator>(camera, sampler);
         } else if (name == "irrcache") {
             integrator = std::make_unique<IrradCacheIntegrator>(camera, sampler);
+        } else if (name == "pssmlt") {
+            integrator = std::make_unique<PSSMLTIntegrator>(camera);
         } else {
             fprintf(stderr, "Unsupported integrator type: %s\n", name.c_str());
             return;
@@ -372,7 +374,7 @@ void Engine::start(const std::string& filename) const {
         
     // Start rendering
     RenderParams params;
-    params.set("NUM_SAMPLES", option_.nSamples);
+    params.set("NUM_SAMPLES", 256); //option_.nSamples);
     params.set("OUTPUT_FILE", option_.outfile);
     params.set("NUM_THREADS", option_.nThreads);
     integrator->render(scene, params);

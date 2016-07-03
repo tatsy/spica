@@ -24,6 +24,9 @@ public:
     template <class T>
     T get(const std::string& key) const;
 
+    template <class T>
+    T get(const std::string& key, T defaultValue) const;
+
 private:
     // Private fields
     std::map<std::string, std::string> table_;
@@ -64,12 +67,30 @@ inline int RenderParams::get(const std::string& key) const {
 }
 
 template <>
+inline int RenderParams::get(const std::string& key, int defaultValue) const {
+    const auto it = table_.find(key);
+    if (it == table_.cend()) {
+        return defaultValue;
+    }
+    return std::atoi(it->second.c_str());
+}
+
+template <>
 inline double RenderParams::get(const std::string& key) const {
     const auto it = table_.find(key);
     if (it == table_.cend()) {
         fprintf(stderr, "Specified key \"%s\" was not found\n",
                 key.c_str());
         return 0;
+    }
+    return std::atof(it->second.c_str());
+}
+
+template <>
+inline double RenderParams::get(const std::string& key, double defaultValue) const {
+    const auto it = table_.find(key);
+    if (it == table_.cend()) {
+        return defaultValue;
     }
     return std::atof(it->second.c_str());
 }
@@ -82,7 +103,16 @@ inline std::string RenderParams::get(const std::string& key) const {
                 key.c_str());
         return 0;
     }
-    return std::move(it->second);
+    return it->second;
+}
+
+template <>
+inline std::string RenderParams::get(const std::string& key, std::string defaultValue) const {
+    const auto it = table_.find(key);
+    if (it == table_.cend()) {
+        return defaultValue;
+    }
+    return it->second;    
 }
 
 }  // namespace spica

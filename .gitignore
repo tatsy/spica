@@ -10,6 +10,8 @@ scenes/*
 !scenes/README.md
 !scenes/download.py
 
+shader_location.h
+
 # MacOSX ignore files
 .DS_Store
 .cproject

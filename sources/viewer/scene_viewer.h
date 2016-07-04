@@ -44,6 +44,9 @@ private:
 
     QMenu* fileMenu = nullptr;
     QAction* openAct = nullptr;
+
+    class Config;
+    std::unique_ptr<Config> config_ = nullptr;
 };
 
 }  // namespace spica

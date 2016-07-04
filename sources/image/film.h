@@ -34,7 +34,25 @@ public:
         return static_cast<double>(resolution_.x()) / resolution_.y();
     }
 
+    /**
+     * Save the result by dividing sum(w * I) by sum(w). 
+     * This method is typically used for SamplerIntegrator, which take the same
+     * number of samples for each pixel.
+     *
+     * @param[in] id: The ID used for naming the image file.
+     */
     void save(int id = 0) const;
+
+    /**
+     * Save the result by computing, (sum(w * I) * ns / (sum(w)), where ns is
+     * number of samples generated for a pixel.
+     * This method is typically used for MLT-like algorithms, which take 
+     * different number of samples for each pixel.
+     *
+     * @param[in] scale: The parameter to scale pixel values.
+     */
+    void saveMLT(double scale, int id = 0) const;
+
     void setImage(const Image& image);
     void addPixel(const Point2i& pixel, const Point2d& pInPixel,
                   const Spectrum& color);
@@ -54,6 +72,7 @@ private:
     std::string filename_;
     Image image_;
     std::vector<std::vector<double>> weights_;
+    std::vector<std::vector<int>> samples_;
     std::unique_ptr<std::function<void(const Image&)>> saveCallback_;
 
 };  // class Film

@@ -48,6 +48,12 @@ protected:
     template <class T>
     bool parse(const boost::property_tree::ptree& xml, T* value) const;
 
+    bool parse_integrator(const boost::property_tree::ptree& xml,
+                          std::unique_ptr<Integrator>* integrator,
+                          RenderParams* params,
+                          const std::shared_ptr<const Camera>& camera,
+                          const std::shared_ptr<Sampler>& sampler = nullptr) const;
+
     bool parse_shape(const boost::property_tree::ptree& xml,
                      std::vector<std::shared_ptr<Shape>>* shapes,
                      const Transform& toWorld,

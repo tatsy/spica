@@ -33,7 +33,7 @@
 
 namespace spica {
 
-PathIntegrator::PathIntegrator(const std::shared_ptr<Camera>& camera,
+PathIntegrator::PathIntegrator(const std::shared_ptr<const Camera>& camera,
                                const std::shared_ptr<Sampler>& sampler)
     : SamplerIntegrator{ camera, sampler }
     , sampler_{ sampler } {

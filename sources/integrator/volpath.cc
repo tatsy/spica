@@ -18,8 +18,8 @@
 
 namespace spica {
 
-VolPathIntegrator::VolPathIntegrator(std::shared_ptr<Camera>& camera,
-                                     std::shared_ptr<Sampler>& sampler)
+VolPathIntegrator::VolPathIntegrator(const std::shared_ptr<const Camera>& camera,
+                                     const std::shared_ptr<Sampler>& sampler)
     : PathIntegrator{ camera, sampler } {
 }
 

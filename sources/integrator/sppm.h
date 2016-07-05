@@ -19,7 +19,7 @@ namespace spica {
 class SPICA_EXPORTS SPPMIntegrator : public Integrator {
 public:
     // Public methods
-    SPPMIntegrator(const std::shared_ptr<Camera>& camera,
+    SPPMIntegrator(const std::shared_ptr<const Camera>& camera,
                    const std::shared_ptr<Sampler>& sampler);
     ~SPPMIntegrator();
 

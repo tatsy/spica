@@ -91,6 +91,8 @@ namespace spica {
     class MediumInteraction;
     class RenderParams;
     class Photon;
+
+    class Integrator;
     class HierarchicalIntegrator;
 
     // Accelerator module

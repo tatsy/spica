@@ -21,7 +21,7 @@ namespace spica {
 class SPICA_EXPORTS PathIntegrator : public SamplerIntegrator {
 public:
     // Public methods
-    PathIntegrator(const std::shared_ptr<Camera>& camera,
+    PathIntegrator(const std::shared_ptr<const Camera>& camera,
                    const std::shared_ptr<Sampler>& sampler);
     ~PathIntegrator();
 

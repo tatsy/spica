@@ -86,20 +86,20 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
             double x = props.second.get<double>("<xmlattr>.x");
             double y = props.second.get<double>("<xmlattr>.y");
             double z = props.second.get<double>("<xmlattr>.z");
-            *transform *= Transform::translate(Vector3d(x, y, z));        
+            *transform = Transform::translate(Vector3d(x, y, z)) * (*transform);        
         }
 
         if (props.first == "scale") {
             double x = props.second.get<double>("<xmlattr>.x");
             double y = props.second.get<double>("<xmlattr>.y");
             double z = props.second.get<double>("<xmlattr>.z");
-            *transform *= Transform::scale(x, y, z);
+            *transform = Transform::scale(x, y, z) * (*transform);
         }
 
         if (props.first == "rotate") {
             Vector3d axis = getVector3d(props.second.get<std::string>("<xmlattr>.axis"));
             double angle = props.second.get<double>("<xmlattr>.angle");
-            *transform *= Transform::rotate(angle, axis);
+            *transform = Transform::rotate(angle, axis) * (*transform);
         }
 
         if (props.first == "lookAt") {
@@ -109,7 +109,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                 props.second.get<std::string>("<xmlattr>.target"));
             Vector3d up = getVector3d(
                 props.second.get<std::string>("<xmlattr>.up"));
-            *transform *= Transform::lookAt(Point3d(origin), Point3d(target), up);
+            *transform = Transform::lookAt(Point3d(origin), Point3d(target), up) * (*transform);
         }
     }
     return true;
@@ -161,9 +161,9 @@ void Engine::start(const std::string& filename) const {
         return;
     }
 
-    std::shared_ptr<Camera>  camera  = nullptr;
+    std::shared_ptr<Camera> camera  = nullptr;
     if (!parse(sensorNode, &camera)) {
-        fprintf(stderr, "\"Failed to parse \"sensor\" block!!\n");
+        fprintf(stderr, "Failed to parse \"sensor\" block!!\n");
     }
 
     // Parse sampler.
@@ -175,38 +175,22 @@ void Engine::start(const std::string& filename) const {
 
     std::shared_ptr<Sampler> sampler = nullptr;
     if (!parse(samplerNode, &sampler)) {
-        fprintf(stderr, "\"Failed to parse \"sampler\" block!!\n");
+        fprintf(stderr, "Failed to parse \"sampler\" block!!\n");
         return;
     }
     
     // Parse integrator
-    std::unique_ptr<Integrator> integrator = nullptr;
     auto integNode = xml.get_child("scene.integrator");
     if (integNode.empty()) {
         fprintf(stderr, "\"integrator\" block not found!!\n");
         return;
-    } else {
-        const std::string name =
-            xml.get<std::string>("scene.integrator.<xmlattr>.type");
-        if (name == "path") {
-            integrator = std::make_unique<PathIntegrator>(camera, sampler);
-        } else if (name == "volpath") {
-            integrator = std::make_unique<VolPathIntegrator>(camera, sampler);
-        } else if (name == "direct") {
-            integrator = std::make_unique<DirectLightingIntegrator>(camera, sampler);
-        } else if (name == "sppm") {
-            integrator = std::make_unique<SPPMIntegrator>(camera, sampler);
-        } else if (name == "ppm") {
-            integrator = std::make_unique<PPMProbIntegrator>(camera, sampler);
-        } else if (name == "irrcache") {
-            integrator = std::make_unique<IrradCacheIntegrator>(camera, sampler);
-        } else if (name == "pssmlt") {
-            integrator = std::make_unique<PSSMLTIntegrator>(camera);
-        } else {
-            fprintf(stderr, "Unsupported integrator type: %s\n", name.c_str());
-            return;
-        }
-        printf("Integrator: %s\n", name.c_str());
+    }
+
+    std::unique_ptr<Integrator> integrator = nullptr;
+    RenderParams params;
+    if (!parse_integrator(integNode, &integrator, &params, camera, sampler)) {
+        fprintf(stderr, "Failed to parse \"integrator\" block!!\n");
+        return;
     }
 
     // Parse bsdf, subsurface, and medium.
@@ -373,8 +357,7 @@ void Engine::start(const std::string& filename) const {
     Scene scene(bbvh, lights);
         
     // Start rendering
-    RenderParams params;
-    params.set("NUM_SAMPLES", 256); //option_.nSamples);
+    params.set("NUM_SAMPLES", option_.nSamples);
     params.set("OUTPUT_FILE", option_.outfile);
     params.set("NUM_THREADS", option_.nThreads);
     integrator->render(scene, params);
@@ -497,6 +480,8 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                     farClip = props.second.get<double>("<xmlattr>.value");
                 } else if (name == "focusDistance") {
                     focusDistance = props.second.get<double>("<xmlattr>.value");
+                } else if (name == "apertureRadius") {
+                    lensr = props.second.get<double>("<xmlattr>.value");
                 }
             }
         }           
@@ -509,6 +494,58 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
     } else {
         FatalError("Unknown sensor type \"%s\" is specified!!\n", type.c_str());
     }
+    return true;
+}
+
+bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
+                              std::unique_ptr<Integrator>* integrator,
+                              RenderParams* params,
+                              const std::shared_ptr<const Camera>& camera,
+                              const std::shared_ptr<Sampler>& sampler) const {
+    // Parse integrator.
+    const std::string name =
+        xml.get<std::string>("<xmlattr>.type");
+    if (name == "path") {
+        *integrator = std::make_unique<PathIntegrator>(camera, sampler);
+    } else if (name == "volpath") {
+        *integrator = std::make_unique<VolPathIntegrator>(camera, sampler);
+    } else if (name == "direct") {
+        *integrator = std::make_unique<DirectLightingIntegrator>(camera, sampler);
+    } else if (name == "sppm") {
+        *integrator = std::make_unique<SPPMIntegrator>(camera, sampler);
+    } else if (name == "ppm") {
+        *integrator = std::make_unique<PPMProbIntegrator>(camera, sampler);
+    } else if (name == "irrcache") {
+        *integrator = std::make_unique<IrradCacheIntegrator>(camera, sampler);
+    } else if (name == "pssmlt") {
+        *integrator = std::make_unique<PSSMLTIntegrator>(camera);
+    } else {
+        fprintf(stderr, "Unsupported integrator type: %s\n", name.c_str());
+        return false;
+    }
+    printf("Integrator: %s\n", name.c_str());
+
+    // Parse options.
+    for (const auto& child : xml) {
+        if (child.first == "integer") {
+            std::string name = child.second.get<std::string>("<xmlattr>.name", "");
+            int n = child.second.get<int>("<xmlattr>.value");
+            if (name == "maxDepth") {
+                params->set("MAX_BOUNCES", n);                
+            } else if (name == "globalPhotons") {
+                params->set("CAST_PHOTONS", n);
+            } else if (name == "lookupSize") {
+                params->set("GATHER_PHOTONS", n);
+            }
+        } else if (child.first == "float") {
+            std::string name = child.second.get<std::string>("<xmlattr>.name", "");
+            double f = child.second.get<double>("<xmlattr>.value");
+            if (name == "globalLookupRadius") {
+                params->set("GATHER_RADIUS", f);
+            }
+        }
+    }
+    
     return true;
 }
 
@@ -648,7 +685,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
         auto Ks = std::make_shared<ConstantTexture<Spectrum>>(specular);
         auto rough = std::make_shared<ConstantTexture<double>>(alpha);
         *material = std::make_shared<PlasticMaterial>(Kd, Ks, rough);
-    } else if (type == "metal") {
+    } else if (type == "roughconductor") {
         // Metal
         Spectrum eta(1.0);
         Spectrum specular(0.999);

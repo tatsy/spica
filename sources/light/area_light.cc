@@ -57,7 +57,9 @@ namespace spica {
 
     void AreaLight::pdfLe(const Ray& ray, const Normal3d& nLight,
                           double* pdfPos, double* pdfDir) const {
-        
+        Interaction it(ray.org(), nLight, Vector3d(nLight));
+        *pdfPos = shape_->pdf(it);
+        *pdfDir = cosineHemispherePdf(vect::dot(nLight, ray.dir()));
     }
 
     Spectrum AreaLight::power() const {

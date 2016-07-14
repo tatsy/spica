@@ -6,7 +6,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/pathtrace.cc
     ${CMAKE_CURRENT_LIST_DIR}/volpath.cc
     ${CMAKE_CURRENT_LIST_DIR}/directlighting.cc
-#    ${CMAKE_CURRENT_LIST_DIR}/bdpt.cc
+    ${CMAKE_CURRENT_LIST_DIR}/bdpt.cc
     ${CMAKE_CURRENT_LIST_DIR}/pssmlt.cc
     ${CMAKE_CURRENT_LIST_DIR}/ppmprob.cc
     ${CMAKE_CURRENT_LIST_DIR}/sppm.cc
@@ -23,7 +23,7 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/pathtrace.h
     ${CMAKE_CURRENT_LIST_DIR}/volpath.h
     ${CMAKE_CURRENT_LIST_DIR}/directlighting.h
-#    ${CMAKE_CURRENT_LIST_DIR}/bdpt.h
+    ${CMAKE_CURRENT_LIST_DIR}/bdpt.h
     ${CMAKE_CURRENT_LIST_DIR}/pssmlt.h
     ${CMAKE_CURRENT_LIST_DIR}/ppmprob.h
     ${CMAKE_CURRENT_LIST_DIR}/sppm.h

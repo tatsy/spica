@@ -31,6 +31,12 @@ public:
                  const Point2d& randLens, double* pdfPos = nullptr,
                  double* pdfDir = nullptr) const override;
 
+    Spectrum We(const Ray& ray, Point2d* pRaster = nullptr) const override;
+    void pdfWe(const Ray& ray, double* pdfPos, double* pdfDir) const override;
+    Spectrum sampleWi(const Interaction& ref, const Point2d& rand,
+                      Vector3d* wi, double* pdf, Point2d* pRaster,
+                      VisibilityTester* vis) const override;
+
 private:
     // Private fields
     Vector3d uCamera_, vCamera_;

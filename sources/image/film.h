@@ -56,6 +56,7 @@ public:
     void setImage(const Image& image);
     void addPixel(const Point2i& pixel, const Point2d& pInPixel,
                   const Spectrum& color);
+    void addPixel(const Point2d& pixel, const Spectrum& color);
 
     inline void setFilename(const std::string filename) {
         this->filename_ = filename;

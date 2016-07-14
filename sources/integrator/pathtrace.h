@@ -2,8 +2,8 @@
 #pragma once
 #endif
 
-#ifndef SPICA_PT_RENDERER_H_
-#define SPICA_PT_RENDERER_H_
+#ifndef _SPICA_PATH_INTEGRATOR_H_
+#define _SPICA_PATH_INTEGRATOR_H_
 
 #include <string>
 
@@ -40,4 +40,4 @@ protected:
 
 }  // namespace spica
 
-#endif  // SPICA_PT_RENDERER_H_
+#endif  // _SPICA_PATH_INTEGRATOR_H_

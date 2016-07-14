@@ -86,6 +86,11 @@ int Distribution1D::sampleDiscrete(double rand, double* pdf) const {
     return off;
 }
 
+double Distribution1D::pdfDiscrete(int index) const {
+    Assertion(index >= 0 && index < count(), "Index out of bounds");
+    return func_[index] / (integral_ * count());
+}
+
 int Distribution1D::findInterval(const std::vector<double>& cdf, double v) {
     int ret = std::upper_bound(cdf.begin(), cdf.end(), v) - cdf.begin() - 1;    
     return std::min(ret, (int)cdf.size() - 1);

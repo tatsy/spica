@@ -45,4 +45,17 @@ Ray OrthographicCamera::spawnRay(const Point2i& pixel, const Point2d& randFilm,
     return Ray{ orgWorld, dirWorld };
 }
 
+Spectrum OrthographicCamera::We(const Ray& ray, Point2d* pRaster) const {
+    return Spectrum(0.0);
+}
+
+void OrthographicCamera::pdfWe(const Ray& ray, double* pdfPos, double* pdfDir) const {
+}
+
+Spectrum OrthographicCamera::sampleWi(const Interaction& ref, const Point2d& rand,
+                                      Vector3d* wi, double* pdf, Point2d* pRaster,
+                                      VisibilityTester* vis) const {
+    return Spectrum(0.0);
+}
+
 }  // namespace spica

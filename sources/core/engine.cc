@@ -507,6 +507,8 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
         xml.get<std::string>("<xmlattr>.type");
     if (name == "path") {
         *integrator = std::make_unique<PathIntegrator>(camera, sampler);
+    } else if (name == "bdpt") {
+        *integrator = std::make_unique<BDPTIntegrator>(camera, sampler);
     } else if (name == "volpath") {
         *integrator = std::make_unique<VolPathIntegrator>(camera, sampler);
     } else if (name == "direct") {

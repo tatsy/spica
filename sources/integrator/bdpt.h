@@ -1,38 +1,34 @@
-#ifndef SPICA_BPT_RENDERER_H_
-#define SPICA_BPT_RENDERER_H_
+#ifdef _MSC_VER
+#pragma once
+#endif
 
+#ifndef _SPICA_BDPT_INTEGRATOR_H_
+#define _SPICA_BDPT_INTEGRATOR_H_
+
+#include "../core/common.h"
 #include "../core/forward_decl.h"
-#include "renderer_interface.h"
+
+#include "integrator.h"
 
 namespace spica {
     
-    /** Bidirectional path tracing
-     *  @ingroup renderer_module
-     */
-    class SPICA_EXPORTS BDPTRenderer : public IRenderer {
-    public:
-        /** BDPT renderer constructor.
-         */
-        BDPTRenderer();
+/** Bidirectional path tracing
+ *  @ingroup renderer_module
+ */
+class SPICA_EXPORTS BDPTIntegrator : public Integrator {
+public:
+    // Public methods
+    BDPTIntegrator(const std::shared_ptr<const Camera>& camera,
+                   const std::shared_ptr<Sampler>& sampler);
+    ~BDPTIntegrator();
 
-        /** BDPT renderer destructor.
-         */
-        ~BDPTRenderer();
+    void render(const Scene& scene,
+                const RenderParams& params) override;
 
-        /** Rendering process.
-         */
-        void render(const Scene& scene, const Camera& camera,
-                    const RenderParameters& params) override;
-
-    private:
-        /** Redering a pixel.
-         */
-        void renderPixel(const Scene& scene, const DoFCamera& camera,
-                         const RenderParameters& params,
-                         RandomSampler& sampler,
-                         Image& buffer, int x, int y) const;
-    };
+private:
+    std::shared_ptr<Sampler> sampler_ = nullptr;
+};
 
 }  // namespace spica
 
-#endif // SPICA_BPT_RENDERER_H_
+#endif // _SPICA_BDPT_INTEGRATOR_H_

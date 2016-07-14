@@ -1,726 +1,782 @@
 #define SPICA_API_EXPORT
 #include "bdpt.h"
 
-#include <cmath>
-#include <cstdio>
-#include <vector>
-#include <algorithm>
+#include <mutex>
 
-#include "renderer_helper.h"
-#include "render_parameters.h"
-
-#include "../core/common.h"
+#include "../core/ray.h"
+#include "../core/interaction.h"
 #include "../core/sampling.h"
+#include "../core/memory.h"
+#include "../core/parallel.h"
+#include "../core/renderparams.h"
 
-#include "../image/tmo.h"
+#include "../image/film.h"
+#include "../scenes/scene.h"
 
-#include "../camera/dof_camera.h"
-#include "../bsdf/bsdf.h"
+#include "../light/spica_light.h"
 
-#include "../random/random_sampler.h"
-#include "../random/random.h"
-#include "../random/halton.h"
+#include "../camera/spica_camera.h"
+
+#include "../bxdf/bxdf.h"
+#include "../bxdf/phase.h"
+#include "../bxdf/bsdf.h"
+
+#include "../medium/medium.h"
+
+#include "../random/sampler.h"
+
+#include "mis.h"
 
 namespace spica {
 
-    namespace {
+enum class VertexType : int {
+    Camera, Light, Surface, Medium
+};
 
+struct EndpointInteraction : Interaction { 
+    union {
+        const Camera* camera;
+        const Light* light;
+    };
 
-        enum class HitOn : int {
-            Light,
-            Lens,
-            Object
-        };
+    EndpointInteraction() 
+        : Interaction{}
+        , light{ nullptr } {
+    }
 
-        /** Structs for storing path/light tracing results.
-         */
-        struct TraceResult {
-            Spectrum value;
-            int imageX;
-            int imageY;
-            HitOn hitObj;
+    EndpointInteraction(const Ray& ray)
+        : Interaction { ray.proceeded(1.0) }
+        , light{ nullptr } {
+        normal_ = Normal3d(-ray.dir());
+    }
 
-            TraceResult(const Spectrum& value_,
-                        int imageX_, int imageY_,
-                        HitOn hitObj_)
-                : value{value_}
-                , imageX{imageX_}
-                , imageY{imageY_}
-                , hitObj{hitObj_} {
-            }
-        };
+    EndpointInteraction(const Interaction& it, const Light* light_)
+        : Interaction{ it }
+        , light{ light_ } {
+    }
 
-        enum class ObjectType : int {
-            Light,
-            Lens,
-            Diffuse,
-            Dielectric
-        };
+    EndpointInteraction(const Interaction& it, const Camera* camera_)
+        : Interaction{ it }
+        , camera{ camera_ } {
+    }
 
-        /* Struct for storing traced vertices
-         */
-        struct Vertex {
-            Point position;
-            Normal objectNormal;
-            Normal orientNormal;
-            Spectrum reflectance;
-            Spectrum emission;
-            ObjectType objtype;
-            double totalPdfA;
-            Spectrum throughput;
-            int objectID;
+    EndpointInteraction(const Camera* camera_, const Ray& ray)
+        : Interaction{ ray.org() }
+        , camera{ camera_ } {
+    }
 
-            Vertex(const Point& position_,
-                   const Normal& orientNormal_,
-                   const Normal& objectNormal_,
-                   const Spectrum& reflectance_,
-                   const Spectrum& emission_,
-                   const ObjectType objtype_,
-                   const double totalPdfA_,
-                   const Spectrum& throughput_,
-                   int objectID_)
-                : position{position_}
-                , orientNormal{orientNormal_}
-                , objectNormal{objectNormal_}
-                , reflectance{reflectance_}
-                , emission{emission_}
-                , objtype{objtype_}
-                , totalPdfA{totalPdfA_}
-                , throughput{throughput_}
-                , objectID{objectID_} {
-            }
-        };
+    // TODO: a bit different.
+    EndpointInteraction(const Light* light_, const Ray& r, const Normal3d& nl)
+        : Interaction{ r.org() }
+        , light{ light_ } {
+        normal_ = nl;        
+    }
+};
 
-
-        // --------------------------------------------------
-        // Sample functions
-        // --------------------------------------------------
-
-        double sample_hemisphere_pdf_omega(const Normal& normal, const Vector3D& direction) {
-            return std::max(vect::dot(normal, direction), 0.0) * INV_PI;
+template <class Type>
+class ScopedAssignment {
+public:
+    ScopedAssignment(Type* target_ = nullptr, Type value = Type())
+        : target{ target_ } {
+        if (target) {
+            backup = *target;
+            *target = value;
         }
+    }
 
-        // --------------------------------------------------
-        // Multiple importance sampling
-        // --------------------------------------------------
+    ~ScopedAssignment() {
+        if (target) *target = backup;
+    }
 
-        double calcPdfA(const Scene& scene, const DoFCamera& camera, const std::vector<const Vertex*>& verts, const int prevFromIdx, const int fromIdx, const int nextIdx) {
-            static const double reflectProb = 0.5;
+    ScopedAssignment(const ScopedAssignment& sa) = delete;
+    ScopedAssignment& operator=(const ScopedAssignment& sa) = delete;
 
-            const Vertex& fromVert = *verts[fromIdx];
-            const Vertex& nextVert = *verts[nextIdx];
-            Vertex const* prevFromVertex = NULL;
-            if (0 <= prevFromIdx && prevFromIdx < verts.size()) {
-                prevFromVertex = verts[prevFromIdx];
+    ScopedAssignment& operator=(ScopedAssignment&& sa) {
+        this->target = sa.target;
+        this->backup = sa.backup;
+        sa.target = nullptr;
+        return *this;
+    }
+
+private:
+    Type* target, backup;
+};
+
+struct Vertex {
+    // Public methods
+    Vertex() {
+        intr = std::make_shared<EndpointInteraction>();
+    }
+
+    Vertex(VertexType type_, const EndpointInteraction& ei, const Spectrum& beta_)
+        : type{ type_ }
+        , beta{ beta_ } {
+        intr = std::make_shared<EndpointInteraction>(ei);
+    }
+
+    Vertex(const SurfaceInteraction& it, const Spectrum& beta_)
+        : type{ VertexType::Surface }
+        , beta{ beta_ } {
+        intr = std::make_shared<SurfaceInteraction>(it);
+    }
+
+    Vertex(const MediumInteraction& it, const Spectrum& beta_)
+        : type{ VertexType::Medium } 
+        , beta{ beta_ } {
+        intr = std::make_shared<MediumInteraction>(it);
+    }
+
+    Vertex(const Vertex& v) {
+        operator=(v);
+    }
+
+    Vertex& operator=(const Vertex& v) {
+        this->type = v.type;
+        this->beta = v.beta;
+        this->intr = v.intr;
+        this->pdfFwd = v.pdfFwd;
+        this->pdfRev = v.pdfRev;
+        this->pdfRev = v.pdfRev;
+        this->delta = v.delta;
+        return *this;
+    }
+
+    inline Point3d pos() const { return intr->pos(); }
+    inline Normal3d normal() const { return intr->normal(); }
+
+    Spectrum Le(const Scene& scene, const Vertex& v) const {
+        if (!isLight()) return Spectrum(0.0);
+
+        Vector3d w = v.pos() - this->pos();
+        if (w.squaredNorm() == 0.0) return Spectrum(0.0);
+
+        w = w.normalized();
+        if (isIBL()) {
+            Spectrum ret(0.0);
+            for (const auto& l : scene.lights()) {
+                ret += l->Le(Ray(pos(), w));
             }
-
-            const Vector3D to = nextVert.position - fromVert.position;
-            const Vector3D normalizedTo = to.normalized();
-            double pdf = 0.0;
-
-            if (fromVert.objtype == ObjectType::Light ||
-                fromVert.objtype == ObjectType::Diffuse) {
-                pdf = sample_hemisphere_pdf_omega(fromVert.orientNormal, normalizedTo);
-            } else if (fromVert.objtype == ObjectType::Lens) {
-                const Ray testRay(nextVert.position, -normalizedTo);
-                Point positionOnLens, positionOnObjplane, positionOnSensor;
-                Vector3D uvOnSensor;
-                const double lensT = camera.intersectLens(testRay, &positionOnLens, &positionOnObjplane, &positionOnSensor, &uvOnSensor);
-                if (EPS < lensT) {
-                    const Vector3D x0xI = positionOnSensor - positionOnLens;
-                    const Vector3D x0xV = positionOnObjplane - positionOnLens;
-                    const Vector3D x0x1 = testRay.origin() - positionOnLens;
-
-                    const double PImage = 1.0 / (camera.sensorW() * camera.sensorH());
-                    const double PAx1 = camera.PImageToPAx1(PImage, x0xV, x0x1, nextVert.orientNormal);
-                    return PAx1;
-                }
-                return 0.0;
-            } else if (fromVert.objtype == ObjectType::Dielectric) {
-                const BSDF& bsdf = scene.getBsdf(fromVert.objectID);
-                if (bsdf.type() == BsdfType::Refractive) {
-                    if (prevFromVertex != nullptr) {
-                        const Vector3D intoFromVertexDir = (fromVert.position - prevFromVertex->position).normalized();
-                        const bool isIncoming = vect::dot(intoFromVertexDir, fromVert.objectNormal) < 0.0;
-                        const Normal fromNewOrientNormal = isIncoming ? fromVert.objectNormal : -fromVert.objectNormal;
-
-                        Vector3D reflectdir, transdir;
-                        double fresnelRe, fresnelTr;
-                        bool totalReflection = helper::checkTotalReflection(isIncoming,
-                                                                            intoFromVertexDir, fromVert.objectNormal, fromNewOrientNormal,
-                                                                             &reflectdir, &transdir, &fresnelRe, &fresnelTr);
-                        if (totalReflection) {
-                            pdf = 1.0;
-                        } else {
-                            pdf = vect::dot(fromNewOrientNormal, normalizedTo) > 0.0 ? reflectProb : 1.0 - reflectProb;
-                        }
-                    }
-                } else {
-                    pdf = 1.0;
-                }
-            }
-
-            const Normal nextNewOrientNormal = vect::dot(to, nextVert.objectNormal) < 0.0 ? nextVert.objectNormal : -nextVert.objectNormal;
-            return pdf * vect::dot(-normalizedTo, nextNewOrientNormal) / to.dot(to);
+            return ret;
+        } else {
+            const AreaLight* l = si()->primitive()->areaLight();
+            Assertion(l != nullptr, "Area light not detected");
+            return l->L(*si(), w);
         }
+    }
 
-        double calcMISWeight(const Scene& scene, const DoFCamera& camera, const double totalPdfA, const std::vector<Vertex>& eyeVerts, const std::vector<Vertex>& lightVerts, const int nEyeVerts, const int nLightVerts) {
-            std::vector<const Vertex*> verts(nEyeVerts + nLightVerts);
-            std::vector<double> pi1pi(nEyeVerts + nLightVerts);
+    inline SurfaceInteraction* si() const {
+        return (SurfaceInteraction*)intr.get();
+    }
 
-            const double PAy0 = 1.0 / scene.lightArea();
-            const double PAx0 = 1.0 / camera.lensArea();
+    inline MediumInteraction* mi() const {
+        return (MediumInteraction*)intr.get();
+    }
 
-            const int k = nEyeVerts + nLightVerts - 1;
-            for (int i = 0; i < nLightVerts; i++) {
-                verts[i] = &lightVerts[i];
-            }
-            for (int i = nEyeVerts - 1; i >= 0; i--) {
-                verts[nLightVerts + nEyeVerts - i - 1] = &eyeVerts[i]; 
-            }
+    inline EndpointInteraction* ei() const {
+        return (EndpointInteraction*)intr.get();
+    }
 
-            // Russian roulette probability
-            double roulette = 0.0;
-            if (verts[0]->emission.norm() > 0.0) {
-                roulette = 1.0;
-            } else if (verts[0]->objectID >= 0) {
-                const Spectrum& refl = verts[0]->reflectance;
-                roulette = std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
-            }
+    inline bool isOnSurface() const {
+        return normal() != Normal3d();
+    }
 
-            pi1pi[0] = PAy0 / (calcPdfA(scene, camera, verts, 2, 1, 0) * roulette);
-            for (int i = 1; i < k; i++) {
-                const double a = calcPdfA(scene, camera, verts, i - 2, i - 1, i);
-                const double b = calcPdfA(scene, camera, verts, i + 2, i + 1, i);
-                pi1pi[i] = a / b;
-            }
+    Spectrum f(const Vertex& next) const {
+        Vector3d wi = next.pos() - this->pos();
+        if (wi.squaredNorm() == 0.0) return Spectrum(0.0);
 
-            pi1pi[k] = 0.0;
+        wi = wi.normalized();
+        switch (type) {
+        case VertexType::Surface:
+            return si()->bsdf()->f(si()->wo(), wi);
 
-            // require p
-            std::vector<double> p(nEyeVerts + nLightVerts + 1);
-            p[nLightVerts] = totalPdfA;
-            for (int i = nLightVerts; i <= k; i++) {
-                p[i + 1] = p[i] * pi1pi[i];
-            }
-            for (int i = nLightVerts - 1; i >= 0; i--) {
-                p[i] = p[i + 1] / pi1pi[i];
-            }
+        case VertexType::Medium:
+            return Spectrum(mi()->phase()->p(mi()->wo(), wi));
 
-            // Specular
-            for (int i = 0; i < verts.size(); i++) {
-                if (verts[i]->objtype == ObjectType::Dielectric) {
-                    p[i] = 0.0;
-                    p[i + 1] = 0.0;
-                }
-            }
-
-            // Power-heuristic
-            double MIS = 0.0;
-            for (int i = 0; i < p.size(); i++) {
-                const double v = p[i] / p[nLightVerts];
-                MIS += v * v;
-            }
-            return 1.0 / MIS;
+        default:
+            FatalError("Vertex::f() not implemented!!");
+            return Spectrum(0.0);
         }
+    }
 
-        // --------------------------------------------------
-        // Light and path tracer
-        // --------------------------------------------------
-
-        TraceResult lightTrace(const Scene& scene, const DoFCamera& camera, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
-            // Generate sample on the light
-            const LightSample Ls = scene.sampleLight(Point(), rstk);
-
-            // Store vertex on light itself
-            double totalPdfA = 1.0 / scene.lightArea();
-            vertices->push_back(Vertex(Ls.position(), Ls.normal(), Ls.normal(),
-                                       Spectrum(0.0, 0.0, 0.0), Ls.Le(), ObjectType::Light, totalPdfA, Spectrum(0.0, 0.0, 0.0), -1));
-
-            // Compute initial tracing direction
-            Vector3D nextDir;
-            sampler::onHemisphere(Ls.normal(), &nextDir, rstk.pop(), rstk.pop());
-            double pdfOmega = sample_hemisphere_pdf_omega(Ls.normal(), nextDir);
-
-            Ray currentRay(Ls.position(), nextDir);
-            Normal prevNormal = Ls.normal();
-
-            // Trace light ray
-            Spectrum throughput = Ls.Le();
-            for (int bounce = 0; bounce < bounceLimit; bounce++) {
-                const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
-
-                Intersection isect;
-                const bool isHitScene = scene.intersect(currentRay, &isect);
-
-                // If ray hits on the lens, return curent result
-                Point positionOnLens, positionOnObjplane, positionOnSensor;
-                Vector3D uvOnSensor;
-                double lensT = camera.intersectLens(currentRay, &positionOnLens, &positionOnObjplane, &positionOnSensor, &uvOnSensor);
-                if (EPS < lensT && lensT < isect.distance()) {
-                    const Vector3D x0xI = positionOnSensor - positionOnLens;
-                    const Vector3D x0xV = positionOnObjplane - positionOnLens;
-                    const Vector3D x0x1 = currentRay.origin() - positionOnLens;
-
-                    int x = (int)uvOnSensor.x();
-                    int y = (int)uvOnSensor.y();
-                    x = x < 0 ? 0 : x >= camera.imageW() ? camera.imageW() - 1 : x;
-                    y = y < 0 ? 0 : y >= camera.imageH() ? camera.imageH() - 1 : y;
-
-                    const double nowSamplePdfArea = pdfOmega * (x0x1.normalized().dot(camera.direction().normalized()) / x0x1.dot(x0x1));
-                    totalPdfA *= nowSamplePdfArea;
-
-                    // Geometry term
-                    const double G = x0x1.normalized().dot(camera.direction().normalized()) * (-1.0) * vect::dot(x0x1.normalized(), prevNormal) / x0x1.dot(x0x1);
-                    throughput *= G;
-                    vertices->push_back(Vertex(positionOnLens, Normal(camera.direction().normalized()), Normal(camera.direction().normalized()),
-                                        Spectrum(0.0, 0.0, 0.0), Spectrum(0.0, 0.0, 0.0), ObjectType::Lens, totalPdfA, throughput, -1));
-                
-                    const Spectrum result = Spectrum((camera.contribSensitivity(x0xV, x0xI, x0x1) * throughput) / totalPdfA);
-                    return TraceResult(result, x, y, HitOn::Lens);
-                }
-
-                if (!isHitScene) {
-                    break;
-                }
-
-                // Otherwise, trace next direction
-                const int triangleID = isect.objectID();
-                const BSDF& bsdf = scene.getBsdf(triangleID);
-                const Spectrum& refl = isect.color();
-
-                const Normal orientNormal = vect::dot(isect.normal(), currentRay.direction()) < 0.0 ? isect.normal() : -isect.normal();
-                const double rouletteProb = scene.isLightCheck(triangleID) ? 1.0 : std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
-                
-                if (rands[0] >= rouletteProb) {
-                    break;
-                }
-
-                totalPdfA *= rouletteProb;
-
-                const Vector3D toNextVertex = currentRay.origin() - isect.position();
-                const double nowSampledPdfArea = pdfOmega * vect::dot(toNextVertex.normalized(), orientNormal) / Vector3D::dot(toNextVertex, toNextVertex);
-                totalPdfA *= nowSampledPdfArea;
-
-                const double G = vect::dot(toNextVertex.normalized(), orientNormal) * vect::dot((-1.0 * toNextVertex).normalized(), prevNormal) / toNextVertex.dot(toNextVertex);
-                throughput *= G;
-
-                Spectrum emission = Spectrum(0.0, 0.0, 0.0);
-                if (scene.isLightCheck(triangleID)) {
-                    emission = scene.directLight(currentRay.direction());
-                }
-                vertices->push_back(Vertex(isect.position(), orientNormal, isect.normal(), isect.color(), emission,
-                                          bsdf.type() == BsdfType::Lambertian ? ObjectType::Diffuse : ObjectType::Dielectric,
-                                          totalPdfA, throughput, isect.objectID()));
-
-                if (bsdf.type() == BsdfType::Lambertian) {
-                    sampler::onHemisphere(orientNormal, &nextDir, rands[1], rands[2]);
-                    pdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
-                    currentRay = Ray(isect.position(), nextDir);
-                    throughput = isect.color() * throughput * INV_PI;
-                } else if (bsdf.type() == BsdfType::Specular) {
-                    pdfOmega = 1.0;
-                    const Vector3D nextDir = vect::reflect(currentRay.direction(), isect.normal());
-                    currentRay = Ray(isect.position(), nextDir);
-                    throughput = isect.color() * throughput / vect::dot(toNextVertex.normalized(), orientNormal);
-                } else if (bsdf.type() == BsdfType::Refractive) {
-                    const bool isIncoming = vect::dot(isect.normal(), orientNormal) > 0.0;
-
-                    Vector3D reflectdir, transdir;
-                    double fresnelRe, fresnelTr;
-                    bool totalReflection = helper::checkTotalReflection(isIncoming,
-                                                                        currentRay.direction(), isect.normal(), orientNormal,
-                                                                        &reflectdir, &transdir, &fresnelRe, &fresnelTr);
-
-                    if (totalReflection) {
-                        pdfOmega = 1.0;
-                        currentRay = Ray(isect.position(), reflectdir);
-                        throughput = isect.color() * throughput / vect::dot(toNextVertex.normalized(), orientNormal);
-                    } else {
-                        const double probability = 0.25 + 0.5 * kReflectProbability;
-                        if (rands[1] < probability) {
-                            pdfOmega = 1.0;
-                            currentRay = Ray(isect.position(), reflectdir);
-                            throughput = fresnelRe * (isect.color() * throughput) / vect::dot(toNextVertex.normalized(), orientNormal);
-                            totalPdfA *= probability;
-                        } else {
-                            const double ratio = isIncoming ? kIorVaccum / kIorObject : kIorObject / kIorVaccum;
-                            const double nnt2   = ratio * ratio;
-                            pdfOmega = 1.0;
-                            currentRay = Ray(isect.position(), transdir);
-                            throughput = (nnt2 * fresnelTr) * (isect.color() * throughput) / vect::dot(toNextVertex.normalized(), orientNormal);
-                            totalPdfA *= (1.0 - probability);
-                        }
-                    }
-                }
-                prevNormal = orientNormal;
-            }
-
-            return TraceResult(Spectrum(), 0, 0, HitOn::Object);
-        }
-
-        TraceResult pathTrace(const Scene& scene, const DoFCamera& camera, int x, int y, Stack<double>& rstk, std::vector<Vertex>* vertices, const int bounceLimit) {
-            // Sample point on lens and object plane
-            CameraSample camSample = camera.sample(x, y, rstk);
-
-            double totalPdfA = 1.0 / camera.lensArea();
-
-            Spectrum throughput = Spectrum(1.0, 1.0, 1.0);
-
-            vertices->push_back(Vertex(camSample.posLens(), camera.lensNormal(), camera.lensNormal(),
-                                       Spectrum(0.0, 0.0, 0.0), Spectrum(0.0, 0.0, 0.0), ObjectType::Lens, totalPdfA, throughput, -1));
+    bool isConnectible() const {
+        switch (type) {
+        case VertexType::Medium:
+            return true;
         
-            Ray nowRay = camSample.ray();
-            double nowSampledPdfOmega = 1.0;
-            Normal prevNormal = camera.lensNormal();
+        case VertexType::Light:
+            // In the future, followling line should be revised for directional light.
+            return true;
 
-            for (int bounce = 0; bounce < bounceLimit; bounce++) {
-                // Get next random
-                const double rands[3] = { rstk.pop(), rstk.pop(), rstk.pop() };
+        case VertexType::Camera:
+            return true;
 
-                Intersection isect;
-                if (!scene.intersect(nowRay, &isect)) {
+        case VertexType::Surface:
+            return si()->bsdf()->numComponents(BxDFType::Diffuse | BxDFType::Glossy |
+                                               BxDFType::Reflection |
+                                               BxDFType::Transmission) > 0;
+        }
+
+        FatalError("Unhandled vertex type in isConnectible()");
+        return false;
+    }
+
+    bool isLight() const {
+        return type == VertexType::Light ||
+               (type == VertexType::Surface && si()->primitive()->areaLight());
+    }
+
+    bool isDeltaLight() const {
+        return false;
+    }
+
+    bool isIBL() const {
+        // In the future, followling line should be revised for directional light.
+        return type == VertexType::Light && (!ei()->light);
+    }
+
+    // Convert PDF to that considers solid angle density.
+    double convertDensity(double pdf, const Vertex& next) const {
+        if (next.isIBL()) return pdf;
+
+        Vector3d w = next.pos() - this->pos();
+        double dist2 = w.squaredNorm();
+        if (dist2 == 0.0) return 0.0;
+
+        double invDist2 = 1.0 / dist2;
+        if (next.isOnSurface()) {
+            pdf *= vect::absDot(next.normal(), w * std::sqrt(invDist2));
+        }
+        return pdf * invDist2;
+    }
+
+    double pdf(const Scene& scene, const Vertex* prev,
+               const Vertex& next) const {
+        if (type == VertexType::Light) return pdfLight(scene, next);
+
+        Vector3d wn = next.pos() - this->pos();
+        if (wn.squaredNorm() == 0.0) return 0.0;
+
+        wn = wn.normalized();
+        Vector3d wp;
+        if (prev) {
+            wp = prev->pos() - this->pos();
+            if (wp.squaredNorm() == 0.0) return 0.0;
+            wp = wp.normalized();
+        } else {
+            Assertion(type == VertexType::Camera, "Here, type should be camera");
+        }
+
+        double pdf = 0.0, unused;
+        if (type == VertexType::Camera) {
+            ei()->camera->pdfWe(ei()->spawnRay(wn), &unused, &pdf);
+        } else if (type == VertexType::Surface) {
+            pdf = si()->bsdf()->pdf(wp, wn);
+        } else if (type == VertexType::Medium) {
+            pdf = mi()->phase()->p(wp, wn);
+        } else {
+            FatalError("Vertex::pdf() not implemented");
+        }
+
+        return convertDensity(pdf, next);
+    }
+
+    double pdfLight(const Scene& scene, const Vertex& v) const {
+        Vector3d w = v.pos() - this->pos();
+        double invDist2 = 1.0 / w.squaredNorm();
+        w *= std::sqrt(invDist2);
+
+        double pdf;
+        if (isIBL()) {
+            Bounds3d b = scene.worldBound();
+            Point3d worldCenter = (b.posMin() + b.posMax()) * 0.5;
+            double worldRadius = (b.posMax() - worldCenter).norm();
+            pdf = 1.0 / (PI * worldRadius * worldRadius);
+        } else {
+            Assertion(isLight(), "Here, vertex type should be light");
+            const Light* light = type == VertexType::Light ? ei()->light
+                                                           : si()->primitive()->areaLight();
+            Assertion(light != nullptr, "Light is null");
+
+            double pdfPos, pdfDir;
+            light->pdfLe(Ray(pos(), w), normal(), &pdfPos, &pdfDir);
+            pdf = pdfDir * invDist2;
+        }
+
+        if (v.isOnSurface()) pdf *= vect::absDot(v.normal(), w);
+        return pdf;
+    }
+
+    double pdfLightOrigin(const Scene& scene, const Vertex& v,
+                          const Distribution1D& lightDist) const {
+        Vector3d w = v.pos() - this->pos();
+        if (w.squaredNorm() == 0.0) return 0.0;
+
+        w = w.normalized();
+        if (isIBL()) {
+        
+        } else {
+            double pdfPos, pdfDir, pdfChoise = 0.0;
+            Assertion(isLight(), "This object should not be light.");
+           
+            const Light* light = type == VertexType::Light ? ei()->light
+                                                           : si()->primitive()->areaLight();
+            Assertion(light != nullptr, "Light is nullptr");
+
+            for (int i = 0; i < scene.lights().size(); i++) {
+                if (scene.lights()[i].get() == light) {
+                    pdfChoise = lightDist.pdfDiscrete(i);
                     break;
                 }
-
-                const BSDF& bsdf = scene.getBsdf(isect.objectID());
-                const Spectrum& refl = isect.color();
-
-                const Normal orientNormal = vect::dot(isect.normal(), nowRay.direction()) < 0.0 ? isect.normal() : -isect.normal();
-                const double rouletteProb = scene.isLightCheck(isect.objectID()) ? 1.0 : std::min(1.0, max3(refl.red(), refl.green(), refl.blue()));
-
-                if (rands[0] > rouletteProb) {
-                    break;
-                }
-
-                totalPdfA *= rouletteProb;
-
-                const Vector3D toNextVertex = nowRay.origin() - isect.position();
-                if (bounce == 0) {
-                    const Vector3D x0xI = camSample.posSensor() - camSample.posLens();
-                    const Vector3D x0xV = camSample.posObjplane() - camSample.posLens();
-                    const Vector3D x0x1 = isect.position() - camSample.posLens();
-                    const double pdfImage = 1.0 / (camera.cellW() * camera.cellH());
-                    const double PAx1 = camera.PImageToPAx1(pdfImage, x0xV, x0x1, orientNormal);
-                    totalPdfA *= PAx1;
-
-                    throughput = camera.contribSensitivity(x0xV, x0xI, x0x1) * throughput;
-                } else {
-                    const double nowSampledPdfA = nowSampledPdfOmega * vect::dot(toNextVertex.normalized(), orientNormal) / toNextVertex.squaredNorm();
-                    totalPdfA *= nowSampledPdfA;
-                }
-
-                // Geometry term
-                const double G = vect::dot(toNextVertex.normalized(), orientNormal) * vect::dot((-1.0 * toNextVertex).normalized(), prevNormal) / toNextVertex.squaredNorm();
-                throughput *= G;
-
-                if (scene.isLightCheck(isect.objectID())) {
-                    const Spectrum emittance = scene.directLight(nowRay.direction());
-                    const Spectrum result = Spectrum(throughput * emittance / totalPdfA);
-                    vertices->push_back(Vertex(isect.position(), orientNormal, isect.normal(),
-                                               isect.color(), emittance, ObjectType::Light, totalPdfA, throughput, isect.objectID()));
-                    return TraceResult(result, x, y, HitOn::Light);
-                }
-
-                vertices->push_back(Vertex(isect.position(), orientNormal, isect.normal(), isect.color(), Spectrum(0.0, 0.0, 0.0),
-                                           bsdf.type() == BsdfType::Lambertian ? ObjectType::Diffuse : ObjectType::Dielectric,
-                                           totalPdfA, throughput, isect.objectID()));
-
-                if (bsdf.type() == BsdfType::Lambertian) {
-                    Vector3D nextDir;
-                    sampler::onHemisphere(orientNormal, &nextDir, rands[1], rands[2]);
-                    nowSampledPdfOmega = sample_hemisphere_pdf_omega(orientNormal, nextDir);
-                    nowRay = Ray(isect.position(), nextDir);
-                    throughput = refl * throughput * INV_PI;
-                } else if (bsdf.type() == BsdfType::Specular) {
-                    nowSampledPdfOmega = 1.0;
-                    const Vector3D nextDir = vect::reflect(nowRay.direction(), isect.normal());
-                    nowRay = Ray(isect.position(), nextDir);
-                    throughput = refl * throughput / vect::dot(toNextVertex.normalized(), orientNormal);
-
-                } else if (bsdf.type() == BsdfType::Refractive) {
-                    const bool isIncoming = vect::dot(isect.normal(), orientNormal) > 0.0;
-
-                    Vector3D reflectdir, transdir;
-                    double fresnelRe, fresnelTr;
-                    bool totalReflection = helper::checkTotalReflection(isIncoming,
-                                                                        nowRay.direction(), isect.normal(), orientNormal,
-                                                                        &reflectdir, &transdir, &fresnelRe, &fresnelTr);
-
-                    if (totalReflection) {
-                        nowSampledPdfOmega = 1.0;
-                        nowRay = Ray(isect.position(), reflectdir);
-                        throughput = refl * throughput / vect::dot(toNextVertex.normalized(), orientNormal);                    
-                    } else {
-                        const double probability = 0.25 + 0.5 * kReflectProbability;
-                        if (rands[1] < probability) {
-                            nowSampledPdfOmega = 1.0;
-                            nowRay = Ray(isect.position(), reflectdir);
-                            throughput = fresnelRe * refl * throughput / vect::dot(toNextVertex.normalized(), orientNormal);
-                            totalPdfA *= probability;
-                        } else {
-                            const double ratio = isIncoming ? kIorVaccum / kIorObject : kIorObject / kIorVaccum;
-                            const double nnt2 = ratio * ratio;
-                            nowSampledPdfOmega = 1.0;
-                            nowRay = Ray(isect.position(), transdir);
-                            throughput = (nnt2 * fresnelTr) * (refl * throughput) / vect::dot(toNextVertex.normalized(), orientNormal);
-                            totalPdfA *= (1.0 - probability);
-                        }
-                    }
-                }
-                prevNormal = orientNormal;
             }
+            Assertion(pdfChoise != 0.0, "Current light is not included in the scene");
 
-            return TraceResult(Spectrum(), 0, 0, HitOn::Object);
+            light->pdfLe(Ray(pos(), w), normal(), &pdfPos, &pdfDir);
+            return pdfPos * pdfChoise;
+        }
+        return 0.0;
+    }
+
+    static inline Vertex createCamera(const Camera* camera, const Ray& ray,
+                                      const Spectrum& beta) {
+        return Vertex(VertexType::Camera, EndpointInteraction(camera, ray), beta);            
+    }
+
+    static inline Vertex createCamera(const Camera* camera, const Interaction& it,
+                                      const Spectrum& beta) {
+        return Vertex(VertexType::Camera, EndpointInteraction(it, camera), beta);
+    }
+
+    static inline Vertex createLight(const EndpointInteraction& ei,
+                                     const Spectrum& beta, double pdf) {
+        Vertex v(VertexType::Light, ei, beta);
+        v.pdfFwd = pdf;
+        return v;
+    }
+
+    static inline Vertex createLight(const Light& light, const Ray& ray,
+                                     const Normal3d& nrmLight, const Spectrum& Le,
+                                     double pdf) {
+        Vertex v(VertexType::Light, EndpointInteraction(&light, ray, nrmLight), Le);
+        v.pdfFwd = pdf;
+        return v;
+    }
+
+    static inline Vertex createSurface(const SurfaceInteraction& isect,
+                                       const Spectrum& beta, double pdf,
+                                       const Vertex& prev) {
+        Vertex v(isect, beta);
+        v.pdfFwd = prev.convertDensity(pdf, v);
+        return v;
+    }
+
+    static inline Vertex createMedium(const MediumInteraction& mi,
+                                      const Spectrum& beta, double pdf,
+                                      const Vertex& prev) {
+        Vertex v(mi, beta);
+        v.pdfFwd = prev.convertDensity(pdf, v);
+        return v;
+    }
+
+    const Interaction& getInteraction() const {
+        switch (type) {
+        case VertexType::Medium:
+            return *mi();
+
+        case VertexType::Surface:
+            return *si();
+
+        default:
+            return *ei();
+        }
+    }
+
+    // Public fields
+    VertexType type;
+    Spectrum beta;
+    std::shared_ptr<Interaction> intr = nullptr;
+    double pdfFwd = 0.0;
+    double pdfRev = 0.0;
+    bool delta = false;
+};
+
+int randomWalk(const Scene& scene, Ray ray, Sampler& sampler,
+                MemoryArena& arena, Spectrum beta, double pdf, int maxDepth,
+                Vertex* path, bool isCamera) {
+    if (maxDepth == 0) return 0;
+
+    int bounces = 0;
+    double pdfFwd = pdf, pdfRev = 0.0;
+    while (true) {
+        MediumInteraction mi;
+
+        SurfaceInteraction isect;
+        bool isIntersect = scene.intersect(ray, &isect);
+
+        if (ray.medium()) {
+            beta *= ray.medium()->sample(ray, sampler, arena, &mi);
         }
 
-        struct Sample {
-            int imageX;
-            int imageY;
-            Spectrum value;
-            bool startFromPixel;
+        if (beta.isBlack()) break;
 
-            Sample(const int imageX_, const int imageY_, const Spectrum& value_, const bool startFromPixel_)
-                : imageX(imageX_)
-                , imageY(imageY_)
-                , value(value_)
-                , startFromPixel(startFromPixel_)
-            {
-            }
-        };
-
-        struct BPTResult {
-            std::vector<Sample> samples;
-        };
-
-        BPTResult executeBPT(const Scene& scene, const DoFCamera& camera, Stack<double>& rstk, int x, int y, const int bounceLimit) {
-            BPTResult bptResult;
-
-            std::vector<Vertex> eyeVerts, lightVerts;
-            const TraceResult ptResult = pathTrace(scene, camera, x, y, rstk, &eyeVerts, bounceLimit);
-            const TraceResult ltResult = lightTrace(scene, camera, rstk, &lightVerts, bounceLimit);
-
-            // If trace terminates on light, store path tracing result
-            if (ptResult.hitObj == HitOn::Light) {
-                const double weightMIS = calcMISWeight(scene, camera, eyeVerts[eyeVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, (const int)eyeVerts.size(), 0);
-                const Spectrum result = Spectrum(weightMIS * ptResult.value);
-                bptResult.samples.push_back(Sample(x, y, result, true));
+        Vertex& vertex = path[bounces];
+        Vertex& prev   = path[bounces - 1];
+        if (mi.isValid()) {
+            // Process medium interaction.
+            vertex = Vertex::createMedium(mi, beta, pdfFwd, prev);
+            if (++bounces >= maxDepth) break;
+        
+            Vector3d wi;
+            pdfFwd = pdfRev = mi.phase()->sample(-ray.dir(), &wi, sampler.get2D());
+            ray = mi.spawnRay(wi);
+        } else {
+            // Process surface interaction.
+            if (!isIntersect) {
+                if (isCamera) {
+                    vertex = Vertex::createLight(EndpointInteraction(ray), beta, pdfFwd);
+                    ++bounces;
+                }   
+                break;
             }
 
-            // If trace terminates on lens, store light tracing result
-            if (ltResult.hitObj == HitOn::Lens) {
-                const double weightMIS = calcMISWeight(scene, camera, lightVerts[lightVerts.size() - 1].totalPdfA, eyeVerts, lightVerts, 0, (const int)lightVerts.size());
-                const int lx = ltResult.imageX;
-                const int ly = ltResult.imageY;
-                const Spectrum result = Spectrum(weightMIS * ltResult.value);
-                bptResult.samples.push_back(Sample(lx, ly, result, false));
+            // If medium boundary is detected, current intersection is skipped.
+            isect.setScatterFuncs(ray, arena);
+            if (!isect.bsdf()) {
+                ray = isect.spawnRay(ray.dir());
+                continue;
             }
 
-            // Connecting hitpoints of light/path tracing
-            for (int eyeVertId = 1; eyeVertId <= eyeVerts.size(); eyeVertId++) {
-                for (int lightVertId = 1; lightVertId <= lightVerts.size(); lightVertId++) {
-                    int targetX = x;
-                    int targetY = y;
-                    const Vertex& eyeEnd = eyeVerts[eyeVertId - 1];
-                    const Vertex& lightEnd = lightVerts[lightVertId - 1];
+            // Store surface interaction.
+            vertex = Vertex::createSurface(isect, beta, pdfFwd, prev);
+            if (++bounces >= maxDepth) break;
 
-                    const double totalPdfA = eyeEnd.totalPdfA * lightEnd.totalPdfA;
-                    if (totalPdfA == 0.0) {
-                        continue;
-                    }
+            // Sample next direction and compute reverse probability.
+            Vector3d wi, wo = isect.wo();
+            BxDFType type;
+            Spectrum f = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdfFwd,
+                                              BxDFType::All, &type);
+            if (f.isBlack() || pdfFwd == 0.0) break;
 
-                    Spectrum eyeThoughput = eyeEnd.throughput;
-                    Spectrum lightThrouput = lightEnd.throughput;
-                    Spectrum connectedThroughput = Spectrum(1.0, 1.0, 1.0);
-
-                    if (lightVertId == 1) {
-                        lightThrouput = lightVerts[0].emission;
-                    }
-
-                    // Cast ray from light-end to path-end to check existance of occluders
-                    Intersection isect;
-                    const Vector3D lendToEend = eyeEnd.position - lightEnd.position;
-                    const Ray testRay(lightEnd.position, lendToEend.normalized());
-                    scene.intersect(testRay, &isect);
-
-                    if (eyeEnd.objtype == ObjectType::Diffuse) {
-                        const double dist = (isect.position() - eyeEnd.position).norm();
-                        if (dist >= EPS) {
-                            continue;
-                        }
-
-                        connectedThroughput = connectedThroughput * eyeEnd.reflectance * INV_PI;
-                    } else if (eyeEnd.objtype == ObjectType::Lens) {
-                        Point positionOnLens, positionOnObjplane, positionOnSensor;
-                        Vector3D uvOnSensor;
-                        const double lensT = camera.intersectLens(testRay, &positionOnLens, &positionOnObjplane, &positionOnSensor, &uvOnSensor);
-                        if (EPS < lensT && lensT < isect.distance()) {
-                            const Vector3D x0xI = positionOnSensor - positionOnLens;
-                            const Vector3D x0xV = positionOnObjplane - positionOnLens;
-                            const Vector3D x0x1 = testRay.origin() - positionOnLens;
-
-                            targetX = (int)uvOnSensor.x();
-                            targetY = (int)uvOnSensor.y();
-                            targetX = targetX < 0 ? 0 : targetX >= camera.imageW() ? camera.imageW() - 1 : targetX;
-                            targetY = targetY < 0 ? 0 : targetY >= camera.imageH() ? camera.imageH() - 1 : targetY;
-
-                            connectedThroughput *= camera.contribSensitivity(x0xV, x0xI, x0x1);
-                        } else {
-                            continue;
-                        }
-                    } else if (eyeEnd.objtype == ObjectType::Light ||
-                               eyeEnd.objtype == ObjectType::Dielectric) {
-                        continue;
-                    }
-
-                    if (lightEnd.objtype == ObjectType::Diffuse) {
-                        connectedThroughput = connectedThroughput * lightEnd.reflectance * INV_PI;
-                    } else if (lightEnd.objtype == ObjectType::Light) {
-
-                    } else if (lightEnd.objtype == ObjectType::Lens || 
-                               lightEnd.objtype == ObjectType::Dielectric) {
-                        continue;
-                    }
-
-                    double G = std::max(0.0, (-1.0 * vect::dot(lendToEend.normalized(), eyeEnd.orientNormal)));
-                    G *= std::max(0.0, vect::dot(lendToEend.normalized(), lightEnd.orientNormal));
-                    G /= lendToEend.dot(lendToEend);
-                    connectedThroughput *= G;
-
-                    const double weightMIS = calcMISWeight(scene, camera, totalPdfA, eyeVerts, lightVerts, eyeVertId, lightVertId);
-                    if (isnan(weightMIS)) {
-                        continue;
-                    }
-
-                    const Spectrum result = Spectrum(weightMIS * (connectedThroughput * eyeThoughput * lightThrouput) / totalPdfA);
-                    bptResult.samples.push_back(Sample(targetX, targetY, result, eyeVertId > 1.0));
-                }
+            beta *= f * vect::absDot(wi, isect.normal()) / pdfFwd;
+            pdfRev = isect.bsdf()->pdf(wi, wo, BxDFType::All);
+            if ((type & BxDFType::Specular) != BxDFType::None) {
+                vertex.delta = true;
+                pdfRev = pdfFwd = 0.0;
             }
-
-            return bptResult;
+            ray = isect.spawnRay(wi);
         }
+        prev.pdfRev = vertex.convertDensity(pdfRev, prev);
+    }
+    return bounces;
+}
 
-        bool isInvalidValue(const Spectrum& color) {
-            if (isnan(color.red()) || isnan(color.green()) || isnan(color.blue())) return true;
-            if (color.red() < 0.0 || INFTY < color.red()) return true;
-            if (color.green() < 0.0 || INFTY < color.green()) return true;
-            if (color.blue() < 0.0 || INFTY < color.blue()) return true;
-            return false;
-        }
+int calcCameraSubpath(const Scene& scene, Sampler& sampler,
+                       MemoryArena& arena, int maxDepth,
+                       const Camera& camera, const Point2i& pixel,
+                       const Point2d& randFilm,
+                       Vertex* path) {
+    if (maxDepth == 0) return 0;
 
-        bool isValidValue(const Spectrum& color) {
-            return !isInvalidValue(color);
-        }
+    Point2d randLens = sampler.get2D();
 
-    }  // anonymous namespace
+    Ray ray = camera.spawnRay(pixel, randFilm, randLens); 
+    Spectrum beta(1.0);
+
+    path[0] = Vertex::createCamera(&camera, ray, beta);
     
-    BDPTRenderer::BDPTRenderer()
-        : IRenderer{RendererType::BDPT} {
-    }
+    double pdfPos, pdfDir;
+    camera.pdfWe(ray, &pdfPos, &pdfDir);
+    return randomWalk(scene, ray, sampler, arena, beta, pdfDir, maxDepth - 1, path + 1, true) + 1;
+}
 
-    BDPTRenderer::~BDPTRenderer() {
-    }
+int calcLightSubpath(const Scene& scene, Sampler& sampler,
+                      MemoryArena& arena, int maxDepth, const Distribution1D& lightDist,
+                      Vertex* path) {
+    if (maxDepth == 0) return 0;
 
-    void BDPTRenderer::render(const Scene& scene, const Camera& camera, 
-                              const RenderParameters& params) {
-        // Currently, BDPT renderer only supports DoF camera
-        Assertion(camera.type() == CameraType::DepthOfField,
-                  "camera for BDPT must be DoF type!!");
+    // Sample light.
+    double lightPdf;
+    const int lightID = lightDist.sampleDiscrete(sampler.get1D(), &lightPdf);
+    const auto& light = scene.lights()[lightID];
 
-        const int width  = camera.imageW();
-        const int height = camera.imageH();
+    // Generate a ray, and compute contributing light radiance.
+    Ray ray;
+    Normal3d nrmLight;
+    double pdfPos, pdfDir;
+    Spectrum Le = light->sampleLe(sampler.get2D(), sampler.get2D(), &ray,
+                                  &nrmLight, &pdfPos, &pdfDir);
+    if (pdfPos == 0.0 || pdfDir == 0.0 || Le.isBlack()) return 0;
 
-        // Prepare random samplers
-        std::vector<RandomSampler> samplers(kNumThreads);
-        for (int i = 0; i < kNumThreads; i++) {
-            switch (params.randomType()) {
-            case RandomType::MT19937:
-                samplers[i] = RandomSampler::useMersenne(i);
-                break;
+    // Create light end point vertex.
+    path[0] = Vertex::createLight(*light, ray, nrmLight, Le, pdfPos * lightPdf);
+    Spectrum beta = Le * vect::absDot(nrmLight, ray.dir()) / (lightPdf * pdfPos * pdfDir);
 
-            case RandomType::Halton:
-                samplers[i] = RandomSampler::useHalton(250, true, i);
-                break;
+    // Compute a path by random walk.
+    int bounces = randomWalk(scene, ray, sampler, arena, beta, pdfDir,
+                             maxDepth - 1, path + 1, false);
 
-            default:
-                FatalError("[ERROR] unknown random number generator type!!");
+    // Correct sampling density for image-based light.
+    if (path[0].isIBL()) {
+        if (bounces > 0) {
+            path[1].pdfFwd = pdfPos;
+            if (path[1].isOnSurface()) {
+                path[1].pdfFwd *= vect::absDot(ray.dir(), path[1].normal());
             }
         }
-        
-        std::vector<Image> buffer(kNumThreads, Image(width, height));
 
-        _result.resize(width, height);
+        path[0].pdfFwd = 0.0;
+    }
 
-        // Distribute tasks
-        const int taskPerThread = (height + kNumThreads - 1) / kNumThreads;
-        std::vector<std::vector<int> > tasks(kNumThreads);
-        for (int y = 0; y < height; y++) {
-            tasks[y % kNumThreads].push_back(y);
+    return bounces + 1;
+}
+
+double calcMISWeight(const Scene& scene,
+                     Vertex* lightPath, Vertex* cameraPath,
+                     Vertex& sampled,
+                     int lightID, int cameraID, 
+                     const Distribution1D& lightDist) {
+    // Single bounce connection.
+    if (lightID + cameraID == 2) return 1.0;
+
+    // To handle specular reflectio, zero contribution is remapped to 1.0.
+    auto remap0 = [](double f) -> double { return f != 0.0 ? f : 1.0; };
+
+    // Take current and previous sample.
+    Vertex* vl = lightID > 0 ? &lightPath[lightID - 1] : nullptr;
+    Vertex* vc = cameraID > 0 ? &cameraPath[cameraID - 1] : nullptr;
+    Vertex* vlMinus = lightID > 1 ? &lightPath[lightID - 2] : nullptr;
+    Vertex* vcMinus = cameraID > 1 ? &cameraPath[cameraID - 2] : nullptr;
+
+    // Temporal swaps in this function scope.
+    ScopedAssignment<Vertex> a1;
+    if (lightID == 1) {
+        a1 = { vl, sampled };
+    } else if (cameraID == 1) {
+        a1 = { vc, sampled };
+    }
+
+    ScopedAssignment<bool> a2, a3;
+    if (vc) a2 = { &vc->delta, false };
+    if (vl) a3 = { &vl->delta, false };
+
+    ScopedAssignment<double> a4;
+    if (vc) {
+        a4 = { &vc->pdfRev, lightID > 0 
+                                      ? vl->pdf(scene, vlMinus, *vc)
+                                      : vc->pdfLightOrigin(scene, *vcMinus, lightDist) };
+    }
+
+    ScopedAssignment<double> a5;
+    if (vcMinus) {
+        a5 = { &vcMinus->pdfRev, lightID > 0 ? vc->pdf(scene, vl, *vcMinus)
+                                             : vc->pdfLight(scene, *vcMinus) };
+    }
+
+    ScopedAssignment<double> a6;
+    if (vl) {
+        a6 = { &vl->pdfRev, vc->pdf(scene, vcMinus, *vl) };
+    }
+    ScopedAssignment<double> a7;
+    if (vlMinus) {
+        a7 = { &vlMinus->pdfRev, vl->pdf(scene, vc, *vlMinus) };
+    }
+
+    // Compute sum of path contributions of the same length.
+    double sumRi = 0.0;
+    double ri = 1.0;
+    for (int i = cameraID - 1; i > 0; i--) {
+        ri *= remap0(cameraPath[i].pdfRev) / remap0(cameraPath[i].pdfFwd);
+        if (cameraPath[i].delta || cameraPath[i - 1].delta) continue;
+
+        sumRi += ri;
+    }
+
+    ri = 1.0;
+    for (int i = lightID - 1; i >= 0; i--) {
+        ri *= remap0(lightPath[i].pdfRev) / remap0(lightPath[i].pdfFwd);
+        bool isDeltaLight = i > 0 ? lightPath[i - 1].delta
+                                  : lightPath[0].isDeltaLight();
+        if (lightPath[i].delta || isDeltaLight) continue;
+
+        sumRi += ri;
+    }
+
+    return 1.0 / (1.0 + sumRi);
+}
+
+Spectrum G(const Scene& scene, Sampler& sampler, const Vertex& v0,
+           const Vertex& v1) {
+    Vector3d d = v0.pos() - v1.pos();
+    double g = 1.0 / d.squaredNorm();
+
+    d *= std::sqrt(g);
+    if (v0.isOnSurface()) g *= vect::absDot(v0.normal(), d);
+    if (v1.isOnSurface()) g *= vect::absDot(v1.normal(), d);
+
+    VisibilityTester vis(v0.getInteraction(), v1.getInteraction());
+    return g * vis.transmittance(scene, sampler);
+}
+
+Spectrum connectBDPT(const Scene& scene,
+                     Vertex* lightPath, Vertex* cameraPath,
+                     int lightID, int cameraID, const Distribution1D& lightDist,
+                     const Camera& camera, Sampler& sampler, Point2d* pRaster,
+                     double* misWeight) {
+    Spectrum L(0.0);
+    if (cameraID > 1 && lightID != 0 &&
+        cameraPath[cameraID - 1].type == VertexType::Light) {
+        return Spectrum(0.0);
+    }
+
+    Vertex sampled;
+    if (lightID == 0) {
+        const Vertex& vc = cameraPath[cameraID - 1];
+        if (vc.isLight()) L = vc.Le(scene, cameraPath[cameraID - 2]) * vc.beta;
+    } else if (cameraID == 1) {
+        const Vertex& vl = lightPath[lightID - 1];
+        if (vl.isConnectible()) {
+            VisibilityTester vis;
+            Vector3d wi;
+            double pdf;
+            Spectrum Wi = camera.sampleWi(vl.getInteraction(), sampler.get2D(),
+                                          &wi, &pdf, pRaster, &vis);
+            if (pdf > 0.0 && !Wi.isBlack()) {
+                sampled = Vertex::createCamera(&camera, vis.p2(), Wi / pdf);
+                L = vl.beta * vl.f(sampled) * sampled.beta;
+                if (vl.isOnSurface()) L *= vect::absDot(wi, vl.normal());
+                if (!L.isBlack()) L *= vis.transmittance(scene, sampler);
+            }
+        }   
+    } else if (lightID == 1) {
+        const Vertex& vc = cameraPath[cameraID - 1];
+        if (vc.isConnectible()) {
+            double lightPdf;
+            VisibilityTester vis;
+            Vector3d wi;
+            double pdf;
+            int id = lightDist.sampleDiscrete(sampler.get1D(), &lightPdf);
+            const auto& l = scene.lights()[id];
+
+            Spectrum lightWeight = l->sampleLi(vc.getInteraction(), sampler.get2D(),
+                                               &wi, &pdf, &vis);
+            
+            if (pdf > 0.0 && !lightWeight.isBlack()) {
+                EndpointInteraction ei(vis.p2(), l.get());
+                sampled = Vertex::createLight(ei, lightWeight / (pdf * lightPdf), 0.0);
+                sampled.pdfFwd = sampled.pdfLightOrigin(scene, vc, lightDist);
+                L = vc.beta * vc.f(sampled) * sampled.beta;
+
+                if (vc.isOnSurface()) L *= vect::absDot(wi, vc.normal());
+                if (!L.isBlack()) L *= vis.transmittance(scene, sampler);
+            }
+        }
+    } else {
+        const Vertex& vc = cameraPath[cameraID - 1];
+        const Vertex& vl = lightPath[lightID - 1];
+        if (vc.isConnectible() && vl.isConnectible()) {
+            L = vc.beta * vc.f(vl) * vl.f(vc) * vl.beta;
+            if (!L.isBlack()) L *= G(scene, sampler, vl, vc);
+        }
+    }
+
+    double misW = L.isBlack() ? 0.0 : calcMISWeight(scene, lightPath, cameraPath,
+                                                    sampled, lightID, cameraID,
+                                                    lightDist);
+    Assertion(!std::isnan(misW), "Invalid MIS weight!!");
+
+    L *= misW;
+    if (misWeight) *misWeight = misW;
+
+    return L;    
+}
+
+BDPTIntegrator::BDPTIntegrator(const std::shared_ptr<const Camera>& camera,
+                               const std::shared_ptr<Sampler>& sampler)
+    : Integrator{ camera }
+    , sampler_{ sampler } {
+}
+
+BDPTIntegrator::~BDPTIntegrator() {
+}
+
+void BDPTIntegrator::render(const Scene& scene,
+                       const RenderParams& params) {
+    // Initialization
+    const int width = camera_->film()->resolution().x();
+    const int height = camera_->film()->resolution().y();
+
+    const int numThreads = numSystemThreads();
+    auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
+    auto arenas   = std::vector<MemoryArena>(numThreads);
+
+    Distribution1D lightDist = mis::calcLightPowerDistrib(scene);
+
+    const int numPixels = width * height;
+    const int numSamples = params.get<int>("NUM_SAMPLES");
+    const int maxBounces = params.get<int>("MAX_BOUNCES");
+    for (int i = 0; i < numSamples; i++) {
+        // Prepare samplers
+        if (i % numThreads == 0) {
+            for (int t = 0; t < numThreads; t++) {
+                auto seed = static_cast<unsigned int>(time(0) + t);
+                samplers[t] = sampler_->clone(seed);
+            }
         }
 
-        // Rendering
-        DoFCamera* dofCam = reinterpret_cast<DoFCamera*>(camera.getPtr());
-        for (int s = 0; s < params.samplePerPixel(); s++) {
-            for (int t = 0; t < taskPerThread; t++) {
-                ompfor (int threadID = 0; threadID < kNumThreads; threadID++) {
-                    Stack<double> rstk;
-                    if (t < tasks[threadID].size()) {
-                        const int y = tasks[threadID][t];
-                        for (int x = 0; x < width; x++) {
-                            renderPixel(scene, (*dofCam), params,
-                                        samplers[threadID],
-                                        buffer[threadID], x, y);
-                        }
+        std::mutex mtx;
+        std::atomic<int> proc(0);
+        parallel_for(0, numPixels, [&](int pid) {
+            const int threadID = getThreadID();
+            const int y = pid / width;
+            const int x = pid % width;
+            const Point2d randFilm = samplers[threadID]->get2D();
+
+            auto cameraPath = std::make_unique<Vertex[]>(maxBounces + 2);
+            auto lightPath  = std::make_unique<Vertex[]>(maxBounces + 1);
+            const int nCamera = calcCameraSubpath(scene, *samplers[threadID], arenas[threadID],
+                              maxBounces + 2, *camera_, Point2i(x, y), randFilm,
+                              cameraPath.get());
+            const int nLight = calcLightSubpath(scene, *samplers[threadID], arenas[threadID],
+                             maxBounces + 1, lightDist, lightPath.get());
+
+
+            Spectrum L(0.0);
+            for (int cid = 1; cid <= nCamera; cid++) {
+                for (int lid = 0; lid <= nLight; lid++) {
+                    int depth = cid + lid - 2;
+                    if ((cid == 1 && lid == 1) || (depth < 0) || (depth > maxBounces)) continue;
+
+                    Point2d pFilm = Point2d(x + randFilm.x(), y + randFilm.y());
+                    double misWeight = 0.0;
+
+                    Spectrum Lpath = connectBDPT(scene, lightPath.get(), cameraPath.get(),
+                        lid, cid, lightDist, *camera_, *samplers[threadID],
+                        &pFilm, &misWeight);
+                    if (cid == 1 && !Lpath.isBlack()) {
+                        pFilm = Point2d(width - pFilm.x(), pFilm.y());
+                        mtx.lock();
+                        camera_->film()->addPixel(pFilm, Lpath);
+                        mtx.unlock();
+                    } else {
+                        L += Lpath;
                     }
                 }
             }
+            camera_->film()->addPixel(Point2i(width - x - 1, y), randFilm, L);
 
-            _result.fill(Spectrum(0.0, 0.0, 0.0));
-            for (int k = 0; k < kNumThreads; k++) {
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        const Spectrum pix = buffer[k](x, y) / (s + 1);
-                        _result.pixel(width - x - 1, y) += pix;
-                    }
-                }
+            proc++;
+            if (proc % 1000 == 0) {
+                printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
+                fflush(stdout);
             }
+        });
 
-            char filename[256];
-            sprintf(filename, params.saveFilenameFormat().c_str(), s + 1);
-            _result = GammaTmo(2.0).apply(_result);
-            _result.save(filename);
+        camera_->film()->saveMLT(1.0 / (i + 1), i + 1);
 
-            printf("  %6.2f %%  processed -> %s\r",
-                   100.0 * (s + 1) / params.samplePerPixel(), filename);
-        }
-        printf("\nFinish!!\n");
-    }
-
-    void BDPTRenderer::renderPixel(const Scene& scene, const DoFCamera& camera,
-                                   const RenderParameters& params,
-                                   RandomSampler& sampler,
-                                   Image& buffer, int x, int y) const {
-        const int width = camera.imageW();
-        const int height = camera.imageH();
-        
-        Stack<double> rstk;
-        sampler.request(&rstk, 250);
-        BPTResult bptResult = executeBPT(scene, camera, rstk,
-                                         x, y, params.bounceLimit());
-
-        for (int i = 0; i < bptResult.samples.size(); i++) {
-            const int ix = bptResult.samples[i].imageX;
-            const int iy = bptResult.samples[i].imageY;
-            if (isValidValue(bptResult.samples[i].value)) {
-                if (bptResult.samples[i].startFromPixel) {
-                    buffer.pixel(ix, iy) += bptResult.samples[i].value;
-                }
-                else {
-                    const auto div = static_cast<double>(width * height);
-                    buffer.pixel(ix, iy) += bptResult.samples[i].value / div;
-                }
-            }
+        for (int t = 0; t < numThreads; t++) {
+            arenas[t].reset();
         }
     }
+    std::cout << "Finish!!" << std::endl;    
+}
 
 }  // namespace spica

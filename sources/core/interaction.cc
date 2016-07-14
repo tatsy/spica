@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "interaction.h"
 
+#include "../core/float.h"
 #include "../core/ray.h"
 #include "../core/primitive.h"
 #include "../math/vector3d.h"
@@ -15,7 +16,17 @@ namespace {
 Point3d offsetRayOrigin(const Point3d& p, const Normal3d& n, const Vector3d& w) {
     Vector3d offset = Vector3d(n) * 1.0e-3;
     if (vect::dot(w, n) < 0.0) offset = -offset;
-    return p + offset;
+
+    Point3d po = p + offset;
+    double ret[3];
+    for (int i = 0; i < 3; i++) {
+        if (offset[i] > 0.0) {
+            ret[i] = nextFloatUp(po[i]);
+        } else {
+            ret[i] = nextFloatDown(po[i]);
+        }
+    }
+    return Point3d(ret[0], ret[1], ret[2]);
 }
 
 }  // anonymous namespace

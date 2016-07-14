@@ -89,4 +89,10 @@ void Film::addPixel(const Point2i& pixel, const Point2d& pInPixel,
     samples_[pixel.x()][pixel.y()]     += 1;
 }
 
+void Film::addPixel(const Point2d& pixel, const Spectrum& color) {
+    Point2i p((int)pixel.x(), (int)pixel.y());
+    Point2d pd(pixel.x() - p.x(), pixel.y() - p.y());
+    addPixel(p, pd, color);
+}
+
 }  // namespace spica

@@ -29,6 +29,12 @@ public:
                          const Point2d& randLens, double* pdfPos = nullptr,
                          double* pdfDir = nullptr) const = 0;
 
+    virtual Spectrum We(const Ray& ray, Point2d* pRaster = nullptr) const = 0;
+    virtual void pdfWe(const Ray& ray, double* pdfPos, double* pdfDir) const = 0;
+    virtual Spectrum sampleWi(const Interaction& ref, const Point2d& rand,
+                              Vector3d* wi, double* pdf, Point2d* pRaster,
+                              VisibilityTester* vis) const = 0;
+
     inline Film* film() const { return film_; }
     inline const Transform& cameraToWorld() const { return cameraToWorld_; }
     inline const Transform& cameraToScreen() const { return cameraToScreen_; }

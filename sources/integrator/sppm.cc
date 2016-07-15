@@ -227,13 +227,14 @@ void SPPMIntegrator::traceRays(const Scene& scene,
         proc++;
         if (proc % width == 0) {
             printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
+            fflush(stdout);
         }
     });
     printf("\nFinish !!\n");
 
     // Construct hash grid
     constructHashGrid(hpoints, width, height);
-    std::cout << "Hash grid constructed !!" << std::endl << std::endl;
+    std::cout << "Hash grid constructed !!" << std::endl;
 }
 
 void SPPMIntegrator::tracePhotons(const Scene& scene, 
@@ -279,9 +280,12 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
         proc++;
         if (proc % 100 == 0) {
             printf("%6.2f %% processed ...\r", 100.0 * proc / numPhotons);
+            fflush(stdout);
         }
     });
-    printf("\nFinish !!\n\n");
+    printf("%6.2f %% processed ...\r", 100.0);
+    printf("\nFinish !!\n");
+    fflush(stdout);
 }
 
 void SPPMIntegrator::tracePhotonsSub(const Scene& scene,

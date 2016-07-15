@@ -205,6 +205,8 @@ PSSMLTIntegrator::~PSSMLTIntegrator() {
 
 void PSSMLTIntegrator::render(const Scene& scene, const RenderParams& params) {
     // Take parameters.
+    const int width  = camera_->film()->resolution().x();
+    const int height = camera_->film()->resolution().y();
     const double pLarge  = params.get<double>("PSSMLT_P_LARGE", 0.5);
     const int    nMutate = params.get<int>("MLT_NUM_MUTATE", 100000);
     const int    nTrial  = params.get<int>("NUM_SAMPLES");
@@ -260,10 +262,10 @@ void PSSMLTIntegrator::render(const Scene& scene, const RenderParams& params) {
                     double nextWeight    = (acceptRatio + psSampler->largeStep()) /
                                            ((nextSample.Li().luminance() / b + psSampler->pLarge()) * M);
 
-                    camera_->film()->addPixel(currentSample.pixel2i(), currentSample.pixelDec(),
-                                              currentWeight * currentSample.Li());
-                    camera_->film()->addPixel(nextSample.pixel2i(), nextSample.pixelDec(),
-                                              nextWeight * nextSample.Li());
+                    Point2d curPixel(width - currentSample.pixel().x(), currentSample.pixel().y());
+                    Point2d nextPixel(width - nextSample.pixel().x(), nextSample.pixel().y());
+                    camera_->film()->addPixel(curPixel, currentWeight * currentSample.Li());
+                    camera_->film()->addPixel(nextPixel, nextWeight * nextSample.Li());
                 }
                 mtx.unlock();
 

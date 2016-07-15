@@ -33,6 +33,18 @@ enum class VertexType : int {
     Camera, Light, Surface, Medium
 };
 
+double densityIBL(const Scene& scene, const Distribution1D& lightDist,
+                  const Vector3d& w) {
+    double pdf = 0.0;
+    for (int i = 0; i < scene.lights().size(); i++) {
+        const auto& light = scene.lights()[i];
+        if (light->type() == LightType::Envmap) {
+            pdf += light->pdfLi(Interaction(), -w) * lightDist(i);
+        }
+    }
+    return pdf / (lightDist.integral() * lightDist.count());
+}
+
 struct EndpointInteraction : Interaction { 
     union {
         const Camera* camera;
@@ -154,7 +166,7 @@ struct Vertex {
         if (isIBL()) {
             Spectrum ret(0.0);
             for (const auto& l : scene.lights()) {
-                ret += l->Le(Ray(pos(), w));
+                ret += l->Le(Ray(pos(), -w));
             }
             return ret;
         } else {
@@ -231,7 +243,8 @@ struct Vertex {
 
     bool isIBL() const {
         // In the future, followling line should be revised for directional light.
-        return type == VertexType::Light && (!ei()->light);
+        return type == VertexType::Light &&
+               (!ei()->light || ei()->light->type() == LightType::Envmap);
     }
 
     // Convert PDF to that considers solid angle density.
@@ -313,7 +326,7 @@ struct Vertex {
 
         w = w.normalized();
         if (isIBL()) {
-        
+            return densityIBL(scene, lightDist, w);
         } else {
             double pdfPos, pdfDir, pdfChoise = 0.0;
             Assertion(isLight(), "This object should not be light.");
@@ -333,7 +346,6 @@ struct Vertex {
             light->pdfLe(Ray(pos(), w), normal(), &pdfPos, &pdfDir);
             return pdfPos * pdfChoise;
         }
-        return 0.0;
     }
 
     static inline Vertex createCamera(const Camera* camera, const Ray& ray,
@@ -523,7 +535,7 @@ int calcLightSubpath(const Scene& scene, Sampler& sampler,
             }
         }
 
-        path[0].pdfFwd = 0.0;
+        path[0].pdfFwd = densityIBL(scene, lightDist, ray.dir());
     }
 
     return bounces + 1;

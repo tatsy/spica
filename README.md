@@ -15,6 +15,7 @@ This project uses C++11/14. The build is tested under following environments.
 
 * GNU C compiler (v4.9.0 or higher)
 * LLVM Clang (v3.7.0 or higher)
+* Xcode 8.0 beta
 * Microsoft Visual C++ compiler (MSVC 2015)
 
 #### Requirements
@@ -42,19 +43,29 @@ $ cmake --build .
 
 <img src="./results/cbox_1000.png" width="512" />
 
+Simple path tracing, 1000 spp.
 The scene courtesy of Mitsuba renderer (W. Jakob 2010).
 
 #### Cornell Box (Subsurface Scattering)
 
 <img src="./results/cbox_sss_5000.png" width="512" />
 
+Simple path tracing, 5000 spp.
 The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
 
 #### Multiple Importance Sampling
 
 <img src="./results/mi_1000.png" width="512" />
 
+Direct lighting only, 1000 spp.
 The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
+
+#### Cornell Box (Glossy Surfaces)
+
+<img src="./results/cbox_gloss_1000.png" width="512"/>
+
+Bidirectional path tracing, 1000 spp.
+
 
 
 ## Acknowledgment
@@ -65,4 +76,4 @@ The author sincerely would also like to thank for HDR images provided by sIBL Ar
 
 ## License
 
-* The MIT License (MIT). Copyright (c) 2015-2016 Tatsuya Yatagawa (tatsy).
+The MIT License (MIT). Copyright (c) 2015-2016 Tatsuya Yatagawa (tatsy).

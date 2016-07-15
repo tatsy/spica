@@ -56,13 +56,11 @@ protected:
 
     bool parse_shape(const boost::property_tree::ptree& xml,
                      std::vector<std::shared_ptr<Shape>>* shapes,
-                     const Transform& toWorld,
-                     const std::string& directory = "") const;
+                     const Transform& toWorld) const;
 
     bool parse_envmap(const boost::property_tree::ptree& xml,
                       std::shared_ptr<Light>* light,
-                      const Sphere& worldSphere,
-                      const std::string& directory = "") const;
+                      const Sphere& worldSphere) const;
 
     bool parse_subsurface(const boost::property_tree::ptree& xml,
                           std::shared_ptr<Texture<Spectrum>>* sigma_a,
@@ -85,6 +83,7 @@ protected:
 
     // Private fields
     Option option_;
+    mutable std::string pwd_;
 
 };  // class Engine
 

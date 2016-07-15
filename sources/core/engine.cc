@@ -16,6 +16,7 @@
 #include "../integrator/spica_integrator.h"
 #include "../core/renderparams.h"
 #include "../material/spica_material.h"
+#include "../texture/spica_texture.h"
 #include "../texture/constant.h"
 #include "../light/spica_light.h"
 
@@ -144,6 +145,9 @@ void Engine::start(const std::string& filename) const {
         return;
     }
 
+    // Set parent working directory.
+    pwd_ = path::getDirectory(filename);
+
     // Find root tag "scene".
     if (xml.get_child("scene").empty()) {
         fprintf(stderr, "The XML does not have the tag \"scene\"!!\n");
@@ -211,7 +215,6 @@ void Engine::start(const std::string& filename) const {
     }
 
     // Parse shapes
-    std::string dir = path::getDirectory(filename);
     std::vector<std::shared_ptr<Light>> lights;
     std::vector<std::shared_ptr<Primitive>> primitives;
     for (const auto& child : xml.get_child("scene")) {
@@ -225,7 +228,7 @@ void Engine::start(const std::string& filename) const {
 
         // Shape
         std::vector<std::shared_ptr<Shape>> shapes;
-        parse_shape(child.second, &shapes, toWorld, dir);
+        parse_shape(child.second, &shapes, toWorld);
 
         // Material
         std::shared_ptr<Material>        mtrl   = nullptr;
@@ -342,7 +345,7 @@ void Engine::start(const std::string& filename) const {
             Point3d center = 0.5 * (bbox.posMin() + bbox.posMax());
             double  radius = (center - bbox.posMin()).norm();
             Sphere  sphere(center, radius);
-            if (!parse_envmap(child.second, &light, sphere, dir)) {
+            if (!parse_envmap(child.second, &light, sphere)) {
                 std::cerr << "Failed to parse Envmap!!" << std::endl;
                 continue;
             }
@@ -431,21 +434,25 @@ bool Engine::parse_film(const boost::property_tree::ptree& xml, Film** film) con
 template <>
 bool Engine::parse(const boost::property_tree::ptree& xml,
                    std::shared_ptr<Camera>* camera) const {
+
+    // Parse film.
+    Film* film = nullptr;
+    auto filmNode = xml.get_child("film");
+    if (filmNode.empty()) {
+        fprintf(stderr, "\film\" block not found!!\n");
+        return false;
+    }
+
+    if (!parse_film(filmNode, &film)) {
+        fprintf(stderr, "Failed to parse \"Film\" !!\n");
+        return false;
+    }
+
+    // Parse camera.
     const std::string type = xml.get<std::string>("<xmlattr>.type");
     if (type == "perspective") {
+        // Parse perspective camera.
         fprintf(stdout, "Camera: perspective\n");
-
-        Film* film = nullptr;
-        auto filmNode = xml.get_child("film");
-        if (filmNode.empty()) {
-            fprintf(stderr, "\film\" block not found!!\n");
-            return false;
-        }
-
-        if (!parse_film(filmNode, &film)) {
-            fprintf(stderr, "Failed to parse \"Film\" !!\n");
-            return false;
-        }
 
         Transform toWorld;
         double fov, nearClip, farClip, focusDistance = 1.0, lensr = 0.0;
@@ -490,7 +497,36 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
         *camera = std::make_shared<PerspectiveCamera>(
             toWorld, screen, lensr, focusDistance, fov, film);
     } else if (type == "orthographic") {
-        printf("Orthographic\n");
+        // Parse orthographic camera.
+        fprintf(stdout, "Camera: orthographic\n");
+        Transform toWorld;
+        double focusDistance = 1.0, lensr = 0.0;
+
+        for (const auto& props : xml.get_child("")) {
+            if (props.first == "<xmlattr>") continue;
+            
+            // Parse transform
+            if (props.first == "transform") {
+                if (props.second.get<std::string>("<xmlattr>.name") == "toWorld") {
+                    parse(props.second, &toWorld);
+                }
+            }
+
+            // Parse float properties
+            if (props.first == "float") {
+                std::string name =
+                    props.second.get<std::string>("<xmlattr>.name");
+                
+                if (name == "focusDistance") {
+                    focusDistance = props.second.get<double>("<xmlattr>.value");
+                } else if (name == "apertureRadius") {
+                    lensr = props.second.get<double>("<xmlattr>.value");
+                }
+            }
+        }
+
+        Bounds2d screen(-1.0, -1.0, 1.0, 1.0);
+        *camera = std::make_shared<OrthographicCamera>(toWorld, screen, lensr, focusDistance, film);
     } else {
         FatalError("Unknown sensor type \"%s\" is specified!!\n", type.c_str());
     }
@@ -553,8 +589,7 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
 
 bool Engine::parse_envmap(const boost::property_tree::ptree& xml,
                           std::shared_ptr<Light>* light,
-                          const Sphere& worldSphere,
-                          const std::string& directory) const {
+                          const Sphere& worldSphere) const {
     const std::string type = xml.get<std::string>("<xmlattr>.type");
     if (type == "environment") {
         Image envmap;
@@ -568,7 +603,7 @@ bool Engine::parse_envmap(const boost::property_tree::ptree& xml,
                 std::string name = child.second.get<std::string>("<xmlattr>.name", "");
                 if (name == "filename") {
                     std::string filename = child.second.get<std::string>("<xmlattr>.value", "");
-                    envmap = Image::fromFile(directory + filename);
+                    envmap = Image::fromFile(pwd_ + filename);
                 }
             } else if (child.first == "float") {
                 std::string name = child.second.get<std::string>("<xmlattr>.name", "");
@@ -620,13 +655,29 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
     const std::string type = xml.get<std::string>("<xmlattr>.type");
     if (type == "diffuse") {
         // Diffuse
-        Spectrum ref(0.0);
+        std::shared_ptr<Texture<Spectrum>> Kd = nullptr;
         for (const auto& k : xml) {
             if (k.first == "rgb" || k.first == "spectrum") {
-                ref = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                Spectrum ref = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                Kd = std::make_shared<ConstantTexture<Spectrum>>(ref);
+            } else if (k.first == "texture") {
+                std::string name = k.second.get<std::string>("<xmlattr>.name", "");
+                std::string type = k.second.get<std::string>("<xmlattr>.type", "");
+                if (type == "bitmap") {
+                    for (const auto& kk : k.second) {
+                        if (kk.first == "string") {
+                            std::string name = kk.second.get<std::string>("<xmlattr>.name", "");
+                            if (name == "filename") {
+                                std::string value = kk.second.get<std::string>("<xmlattr>.value", "");
+                                Image texmap = Image::fromFile(pwd_ + value);
+                                auto mapping = std::make_shared<UVMapping2D>();
+                                Kd = std::make_shared<ImageTexture>(texmap, mapping, ImageWrap::Repeat);
+                            }
+                        }
+                    }
+                }
             }
         }
-        auto Kd = std::make_shared<ConstantTexture<Spectrum>>(ref);
         *material = std::make_shared<LambertianMaterial>(Kd);
     } else if (type == "dielectric") {
         Spectrum re  = Spectrum(0.999);
@@ -824,14 +875,13 @@ bool Engine::parse_subsurface_mtrl(const boost::property_tree::ptree& xml,
 
 bool Engine::parse_shape(const boost::property_tree::ptree& xml,
                          std::vector<std::shared_ptr<Shape>>* shapes,
-                         const Transform& toWorld,
-                         const std::string& directory) const {
+                         const Transform& toWorld) const {
     const std::string type = xml.get<std::string>("<xmlattr>.type");
     if (type == "obj") {
         if (xml.get<std::string>("string.<xmlattr>.name") == "filename") {
             const std::string relpath =
                 xml.get<std::string>("string.<xmlattr>.value");
-            std::string objfile = directory + relpath;
+            std::string objfile = pwd_ + relpath;
             fprintf(stdout, "Loading \"%s\"\n", objfile.c_str());
 
             MeshIO loader;

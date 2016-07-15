@@ -40,6 +40,7 @@ public:
 private:
     // Private fields
     Vector3d uCamera_, vCamera_;
+    double areaWorld_;
 
 };  // class OrthographicCamera
 

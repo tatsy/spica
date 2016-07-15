@@ -4,7 +4,8 @@ import requests
 import tarfile
 
 scene_list = {
-    'RT4' : 'https://www.dropbox.com/s/s41pt3togx4zuk5/rt4.tar.gz?dl=1'
+    'cbox_gloss' : 'https://www.dropbox.com/s/g60176ihutoa44k/cbox_gloss.tar.gz?dl=1',
+    'rt4' : 'https://www.dropbox.com/s/s41pt3togx4zuk5/rt4.tar.gz?dl=1'
 }
 
 def get_file_from_url(url):

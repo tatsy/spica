@@ -88,9 +88,10 @@ void SPPMIntegrator::render(const Scene& scene,
     Distribution1D lightDistrib = mis::calcLightPowerDistrib(scene);
 
     // Initialize random number samplers
-    auto samplers = std::vector<std::unique_ptr<Sampler>>(kNumThreads);
-    auto arenas   = std::vector<MemoryArena>(kNumThreads);
-    for (int i = 0; i < kNumThreads; i++) {
+    const int nThreads = numSystemThreads();
+    auto samplers = std::vector<std::unique_ptr<Sampler>>(nThreads);
+    auto arenas   = std::vector<MemoryArena>(nThreads);
+    for (int i = 0; i < nThreads; i++) {
         unsigned int seed = (unsigned int)time(0) + i;
         samplers[i] = sampler_->clone(seed);
     }
@@ -132,7 +133,7 @@ void SPPMIntegrator::render(const Scene& scene,
         }
 
         // Reset memory arenas
-        for (int k = 0; k < kNumThreads; k++) {
+        for (int k = 0; k < nThreads; k++) {
             arenas[k].reset();
         }
 
@@ -206,12 +207,13 @@ void SPPMIntegrator::traceRays(const Scene& scene,
     const int width  = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
     const int numPixels = static_cast<int>(hpoints.size());
+    const int nThreads = numSystemThreads();
 
     // Generate a ray to cast
     std::cout << "Tracing rays from camera ..." << std::endl;
 
     std::atomic<int> proc(0);
-    const int tasksThread = (numPixels + kNumThreads - 1) / kNumThreads;
+    const int tasksThread = (numPixels + nThreads - 1) / nThreads;
     parallel_for(0, numPixels, [&](int pid) {
         const int threadID = getThreadID();
         const int px  = pid % width;
@@ -243,7 +245,8 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
     std::cout << "Shooting photons ..." << std::endl;
 
     // Distribute tasks
-    const int tasksThread = (numPhotons + kNumThreads - 1) / kNumThreads;
+    const int nThreads = numSystemThreads();
+    const int tasksThread = (numPhotons + nThreads - 1) / nThreads;
 
     // Trace photons
     std::atomic<int> proc(0);
@@ -369,7 +372,7 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
     Spectrum beta(1.0);
     bool specularBounce = false;
     const int maxBounces = params.get<int>("MAX_BOUNCES");
-    for (int bounces = 0; ; bounces++) {
+    for (int bounces = 0; bounces < maxBounces; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
 
@@ -380,7 +383,6 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
             }
             break;
         }
-
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {

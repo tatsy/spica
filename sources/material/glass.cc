@@ -5,6 +5,7 @@
 #include "../core/interaction.h"
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bxdf.h"
+#include "../bxdf/microfacet.h"
 #include "../texture/texture.h"
 
 namespace spica {
@@ -42,7 +43,20 @@ void GlassMaterial::setScatterFuncs(SurfaceInteraction* isect,
     if (isSpecular) {
         isect->bsdf()->add(arena.allocate<FresnelSpecular>(re, tr, 1.0, eta));
     } else {
-        // TODO: Implement in the future!!
+        if (remapRoughness_) {
+            uRough = TrowbridgeReitzDistribution::roughnessToAlpha(uRough);   
+            vRough = TrowbridgeReitzDistribution::roughnessToAlpha(vRough);
+        }
+
+        MicrofacetDistribution* distrib = arena.allocate<TrowbridgeReitzDistribution>(uRough, vRough);
+        if (!re.isBlack()) {
+            Fresnel* fresnel = arena.allocate<FresnelDielectric>(1.0, eta);
+            isect->bsdf()->add(arena.allocate<MicrofacetReflection>(re, distrib, fresnel));
+        }
+
+        if (!tr.isBlack()) {
+            isect->bsdf()->add(arena.allocate<MicrofacetTransmission>(tr, distrib, 1.0, eta));
+        }
     }
 }
 

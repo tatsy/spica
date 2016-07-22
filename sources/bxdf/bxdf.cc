@@ -19,8 +19,8 @@ bool refract(const Vector3d& wi, const Vector3d& n, double eta, Vector3d* wt) {
     double sin2ThetaI = std::max(0.0, 1.0 - cosThetaI * cosThetaI);
     double sin2ThetaT = eta * eta * sin2ThetaI;
 
-    if (sin2ThetaI >= 1.0) return false;
-    double cosThetaT = sqrt(1.0 - sin2ThetaT);
+    if (sin2ThetaT >= 1.0) return false;
+    double cosThetaT = std::sqrt(1.0 - sin2ThetaT);
     *wt = eta * (-wi) + (eta * cosThetaI - cosThetaT) * Vector3d(n);
     return true;
 }

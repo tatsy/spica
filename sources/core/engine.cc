@@ -340,7 +340,7 @@ void Engine::start(const std::string& filename) const {
 
         std::string type = child.second.get<std::string>("<xmlattr>.type", "");
         std::shared_ptr<Light> light = nullptr;
-        if (type == "environment") {
+        if (type == "envmap") {
             Bounds3d bbox = bbvh->worldBound();
             Point3d center = 0.5 * (bbox.posMin() + bbox.posMax());
             double  radius = (center - bbox.posMin()).norm();
@@ -591,7 +591,7 @@ bool Engine::parse_envmap(const boost::property_tree::ptree& xml,
                           std::shared_ptr<Light>* light,
                           const Sphere& worldSphere) const {
     const std::string type = xml.get<std::string>("<xmlattr>.type");
-    if (type == "environment") {
+    if (type == "envmap") {
         Image envmap;
         Transform toWorld;
         double gamma = 1.0;
@@ -842,7 +842,7 @@ bool Engine::parse_subsurface_mtrl(const boost::property_tree::ptree& xml,
     const std::string type = xml.get<std::string>("<xmlattr>.type");
     if (type == "roughplastic") {
         // Rough plastic
-        Spectrum diffuse  = Spectrum(0.9999);
+        Spectrum diffuse  = Spectrum(0.999);
         double ior = 1.0;
         double alpha = 0.0;
         for (const auto& k : xml) {
@@ -922,6 +922,14 @@ bool Engine::parse_subsurface(const boost::property_tree::ptree& xml,
                 if (mtrlKind == "skimmilk") {
                     *sigma_a = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.0014, 0.0025, 0.0142));
                     *sigma_s = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.70, 1.22, 1.90));
+                    *eta     = 1.3;
+                } else if (mtrlKind == "skin1") {
+                    *sigma_a = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.032, 0.17, 0.48));
+                    *sigma_s = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.74, 0.88, 1.01));
+                    *eta     = 1.3;
+                } else if (mtrlKind == "skin2") {
+                    *sigma_a = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(0.013, 0.070, 0.145));
+                    *sigma_s = std::make_shared<ConstantTexture<Spectrum>>(Spectrum(1.09, 1.59, 1.79));
                     *eta     = 1.3;
                 }
             }

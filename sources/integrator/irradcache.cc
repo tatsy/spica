@@ -18,7 +18,6 @@
 
 #include "mis.h"
 
-
 namespace spica {
 
 struct CacheData {
@@ -214,8 +213,8 @@ Spectrum IrradCacheIntegrator::Li(const Scene& scene,
                                   MemoryArena& arena,
                                   int depth) const {
     // Static parameters for irradiance caching
-    static const double threshold = 50.0;
-    static const double Rmax = 100.0;
+    static const double threshold = 10.0;
+    static const double Rmax = 400.0;
     static const double radius = (1.0 / threshold) * Rmax;
 
     Ray ray(r);

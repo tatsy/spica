@@ -131,7 +131,7 @@ Spectrum Envmap::power() const {
 }
 
 Light* Envmap::clone() const {
-    // TODO: doushiyoukana??
+    FatalError("Envmap::clone() is not implemented!");
     return nullptr;
 }
 

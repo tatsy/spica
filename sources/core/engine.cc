@@ -557,7 +557,6 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
         xml.get<std::string>("<xmlattr>.type");
     if (name == "path") {
         *integrator = std::make_unique<PathIntegrator>(camera, sampler);
-        //*integrator = std::make_unique<HierarchicalIntegrator>(camera, sampler);
     } else if (name == "bdpt") {
         *integrator = std::make_unique<BDPTIntegrator>(camera, sampler);
     } else if (name == "volpath") {
@@ -570,6 +569,8 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
         *integrator = std::make_unique<PPMProbIntegrator>(camera, sampler);
     } else if (name == "irrcache") {
         *integrator = std::make_unique<IrradCacheIntegrator>(camera, sampler);
+    } else if (name == "hierarchy") {
+        *integrator = std::make_unique<HierarchicalIntegrator>(camera, sampler);
     } else if (name == "pssmlt") {
         *integrator = std::make_unique<PSSMLTIntegrator>(camera);
     } else {

@@ -84,17 +84,20 @@ Spectrum BSDF::sample(const Vector3d& woWorld, Vector3d* wiWorld,
     }
     Assertion(bxdf, "BxDF not found!!");
 
-    Point2d uRemapped(rands[0] * matchComps - comps, rands[1]);
+    Point2d uRemapped(std::min(rands[0] * matchComps - comps, 1 - EPS), rands[1]);
 
-    Vector3d wi, wo = worldToLocal(woWorld);
+    Vector3d wi, wo = worldToLocal(woWorld).normalized();
+    if (wo.z() == 0.0) return Spectrum(0.0);
+
     *pdf = 0.0;
     if (sampledType) *sampledType = bxdf->type();
+
     Spectrum ret = bxdf->sample(wo, &wi, uRemapped, pdf, sampledType);
     if (*pdf == 0.0) {
         if (sampledType) *sampledType = BxDFType::None;
         return Spectrum(0.0);
     }
-    *wiWorld = localToWorld(wi);
+    *wiWorld = localToWorld(wi).normalized();
 
     if ((bxdf->type() & BxDFType::Specular) == BxDFType::None && matchComps > 1) {
         for (int i = 0; i < nBxDFs_; i++) {
@@ -106,9 +109,9 @@ Spectrum BSDF::sample(const Vector3d& woWorld, Vector3d* wiWorld,
     if (matchComps > 1) *pdf /= matchComps;
 
     if ((bxdf->type() & BxDFType::Specular) == BxDFType::None && matchComps > 1) {
+        bool reflect = vect::dot(*wiWorld, normal_) * vect::dot(woWorld, normal_) > 0.0;
         ret = Spectrum(0.0);
         for (int i = 0; i < nBxDFs_; i++) {
-            bool reflect = vect::dot(*wiWorld, normal_) * vect::dot(woWorld, normal_) > 0.0;
             if ((bxdfs_[i]->type() & type) != BxDFType::None &&
                 ((reflect && (bxdfs_[i]->type() & BxDFType::Reflection) != BxDFType::None) ||
                  (!reflect && (bxdfs_[i]->type() & BxDFType::Transmission) != BxDFType::None))) {

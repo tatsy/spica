@@ -67,7 +67,6 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
             isect.setScatterFuncs(ray, arena);
             if (!isect.bsdf()) {
                 ray = isect.spawnRay(ray.dir());
-                //std::cout << ray.org() << std::endl;
                 bounces--;
                 continue;
             }

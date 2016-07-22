@@ -83,7 +83,7 @@ Spectrum Envmap::sampleLe(const Point2d& rand1, const Point2d& rand2,
                           Ray* ray, Normal3d* nLight, double* pdfPos,
                           double* pdfDir) const {
     double mapPdf;
-    Point2d uv = distrib_.sample(rand1, &mapPdf); 
+    Point2d uv = distrib_.sample(rand1, &mapPdf);
     if (mapPdf == 0.0) return Spectrum(0.0);
 
     double theta = uv[1] * PI;
@@ -113,6 +113,7 @@ void Envmap::pdfLe(const Ray& ray, const Normal3d& nLight, double* pdfPos,
     Vector3d d = -worldToLight_.apply(ray.dir());
     double theta = std::acos(clamp(d.z(), -1.0, 1.0));
     double phi   = std::atan2(d.y(), d.x());
+    if (phi < 0.0) phi += 2.0 * PI;
     Point2d uv(phi * (0.5 * INV_PI), theta * INV_PI);
     double mapPdf = distrib_.pdf(uv);
     *pdfDir = mapPdf / (2.0 * PI * PI * std::sin(theta));

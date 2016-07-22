@@ -71,7 +71,7 @@ Spectrum LambertianReflection::f(const Vector3d& wo, const Vector3d& wi) const {
 
 
 // -----------------------------------------------------------------------------
-// LambertianReflection
+// LambertianTransmission
 // -----------------------------------------------------------------------------
 
 LambertianTransmission::LambertianTransmission(const Spectrum& tr)
@@ -247,6 +247,8 @@ Spectrum MicrofacetReflection::f(const Vector3d& wo, const Vector3d& wi) const {
 Spectrum MicrofacetReflection::sample(const Vector3d& wo, Vector3d* wi,
                                       const Point2d& rands, double* pdf,
                                       BxDFType* sampledType) const {
+    if (wo.z() == 0.0) return Spectrum(0.0);
+
     Vector3d wh = distrib_->sample(wo, rands);
     *wi = vect::reflect(wo, wh);
     if (!vect::sameHemisphere(wo, *wi)) return Spectrum(0.0);
@@ -303,6 +305,8 @@ Spectrum MicrofacetTransmission::f(const Vector3d& wo,
 Spectrum MicrofacetTransmission::sample(const Vector3d& wo, Vector3d* wi,
                                         const Point2d& rands, double* pdf,
                                         BxDFType* sampledType) const {
+    if (wo.z() == 0.0) return Spectrum(0.0);
+
     Vector3d wh = distrib_->sample(wo, rands);
     double eta = vect::cosTheta(wo) > 0.0 ? (etaA_ / etaB_) : (etaB_ / etaA_);
     if (!refract(wo, wh, eta, wi)) return Spectrum(0.0);

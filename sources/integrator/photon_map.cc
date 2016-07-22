@@ -147,6 +147,7 @@ void PhotonMap::construct(const Scene& scene,
                           photons[i].begin(), photons[i].end());
     }
     _kdtree.construct(photonsAll);
+
     printf("OK\n");
 }
 

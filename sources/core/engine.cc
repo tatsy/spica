@@ -99,11 +99,11 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
 
         if (props.first == "rotate") {
             Vector3d axis = getVector3d(props.second.get<std::string>("<xmlattr>.axis"));
-            double angle = props.second.get<double>("<xmlattr>.angle");
+            double angle = props.second.get<double>("<xmlattr>.angle") * PI / 180.0;
             *transform = Transform::rotate(angle, axis) * (*transform);
         }
 
-        if (props.first == "lookAt") {
+        if (props.first == "lookAt" || props.first == "lookat") {
             Vector3d origin = getVector3d(
                 props.second.get<std::string>("<xmlattr>.origin"));
             Vector3d target = getVector3d(
@@ -111,6 +111,20 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
             Vector3d up = getVector3d(
                 props.second.get<std::string>("<xmlattr>.up"));
             *transform = Transform::lookAt(Point3d(origin), Point3d(target), up) * (*transform);
+        }
+
+        if (props.first == "matrix") {
+            double m[4][4];
+            std::string value = props.second.get<std::string>("<xmlattr>.value", "");
+            int scanned = sscanf(value.c_str(), "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+                                 &m[0][0], &m[0][1], &m[0][2], &m[0][3], &m[1][0], &m[1][1], &m[1][2], &m[1][3], 
+                                 &m[2][0], &m[2][1], &m[2][2], &m[2][3], &m[3][0], &m[3][1], &m[3][2], &m[3][3]);
+            if (scanned != 16) {
+                Warning("Failed to parse \"matrix\" tag");
+                return false;
+            }
+
+            *transform = Transform(m);
         }
     }
     return true;
@@ -543,6 +557,7 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
         xml.get<std::string>("<xmlattr>.type");
     if (name == "path") {
         *integrator = std::make_unique<PathIntegrator>(camera, sampler);
+        //*integrator = std::make_unique<HierarchicalIntegrator>(camera, sampler);
     } else if (name == "bdpt") {
         *integrator = std::make_unique<BDPTIntegrator>(camera, sampler);
     } else if (name == "volpath") {
@@ -938,7 +953,7 @@ bool Engine::parse_subsurface(const boost::property_tree::ptree& xml,
         if (child.first == "float") {
             std::string fKind = child.second.get<std::string>("<xmlattr>.name", "");
             if (fKind == "scale") {
-                *scale = child.second.get<double>("<xmlattr>.value", 1.0);
+                *scale = 1.0 / child.second.get<double>("<xmlattr>.value", 1.0);
             } else if (fKind == "intIOR") {
                 *eta   = child.second.get<double>("<xmlattr>.value", 1.0);
             }

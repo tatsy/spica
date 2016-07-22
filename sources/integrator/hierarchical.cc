@@ -350,7 +350,7 @@ void HierarchicalIntegrator::buildOctree(const Scene& scene,
                 }
             }
         }
-        irads[i] = E / nSamples * 3000.0;
+        irads[i] = E / nSamples;
     });
 
     // Octree construction

@@ -61,7 +61,7 @@ void SubsurfaceMaterial::setScatterFuncs(SurfaceInteraction* isect,
         MicrofacetDistribution* distrib =
             isSpecular ? nullptr
                        : arena.allocate<TrowbridgeReitzDistribution>(
-                             uRough, vRough);
+                           uRough, vRough);
 
         if (!re.isBlack()) {
             Fresnel* fresnel = arena.allocate<FresnelDielectric>(1.0, eta_);

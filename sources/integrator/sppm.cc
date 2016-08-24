@@ -72,9 +72,6 @@ void SPPMIntegrator::render(const Scene& scene,
     const int height = camera_->film()->resolution().y();
     const int numPoints = width * height;
 
-    // Preparation for taking BSSRDF into account
-    // _integrator->initialize(scene);
-
     // Initialize hitpoints
     std::vector<SPPMPixel> pixels(numPoints);
     for (int y = 0; y < height; y++) {

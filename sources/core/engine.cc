@@ -596,6 +596,8 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
             double f = child.second.get<double>("<xmlattr>.value");
             if (name == "globalLookupRadius") {
                 params->set("GATHER_RADIUS", f);
+            } else if (name == "hierarchicalMaxError") {
+                params->set("HIERARCHICAL_MAX_ERROR", f);
             }
         }
     }
@@ -677,21 +679,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                 Spectrum ref = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
                 Kd = std::make_shared<ConstantTexture<Spectrum>>(ref);
             } else if (k.first == "texture") {
-                std::string name = k.second.get<std::string>("<xmlattr>.name", "");
-                std::string type = k.second.get<std::string>("<xmlattr>.type", "");
-                if (type == "bitmap") {
-                    for (const auto& kk : k.second) {
-                        if (kk.first == "string") {
-                            std::string name = kk.second.get<std::string>("<xmlattr>.name", "");
-                            if (name == "filename") {
-                                std::string value = kk.second.get<std::string>("<xmlattr>.value", "");
-                                Image texmap = Image::fromFile(pwd_ + value);
-                                auto mapping = std::make_shared<UVMapping2D>();
-                                Kd = std::make_shared<ImageTexture>(texmap, mapping, ImageWrap::Repeat);
-                            }
-                        }
-                    }
-                }
+                parse(k.second, &Kd);
             }
         }
         *material = std::make_shared<LambertianMaterial>(Kd);
@@ -728,18 +716,27 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
         *material = std::make_shared<GlassMaterial>(Kr, Kt, rough, rough, index);
     } else if (type == "roughplastic") {
         // Rough plastic
-        Spectrum diffuse(0.9999);
-        Spectrum specular(0.9999);                
+        std::shared_ptr<Texture<Spectrum>> Kd;
+        std::shared_ptr<Texture<Spectrum>> Ks;
         double ior = 1.0;
         double alpha = 1.0;
         for (const auto& k : xml.get_child("")) {
             if (k.first == "rgb" || k.first == "spectrum") {
                 std::string refName = k.second.get<std::string>("<xmlattr>.name");
                 if (refName == "diffuseReflectance") {
-                    diffuse = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                    Spectrum diffuse = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
+                    Kd = std::make_shared<ConstantTexture<Spectrum>>(diffuse);
                 } else if (refName == "specularReflectance") {
-                    specular = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));                    
+                    Spectrum specular = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));                    
+                    Ks = std::make_shared<ConstantTexture<Spectrum>>(specular);
                 }
+            } else if (k.first == "texture") {
+                 std::string name = k.second.get<std::string>("<xmlattr>.name", "");
+                 if (name == "diffuseReflectance") {
+                    parse(k.second, &Kd);                    
+                 } else if (name == "specularReflectance") {
+                    parse(k.second, &Ks);
+                 }
             } else if (k.first == "float") {
                 std::string propName = k.second.get<std::string>("<xmlattr>.name");
                 if (propName == "alpha") {
@@ -749,9 +746,6 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                 }
             }
         }
-
-        auto Kd = std::make_shared<ConstantTexture<Spectrum>>(diffuse);
-        auto Ks = std::make_shared<ConstantTexture<Spectrum>>(specular);
         auto rough = std::make_shared<ConstantTexture<double>>(alpha);
         *material = std::make_shared<PlasticMaterial>(Kd, Ks, rough);
     } else if (type == "roughconductor") {
@@ -780,6 +774,30 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
         *material = std::make_shared<MetalMaterial>(etaT, Ks, rough);
     }
 
+    return true;
+}
+
+template <>
+bool Engine::parse(const boost::property_tree::ptree& xml,
+    std::shared_ptr<Texture<Spectrum>>* texture) const {
+
+    std::string type = xml.get<std::string>("<xmlattr>.type", "");
+    if (type == "bitmap") {
+        for (const auto& kk : xml) {
+            if (kk.first == "string") {
+                std::string name = kk.second.get<std::string>("<xmlattr>.name", "");
+                if (name == "filename") {
+                    std::string value = kk.second.get<std::string>("<xmlattr>.value", "");
+                    Image texmap = Image::fromFile(pwd_ + value);
+                    auto mapping = std::make_shared<UVMapping2D>();
+                    *texture = std::make_shared<ImageTexture>(texmap, mapping, ImageWrap::Repeat);
+                }
+            }
+        }
+    } else {
+        Warning("Unknown texture type: %s", type.c_str());
+        return false;
+    }
     return true;
 }
 

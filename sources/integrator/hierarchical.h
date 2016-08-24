@@ -15,6 +15,42 @@
 
 namespace spica {
 
+/**
+ *
+ */
+class Hierarchy {
+public:
+    // Public methods
+    Hierarchy(double radius, double maxError);
+    ~Hierarchy();
+
+    // Private methods
+    Spectrum irradiance(const SurfaceInteraction& po) const;
+
+    void samplePoints(const Scene& scene, const Point3d& pCamera);
+
+    void buildOctree(const Scene& scene,
+                     const RenderParams& params,
+                     Sampler& sampler);
+
+private:
+    // Private methods
+    Spectrum Li(const Scene& scene,
+                const RenderParams& params,
+                const Ray& ray,
+                Sampler& sampler,
+                MemoryArena& arena,
+                int depth) const;
+
+    // Private fields
+    std::vector<Interaction> points_;
+   
+    class Octree;
+    std::unique_ptr<Octree> octree_;
+    double radius_;
+    std::unique_ptr<PhotonMap> photonmap_;
+};
+
 /** Irradiance integrator for subsurface scattering objects
  *  @ingroup renderer_module
  */
@@ -42,20 +78,7 @@ public:
                 int depth = 0) const override;
 
 private:
-    // Private methods
-    Spectrum irradiance(const SurfaceInteraction& po) const;
-
-    void buildOctree(const Scene& scene,
-                     const RenderParams& params,
-                     Sampler& sampler);
-    
-    // Private fields
-    std::vector<Interaction> points_;
-
-    class Octree;
-    std::unique_ptr<Octree> octree_;
-    double    dA_;
-    double    radius_;
+    std::unique_ptr<Hierarchy> hi_;
 
 };  // class HierarchicalIntegrator
 

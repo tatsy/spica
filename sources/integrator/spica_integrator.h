@@ -13,6 +13,7 @@
 #include "pssmlt.h"
 #include "ppmprob.h"
 #include "sppm.h"
+#include "volphoto.h"
 #include "irradcache.h"
 #include "hierarchical.h"
 

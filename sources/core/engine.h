@@ -105,6 +105,10 @@ SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
 
 template <>
 SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
+    std::shared_ptr<Texture<double>>* texture) const;
+
+template <>
+SPICA_EXPORTS bool Engine::parse(const boost::property_tree::ptree& xml,
     std::shared_ptr<Texture<Spectrum>>* texture) const;
 
 template <>

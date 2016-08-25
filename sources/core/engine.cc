@@ -567,6 +567,8 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
         *integrator = std::make_unique<SPPMIntegrator>(camera, sampler);
     } else if (name == "ppm") {
         *integrator = std::make_unique<PPMProbIntegrator>(camera, sampler);
+    } else if (name == "volphoto") {
+        *integrator = std::make_unique<VolPhotoIntegrator>(camera, sampler);
     } else if (name == "irrcache") {
         *integrator = std::make_unique<IrradCacheIntegrator>(camera, sampler);
     } else if (name == "hierarchy") {
@@ -752,7 +754,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
         // Metal
         Spectrum eta(1.0);
         Spectrum specular(0.999);
-        double alpha = 0.0;
+        std::shared_ptr<Texture<double>> rough;
         for (const auto& k : xml.get_child("")) {
             if (k.first == "rgb" || k.first == "spectrum") {
                 std::string refName = k.second.get<std::string>("<xmlattr>.name");
@@ -763,17 +765,45 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                 }
             }
 
-            if (k.first == "float" && k.second.get<std::string>("<xmlattr>.name") == "alpha") {
-                alpha = k.second.get<double>("<xmlattr>.value");
+            if (k.second.get<std::string>("<xmlattr>.name", "") == "alpha") {
+                if (k.first == "float") {
+                    double alpha = k.second.get<double>("<xmlattr>.value");
+                    rough = std::make_shared<ConstantTexture<double>>(alpha);
+                } else if (k.first == "texture") {
+                    parse(k.second, &rough);
+                }
             }
         }
 
         auto etaT  = std::make_shared<ConstantTexture<Spectrum>>(eta);
         auto Ks    = std::make_shared<ConstantTexture<Spectrum>>(specular);
-        auto rough = std::make_shared<ConstantTexture<double>>(alpha);
         *material = std::make_shared<MetalMaterial>(etaT, Ks, rough);
     }
 
+    return true;
+}
+
+template <>
+bool Engine::parse(const boost::property_tree::ptree& xml,
+    std::shared_ptr<Texture<double>>* texture) const {
+
+    std::string type = xml.get<std::string>("<xmlattr>.type", "");
+    if (type == "bitmap") {
+        for (const auto& kk : xml) {
+            if (kk.first == "string") {
+                std::string name = kk.second.get<std::string>("<xmlattr>.name", "");
+                if (name == "filename") {
+                    std::string value = kk.second.get<std::string>("<xmlattr>.value", "");
+                    Image texmap = Image::fromFile(pwd_ + value);
+                    auto mapping = std::make_shared<UVMapping2D>();
+                    *texture = std::make_shared<FloatTexture>(texmap, mapping, ImageWrap::Repeat);
+                }
+            }
+        }
+    } else {
+        Warning("Unknown texture type: %s", type.c_str());
+        return false;
+    }
     return true;
 }
 

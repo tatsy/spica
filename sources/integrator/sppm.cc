@@ -12,6 +12,7 @@
 #include "../core/interaction.h"
 #include "../core/sampling.h"
 #include "../core/renderparams.h"
+#include "../core/timer.h"
 
 #include "../image/film.h"
 #include "../image/tmo.h"
@@ -21,6 +22,7 @@
 
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bssrdf.h"
+#include "../bxdf/phase.h"
 
 #include "mis.h"
 
@@ -93,6 +95,8 @@ void SPPMIntegrator::render(const Scene& scene,
         samplers[i] = sampler_->clone(seed);
     }
 
+    Timer timer;
+    timer.start();
     const int numSamples = params.get<int>("NUM_SAMPLES");
     const int castPhotons = params.get<int>("CAST_PHOTONS");
     for (int t = 0; t < numSamples; t++) {
@@ -148,6 +152,12 @@ void SPPMIntegrator::render(const Scene& scene,
         }
         camera_->film()->setImage(image);
         camera_->film()->save(t + 1);
+
+        printf("Time: %6.2f sec\n", timer.stop());
+        if (timer.stop() >= 300.0) {
+            printf("Time is up!!\n");
+            break;
+        }
     }
 }
 
@@ -296,69 +306,85 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
     SurfaceInteraction isect;
     const int maxBounces = params.get<int>("MAX_BOUNCES");
     for (int bounces = 0; bounces < maxBounces; bounces++) {
-        if (!scene.intersect(ray, &isect)) break;
+        bool isIntersect = scene.intersect(ray, &isect);
 
-        if (bounces > 0) {
-            std::vector<SPPMPixel*> results;
+        // Sample participating media
+        MediumInteraction mi;
+        if (ray.medium()) beta *= ray.medium()->sample(ray, sampler, arena, &mi);
+        if (beta.isBlack()) break;
 
-            results = hashgrid_[isect.pos()];
+        if (mi.isValid()) {
+            if (bounces >= maxBounces) break;
+
+            Vector3d wo = -ray.dir();
+            Vector3d wi;
+            mi.phase()->sample(wo, &wi, sampler.get2D());
+            ray = mi.spawnRay(wi);        
+        } else {
+            if (!isIntersect) break;
+
+            if (bounces > 0) {
+                std::vector<SPPMPixel*> results;
+
+                results = hashgrid_[isect.pos()];
             
-            for (SPPMPixel* pixel : results) {
-                if ((pixel->vp.p - isect.pos()).squaredNorm() > pixel->r2) {
-                    continue;
-                }
+                for (SPPMPixel* pixel : results) {
+                    if ((pixel->vp.p - isect.pos()).squaredNorm() > pixel->r2) {
+                        continue;
+                    }
 
-                if (!pixel->vp.bsdf) {
-                    continue;
-                }
+                    if (!pixel->vp.bsdf) {
+                        continue;
+                    }
 
-                Vector3d wi = -ray.dir();
-                Spectrum phi = beta * pixel->vp.bsdf->f(pixel->vp.wo, wi);
-                for (int ch = 0; ch < Spectrum::channels; ch++) {
-                    pixel->phi[ch].add(phi[ch]);
+                    Vector3d wi = -ray.dir();
+                    Spectrum phi = beta * pixel->vp.bsdf->f(pixel->vp.wo, wi);
+                    for (int ch = 0; ch < Spectrum::channels; ch++) {
+                        pixel->phi[ch].add(phi[ch]);
+                    }
+                    ++pixel->m;
                 }
-                ++pixel->m;
             }
-        }
     
-        isect.setScatterFuncs(ray, arena);
-        if (!isect.bsdf()) {
-            bounces--;
-            ray = isect.spawnRay(ray.dir());
-            continue;
-        }
-        const BSDF& bsdf = *isect.bsdf();
+            isect.setScatterFuncs(ray, arena);
+            if (!isect.bsdf()) {
+                bounces--;
+                ray = isect.spawnRay(ray.dir());
+                continue;
+            }
+            const BSDF& bsdf = *isect.bsdf();
 
-        Vector3d wi, wo = -ray.dir();
-        double pdf;
-        BxDFType sampledType;
-        Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
-                                   BxDFType::All, &sampledType);
+            Vector3d wi, wo = -ray.dir();
+            double pdf;
+            BxDFType sampledType;
+            Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
+                                       BxDFType::All, &sampledType);
 
-        if (pdf == 0.0 || ref.isBlack()) break;
+            if (pdf == 0.0 || ref.isBlack()) break;
 
-        Spectrum bnew = beta * ref * vect::absDot(wi, isect.normal()) / pdf;
+            Spectrum bnew = beta * ref * vect::absDot(wi, isect.normal()) / pdf;
 
-        double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
-        if (sampler.get1D() > continueProb) break;
-        beta = bnew / continueProb;
-        ray = isect.spawnRay(wi);
+            double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
+            if (sampler.get1D() > continueProb) break;
+            beta = bnew / continueProb;
+            ray = isect.spawnRay(wi);
 
-        // Account for BSSRDF
-        if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
-            SurfaceInteraction pi;
-            Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
-                sampler.get2D(), arena, &pi, &pdf);
+            // Account for BSSRDF
+            if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+                SurfaceInteraction pi;
+                Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                    sampler.get2D(), arena, &pi, &pdf);
             
-            if (S.isBlack() || pdf == 0.0) break;
-            beta *= S / pdf;
+                if (S.isBlack() || pdf == 0.0) break;
+                beta *= S / pdf;
 
-            Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
-                                           BxDFType::All, &sampledType);
-            if (f.isBlack() || pdf == 0.0) break;
-            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+                Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
+                                               BxDFType::All, &sampledType);
+                if (f.isBlack() || pdf == 0.0) break;
+                beta *= f * vect::absDot(wi, pi.normal()) / pdf;
 
-            ray = pi.spawnRay(wi);
+                ray = pi.spawnRay(wi);
+            }
         }
     }
 }
@@ -377,75 +403,91 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
 
-        // If not intesect the scene, sample direct light.
-        if (!isIntersect) {
-            for (const auto& light : scene.lights()) {
-                pixel->Ld += beta * light->Le(ray);
-            }
-            break;
-        }
+        // Sample participating media
+        MediumInteraction mi;
+        if (ray.medium()) beta *= ray.medium()->sample(ray, sampler, arena, &mi);
+        if (beta.isBlack()) break;
 
-        isect.setScatterFuncs(ray, arena);
-        if (!isect.bsdf()) {
-            ray = isect.spawnRay(ray.dir());
-            bounces--;
-            continue;
-        }
-        const BSDF& bsdf = *isect.bsdf();
+        if (mi.isValid()) {
+            pixel->Ld += beta * mis::uniformSampleOneLight(mi, scene, arena, sampler, true);
 
-        const Vector3d wo = -ray.dir();
-        if (bounces == 0 || specularBounce) {
-            pixel->Ld += beta * isect.Le(wo);
-        }
-        pixel->Ld += 
-            beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+            if (bounces >= maxBounces) break;
 
-        bool isDiffuse = bsdf.numComponents(
-            BxDFType::Diffuse | BxDFType::Reflection | BxDFType::Transmission) > 0;       
-        bool isGlossy  = bsdf.numComponents(
-            BxDFType::Glossy | BxDFType::Reflection | BxDFType::Transmission) > 0;
-
-        if (isDiffuse || (isGlossy && bounces == maxBounces - 1)) {
-            pixel->vp = { isect.pos(), wo, &bsdf, beta };
-            break;
-        }
-
-        if (bounces < maxBounces - 1) {
+            Vector3d wo = -ray.dir();
             Vector3d wi;
-            double pdf;
-            BxDFType sampledType;
-            Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
-                                       BxDFType::All, &sampledType);
+            mi.phase()->sample(wo, &wi, sampler.get2D());
+            ray = mi.spawnRay(wi);
+        } else {
+            // If not intesect the scene, sample direct light.
+            if (!isIntersect) {
+                for (const auto& light : scene.lights()) {
+                    pixel->Ld += beta * light->Le(ray);
+                }
+                break;
+            }
 
-            if (pdf == 0.0 || ref.isBlack()) break;
+            isect.setScatterFuncs(ray, arena);
+            if (!isect.bsdf()) {
+                ray = isect.spawnRay(ray.dir());
+                bounces--;
+                continue;
+            }
+            const BSDF& bsdf = *isect.bsdf();
 
-            beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
-            specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
-            if (beta.luminance() < 0.25) {
-                double continueProb = std::min(1.0 , beta.luminance());
-                if (sampler.get1D() > continueProb) break;
-                beta /= continueProb;
-            }           
-            ray = isect.spawnRay(wi);
+            const Vector3d wo = -ray.dir();
+            if (bounces == 0 || specularBounce) {
+                pixel->Ld += beta * isect.Le(wo);
+            }
+            pixel->Ld += 
+                beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
 
-            // Account for BSSRDF
-            if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
-                SurfaceInteraction pi;
-                Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
-                    sampler.get2D(), arena, &pi, &pdf);
+            bool isDiffuse = bsdf.numComponents(
+                BxDFType::Diffuse | BxDFType::Reflection | BxDFType::Transmission) > 0;       
+            bool isGlossy  = bsdf.numComponents(
+                BxDFType::Glossy | BxDFType::Reflection | BxDFType::Transmission) > 0;
 
-                if (S.isBlack() || pdf == 0.0) break;
-                beta *= S / pdf;
+            if (isDiffuse || (isGlossy && bounces == maxBounces - 1)) {
+                pixel->vp = { isect.pos(), wo, &bsdf, beta };
+                //break;
+            }
 
-                pixel->Ld += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+            if (bounces < maxBounces - 1) {
+                Vector3d wi;
+                double pdf;
+                BxDFType sampledType;
+                Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
+                                           BxDFType::All, &sampledType);
 
-                Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(),
-                    &pdf, BxDFType::All, &sampledType);
-                if (f.isBlack() || pdf == 0.0) break;
-                beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+                if (pdf == 0.0 || ref.isBlack()) break;
 
+                beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
                 specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
-                ray = pi.spawnRay(wi);
+                if (beta.luminance() < 0.25) {
+                    double continueProb = std::min(1.0 , beta.luminance());
+                    if (sampler.get1D() > continueProb) break;
+                    beta /= continueProb;
+                }           
+                ray = isect.spawnRay(wi);
+
+                // Account for BSSRDF
+                if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+                    SurfaceInteraction pi;
+                    Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                        sampler.get2D(), arena, &pi, &pdf);
+
+                    if (S.isBlack() || pdf == 0.0) break;
+                    beta *= S / pdf;
+
+                    pixel->Ld += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+
+                    Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(),
+                        &pdf, BxDFType::All, &sampledType);
+                    if (f.isBlack() || pdf == 0.0) break;
+                    beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+
+                    specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+                    ray = pi.spawnRay(wi);
+                }
             }
         }
     }

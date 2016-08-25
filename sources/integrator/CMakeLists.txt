@@ -13,6 +13,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/irradcache.cc
     ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
     ${CMAKE_CURRENT_LIST_DIR}/hierarchical.cc
+    ${CMAKE_CURRENT_LIST_DIR}/volphoto.cc
     PARENT_SCOPE)
 
 set(HEADERS
@@ -30,4 +31,5 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/irradcache.h
     ${CMAKE_CURRENT_LIST_DIR}/photon_map.h
     ${CMAKE_CURRENT_LIST_DIR}/hierarchical.h
+    ${CMAKE_CURRENT_LIST_DIR}/volphoto.h
     PARENT_SCOPE)

@@ -19,6 +19,7 @@
 #include "../bxdf/bxdf.h"
 #include "../bxdf/bsdf.h"
 #include "../bxdf/bssrdf.h"
+#include "../bxdf/phase.h"
 
 #include "mis.h"
 
@@ -152,7 +153,7 @@ void PhotonMap::construct(const Scene& scene,
 }
 
 Spectrum PhotonMap::evaluateL(const SurfaceInteraction& po,
-                             int gatherPhotons, double gatherRadius) const {
+                              int gatherPhotons, double gatherRadius) const {
     // Find k-nearest neightbors
     Photon query(po.pos(), Spectrum(), po.wo(), po.normal());
     std::vector<Photon> photons;
@@ -193,10 +194,10 @@ Spectrum PhotonMap::evaluateL(const SurfaceInteraction& po,
     return Spectrum(0.0, 0.0, 0.0);
 }
 
-Spectrum PhotonMap::evaluateE(const Interaction& intr,
+Spectrum PhotonMap::evaluateL(const MediumInteraction& mi,
                               int gatherPhotons, double gatherRadius) const {
     // Find k-nearest neightbors
-    Photon query(intr.pos(), Spectrum(), Vector3d(), intr.normal());
+    Photon query(mi.pos(), Spectrum(), mi.wo(), mi.normal());
     std::vector<Photon> photons;
     knnFind(query, &photons, gatherPhotons, gatherRadius);
 
@@ -207,32 +208,33 @@ Spectrum PhotonMap::evaluateE(const Interaction& intr,
     std::vector<double> distances;
     double maxdist = 0.0;
     for (int i = 0; i < numPhotons; i++) {
-        const Vector3d diff = query.pos() - photons[i].pos();
-        const double dist = diff.norm();
-        const double dt   = vect::dot(intr.normal(), diff) / dist;
-        if (std::abs(dt) < gatherRadius * gatherRadius * 0.01) {
+        if (photons[i].normal().norm() < EPS) {
+            const Vector3d diff = query.pos() - photons[i].pos();
+            const double dist = diff.norm();
+    
             validPhotons.push_back(photons[i]);
             distances.push_back(dist);
             maxdist = std::max(maxdist, dist);
         }
     }
+    if (validPhotons.empty()) return Spectrum(0.0);
 
     // Cone filter
     const int numValidPhotons = static_cast<int>(validPhotons.size());
     const double k = 1.1;
-    Spectrum totalFlux = Spectrum(0.0);
+    Spectrum totalFlux = Spectrum(0.0, 0.0, 0.0);
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
         const Spectrum v =
-            validPhotons[i].beta() * PI; //* vect::absDot(intr.normal(), validPhotons[i].wi());
+            validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi()) / (4.0 * PI);
         totalFlux += w * v;
     }
-    totalFlux /= (1.0 - 2.0 / (3.0 * k));
+    totalFlux /= (1.0 - 3.0 / (4.0 * k));
 
     if (maxdist > EPS) {
-        return Spectrum(totalFlux / (PI * maxdist * maxdist));
+        return Spectrum(totalFlux / ((4.0 / 3.0) * PI * maxdist * maxdist * maxdist));
     }
-    return Spectrum(0.0);
+    return Spectrum(0.0, 0.0, 0.0);
 }
 
 void PhotonMap::knnFind(const Photon& photon, std::vector<Photon>* photons,
@@ -254,50 +256,64 @@ void PhotonMap::tracePhoton(const Scene& scene,
     SurfaceInteraction isect;
     const int maxBounces = params.get<int>("MAX_BOUNCES");
     for (int bounces = 0; bounces < maxBounces; bounces++) {
-        if (!scene.intersect(ray, &isect)) break;
+        bool isIntersect = scene.intersect(ray, &isect);
+        
+        // Sample participating media
+        MediumInteraction mi;
+        if (ray.medium()) beta *= ray.medium()->sample(ray, sampler, arena, &mi);
+        if (beta.isBlack()) break;
 
-        photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
+        if (mi.isValid()) {
+            Vector3d wo = -ray.dir();
+            Vector3d wi;
+            beta *= mi.phase()->sample(wo, &wi, sampler.get2D());
+            ray = mi.spawnRay(wi);
+        } else {
+            if (!isIntersect) break;
 
-        isect.setScatterFuncs(ray, arena);
-        if (!isect.bsdf()) {
-            bounces--;
-            ray = isect.spawnRay(ray.dir());
-            continue;
-        }
-        const BSDF& bsdf = *isect.bsdf();
+            photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
 
-        Vector3d wi, wo = -ray.dir();
-        double pdf;
-        BxDFType sampledType;
-        Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
-                                   BxDFType::All, &sampledType);
+            isect.setScatterFuncs(ray, arena);
+            if (!isect.bsdf()) {
+                bounces--;
+                ray = isect.spawnRay(ray.dir());
+                continue;
+            }
+            const BSDF& bsdf = *isect.bsdf();
 
-        if (pdf == 0.0 || ref.isBlack()) break;
+            Vector3d wi, wo = -ray.dir();
+            double pdf;
+            BxDFType sampledType;
+            Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
+                                       BxDFType::All, &sampledType);
 
-        Spectrum bnew = beta * ref * vect::absDot(wi, isect.normal()) / pdf;
+            if (pdf == 0.0 || ref.isBlack()) break;
 
-        double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
-        if (sampler.get1D() > continueProb) break;
-        beta = bnew / continueProb;
-        ray = isect.spawnRay(wi);
+            Spectrum bnew = beta * ref * vect::absDot(wi, isect.normal()) / pdf;
 
-        // Account for BSSRDF
-        if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
-            break;
+            double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
+            if (sampler.get1D() > continueProb) break;
+            beta = bnew / continueProb;
+            ray = isect.spawnRay(wi);
 
-            SurfaceInteraction pi;
-            Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
-                sampler.get2D(), arena, &pi, &pdf);
+            // Account for BSSRDF
+            if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+                break;
+
+                SurfaceInteraction pi;
+                Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
+                    sampler.get2D(), arena, &pi, &pdf);
             
-            if (S.isBlack() || pdf == 0.0) break;
-            beta *= S / pdf;
+                if (S.isBlack() || pdf == 0.0) break;
+                beta *= S / pdf;
 
-            Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
-                                           BxDFType::All, &sampledType);
-            if (f.isBlack() || pdf == 0.0) break;
-            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+                Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
+                                               BxDFType::All, &sampledType);
+                if (f.isBlack() || pdf == 0.0) break;
+                beta *= f * vect::absDot(wi, pi.normal()) / pdf;
 
-            ray = pi.spawnRay(wi);
+                ray = pi.spawnRay(wi);
+            }
         }
     }
 }

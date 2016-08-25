@@ -71,10 +71,7 @@ public:
     Spectrum evaluateL(const SurfaceInteraction& po,
                       int gatherPhotons, double gatherRadius) const;
 
-    /**
-     * Evaluate irradiance at the point.
-     */
-    Spectrum evaluateE(const Interaction& intr,
+    Spectrum evaluateL(const MediumInteraction& mi,
                        int gatherPhotons, double gatherRadius) const;
         
 private:

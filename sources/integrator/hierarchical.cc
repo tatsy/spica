@@ -58,7 +58,7 @@ struct OctreeNode {
     bool isLeaf;
 };
 
-class HierarchicalIntegrator::Octree : public Uncopyable {
+class Hierarchy::Octree : public Uncopyable {
 public:
     // Public methods
     Octree(double maxError)
@@ -194,14 +194,181 @@ private:
 
 };  // class Octree
 
+Hierarchy::Hierarchy(double radius, double maxError)
+    : radius_{ radius }
+    , octree_{ std::make_unique<Octree>(maxError) }
+    , photonmap_{ std::make_unique<PhotonMap>() } {
+}
+
+Hierarchy::~Hierarchy() {
+}
+
+Spectrum Hierarchy::Li(const Scene& scene,
+                               const RenderParams& params,
+                               const Ray& r,
+                               Sampler& sampler,
+                               MemoryArena& arena,
+                               int depth) const {
+    Ray ray(r);
+    Spectrum L(0.0);
+    Spectrum beta(1.0);
+    bool specularBounce = false;
+    const int maxBounces      = params.get<int>("MAX_BOUNCES");
+    const int gatherPhotons   = params.get<int>("GATHER_PHOTONS");
+    const double gatherRadius = params.get<double>("GATHER_RADIUS");
+    for (int bounces = 0; ; bounces++) {
+        SurfaceInteraction isect;
+        bool isIntersect = scene.intersect(ray, &isect);
+
+        // Sample Le which contributes without any loss
+        if ((bounces == 0 && depth >= 0) || specularBounce) {
+            if (isIntersect) {
+                L += beta * isect.Le(-ray.dir());
+            } else {
+                for (const auto& light : scene.lights()) {
+                    L += beta * light->Le(ray);
+                }
+            }
+        }
+
+        if (!isIntersect || bounces >= maxBounces) break;
+
+        isect.setScatterFuncs(ray, arena);
+        if (!isect.bsdf()) {
+            ray = isect.spawnRay(ray.dir());
+            bounces--;
+            continue;
+        }
+
+        Spectrum Ld(0.0);
+        if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
+            Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+        }
+
+        // Process BxDF
+        Vector3d wo = -ray.dir();
+        Vector3d wi;
+        double pdf;
+        BxDFType sampledType;
+        Spectrum ref = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdf,
+                                            BxDFType::All, &sampledType);
+
+        if (ref.isBlack() || pdf == 0.0) break;
+
+        if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
+            (sampledType & BxDFType::Reflection) != BxDFType::None) {
+            L += beta * photonmap_->evaluateL(isect, gatherPhotons, 
+                                              gatherRadius);
+            break;
+        } else {
+            L += Ld;
+        }
+
+        beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+        specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
+        ray = isect.spawnRay(wi);
+
+        // Account for BSSRDF
+        if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
+            break;
+        }
+
+        // Russian roulette
+        if (bounces > 3) {
+            double continueProbability = std::min(0.95, beta.luminance());
+            if (sampler.get1D() > continueProbability) break;
+            beta /= continueProbability;
+        }
+    }
+    return L;
+}
+
+Spectrum Hierarchy::irradiance(const SurfaceInteraction& po) const {
+    Assertion(po.bssrdf(), "BSSRDF not found!!");
+    if (!octree_) return Spectrum(0.0);
+
+    auto Rd = static_cast<SeparableBSSRDF*>(po.bssrdf())->Rd();
+    const Spectrum Mo = octree_->Mo(po, Rd);
+    return (INV_PI * (1.0 - Rd->Fdr())) * Mo;
+}
+
+void Hierarchy::samplePoints(const Scene& scene, const Point3d& pCamera) {
+    samplePoissonDisk(scene, pCamera, radius_, &points_);
+    MsgInfo("%zu points sampled with PDS.", points_.size());
+}
+
+void Hierarchy::buildOctree(const Scene& scene, const RenderParams& params,
+                            Sampler& sampler) {
+    // Build photon map
+    photonmap_->construct(scene, params);
+
+    // Compute irradiance on each sampled point
+    const int numPoints = static_cast<int>(points_.size());
+    std::vector<Spectrum> irads(numPoints);
+
+    // Prepare samplers and memory arenas
+    const int nThreads = numSystemThreads();
+    std::vector<std::shared_ptr<Sampler>> samplers(nThreads);
+    for (int i = 0; i < nThreads; i++) {
+        samplers[i] = sampler.clone((unsigned int)time(0) + i);
+    }
+    std::vector<MemoryArena> arenas(nThreads);
+
+    // Compute irradiance
+    const int nSamples = 4;
+    parallel_for(0, numPoints, [&](int i) {
+        const int threadID = getThreadID();
+        Spectrum E(0.0);
+        for (int s = 0; s < nSamples; s++) {
+            // Indirect lighting
+            Vector3d n(points_[i].normal());
+            Vector3d u, v;
+            vect::coordinateSystem(n, &u, &v);
+            Vector3d dir  = sampleCosineHemisphere(samplers[threadID]->get2D());
+            double pdfDir = cosineHemispherePdf(vect::cosTheta(dir));
+            if (pdfDir == 0.0) continue;
+
+            dir = u * dir.x() + v * dir.y() + n * dir.z();
+            Ray ray = points_[i].spawnRay(dir);
+            E += Li(scene, params, ray, *samplers[threadID], arenas[threadID], -1) *
+                 vect::dot(n, dir) / pdfDir;
+
+            // Direct lighting
+            for (const auto& l : scene.lights()) {
+                Vector3d wi;
+                double lightPdf;
+                VisibilityTester vis;
+                Spectrum Li = l->sampleLi(points_[i], samplers[threadID]->get2D(), &wi, &lightPdf, &vis);
+
+                if (vect::dot(wi, points_[i].normal()) < 0.0) continue;
+                if (Li.isBlack() || lightPdf == 0.0) continue;
+
+                Li *= vis.transmittance(scene, *samplers[threadID]);
+                if (vis.unoccluded(scene)) {
+                    E += Li * vect::absDot(wi, points_[i].normal()) / lightPdf;
+                }
+            }
+        }
+        irads[i] = 4.0 * PI * E / nSamples;
+    });
+
+    // Octree construction
+    std::vector<IrradiancePoint> iradPoints(numPoints);
+    double dA = 0.25 * radius_ * radius_ * PI;
+    for (int i = 0; i < numPoints; i++) {
+        iradPoints[i].pos  = points_[i].pos();
+        iradPoints[i].area = dA;
+        iradPoints[i].E    = irads[i];
+    }
+    octree_->construct(iradPoints);
+    std::cout << "Octree constructed !!" << std::endl;
+}
+
 HierarchicalIntegrator::HierarchicalIntegrator(
     const std::shared_ptr<const Camera>& camera,
     const std::shared_ptr<Sampler>& sampler,
     double maxError)
-    : SamplerIntegrator{ camera, sampler }
-    , octree_{ std::make_unique<Octree>(maxError) }
-    , dA_{ 0.0 }
-    , radius_{} {
+    : SamplerIntegrator{ camera, sampler } {
 }
 
 HierarchicalIntegrator::~HierarchicalIntegrator() {
@@ -263,7 +430,7 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
 
         // Account for BSSRDF
         if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
-            L += beta * this->irradiance(isect);
+            L += beta * hi_->irradiance(isect);
             break;
         }
 
@@ -281,96 +448,21 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
                                         const RenderParams& params,
                                         Sampler& sampler) {
     // Compute dA and copy maxError
+    double maxError = params.get<double>("HIERARCHICAL_MAX_ERROR");
     Bounds3d bounds = scene.worldBound();
-    radius_ = (bounds.posMax() - bounds.posMin()).norm() * 0.001;
-    dA_     = (0.5 * radius_) * (0.5 * radius_) * PI;
+    double radius = (bounds.posMax() - bounds.posMin()).norm() * 0.0001;
+    hi_ = std::make_unique<Hierarchy>(radius, maxError);
 }
 
 void HierarchicalIntegrator::loopStarted(const Scene& scene,
                                          const RenderParams& params,
                                          Sampler& sampler) {
     // Sample points with dart throwing
-    points_.clear();
-    octree_->release();
     Point3d pCamera = camera_->cameraToWorld().apply(Point3d(0.0, 0.0, 0.0));
-    samplePoissonDisk(scene, pCamera, radius_, &points_);
-    MsgInfo("%zu points sampled with PDS.", points_.size());
+    hi_->samplePoints(scene, pCamera);
 
     // Compute irradiance at sample points
-    buildOctree(scene, params, sampler);
-}
-
-void HierarchicalIntegrator::buildOctree(const Scene& scene,
-                                         const RenderParams& params,
-                                         Sampler& sampler) {
-    // Compute irradiance on each sampled point
-    const int numPoints = static_cast<int>(points_.size());
-    std::vector<Spectrum> irads(numPoints);
-
-    // Prepare samplers and memory arenas
-    const int nThreads = numSystemThreads();
-    std::vector<std::shared_ptr<Sampler>> samplers(nThreads);
-    for (int i = 0; i < nThreads; i++) {
-        samplers[i] = sampler.clone((unsigned int)time(0) + i);
-    }
-    std::vector<MemoryArena> arenas(nThreads);
-
-    // Compute irradiance
-    const int nSamples = 4;
-    parallel_for(0, numPoints, [&](int i) {
-        const int threadID = getThreadID();
-        Spectrum E(0.0);
-        for (int s = 0; s < nSamples; s++) {
-            // Indirect lighting
-            Vector3d n(points_[i].normal());
-            Vector3d u, v;
-            vect::coordinateSystem(n, &u, &v);
-            Vector3d dir  = sampleCosineHemisphere(samplers[threadID]->get2D());
-            double pdfDir = cosineHemispherePdf(vect::cosTheta(dir));
-            if (pdfDir == 0.0) continue;
-
-            dir = u * dir.x() + v * dir.y() + n * dir.z();
-            Ray ray = points_[i].spawnRay(dir);
-            E += Li(scene, params, ray, *samplers[threadID], arenas[threadID], -1) *
-                 vect::dot(n, dir) / pdfDir;
-
-            // Direct lighting
-            for (const auto& l : scene.lights()) {
-                Vector3d wi;
-                double lightPdf;
-                VisibilityTester vis;
-                Spectrum Li = l->sampleLi(points_[i], samplers[threadID]->get2D(), &wi, &lightPdf, &vis);
-
-                if (vect::dot(wi, points_[i].normal()) < 0.0) continue;
-                if (Li.isBlack() || lightPdf == 0.0) continue;
-
-                Li *= vis.transmittance(scene, *samplers[threadID]);
-                if (vis.unoccluded(scene)) {
-                    E += Li * vect::absDot(wi, points_[i].normal()) / lightPdf;
-                }
-            }
-        }
-        irads[i] = 4.0 * PI * E / nSamples;
-    });
-
-    // Octree construction
-    std::vector<IrradiancePoint> iradPoints(numPoints);
-    for (int i = 0; i < numPoints; i++) {
-        iradPoints[i].pos  = points_[i].pos();
-        iradPoints[i].area = dA_;
-        iradPoints[i].E    = irads[i];
-    }
-    octree_->construct(iradPoints);
-    std::cout << "Octree constructed !!" << std::endl;
-}
-
-Spectrum HierarchicalIntegrator::irradiance(const SurfaceInteraction& po) const {
-    Assertion(po.bssrdf(), "BSSRDF not found!!");
-    if (!octree_) return Spectrum(0.0);
-
-    auto Rd = static_cast<SeparableBSSRDF*>(po.bssrdf())->Rd();
-    const Spectrum Mo = octree_->Mo(po, Rd);
-    return (INV_PI * (1.0 - Rd->Fdr())) * Mo;
+    hi_->buildOctree(scene, params, sampler);
 }
 
 }  // namespace spica

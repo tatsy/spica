@@ -254,7 +254,8 @@ Spectrum MicrofacetReflection::sample(const Vector3d& wo, Vector3d* wi,
     if (!vect::sameHemisphere(wo, *wi)) return Spectrum(0.0);
 
     *pdf = distrib_->pdf(wo, wh) / (4.0 * vect::dot(wo, wh));
-    return f(wo, *wi);
+    auto ret = f(wo, *wi);
+    return ret;
 }
 
 double MicrofacetReflection::pdf(const Vector3d& wo, const Vector3d& wi) const {

@@ -224,7 +224,7 @@ Spectrum PhotonMap::evaluateE(const Interaction& intr,
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
         const Spectrum v =
-            validPhotons[i].beta() * PI; // * vect::absDot(intr.normal(), validPhotons[i].wi());
+            validPhotons[i].beta() * PI; //* vect::absDot(intr.normal(), validPhotons[i].wi());
         totalFlux += w * v;
     }
     totalFlux /= (1.0 - 2.0 / (3.0 * k));

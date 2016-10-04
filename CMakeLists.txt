@@ -116,7 +116,7 @@ if (MSVC)
     set(Boost_USE_STATIC_LIBS FALSE CACHE BOOL FALSE)
   endif()
 endif()
-find_package(Boost REQUIRED filesystem)
+find_package(Boost REQUIRED system filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # ------------------------------------------------------------------------------

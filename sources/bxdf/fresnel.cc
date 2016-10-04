@@ -39,7 +39,6 @@ Spectrum FresnelDielectric::evaluate(double cosThetaI) const {
 
 Spectrum FrConductor(double cosThetaI, const Spectrum& etaI,
                      const Spectrum& etaT, const Spectrum& k) {
-    cosThetaI = std::abs(cosThetaI);
     cosThetaI = clamp(cosThetaI, -1.0, 1.0);
     Spectrum eta = etaT / etaI;
     Spectrum etaK = k / etaI;
@@ -51,7 +50,7 @@ Spectrum FrConductor(double cosThetaI, const Spectrum& etaI,
 
     Spectrum t0 = eta2 - etaK2 - sinThetaI2;
     Spectrum a2plusb2 = Spectrum::sqrt(t0 * t0 + 4.0 * eta2 * etaK2);
-    Spectrum t1 = a2plusb2 * cosThetaI2;
+    Spectrum t1 = a2plusb2 + cosThetaI2;
     Spectrum a = Spectrum::sqrt(0.5 * (a2plusb2 + t0));
     Spectrum t2 = 2.0 * cosThetaI * a;
     Spectrum Rs = (t1 - t2) / (t1 + t2);

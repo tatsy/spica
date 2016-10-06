@@ -750,7 +750,6 @@ void BDPTIntegrator::render(const Scene& scene,
             const int nLight = calcLightSubpath(scene, *samplers[threadID], arenas[threadID],
                              maxBounces + 1, lightDist, lightPath.get());
 
-
             Spectrum L(0.0);
             for (int cid = 1; cid <= nCamera; cid++) {
                 for (int lid = 0; lid <= nLight; lid++) {

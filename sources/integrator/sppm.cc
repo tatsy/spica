@@ -24,9 +24,6 @@
 
 #include "mis.h"
 
-
-// #include "subsurface_integrator.h"
-
 namespace spica {
 
 struct SPPMIntegrator::SPPMPixel {
@@ -71,9 +68,6 @@ void SPPMIntegrator::render(const Scene& scene,
     const int width  = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
     const int numPoints = width * height;
-
-    // Preparation for taking BSSRDF into account
-    // _integrator->initialize(scene);
 
     // Initialize hitpoints
     std::vector<SPPMPixel> pixels(numPoints);

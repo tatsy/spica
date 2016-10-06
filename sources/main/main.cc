@@ -4,7 +4,23 @@
 #include <string>
 #include <vector>
 
+#define ENABLE_FP_EXCEPTION 1
+#if ENABLE_FP_EXCEPTION
+#include <float.h>
+void setupFPExceptions() {
+    unsigned int cw, newcw;
+    _controlfp_s(&cw, 0, 0);
+    newcw = ~(_EM_INVALID | _EM_DENORMAL | _EM_ZERODIVIDE); // | _EM_OVERFLOW | _EM_UNDERFLOW);
+    _controlfp_s(&cw, newcw, _MCW_EM);
+}
+#endif
+
 int main(int argc, char** argv) {
+
+#if ENABLE_FP_EXCEPTION
+    setupFPExceptions();
+#endif
+
     spica::Option option;
     std::vector<std::string> filenames;
     

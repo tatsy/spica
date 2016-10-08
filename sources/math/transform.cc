@@ -77,9 +77,9 @@ namespace spica {
 
     Normal3d Transform::apply(const Normal3d& n) const {
         return Normal3d(
-            mInv_(0, 0) * n.x() + mInv_(0, 1) * n.y() + mInv_(0, 2) * n.z(),
-            mInv_(1, 0) * n.x() + mInv_(1, 1) * n.y() + mInv_(1, 2) * n.z(),
-            mInv_(2, 0) * n.x() + mInv_(2, 1) * n.y() + mInv_(2, 2) * n.z()); //.normalized();
+            mInv_(0, 0) * n.x() + mInv_(1, 0) * n.y() + mInv_(2, 0) * n.z(),
+            mInv_(0, 1) * n.x() + mInv_(1, 1) * n.y() + mInv_(2, 1) * n.z(),
+            mInv_(0, 2) * n.x() + mInv_(1, 2) * n.y() + mInv_(2, 2) * n.z());
     }
 
     Vector3d Transform::apply(const Vector3d& v) const {

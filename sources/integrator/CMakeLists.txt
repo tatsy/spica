@@ -14,6 +14,7 @@ set(SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/photon_map.cc
     ${CMAKE_CURRENT_LIST_DIR}/hierarchical.cc
     ${CMAKE_CURRENT_LIST_DIR}/volphoto.cc
+    ${CMAKE_CURRENT_LIST_DIR}/photonbeam.cc
     PARENT_SCOPE)
 
 set(HEADERS
@@ -32,4 +33,5 @@ set(HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/photon_map.h
     ${CMAKE_CURRENT_LIST_DIR}/hierarchical.h
     ${CMAKE_CURRENT_LIST_DIR}/volphoto.h
+    ${CMAKE_CURRENT_LIST_DIR}/photonbeam.h
     PARENT_SCOPE)

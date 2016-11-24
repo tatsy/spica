@@ -12,7 +12,6 @@
 #include "../core/interaction.h"
 #include "../core/sampling.h"
 #include "../core/renderparams.h"
-#include "../core/timer.h"
 
 #include "../image/film.h"
 #include "../image/tmo.h"
@@ -95,8 +94,6 @@ void SPPMIntegrator::render(const Scene& scene,
         samplers[i] = sampler_->clone(seed);
     }
 
-    Timer timer;
-    timer.start();
     const int numSamples = params.get<int>("NUM_SAMPLES");
     const int castPhotons = params.get<int>("CAST_PHOTONS");
     for (int t = 0; t < numSamples; t++) {
@@ -152,12 +149,6 @@ void SPPMIntegrator::render(const Scene& scene,
         }
         camera_->film()->setImage(image);
         camera_->film()->save(t + 1);
-
-        printf("Time: %6.2f sec\n", timer.stop());
-        if (timer.stop() >= 300.0) {
-            printf("Time is up!!\n");
-            break;
-        }
     }
 }
 

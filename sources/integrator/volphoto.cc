@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <atomic>
 #include <algorithm>
+#include <mutex>
 
 #include "../core/parallel.h"
 #include "../core/memory.h"
@@ -135,7 +136,8 @@ public:
             const Vector3d diff = query.pos() - photons[i].pos();
             const double dist = diff.norm();
             const double dt   = vect::dot(po.normal(), diff) / dist;
-            if (std::abs(dt) < gatherRadius * gatherRadius * 0.01) {
+            if (po.normal().norm() > EPS &&
+                std::abs(dt) < gatherRadius * gatherRadius * 0.01) {
                 validPhotons.push_back(photons[i]);
                 distances.push_back(dist);
                 maxdist = std::max(maxdist, dist);
@@ -193,8 +195,8 @@ public:
         for (int i = 0; i < numValidPhotons; i++) {
             const double w = 1.0 - (distances[i] / (k * maxdist));
             const Spectrum v =
-                validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi());// / (4.0 * PI);
-            totalFlux += w * v;
+                validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi());
+                totalFlux += w * v;
         }
         totalFlux /= (1.0 - 3.0 / (4.0 * k));
 
@@ -227,16 +229,17 @@ private:
         
             // Sample participating media
             MediumInteraction mi;
-            if (ray.medium()) beta *= ray.medium()->sample(ray, sampler, arena, &mi);
+            Spectrum bnew;
+            if (ray.medium()) bnew = beta * ray.medium()->sample(ray, sampler, arena, &mi);
             if (beta.isBlack()) break;
 
             if (mi.isValid()) {
-                photons->emplace_back(isect.pos(), beta, -ray.dir(), Normal3d());
-
+                photons->emplace_back(mi.pos(), beta, -ray.dir(), Normal3d());
+                
                 Vector3d wo = -ray.dir();
                 Vector3d wi;
 
-                Spectrum bnew = beta * mi.phase()->sample(wo, &wi, sampler.get2D());
+                bnew = bnew * mi.phase()->sample(wo, &wi, sampler.get2D());
                 double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
                 if (sampler.get1D() > continueProb) break;
                 beta = bnew / continueProb;
@@ -346,18 +349,28 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
     const int maxBounces      = params.get<int>("MAX_BOUNCES");
     const int gatherPhotons   = params.get<int>("GATHER_PHOTONS");
     const double gatherRadius = params.get<double>("GATHER_RADIUS");
+    
+    std::mutex mtx;
     for (int bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
 
         // Sample participating media
         MediumInteraction mi;
-        if (ray.medium()) beta *= ray.medium()->sample(ray, sampler, arena, &mi);
-        if (beta.isBlack()) break;
+        if (ray.medium()) {
+            Spectrum Ld(0.0);
+            for (;;) {
+                beta *= ray.medium()->sample(ray, sampler, arena, &mi);
+                if (beta.isBlack()) break;
+                if (!mi.isValid()) break;
 
-        if (mi.isValid()) {
-            // Evaluate photon map
-            L += beta * photonmap_->evaluateL(mi, gatherPhotons, gatherRadius);
+                Ld += beta * photonmap_->evaluateL(mi, gatherPhotons, gatherRadius);
+                ray = Ray(mi.pos(), ray.dir(), INFTY, ray.medium());
+                if (scene.intersect(ray, &isect)) {
+                    break;
+                }
+            }
+            L += Ld;
             break;
         } else {
             // Sample Le which contributes without any loss
@@ -380,9 +393,9 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
                 continue;
             }
 
+            Spectrum Ld(0.0);
             if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-                Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
-                L += Ld;
+                Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
             }
 
             // Process BxDF
@@ -399,6 +412,9 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
                 (sampledType & BxDFType::Reflection) != BxDFType::None) {
                 L += beta * photonmap_->evaluateL(isect, gatherPhotons, 
                                                  gatherRadius);
+                break;
+            } else {
+                L += Ld;
             }
 
             beta *= ref * vect::absDot(wi, isect.normal()) / pdf;

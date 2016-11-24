@@ -26,52 +26,6 @@ namespace spica {
 
     template <class Ty>
     class KdTree {
-    private:
-        struct OrderedType {
-            double dist;
-            Ty t;
-            OrderedType(const double dist_, const Ty& t_)
-                : dist(dist_)
-                , t(t_)
-            {
-            }
-
-            bool operator<(const OrderedType& t) const {
-                return this->dist < t.dist;
-            }
-            bool operator>(const OrderedType& t) const {
-                return this->dist > t.dist;
-            }
-        };
-
-        typedef std::priority_queue<OrderedType, std::vector<OrderedType>, std::less<OrderedType> > PriorityQueue;
-
-        struct KdTreeNode {
-            Ty point;
-            KdTreeNode* left;
-            KdTreeNode* right;
-            int axis;
-
-            KdTreeNode()
-                : point()
-                , left(NULL)
-                , right(NULL)
-                , axis(0)
-            {
-            }
-        };
-
-        struct AxisComparator {
-            int dim;
-            explicit AxisComparator(int d) : dim(d) {}
-            bool operator()(const Ty* t1, const Ty* t2) {
-                return (*t1)[dim] < (*t2)[dim];
-            }
-        };
-
-        KdTreeNode* _nodes;
-        int* _numCopies;
-
     public:
         KdTree();
         KdTree(const KdTree<Ty>& kdtree);
@@ -86,11 +40,59 @@ namespace spica {
         void release();
 
     private:
+        // Private internal classes
+        struct OrderedType {
+            double dist;
+            Ty t;
+            OrderedType(const double dist_, const Ty& t_)
+            : dist(dist_)
+            , t(t_)
+            {
+            }
+            
+            bool operator<(const OrderedType& t) const {
+                return this->dist < t.dist;
+            }
+            bool operator>(const OrderedType& t) const {
+                return this->dist > t.dist;
+            }
+        };
+        
+        typedef std::priority_queue<OrderedType, std::vector<OrderedType>, std::less<OrderedType> > PriorityQueue;
+        
+        struct KdTreeNode {
+            Ty point;
+            KdTreeNode* left;
+            KdTreeNode* right;
+            int axis;
+            
+            KdTreeNode()
+            : point()
+            , left(NULL)
+            , right(NULL)
+            , axis(0)
+            {
+            }
+        };
+        
+        struct AxisComparator {
+            int dim;
+            explicit AxisComparator(int d) : dim(d) {}
+            bool operator()(const Ty* t1, const Ty* t2) {
+                return (*t1)[dim] < (*t2)[dim];
+            }
+        };
+        
+        // Private methods
         KdTreeNode* constructRec(std::vector<const Ty*>& points, const int nodeID, const int startID, const int endID, const int dim);
         KdTreeNode* addRec(KdTreeNode* node, const Ty& point, int dim);
         void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const;
 
         static double distance(const Ty& p1, const Ty& p2);
+
+        // Private fields
+        KdTreeNode* _nodes;
+        int* _numCopies;
     };
 }
 

@@ -26,7 +26,7 @@ public:
                     MediumInteraction* mi) const override;
 
     Spectrum Tr(const Ray& ray, Sampler& sampler) const override;
-
+    
 private:
     // Private fields
     const Spectrum sigmaAbsorb_, sigmaScatter_;

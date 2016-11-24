@@ -11,15 +11,15 @@ namespace spica {
 
     template <class Ty>
     KdTree<Ty>::KdTree()
-        : _nodes(NULL)
-        , _numCopies(NULL)
+        : _nodes(nullptr)
+        , _numCopies(nullptr)
     {
     }
 
     template <class Ty>
     KdTree<Ty>::KdTree(const KdTree& kdtree)
-        : _nodes(NULL)
-        , _numCopies(NULL)
+        : _nodes(nullptr)
+        , _numCopies(nullptr)
     {
         this->operator=(kdtree);
     }
@@ -40,11 +40,11 @@ namespace spica {
 
     template <class Ty>
     void KdTree<Ty>::release() {
-        if (_numCopies != NULL) {
+        if (_numCopies != nullptr) {
             if (*_numCopies == 0) {
                 delete[] _nodes;
                 delete _numCopies;
-                _numCopies = NULL;
+                _numCopies = nullptr;
             } else {
                 (*_numCopies) -= 1;
             }

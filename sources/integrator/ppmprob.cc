@@ -52,7 +52,7 @@ void PPMProbIntegrator::loopFinished(const Scene& scene,
                                      const RenderParams& params,
                                      Sampler& sampler) {
     // Scale global radius
-    globalRadius_ *= alpha_;   
+    globalRadius_ *= alpha_;
 }
 
 

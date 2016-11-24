@@ -20,7 +20,7 @@ public:
     Spectrum Tr(const Ray& ray, Sampler& sampler) const override;
     Spectrum sample(const Ray& ray, Sampler& sampler, MemoryArena& arena,
                     MediumInteraction* mi) const override;
-
+                    
 private:
     const Spectrum sigmaAbsorb_, sigmaScatter_, sigmaExt_;
     const double g_;

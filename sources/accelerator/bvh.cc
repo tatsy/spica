@@ -10,8 +10,6 @@
 
 namespace spica {
 
-
-
 struct BBVHAccel::BucketInfo {
     int count;
     Bounds3d bounds;

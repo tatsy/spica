@@ -4,6 +4,7 @@
 #include "../core/memory.h"
 #include "../core/ray.h"
 #include "../core/interaction.h"
+#include "../scenes/scene.h"
 #include "../random/sampler.h"
 #include "../bxdf/phase.h"
 
@@ -19,7 +20,7 @@ HomogeneousMedium::HomogeneousMedium(const Spectrum& sigmaAbsorb,
 
 Spectrum HomogeneousMedium::Tr(const Ray& ray, Sampler& smapler) const {
     return Spectrum::exp(-sigmaExt_ *
-        std::min(ray.maxDist() * ray.dir().norm(), INFTY));
+           std::min(ray.maxDist() * ray.dir().norm(), INFTY));
 }
 
 Spectrum HomogeneousMedium::sample(const Ray& ray, Sampler& sampler,
@@ -49,6 +50,5 @@ Spectrum HomogeneousMedium::sample(const Ray& ray, Sampler& sampler,
     pdf *= 1.0 / Spectrum::channels;
     return sampleMedium ? (tr * sigmaScatter_ / pdf) : (tr / pdf);
 }
-
 
 }  // namespace spica

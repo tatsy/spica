@@ -569,6 +569,8 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
         *integrator = std::make_unique<PPMProbIntegrator>(camera, sampler);
     } else if (name == "volphoto") {
         *integrator = std::make_unique<VolPhotoIntegrator>(camera, sampler);
+    } else if (name == "photonbeam") {
+        *integrator = std::make_unique<PhotonBeamIntegrator>(camera, sampler);
     } else if (name == "irrcache") {
         *integrator = std::make_unique<IrradCacheIntegrator>(camera, sampler);
     } else if (name == "hierarchy") {

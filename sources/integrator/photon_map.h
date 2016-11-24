@@ -41,7 +41,7 @@ public:
     inline Vector3d wi()     const { return wi_; }
     inline Normal3d normal() const { return normal_; }
     inline const Material* const material() const { return material_; }
-
+    
 private:
     Point3d  pos_;
     Spectrum beta_;
@@ -54,27 +54,26 @@ private:
 // Photon map
 // ------------------------------------------------------------------------
 class SPICA_EXPORTS PhotonMap : public Uncopyable {
-private:
-    KdTree<Photon> _kdtree;
-
 public:
+    // Public methods
     PhotonMap();
-    ~PhotonMap();
+    virtual ~PhotonMap();
 
     void clear();
-    void construct(const Scene& scene,
-                   const RenderParams& params);
+    virtual void construct(const Scene& scene,
+                           const RenderParams& params);
 
     /**
      * Evaluate radiance at the point and to the direction.
      */
-    Spectrum evaluateL(const SurfaceInteraction& po,
-                      int gatherPhotons, double gatherRadius) const;
+    virtual Spectrum evaluateL(const SurfaceInteraction& po,
+                               int gatherPhotons, double gatherRadius) const;
 
-    Spectrum evaluateL(const MediumInteraction& mi,
-                       int gatherPhotons, double gatherRadius) const;
+    virtual Spectrum evaluateL(const MediumInteraction& mi,
+                               int gatherPhotons, double gatherRadius) const;
         
-private:
+protected:
+    // Protected methods
     void knnFind(const Photon& photon, std::vector<Photon>* photons, 
                     int gatherPhotons, double gatherRadius) const;
 
@@ -85,6 +84,9 @@ private:
                      Sampler& sampler,
                      MemoryArena& arena,
                      std::vector<Photon>* photons);
+    
+    // Protected fields
+    KdTree<Photon> _kdtree;    
 };
 
 }  // namespace spica

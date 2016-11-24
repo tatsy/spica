@@ -42,8 +42,6 @@ before_deploy:
   - mkdir packages
   - tar czvf packages/releases-$TRAVIS_TAG.tar.gz $(ls -I packages)
   - zip -q packages/releases-$TRAVIS_TAG.zip -r $(ls -I packages)
-  - git tag $TRAVIS_TAG -a -m "Commit from Travis CI for build $TRAVIS_BUILD_NUMBER"
-  - git push --tags --quiet https://$GH_TOKEN@github.com/tatsy/lime.git 2> /dev/null
 
 deploy:
   skip_cleanup: true
@@ -55,7 +53,6 @@ deploy:
     - packages/releases-$TRAVIS_TAG.zip
   on:
     tags: true
-    branch: master
     condition: $CXX=clang++
 
 branches:

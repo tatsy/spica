@@ -23,6 +23,7 @@ cp --recursive build/html/* html
 #
 ## Deploy GitHub pages
 #
+cd html
 git checkout -b gh-pages
 git add --all .
 git commit -m "Travis build No.$TRAVIS_BUILD_NUMBER commit to GitHub Pages"

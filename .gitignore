@@ -12,6 +12,8 @@ scenes/*
 
 shader_location.h
 
+docs/xml
+
 # MacOSX ignore files
 .DS_Store
 .cproject

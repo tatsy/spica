@@ -37,16 +37,19 @@ after_success:
   - docker exec spica-env coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
 before_deploy:
+  - pip install sphinx breathe sphinx_rtd_theme
   - "cd docs; /bin/bash deploy.sh; cd -"
   - mkdir packages
-  - tar czvf packages/releases-$TRAVIS_TAG.tar.gz $(ls)
-  - zip -q packages/releases-$TRAVIS_TAG.zip -r $(ls)
+  - tar czvf packages/releases-$TRAVIS_TAG.tar.gz $(ls -I packages)
+  - zip -q packages/releases-$TRAVIS_TAG.zip -r $(ls -I packages)
+  - git tag $TRAVIS_TAG -a -m "Commit from Travis CI for build $TRAVIS_BUILD_NUMBER"
+  - git push --tags --quiet https://$GH_TOKEN@github.com/tatsy/lime.git 2> /dev/null
 
 deploy:
   skip_cleanup: true
   provider: releases
   api_key:
-    secure: FvLmuzyUsyy8PN3u/RjsZUt4mUsuuAdG4O4FdSogAPFVeu1oathhntC8q4x1Qw7aQ+5Tper0yX7oJxKHjyuh3oCU+eNHMHGcpj1L21QzzEglUtzS/NW2/QhINt1WXB3onCxhcL9lq+NzWMOdCqPAfe/egbNX/ERCTrGZMtoFNgo=
+    secure: WR9ks1pmxzB6QBS+8lJNxGpZIhaBzgK4luAQm4zeTGOFCZp12GoLZ9lTo1OOb+omwrjFx43/n/NqwFPNVR6ugWdo9Iu3U+kqsl2Ygk+97dJNg1gYDmvKr7UkTHU/O+1f6QP6aQkJT/HWaD7m4bKeNVc+WWy8B2e2FPpMfhsH+GA=
   file:
     - packages/releases-$TRAVIS_TAG.tar.gz
     - packages/releases-$TRAVIS_TAG.zip
@@ -58,10 +61,6 @@ branches:
   only:
     - master
     - development
-
-env:
-  global:
-    secure: FvLmuzyUsyy8PN3u/RjsZUt4mUsuuAdG4O4FdSogAPFVeu1oathhntC8q4x1Qw7aQ+5Tper0yX7oJxKHjyuh3oCU+eNHMHGcpj1L21QzzEglUtzS/NW2/QhINt1WXB3onCxhcL9lq+NzWMOdCqPAfe/egbNX/ERCTrGZMtoFNgo=
 
 notifications:
   email:

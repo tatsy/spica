@@ -54,7 +54,7 @@ deploy:
     - packages/releases-$TRAVIS_TAG.tar.gz
     - packages/releases-$TRAVIS_TAG.zip
   on:
-    tags: true
+    tags: false
     condition: $CXX=clang++
 
 branches:

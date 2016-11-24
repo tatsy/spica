@@ -12,6 +12,12 @@ ENV PULL_REQUEST @PULL_REQUEST@
 ENV CC @C_COMPILER@
 ENV CXX @CXX_COMPILER@
 
+#
+## apt-get update/upgrade
+#
+RUN apt-get update -qq
+RUN apt-get upgrade -qq
+
 # Install Google Test
 RUN git clone --depth=1 -b release-1.7.0 https://github.com/google/googletest.git /usr/src/gtest
 RUN \

@@ -1,0 +1,4 @@
+set(THIRD_PARTY_INCLUDE_DIRS
+    "${CMAKE_CURRENT_LIST_DIR}/stb"
+    "${CMAKE_CURRENT_LIST_DIR}/tinyobjloader"
+    CACHE INTERNAL "")

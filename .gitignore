@@ -1,5 +1,20 @@
+# Common ignore files
 build
 tmp
 output
+data/tmp
 .cccc
 spica_dirs.h
+
+scenes/*
+!scenes/README.md
+!scenes/download.py
+
+shader_location.h
+
+docs/xml
+
+# MacOSX ignore files
+.DS_Store
+.cproject
+.project

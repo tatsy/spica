@@ -5,7 +5,7 @@
 #ifndef _SPICA_REPORT_ENGINE_H_
 #define _SPICA_REPORT_ENGINE_H_
 
-#include "../../include/spica.h"
+#include "spica.h"
 
 #include <QtCore/qobject.h>
 #include <QtGui/qimage.h>

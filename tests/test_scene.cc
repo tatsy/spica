@@ -4,7 +4,7 @@
 #include <string>
 #include <type_traits>
 
-#include "../include/spica.h"
+#include "spica.h"
 using namespace spica;
 
 // -----------------------------------------------------------------------------

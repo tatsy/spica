@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "../include/spica.h"
+#include "spica.h"
 using namespace spica;
 
 // ------------------------------

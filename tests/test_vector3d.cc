@@ -5,7 +5,7 @@
 #include <tuple>
 #include <algorithm>
 
-#include "../include/spica.h"
+#include "spica.h"
 using namespace spica;
 
 using Vector3dPair = std::tuple<Vector3d, Vector3d>; 

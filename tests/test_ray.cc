@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "../include/spica.h"
+#include "spica.h"
 using namespace spica;
 
 TEST(RayTest, DefaultInstanceTest) {

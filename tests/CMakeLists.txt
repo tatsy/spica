@@ -2,6 +2,7 @@ if (${SPICA_BUILD_TESTS})
   message(STATUS "[spica] Building unit tests.")
 
   enable_testing()
+  include_directories(${SPICA_ROOT_DIR}/sources)
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
   if(WIN32)

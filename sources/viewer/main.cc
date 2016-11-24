@@ -1,6 +1,6 @@
 #include <QtWidgets/qapplication.h>
 
-#include "../../include/spica.h"
+#include "spica.h"
 using namespace spica;
 
 #include "scene_viewer.h"

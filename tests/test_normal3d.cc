@@ -2,7 +2,7 @@
 
 #include <ctime>
 
-#include "../include/spica.h"
+#include "spica.h"
 using namespace spica;
 
 class Normal3dTest : public ::testing::Test {

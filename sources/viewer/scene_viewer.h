@@ -16,7 +16,7 @@
 #include "opengl_viewer.h"
 #include "render_worker.h"
 
-#include "../../include/spica.h"
+#include "spica.h"
 
 namespace spica {
 

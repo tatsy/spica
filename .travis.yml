@@ -32,7 +32,7 @@ after_success:
   ## Collect coverage data
   - if [ $CXX = "g++"     ]; then docker exec spica-env lcov --directory . --capture --output-file coverage.info; fi
   - if [ $CXX = "clang++" ]; then docker exec spica-env lcov --directory . --capture --output-file coverage.info --gcov-tool llvm-cov; fi
-  - docker exec spica-env lcov --remove coverage.info '3rdparty/*' 'sources/renderer/*' 'sources/viewer/*' 'sources/bsdf/*' 'test/*' 'example/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
+  - docker exec spica-env lcov --remove coverage.info '3rdparty/*' 'sources/renderer/*' 'sources/viewer/*' 'sources/bsdf/*' 'tests/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
   - docker exec spica-env lcov --list coverage.info
   - docker exec spica-env coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 

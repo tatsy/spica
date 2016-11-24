@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.0.0)
 project(spica)
 
 # ------------------------------------------------------------------------------
+# Build options
+# ------------------------------------------------------------------------------
+option(SPICA_BUILD_TESTS "Build unit tests." OFF)
+option(SPICA_BUILD_GUI "Build GUI." OFF)
+
+# ------------------------------------------------------------------------------
 # Set compiler options
 # ------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 14)
@@ -9,7 +15,8 @@ if (NOT WIN32)
   # Linux or Mac OS X
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pthread")
-  if (NOT ${CMAKE_BUILD_TYPE} STREQUAL "Release")
+  if (${SPICA_BUILD_TESTS})
+    message(STATUS "[spica] Generate coverage data.")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
   endif()
 endif()
@@ -115,12 +122,6 @@ if (MSVC)
 endif()
 find_package(Boost REQUIRED system filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
-
-# ------------------------------------------------------------------------------
-# Build options
-# ------------------------------------------------------------------------------
-option(SPICA_BUILD_TESTS "Build unit tests." OFF)
-option(SPICA_BUILD_GUI "Build GUI." OFF)
 
 # ------------------------------------------------------------------------------
 # Include subdirectories

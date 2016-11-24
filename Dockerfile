@@ -27,13 +27,13 @@ RUN \
   cmake .. && \
   make -j4 && \
   mkdir -p /usr/local/lib && \
-  mkdir -p /usr/include && \
+  mkdir -p /usr/local/include && \
   mv libg* /usr/local/lib && \
-  mv ../include/* /usr/include && \
+  mv ../include/* /usr/local/include && \
   cd /
 ENV GTEST_LIBRARY /usr/local/lib/libgtest.a
 ENV GTEST_MAIN_LIBRARY /usr/local/lib/libgtest_main.a
-ENV GTEST_INCLUDE_DIRS /usr/include
+ENV GTEST_INCLUDE_DIRS /usr/include/local
 
 #
 ## Install Gcovr
@@ -76,7 +76,7 @@ RUN \
 RUN \
   cd spica && \
   git submodule update --init --recursive && \
-  cmake -D CMAKE_BUILD_TYPE=Release -D SPICA_BUILD_TESTS=ON . && \
+  cmake -D SPICA_BUILD_TESTS=ON . && \
   cmake --build .
 
 #

@@ -25,9 +25,6 @@
 
 #include "mis.h"
 
-
-// #include "subsurface_integrator.h"
-
 namespace spica {
 
 struct SPPMIntegrator::SPPMPixel {

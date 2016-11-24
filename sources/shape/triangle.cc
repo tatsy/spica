@@ -35,9 +35,9 @@ Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
     , points_{ objectToWorld.apply(p0), 
                objectToWorld.apply(p1),
                objectToWorld.apply(p2) }
-    , normals_{ objectToWorld.apply(n0),
-                objectToWorld.apply(n1), 
-                objectToWorld.apply(n2) }
+    , normals_{ Normal3d(objectToWorld.apply(Vector3d(n0))).normalized(),
+                Normal3d(objectToWorld.apply(Vector3d(n1))).normalized(), 
+                Normal3d(objectToWorld.apply(Vector3d(n2))).normalized() }
     , uvs_{} {
 }
 
@@ -49,9 +49,9 @@ Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
     , points_{ objectToWorld.apply(p0),
                objectToWorld.apply(p1),
                objectToWorld.apply(p2) }
-    , normals_{ objectToWorld.apply(n0),
-                objectToWorld.apply(n1),
-                objectToWorld.apply(n2) }
+    , normals_{ Normal3d(objectToWorld.apply(Vector3d(n0))).normalized(),
+                Normal3d(objectToWorld.apply(Vector3d(n1))).normalized(), 
+                Normal3d(objectToWorld.apply(Vector3d(n2))).normalized() }
     , uvs_{ uv0, uv1, uv2 } {
 }
 
@@ -108,7 +108,7 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
     Vector3d dpdu, dpdv;
     Normal3d dndu, dndv;
     if (detUV == 0.0) {
-        vect::coordinateSystem(Vector3d(nrm), &dpdu, &dpdv);
+        vect::coordinateSystem(Vector3d(nrm.normalized()), &dpdu, &dpdv);
     } else {
         const double invdet = 1.0 / detUV;
         const double invM[2][2] = { {  duv02.y() * invdet, -duv01.y() * invdet },

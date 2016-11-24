@@ -1,5 +1,6 @@
 set(BUILD_TARGET spica_main)
 
+include_directories(${SPICA_ROOT_DIR}/sources)
 link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 add_executable(${BUILD_TARGET} main.cc)

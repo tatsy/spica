@@ -17,43 +17,43 @@ namespace spica {
  * K-D tree accelerator class
  * @ingroup accel_module
  */
-class SPICA_EXPORTS KdTreeAccel : public Accelerator {
-private:
-    struct KdTreeNode {
-        Bounds3d bbox;
-        IndexedTriangle triangle;
-        KdTreeNode* left;
-        KdTreeNode* right;
-        bool isLeaf;
-
-        KdTreeNode()
-            : bbox()
-            , triangle()
-            , left(nullptr)
-            , right(nullptr)
-            , isLeaf(false) {
-        }
-
-        ~KdTreeNode() {
-        }
-    };
-
-    KdTreeNode* _root;          // tree root
-
-public:
-    KdTreeAccel();
-    virtual ~KdTreeAccel();
-        
-    void construct() override;
-    bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
-    std::vector<Triangle> triangulate() const override;
-
-private:
-    void release();
-    void deleteNode(KdTreeNode* node);
-    KdTreeNode* copyNode(KdTreeNode* node);
-    KdTreeNode* constructRec(std::vector<IndexedTriangle>& triangles, int start, int end);
-};
+//class SPICA_EXPORTS KdTreeAccel : public Accelerator {
+//private:
+//    struct KdTreeNode {
+//        Bounds3d bbox;
+//        IndexedTriangle triangle;
+//        KdTreeNode* left;
+//        KdTreeNode* right;
+//        bool isLeaf;
+//
+//        KdTreeNode()
+//            : bbox()
+//            , triangle()
+//            , left(nullptr)
+//            , right(nullptr)
+//            , isLeaf(false) {
+//        }
+//
+//        ~KdTreeNode() {
+//        }
+//    };
+//
+//    KdTreeNode* _root;          // tree root
+//
+//public:
+//    KdTreeAccel();
+//    virtual ~KdTreeAccel();
+//        
+//    void construct() override;
+//    bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
+//    std::vector<Triangle> triangulate() const override;
+//
+//private:
+//    void release();
+//    void deleteNode(KdTreeNode* node);
+//    KdTreeNode* copyNode(KdTreeNode* node);
+//    KdTreeNode* constructRec(std::vector<IndexedTriangle>& triangles, int start, int end);
+//};
 
 }  // namespace spica
 

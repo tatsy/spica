@@ -1,10 +1,10 @@
-#include "../../include/spica.h"
+#include "spica.h"
 
 #include <cstring>
 #include <string>
 #include <vector>
 
-#define ENABLE_FP_EXCEPTION 1
+#define ENABLE_FP_EXCEPTION 0
 #if ENABLE_FP_EXCEPTION
 #include <float.h>
 void setupFPExceptions() {

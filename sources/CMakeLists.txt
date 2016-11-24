@@ -1,18 +1,16 @@
 set(SPICA_TARGET_NAME spica_renderer CACHE INTERNAL "")
 set(BUILD_TARGET ${SPICA_TARGET_NAME})
 
-set(ALL_SOURCES ${ALL_SOURCES})
-set(ALL_HEADERS ${ALL_HEADERS} ../include/spica.h)
+set(SOURCE_FILES "spica.h")
 
 # Function to extract files from subdirectories
-# and make file filters for MSVC
+# and make file filters.
 function (process_subdirectory dirname)
-  set(SOURCES ${SOURCES})
-  set(HEADERS ${HEADERS})
-  add_subdirectory(${dirname})
-  set(ALL_SOURCES ${ALL_SOURCES} ${SOURCES} PARENT_SCOPE)
-  set(ALL_HEADERS ${ALL_HEADERS} ${HEADERS} PARENT_SCOPE)
+  if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/${dirname}/CMakeLists.txt")
+    add_subdirectory(${dirname})
+  endif()
   file(GLOB FILTER_FILES "${dirname}/*.cc" "${dirname}/*.h")
+  set(SOURCE_FILES ${SOURCE_FILES} ${FILTER_FILES} PARENT_SCOPE)
   source_group(${dirname} FILES ${FILTER_FILES})
 endfunction()
 
@@ -34,9 +32,9 @@ process_subdirectory(material)
 process_subdirectory(texture)
 
 if (SPICA_USE_STATIC_LIBS)
-  add_library(${BUILD_TARGET} ${ALL_SOURCES} ${ALL_HEADERS})
+  add_library(${BUILD_TARGET} ${SOURCE_FILES})
 else()
-  add_library(${BUILD_TARGET} SHARED ${ALL_SOURCES} ${ALL_HEADERS})
+  add_library(${BUILD_TARGET} SHARED ${SOURCE_FILES})
   set(SPICA_LIBS ${LIB_PREFIX}${BUILD_TARGET}${LIB_SUFFIX} CACHE INTERNAL "")
 endif()
 

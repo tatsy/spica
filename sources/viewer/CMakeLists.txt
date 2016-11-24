@@ -1,15 +1,12 @@
-option(SPICA_BUILD_VIEWER "BUILD_VIEWER" OFF)
-
-if (${SPICA_BUILD_VIEWER} STREQUAL "ON")
+if (${SPICA_BUILD_GUI})
+  message(STATUS "[spica] Building GUI.")
   set(BUILD_TARGET spica_viewer)
 
-  if (WIN32)
-    set(QT5_ROOT "QT5_ROOT" CACHE PATH "QT5_ROOT")
-    if (NOT EXISTS "${QT5_ROOT}/lib/cmake")
-      message(FATAL_ERROR "[ERROR] Qt5 not found!!")
-    endif()
-    set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${QT5_ROOT})
+  set(QT5_ROOT "QT5_ROOT" CACHE PATH "QT5_ROOT")
+  if (NOT EXISTS "${QT5_ROOT}/lib/cmake")
+    message(FATAL_ERROR "[ERROR] Qt5 not found!!")
   endif()
+  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${QT5_ROOT})
 
   find_package(Qt5Widgets REQUIRED)
   find_package(Qt5OpenGL REQUIRED)

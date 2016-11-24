@@ -1,7 +1,6 @@
-# Enable GTest
-option(SPICA_BUILD_TEST "SPICA_BUILD_TEST" OFF)
+if (${SPICA_BUILD_TESTS})
+  message(STATUS "[spica] Building unit tests.")
 
-if (${SPICA_BUILD_TEST} STREQUAL "ON")
   enable_testing()
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 

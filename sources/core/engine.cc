@@ -72,7 +72,7 @@ Spectrum getSpectrum(const std::string& attr) {
     }
 
     if (sscanf(ptr, "%lf", &r) == 1) {
-        return Spectrum(r);       
+        return Spectrum(r);
     }
 
     return Spectrum();
@@ -87,7 +87,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
             double x = props.second.get<double>("<xmlattr>.x");
             double y = props.second.get<double>("<xmlattr>.y");
             double z = props.second.get<double>("<xmlattr>.z");
-            *transform = Transform::translate(Vector3d(x, y, z)) * (*transform);        
+            *transform = Transform::translate(Vector3d(x, y, z)) * (*transform);
         }
 
         if (props.first == "scale") {
@@ -117,7 +117,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
             double m[4][4];
             std::string value = props.second.get<std::string>("<xmlattr>.value", "");
             int scanned = sscanf(value.c_str(), "%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
-                                 &m[0][0], &m[0][1], &m[0][2], &m[0][3], &m[1][0], &m[1][1], &m[1][2], &m[1][3], 
+                                 &m[0][0], &m[0][1], &m[0][2], &m[0][3], &m[1][0], &m[1][1], &m[1][2], &m[1][3],
                                  &m[2][0], &m[2][1], &m[2][2], &m[2][3], &m[3][0], &m[3][1], &m[3][2], &m[3][3]);
             if (scanned != 16) {
                 Warning("Failed to parse \"matrix\" tag");
@@ -167,7 +167,7 @@ void Engine::start(const std::string& filename) const {
         fprintf(stderr, "The XML does not have the tag \"scene\"!!\n");
         return;
     }
-    
+
     // Version string.
     const std::string version = xml.get<std::string>("scene.<xmlattr>.version");
     fprintf(stdout, "Version: %s\n", version.c_str());
@@ -196,7 +196,7 @@ void Engine::start(const std::string& filename) const {
         fprintf(stderr, "Failed to parse \"sampler\" block!!\n");
         return;
     }
-    
+
     // Parse integrator
     auto integNode = xml.get_child("scene.integrator");
     if (integNode.empty()) {
@@ -276,13 +276,13 @@ void Engine::start(const std::string& filename) const {
                 if (!parse_subsurface(result, &sigma_a, &sigma_s, &etaSSS, &scaleSSS, &gSSS)) {
                     fprintf(stderr, "Failed to parse subsurface!!\n");
                     continue;
-                }            
+                }
             } else if (tagname == "medium") {
                 if (!parse(result, &medium)) {
                     fprintf(stderr, "Failed to parse medium!!\n");
                     continue;
                 }
-            }        
+            }
         }
 
         // Parse subsurface
@@ -327,7 +327,7 @@ void Engine::start(const std::string& filename) const {
 
             for (const auto& shape : shapes) {
                 if (lightType == "area") {
-                    Spectrum Le; 
+                    Spectrum Le;
                     if (child.second.get_child("emitter").find("rgb") != child.second.get_child("emitter").not_found()) {
                         Le = getSpectrum(child.second.get<std::string>("emitter.rgb.<xmlattr>.value"));
                     } else {
@@ -337,7 +337,7 @@ void Engine::start(const std::string& filename) const {
                 }
             }
         }
-        
+
         // Set geometric primitives
         for (int i = 0; i < shapes.size(); i++) {
             std::shared_ptr<AreaLight> area = lightID >= 0 ? std::static_pointer_cast<AreaLight>(lights[lightID + i]) : nullptr;
@@ -372,7 +372,7 @@ void Engine::start(const std::string& filename) const {
 
     // Finalize scene.
     Scene scene(bbvh, lights);
-        
+
     // Start rendering
     params.set("NUM_SAMPLES", option_.nSamples);
     params.set("OUTPUT_FILE", option_.outfile);
@@ -400,7 +400,7 @@ bool Engine::find_field(const boost::property_tree::ptree& xml,
             *result = node.second;
             return true;
         }
-    }    
+    }
     return false;
 }
 
@@ -413,7 +413,7 @@ bool Engine::parse_film(const boost::property_tree::ptree& xml, Film** film) con
     int width = 0;
     int height = 0;
     std::unique_ptr<Filter> filter = nullptr;
-    
+
     // Parse width and height
     for (const auto& props : xml.get_child("")) {
         if (props.first != "integer") continue;
@@ -484,7 +484,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
             if (props.first == "float") {
                 std::string name =
                     props.second.get<std::string>("<xmlattr>.name");
-                if (name == "fov") { 
+                if (name == "fov") {
                     fov = props.second.get<double>("<xmlattr>.value") / 180.0 * PI;
                     if (xml.get<std::string>("string.<xmlattr>.name") == "fovAxis") {
                         const std::string val =
@@ -505,7 +505,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                     lensr = props.second.get<double>("<xmlattr>.value");
                 }
             }
-        }           
+        }
 
         Bounds2d screen(-1.0, -1.0, 1.0, 1.0);
         *camera = std::make_shared<PerspectiveCamera>(
@@ -518,7 +518,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
 
         for (const auto& props : xml.get_child("")) {
             if (props.first == "<xmlattr>") continue;
-            
+
             // Parse transform
             if (props.first == "transform") {
                 if (props.second.get<std::string>("<xmlattr>.name") == "toWorld") {
@@ -530,7 +530,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
             if (props.first == "float") {
                 std::string name =
                     props.second.get<std::string>("<xmlattr>.name");
-                
+
                 if (name == "focusDistance") {
                     focusDistance = props.second.get<double>("<xmlattr>.value");
                 } else if (name == "apertureRadius") {
@@ -569,8 +569,6 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
         *integrator = std::make_unique<PPMProbIntegrator>(camera, sampler);
     } else if (name == "volphoto") {
         *integrator = std::make_unique<VolPhotoIntegrator>(camera, sampler);
-    } else if (name == "photonbeam") {
-        *integrator = std::make_unique<PhotonBeamIntegrator>(camera, sampler);
     } else if (name == "irrcache") {
         *integrator = std::make_unique<IrradCacheIntegrator>(camera, sampler);
     } else if (name == "hierarchy") {
@@ -589,7 +587,7 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
             std::string name = child.second.get<std::string>("<xmlattr>.name", "");
             int n = child.second.get<int>("<xmlattr>.value");
             if (name == "maxDepth") {
-                params->set("MAX_BOUNCES", n);                
+                params->set("MAX_BOUNCES", n);
             } else if (name == "globalPhotons") {
                 params->set("CAST_PHOTONS", n);
             } else if (name == "lookupSize") {
@@ -605,7 +603,7 @@ bool Engine::parse_integrator(const boost::property_tree::ptree& xml,
             }
         }
     }
-    
+
     return true;
 }
 
@@ -630,7 +628,7 @@ bool Engine::parse_envmap(const boost::property_tree::ptree& xml,
             } else if (child.first == "float") {
                 std::string name = child.second.get<std::string>("<xmlattr>.name", "");
                 if (name == "gamma") {
-                    gamma = child.second.get<double>("<xmlattr>.value", 1.0);                    
+                    gamma = child.second.get<double>("<xmlattr>.value", 1.0);
                 } else if (name == "scale") {
                     scale = child.second.get<double>("<xmlattr>.value", 1.0);
                 }
@@ -708,7 +706,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                 if (propname == "alpha") {
                     alpha = k.second.get<double>("<xmlattr>.value", 0.0);
                 } else if (propname == "intIOR") {
-                    eta = k.second.get<double>("<xmlattr>.value", 1.0);   
+                    eta = k.second.get<double>("<xmlattr>.value", 1.0);
                 }
             }
         }
@@ -731,13 +729,13 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                     Spectrum diffuse = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
                     Kd = std::make_shared<ConstantTexture<Spectrum>>(diffuse);
                 } else if (refName == "specularReflectance") {
-                    Spectrum specular = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));                    
+                    Spectrum specular = getSpectrum(k.second.get<std::string>("<xmlattr>.value"));
                     Ks = std::make_shared<ConstantTexture<Spectrum>>(specular);
                 }
             } else if (k.first == "texture") {
                  std::string name = k.second.get<std::string>("<xmlattr>.name", "");
                  if (name == "diffuseReflectance") {
-                    parse(k.second, &Kd);                    
+                    parse(k.second, &Kd);
                  } else if (name == "specularReflectance") {
                     parse(k.second, &Ks);
                  }
@@ -851,7 +849,7 @@ bool Engine::parse(const boost::property_tree::ptree& xml,
                 if (name == "sigmaA") {
                     sigma_a = getSpectrum(k.second.get<std::string>("<xmlattr>.value", ""));
                 } else if (name == "sigmaS") {
-                    sigma_s = getSpectrum(k.second.get<std::string>("<xmlattr>.value", ""));                
+                    sigma_s = getSpectrum(k.second.get<std::string>("<xmlattr>.value", ""));
                 } else {
                     fprintf(stderr, "Unknown spectrum name: %s\n", name.c_str());
                     return false;

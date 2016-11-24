@@ -14,7 +14,6 @@
 #include "ppmprob.h"
 #include "sppm.h"
 #include "volphoto.h"
-#include "photonbeam.h"
 #include "irradcache.h"
 #include "hierarchical.h"
 

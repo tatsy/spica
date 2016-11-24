@@ -80,6 +80,9 @@ set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib)
 
 # ------------------------------------------------------------------------------
 # Set spica's root directory
@@ -114,7 +117,13 @@ find_package(Boost REQUIRED system filesystem)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # ------------------------------------------------------------------------------
+# Build options
+# ------------------------------------------------------------------------------
+option(SPICA_BUILD_TESTS "Build unit tests." OFF)
+option(SPICA_BUILD_GUI "Build GUI." OFF)
+
+# ------------------------------------------------------------------------------
 # Include subdirectories
 # ------------------------------------------------------------------------------
 add_subdirectory(sources)
-add_subdirectory(test)
+add_subdirectory(tests)

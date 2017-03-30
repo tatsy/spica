@@ -71,7 +71,7 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     Vector3d dpdu = Vector3d{ -2.0 * PI * pObj.y(), 2.0 * PI * pObj.x(), 0.0 };
     Vector3d dpdv = -PI * Vector3d(cosPhi * pObj.z(), sinPhi * pObj.z(),
                                    -radius_ * sin(theta));
-    
+
     // Prevent dpdu becomes zero when the ray intersect on either north or south pole.
     if (dpdu.norm() < EPS) {
         double sz = pObj.z() > 0.0 ? 1.0 : -1.0;
@@ -129,10 +129,10 @@ bool Sphere::intersect(const Ray& ray) const {
 }
 
 Interaction Sphere::sample(const Point2d& rands) const {
-    Point3d pObj = center_ + 
-                   radius_ * sampleUniformSphere(rands);
-    Normal3d nrm = vect::normalize(objectToWorld_.apply(Normal3d(pObj)));
-    return Interaction{ pObj, nrm };
+    Vector3d pLocal = sampleUniformSphere(rands);
+    Point3d pObj = center_ + radius_ * pLocal;
+    Normal3d pNorm = Normal3d(pLocal).normalized();
+    return Interaction{ pObj, pNorm };
 }
 
 Interaction Sphere::sample(const Interaction& isect,

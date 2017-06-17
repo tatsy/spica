@@ -1,3 +1,22 @@
+# ------------------------------------------------------------------------------
+# Import Boost libraries
+# ------------------------------------------------------------------------------
+if (MSVC)
+  set(BOOST_ROOT ${BOOST_ROOT} CACHE PATH "BOOST-NOT_FOUND")
+  if (NOT EXISTS "${BOOST_ROOT}/boost")
+	  message(FATAL_ERROR "[ERROR] Boost not found!!")
+  else()
+    message(STATUS "Boost: ${BOOST_ROOT}")
+    set(BOOST_LIBRARYDIR "${BOOST_ROOT}/lib")
+    set(Boost_USE_STATIC_LIBS FALSE CACHE BOOL FALSE)
+  endif()
+endif()
+find_package(Boost REQUIRED system filesystem)
+include_directories(${Boost_INCLUDE_DIRS})
+
+# ------------------------------------------------------------------------------
+# Build main
+# ------------------------------------------------------------------------------
 set(BUILD_TARGET spica_main)
 
 include_directories(${SPICA_ROOT_DIR}/sources)

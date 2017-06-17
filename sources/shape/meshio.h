@@ -12,7 +12,7 @@
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 #include "../core/uncopyable.h"
-#include "../math/transform.h"
+#include "../core/transform.h"
 
 namespace spica {
 

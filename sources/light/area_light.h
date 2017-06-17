@@ -9,7 +9,7 @@
 #include <memory>
 
 #include "light.h"
-#include "../shape/shape.h"
+#include "render/shape.h"
 
 namespace spica {
 

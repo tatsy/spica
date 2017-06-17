@@ -9,8 +9,8 @@
 #include "../core/point3d.h"
 #include "../core/normal3d.h"
 #include "../core/spectrum.h"
-#include "../math/vector3d.h"
-#include "../math/transform.h"
+#include "../core/vector3d.h"
+#include "../core/transform.h"
 #include "../core/uncopyable.h"
 #include "../core/stack.h"
 

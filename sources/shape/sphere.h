@@ -6,7 +6,7 @@
 #define SPICA_SPHERE_H_
 
 #include "shape.h"
-#include "../math/vector3d.h"
+#include "../core/vector3d.h"
 #include "../core/ray.h"
 
 namespace spica {

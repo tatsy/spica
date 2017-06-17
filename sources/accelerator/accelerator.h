@@ -8,13 +8,13 @@
 #include <vector>
 #include <map>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "core/common.h"
+#include "core/forward_decl.h"
+#include "core/uncopyable.h"
+#include "core/triangle.h"
+#include "core/bounds3d.h"
 
-#include "../core/uncopyable.h"
-#include "../core/primitive.h"
-#include "../core/bounds3d.h"
-#include "../shape/triangle.h"
+#include "render/primitive.h"
 
 namespace spica {
 

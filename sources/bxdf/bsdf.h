@@ -10,7 +10,7 @@
 #include "../core/common.h"
 #include "../core/forward_decl.h"
 
-#include "../math/vector3d.h"
+#include "../core/vector3d.h"
 #include "../core/normal3d.h"
 #include "bxdf.h"
 

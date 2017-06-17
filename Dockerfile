@@ -48,10 +48,10 @@ RUN apt-get -qq install cppcheck cccc doxygen
 #
 ## Install Boost
 #
-RUN wget https://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.gz/download
-RUN tar zxf download
+RUN wget -q https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz
+RUN tar -zxf boost_1_64_0.tar.gz
 RUN \
-  cd boost_1_63_0 && \
+  cd boost_1_64_0 && \
   ./bootstrap.sh --with-libraries=system,filesystem && \
   ./b2 --libdir=/usr/lib/x86_64-linux-gnu/ --includedir=/usr/include/ -d0 -j2 install
 

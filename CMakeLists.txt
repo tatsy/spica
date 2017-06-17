@@ -1,11 +1,14 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 project(spica)
+
+include(cmake/SpicaConfig.cmake)
 
 # ------------------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------------------
 option(SPICA_BUILD_TESTS "Build unit tests." OFF)
 option(SPICA_BUILD_GUI "Build GUI." OFF)
+option(SPICA_WITH_OPENMP "Build with OpenMP" OFF)
 
 # ------------------------------------------------------------------------------
 # Set compiler options
@@ -24,42 +27,12 @@ endif()
 # ------------------------------------------------------------------------------
 # Find OpenMP
 # ------------------------------------------------------------------------------
-set(SPICA_USE_OPENMP OFF CACHE BOOL OFF)
-if (SPICA_USE_OPENMP)
+if (SPICA_WITH_OPENMP)
   find_package(OpenMP)
   if (OPENMP_FOUND)
     message(STATUS "OpenMP Supported!!")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  endif()
-endif()
-
-# ------------------------------------------------------------------------------
-# Whether use static libraries or not
-# ------------------------------------------------------------------------------
-set(SPICA_USE_STATIC_LIBS OFF CACHE BOOL OFF)
-
-# ------------------------------------------------------------------------------
-# Set library prefices and suffices
-# ------------------------------------------------------------------------------
-if (WIN32)
-  set(LIB_PREFIX "")
-  set(LIB_SUFFIX ".lib")
-elseif(APPLE)
-  if (SPICA_USE_STATIC_LIBS)
-    set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".a")
-  else()
-    set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".dylib")
-  endif()
-else()
-  if (SPICA_USE_STATIC_LIBS)
-    set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".a")
-  else()
-    set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".so")
   endif()
 endif()
 

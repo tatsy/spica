@@ -17,8 +17,6 @@
 #include <cxxabi.h>
 #endif
 
-#include "spica_dirs.h"
-
 // -----------------------------------------------------------------------------
 // API export macro
 // -----------------------------------------------------------------------------
@@ -53,27 +51,6 @@ static const double PI = 4.0 * atan(1.0);
 static const double INV_PI = 1.0 / PI;
 static const double INFTY = 1.0e32;
 static const double EPS = 1.0e-12;
-
-// -----------------------------------------------------------------------------
-// Parallel for
-// -----------------------------------------------------------------------------
-#ifdef _OPENMP
-    #include <omp.h>
-    #if defined(_WIN32) || defined(__WIN32__)
-        #define ompfor __pragma(omp parallel for) for
-        #define omplock __pragma(omp critical)
-    #else
-        #define ompfor _Pragma("omp parallel for") for
-        #define omplock _Pragma("omp critical")
-    #endif
-    const int kNumThreads = omp_get_max_threads();
-    inline int omp_thread_id() { return omp_get_thread_num(); }
-#else  // _OPENMP
-    #define ompfor for
-    #define omplock
-    const int kNumThreads = 1;
-    inline int omp_thread_id() { return 0; }
-#endif  // _OPENMP
 
 // -----------------------------------------------------------------------------
 // Assertion with message

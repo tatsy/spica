@@ -1,6 +1,6 @@
 #define SPICA_API_EXPORT
 #include "ray.h"
-#include "../core/common.h"
+#include "core/common.h"
 
 #include <cmath>
 

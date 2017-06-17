@@ -3,16 +3,16 @@
 
 #include <typeinfo>
 
-#include "random_queue.h"
-#include "hash_grid.h"
+#include "core/random_queue.h"
+#include "core/hash_grid.h"
 
-#include "memory.h"
-#include "point2d.h"
-#include "interaction.h"
+#include "core/memory.h"
+#include "core/point2d.h"
+#include "core/interaction.h"
 
-#include "../material/material.h"
-#include "../scenes/scene.h"
-#include "../camera/camera.h"
+//#include "../material/material.h"
+//#include "../scenes/scene.h"
+//#include "../core/camera.h"
 
 namespace spica {
 
@@ -189,6 +189,7 @@ void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const 
     *direction = (u * cos(t) * z2s + v * sin(t) * z2s + w * sqrt(1.0 - z2)).normalized();        
 }
 
+/*
 void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
                        double minDist, std::vector<Interaction>* points) {
     std::vector<Triangle> tris;
@@ -342,5 +343,6 @@ void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
         }
     }
 }
+*/
 
 }  // namespace spica

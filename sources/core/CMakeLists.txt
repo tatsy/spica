@@ -1,3 +1,3 @@
-configure_file(${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h.in
-               ${CMAKE_CURRENT_LIST_DIR}/spica_dirs.h
-               @ONLY)
+file(GLOB HDR_FILES "*.h" "*.hpp")
+file(GLOB SRC_FILES "*.cc")
+add_spica_corelib(${SPICA_LIBCORE} ${HDR_FILES} ${SRC_FILES})

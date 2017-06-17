@@ -8,7 +8,7 @@
 #include <string>
 #include <type_traits>
 
-#include "../math/vect_math.h"
+#include "core/vect_math.h"
 
 namespace spica {
 

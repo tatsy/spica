@@ -56,6 +56,12 @@ macro(spica_error_message)
 endmacro()
 
 # ------------------------------------------------------------------------------
+# spica's install destination
+# ------------------------------------------------------------------------------
+set(SPICA_PLUGIN_DEST "${CMAKE_BINARY_DIR}/plugins")
+set(SPICA_CORELIB_DEST "${CMAKE_BINARY_DIR}/sdk")
+
+# ------------------------------------------------------------------------------
 # spica's core library building
 # ------------------------------------------------------------------------------
 macro(add_spica_corelib _corelib_name)
@@ -65,6 +71,11 @@ macro(add_spica_corelib _corelib_name)
   add_library(${BUILD_TARGET} SHARED ${_corelib_srcs})
   target_link_libraries(${BUILD_TARGET} ${_corelib_LINK_LIBRARIES})
   source_group("Source Files" FILES ${_corelib_srcs})
+
+  # Installation
+  install(TARGETS ${_corelib_name}
+          RUNTIME DESTINATION ${SPICA_CORELIB_DEST} COMPONENT Runtime
+          LIBRARY DESTINATION ${SPICA_CORELIB_DEST} COMPONENT Runtime)
 endmacro()
 
 # ------------------------------------------------------------------------------
@@ -94,4 +105,9 @@ macro(add_spica_plugin _plugin_name)
   endif()
   set_target_properties(${_plugin_name} PROPERTIES FOLDER ${_plugin_FOLDER})
   unset(_plugin_FOLDER)
+
+  # Installation
+  install(TARGETS ${_plugin_name}
+          RUNTIME DESTINATION ${SPICA_PLUGIN_DEST} COMPONENT Runtime
+          LIBRARY DESTINATION ${SPICA_PLUGIN_DEST} COMPONENT Runtime)
 endmacro()

@@ -9,7 +9,9 @@
 #include <vector>
 
 #include "core/common.h"
-#include "core/forward_decl.h"
+#include "core/core.hpp"
+
+#include "render/render.hpp"
 
 namespace spica {
 
@@ -19,7 +21,7 @@ public:
     virtual Bounds3d worldBound() const = 0;
     virtual bool    intersect(Ray& ray, SurfaceInteraction* isect) const = 0;
     virtual bool    intersect(Ray& ray) const = 0;
-    virtual const   AreaLight* areaLight() const = 0;
+    virtual const   Light* light() const = 0;
     virtual const   Material*  material()  const = 0;
     virtual std::vector<Triangle> triangulate() const = 0;
     virtual void    setScatterFuncs(SurfaceInteraction* intr,
@@ -31,14 +33,14 @@ public:
     // Public methods
     GeometricPrimitive(const std::shared_ptr<Shape>& shape,
                        const std::shared_ptr<Material>& material,
-                       const std::shared_ptr<AreaLight>& areaLight,
+                       const std::shared_ptr<Light>& areaLight,
                        const std::shared_ptr<MediumInterface>& mediumInterface = nullptr);
 
     virtual Bounds3d worldBound() const override;
     virtual bool intersect(Ray& ray, SurfaceInteraction* isect) const override;
     virtual bool intersect(Ray& ray) const override;
 
-    const AreaLight* areaLight() const override;
+    const Light* light() const override;
     const Material*  material()  const override;
     std::vector<Triangle> triangulate() const override;
     void setScatterFuncs(SurfaceInteraction* intr,
@@ -48,14 +50,14 @@ private:
     // Private fields
     std::shared_ptr<Shape>     shape_ = nullptr;
     std::shared_ptr<Material>  material_ = nullptr;
-    std::shared_ptr<AreaLight> areaLight_ = nullptr;
+    std::shared_ptr<Light> areaLight_ = nullptr;
     std::shared_ptr<MediumInterface> mediumInterface_ = nullptr;
 
 };  // class GeometricPrimitive
 
 class SPICA_EXPORTS Aggregate : public Primitive {
 public:
-    const AreaLight* areaLight() const override;
+    const Light* light() const override;
     const Material*  material()  const override;
     void  setScatterFuncs(SurfaceInteraction* intr, 
                           MemoryArena& arena) const override;

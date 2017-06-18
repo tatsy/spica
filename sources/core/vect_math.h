@@ -7,7 +7,7 @@
 
 #include <type_traits>
 
-#include "../core/forward_decl.h"
+#include "core/core.hpp"
 
 namespace spica {
 

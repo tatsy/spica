@@ -5,8 +5,8 @@
 #ifndef _SPICA_ORTHOGRAPHIC_CAMERA_H_
 #define _SPICA_ORTHOGRAPHIC_CAMERA_H_
 
+#include "core/core.hpp"
 #include "core/common.h"
-#include "core/forward_decl.h"
 #include "render/camera.h"
 
 namespace spica {

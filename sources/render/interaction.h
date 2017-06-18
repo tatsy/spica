@@ -7,15 +7,15 @@
 
 #include <memory>
 
+#include "core/core.hpp"
 #include "core/common.h"
-#include "core/forward_decl.h"
-
 #include "core/spectrum.h"
 #include "core/point2d.h"
 #include "core/point3d.h"
 #include "core/normal3d.h"
 #include "core/vector3d.h"
 
+#include "render/render.hpp"
 #include "render/medium.h"
 
 namespace spica {
@@ -79,7 +79,8 @@ public:
 
     void computeDifferentials(const Ray& ray);
     void setScatterFuncs(const Ray& ray, MemoryArena& arena);
-
+    Spectrum Le(const Vector3d& w) const;
+    
     inline bool isSurfaceInteraction() const override { return true; }
     inline const Point2d& uv() const { return uv_; }
     inline const Vector3d& dpdu() const { return dpdu_; }

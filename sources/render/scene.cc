@@ -42,13 +42,13 @@ namespace spica {
         return aggregate_->intersect(ray);
     }
 
-    bool Scene::intersectTr(Ray& ray, Sampler& sampler,
+    bool Scene::intersectTr(Ray& ray, Sampler& sampler, Medium *medium,
                             SurfaceInteraction* isect, Spectrum* tr) const {
         *tr = Spectrum(1.0);
         for (;;) {
             bool hitSurface = intersect(ray, isect);
-            if (ray.medium()) {
-                *tr *= ray.medium()->Tr(ray, sampler);
+            if (medium) {
+                *tr *= medium->Tr(ray, sampler);
             }
 
             if (!hitSurface) return false;

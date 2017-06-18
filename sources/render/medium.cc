@@ -3,6 +3,4 @@
 
 namespace spica {
 
-
-
 }  // namespace spica

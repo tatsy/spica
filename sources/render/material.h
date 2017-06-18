@@ -7,8 +7,8 @@
 
 #include <memory>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "core/common.h"
+#include "core/core.hpp"
 
 namespace spica {
 

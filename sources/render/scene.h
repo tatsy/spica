@@ -8,12 +8,12 @@
 #include <vector>
 #include <memory>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "core/core.hpp"
+#include "core/common.h"
 
-#include "../accelerator/accelerator.h"
-#include "../core/bounds3d.h"
-#include "../light/light.h"
+#include "core/bounds3d.h"
+#include "render/light.h"
+#include "render/accelerator.h"
 
 namespace spica {
 
@@ -33,7 +33,7 @@ public:
 
     bool intersect(Ray& ray, SurfaceInteraction* isect) const;
     bool intersect(Ray& ray) const;
-    bool intersectTr(Ray& ray, Sampler& sampler, SurfaceInteraction* isect,
+    bool intersectTr(Ray& ray, Sampler& sampler, Medium *medium, SurfaceInteraction* isect,
                      Spectrum* tr) const;
 
     inline const Bounds3d& worldBound() const { return worldBound_; }

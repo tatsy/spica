@@ -5,8 +5,8 @@
 #ifndef _SPICA_MICROFACET_H_
 #define _SPICA_MICROFACET_H_
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "core/common.h"
+#include "core/core.hpp"
 
 namespace spica {
 

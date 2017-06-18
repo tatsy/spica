@@ -7,12 +7,13 @@
 
 #include <array>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
-#include "../core/point2d.h"
-#include "../core/point3d.h"
-#include "../core/normal3d.h"
-#include "../core/transform.h"
+#include "core/core.hpp"
+
+#include "core/common.h"
+#include "core/point2d.h"
+#include "core/point3d.h"
+#include "core/normal3d.h"
+#include "core/transform.h"
 
 namespace spica {
 

@@ -7,11 +7,13 @@
 
 #include <memory>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
-#include "../core/uncopyable.h"
-#include "../core/spectrum.h"
-#include "fresnel.h"
+#include "core/core.hpp"
+#include "core/common.h"
+#include "core/uncopyable.h"
+#include "core/spectrum.h"
+
+#include "render/render.hpp"
+#include "render/fresnel.h"
 
 namespace spica {
 

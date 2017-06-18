@@ -10,13 +10,12 @@
 #include <memory>
 #include <functional>
 
+#include "core/core.hpp"
 #include "core/common.h"
-#include "core/forward_decl.h"
 #include "core/uncopyable.h"
 #include "core/point2d.h"
 #include "core/image.h"
-
-#include "render/filter.h"
+#include "core/filter.h"
 
 namespace spica {
 

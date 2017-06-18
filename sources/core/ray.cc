@@ -9,13 +9,11 @@ namespace spica {
 Ray::Ray() {
 }
 
-Ray::Ray(const Point3d& origin, const Vector3d& direction, double maxDist,
-         const Medium* medium)
+Ray::Ray(const Point3d& origin, const Vector3d& direction, double maxDist)
     : org_{ origin }
     , dir_{ direction.normalized() }
     , invdir_{}
-    , maxDist_{ maxDist }
-    , medium_{ medium } {
+    , maxDist_{ maxDist } {
     calcInvdir();
 }
 
@@ -32,7 +30,6 @@ Ray& Ray::operator=(const Ray& ray) {
     this->dir_     = ray.dir_;
     this->invdir_  = ray.invdir_;
     this->maxDist_ = ray.maxDist_;
-    this->medium_  = ray.medium_;
     return *this;
 }
 

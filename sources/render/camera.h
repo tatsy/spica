@@ -8,6 +8,8 @@
 #include "core/common.h"
 #include "core/transform.h"
 
+#include "render/render.hpp"
+
 namespace spica {
 
 class SPICA_EXPORTS Camera {

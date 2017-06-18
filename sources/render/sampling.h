@@ -14,7 +14,7 @@
 
 namespace spica {
 
-class Distribution1D {
+class SPICA_EXPORTS Distribution1D {
 public:
     Distribution1D();
     explicit Distribution1D(const std::vector<double>& data);
@@ -40,7 +40,7 @@ private:
 
 };  // class Distribution1D
 
-class Distribution2D {
+class SPICA_EXPORTS Distribution2D {
 public:
     Distribution2D();
     Distribution2D(const std::vector<double>& data, int width, int height);
@@ -65,11 +65,11 @@ SPICA_EXPORTS inline double   cosineHemispherePdf(double cosTheta) { return cosT
 SPICA_EXPORTS void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const Point2d& rands);
 
 //SPICA_EXPORTS
-//void samplePoissonDisk(const Scene& scene, const Point3d& pCamera, 
+//void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
 //                       double minDist, std::vector<Interaction>* points);
 //
 //SPICA_EXPORTS
-//void samplePoissonDisk(const Scene& scene, const Point3d& pCamera, 
+//void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
 //                       double minDist, std::vector<SurfaceInteraction>* points);
 
 }  // namespace spica

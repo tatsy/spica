@@ -12,10 +12,12 @@
 
 #include <vector>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "core/core.hpp"
+#include "core/common.h"
+#include "core/triangle.h"
+#include "core/transform.h"
 
-#include "../core/transform.h"
+#include "render/render.hpp"
 
 namespace spica {
     

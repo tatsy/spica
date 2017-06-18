@@ -5,10 +5,11 @@
 #ifndef _SPICA_TRANSLUCENT_H_
 #define _SPICA_TRANSLUCENT_H_
 
-#include "../core/common.h"
-#include "../core/spectrum.h"
+#include "core/common.h"
+#include "core/spectrum.h"
 
-#include "material.h"
+#include "render/render.hpp"
+#include "render/material.h"
 
 namespace spica {
 

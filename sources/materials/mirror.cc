@@ -1,13 +1,13 @@
 #define SPICA_API_EXPORT
 #include "mirror.h"
 
-#include "../core/memory.h"
-#include "../core/interaction.h"
+#include "core/memory.h"
+#include "render/interaction.h"
 
-#include "../texture/texture.h"
-#include "../bxdf/bxdf.h"
-#include "../bxdf/bsdf.h"
-#include "../bxdf/fresnel.h"
+#include "render/texture.h"
+#include "render/bxdf.h"
+#include "render/bsdf.h"
+#include "render/fresnel.h"
 
 namespace spica {
 

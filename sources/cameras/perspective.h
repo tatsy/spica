@@ -5,6 +5,7 @@
 #ifndef _SPICA_PERSPECTIVE_CAMERA_H_
 #define _SPICA_PERSPECTIVE_CAMERA_H_
 
+#include "core/cobject.h"
 #include "core/vector3d.h"
 #include "render/camera.h"
 
@@ -42,6 +43,8 @@ private:
     double areaWorld_;
 
 };  // class OrthographicCamera
+
+SPICA_EXPORT_PLUGIN(PerspectiveCamera, "Perspective camera");
 
 }  // namespace spica
 

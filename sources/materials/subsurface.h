@@ -5,11 +5,12 @@
 #ifndef _SPICA_SUBSURFACE_H_
 #define _SPICA_SUBSURFACE_H_
 
-#include "../core/common.h"
-#include "../core/spectrum.h"
-#include "../core/interpolation.h"
+#include "core/common.h"
+#include "core/spectrum.h"
+#include "core/interpolation.h"
 
-#include "material.h"
+#include "render/render.hpp"
+#include "render/material.h"
 
 namespace spica {
 

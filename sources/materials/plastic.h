@@ -5,9 +5,11 @@
 #ifndef _SPICA_PLASTIC_H_
 #define _SPICA_PLASTIC_H_
 
-#include "../core/common.h"
-#include "../core/spectrum.h"
-#include "material.h"
+#include "core/common.h"
+#include "core/spectrum.h"
+
+#include "render/render.hpp"
+#include "render/material.h"
 
 namespace spica {
 

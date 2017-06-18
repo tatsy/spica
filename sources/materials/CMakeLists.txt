@@ -1,0 +1,12 @@
+macro(add_material)
+  add_spica_plugin(${ARGN} TYPE material)
+endmacro()
+
+add_material(glass        glass.cc glass.h)
+add_material(kdsubsurface kdsubsurface.cc kdsubsurface.h)
+add_material(lambert      lambert.cc lambert.h)
+add_material(metal        metal.cc metal.h)
+add_material(mirror       mirror.cc mirror.h)
+add_material(plastic      plastic.cc plastic.h)
+add_material(subsurface   subsurface.cc subsurface.h)
+add_material(translucent  translucent.cc translucent.h)

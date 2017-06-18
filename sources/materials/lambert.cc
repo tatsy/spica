@@ -1,12 +1,11 @@
 #define SPICA_API_EXPORT
 #include "lambert.h"
 
-#include "../core/memory.h"
-#include "../core/interaction.h"
-
-#include "../bxdf/bsdf.h"
-#include "../bxdf/bxdf.h"
-#include "../texture/texture.h"
+#include "core/memory.h"
+#include "render/interaction.h"
+#include "render/bsdf.h"
+#include "render/bxdf.h"
+#include "render/texture.h"
 
 namespace spica {
 

@@ -5,11 +5,12 @@
 #ifndef _SPICA_METAL_H_
 #define _SPICA_METAL_H_
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "core/core.hpp"
+#include "core/common.h"
+#include "core/spectrum.h"
 
-#include "../core/spectrum.h"
-#include "material.h"
+#include "render/render.hpp"
+#include "render/material.h"
 
 namespace spica {
 

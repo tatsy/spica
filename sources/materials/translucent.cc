@@ -1,12 +1,12 @@
 #define SPICA_API_EXPORT
 #include "translucent.h"
 
-#include "../core/memory.h"
-#include "../core/interaction.h"
-#include "../bxdf/bsdf.h"
-#include "../bxdf/fresnel.h"
-#include "../bxdf/microfacet.h"
-#include "../texture/texture.h"
+#include "core/memory.h"
+#include "render/interaction.h"
+#include "render/bsdf.h"
+#include "render/fresnel.h"
+#include "render/microfacet.h"
+#include "render/texture.h"
 
 namespace spica {
 

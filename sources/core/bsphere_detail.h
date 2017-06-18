@@ -9,7 +9,7 @@ namespace spica {
 
 template <class T>
 BSphere_<T>::BSphere_()
-    : center_{} 
+    : center_{}
     , radius_{} {
 }
 

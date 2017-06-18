@@ -12,13 +12,13 @@ add_subdirectory(lights)
 add_subdirectory(accelerators)
 add_subdirectory(integrators)
 add_subdirectory(shapes)
+add_subdirectory(materials)
 
 # process_subdirectory(image)
 # process_subdirectory(filter)
 # process_subdirectory(shape)
 # process_subdirectory(medium)
 # process_subdirectory(random)
-# process_subdirectory(material)
 # process_subdirectory(texture)
 
 # Build viewer

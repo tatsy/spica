@@ -7,10 +7,11 @@
 
 #include <memory>
 
-#include "../core/common.h"
-#include "../core/spectrum.h"
+#include "core/common.h"
+#include "core/spectrum.h"
 
-#include "material.h"
+#include "render/render.hpp"
+#include "render/material.h"
 
 namespace spica {
 

@@ -26,15 +26,19 @@ if (NOT WIN32)
 endif()
 
 # ------------------------------------------------------------------------------
-# Find OpenMP
+# Add Qt dependency if needed
 # ------------------------------------------------------------------------------
-if (SPICA_WITH_OPENMP)
-  find_package(OpenMP)
-  if (OPENMP_FOUND)
-    message(STATUS "OpenMP Supported!!")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+
+if (${SPICA_BUILD_MAIN} OR ${SPICA_BUILD_GUI})
+  set(QT5_ROOT "QT5_ROOT" CACHE PATH "QT5_ROOT")
+  if (NOT EXISTS "${QT5_ROOT}/lib/cmake")
+    message(FATAL_ERROR "[ERROR] Qt5 not found!!")
   endif()
+  set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${QT5_ROOT})
+  find_package(Qt5Widgets REQUIRED)
+  find_package(Qt5OpenGL REQUIRED)
+  find_package(Qt5Xml REQUIRED)
+  find_package(OpenGL REQUIRED)
 endif()
 
 # ------------------------------------------------------------------------------

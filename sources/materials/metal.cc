@@ -3,11 +3,11 @@
 
 #include "core/memory.h"
 
-#include "render/interaction.h"
-#include "render/bsdf.h"
-#include "render/fresnel.h"
-#include "render/microfacet.h"
-#include "render/texture.h"
+#include "core/interaction.h"
+#include "core/bsdf.h"
+#include "core/fresnel.h"
+#include "core/microfacet.h"
+#include "core/texture.h"
 
 namespace spica {
 

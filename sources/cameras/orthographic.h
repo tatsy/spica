@@ -6,8 +6,9 @@
 #define _SPICA_ORTHOGRAPHIC_CAMERA_H_
 
 #include "core/core.hpp"
+#include "core/cobject.h"
 #include "core/common.h"
-#include "render/camera.h"
+#include "core/camera.h"
 
 namespace spica {
 
@@ -18,9 +19,10 @@ class SPICA_EXPORTS OrthographicCamera : public Camera {
 public:
     // Public methods
     OrthographicCamera();
+    OrthographicCamera(const RenderParams &params);
     OrthographicCamera(const Transform& cameraToWorld,
                         const Bounds2d& screen, double lensRadius,
-                        double focalLength, Film* film);
+                        double focalLength, std::shared_ptr<Film> film);
     OrthographicCamera(const OrthographicCamera&) = default;
     ~OrthographicCamera() = default;
 
@@ -42,6 +44,8 @@ private:
     double areaWorld_;
 
 };  // class OrthographicCamera
+
+SPICA_EXPORT_PLUGIN(OrthographicCamera, "Orthographic camera");
 
 }  // namespace spica
 

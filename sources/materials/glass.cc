@@ -2,11 +2,11 @@
 #include "glass.h"
 
 #include "core/memory.h"
-#include "render/interaction.h"
-#include "render/bxdf.h"
-#include "render/bsdf.h"
-#include "render/microfacet.h"
-#include "render/texture.h"
+#include "core/interaction.h"
+#include "core/bxdf.h"
+#include "core/bsdf.h"
+#include "core/microfacet.h"
+#include "core/texture.h"
 
 namespace spica {
 

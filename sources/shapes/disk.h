@@ -10,7 +10,7 @@
 #include "core/point3d.h"
 #include "core/normal3d.h"
 
-#include "render/shape.h"
+#include "core/shape.h"
 
 namespace spica {
 

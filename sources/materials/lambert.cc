@@ -2,10 +2,10 @@
 #include "lambert.h"
 
 #include "core/memory.h"
-#include "render/interaction.h"
-#include "render/bsdf.h"
-#include "render/bxdf.h"
-#include "render/texture.h"
+#include "core/interaction.h"
+#include "core/bsdf.h"
+#include "core/bxdf.h"
+#include "core/texture.h"
 
 namespace spica {
 

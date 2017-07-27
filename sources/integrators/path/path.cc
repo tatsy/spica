@@ -12,19 +12,19 @@
 #include "core/vector3d.h"
 #include "core/sampler.h"
 
-#include "render/sampling.h"
-#include "render/interaction.h"
-#include "render/film.h"
+#include "core/sampling.h"
+#include "core/interaction.h"
+#include "core/film.h"
 
-#include "render/bsdf.h"
-#include "render/bxdf.h"
-#include "render/bssrdf.h"
+#include "core/bsdf.h"
+#include "core/bxdf.h"
+#include "core/bssrdf.h"
 
-#include "render/camera.h"
-#include "render/scene.h"
+#include "core/camera.h"
+#include "core/scene.h"
 
-#include "render/integrator.h"
-#include "render/mis.h"
+#include "core/integrator.h"
+#include "core/mis.h"
 
 
 // #include "subsurface_integrator.h"
@@ -67,7 +67,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
             }
         }
 
-        if (!isIntersect || bounces >= params.get<int>("MAX_BOUNCES")) break;
+        if (!isIntersect || bounces >= params.getInt("maxBounces")) break;
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
@@ -77,7 +77,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
         }
 
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-            Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+            Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
             L += Ld;
         }
 
@@ -104,7 +104,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
             if (S.isBlack() || pdf == 0.0) break;
             beta *= S / pdf;
 
-            L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+            L += beta * uniformSampleOneLight(pi, scene, arena, sampler);
 
             Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                            BxDFType::All, &sampledType);

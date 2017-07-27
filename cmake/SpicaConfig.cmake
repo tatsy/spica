@@ -58,7 +58,7 @@ endmacro()
 # ------------------------------------------------------------------------------
 # spica's install destination
 # ------------------------------------------------------------------------------
-set(SPICA_PLUGIN_DEST "${CMAKE_BINARY_DIR}/plugins")
+set(SPICA_PLUGIN_DEST "${CMAKE_BINARY_DIR}/bin/plugins")
 set(SPICA_CORELIB_DEST "${CMAKE_BINARY_DIR}/sdk")
 
 # ------------------------------------------------------------------------------
@@ -68,9 +68,13 @@ macro(add_spica_corelib _corelib_name)
   CMAKE_PARSE_ARGUMENTS(_corelib "TYPE" "LINK_LIBRARIES" ${ARGV})
   set(_corelib_srcs ${_corelib_UNPARSED_ARGUMENTS})
 
-  add_library(${BUILD_TARGET} SHARED ${_corelib_srcs})
-  target_link_libraries(${BUILD_TARGET} ${_corelib_LINK_LIBRARIES})
+  add_library(${_corelib_name} SHARED ${_corelib_srcs})
   source_group("Source Files" FILES ${_corelib_srcs})
+
+  if (_corelib_LINK_LIBRARIES)
+    target_link_libraries(${_corelib_name} ${_corelib_LINK_LIBRARIES})
+    add_dependencies(${_corelib_name} ${_corelib_LINK_LIBRARIES})
+  endif()
 
   # Installation
   install(TARGETS ${_corelib_name}
@@ -91,7 +95,7 @@ macro(add_spica_plugin _plugin_name)
   source_group("Source Files" FILES ${_plugin_srcs})
 
   # Link setting
-  set(_plugin_core_libraries "${SPICA_PREFIX}_core" "${SPICA_PREFIX}_render")
+  set(_plugin_core_libraries "${SPICA_PREFIX}_core")
   target_link_libraries(${_plugin_name} ${_plugin_core_libraries})
 
   # Folder setting

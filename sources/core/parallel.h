@@ -12,7 +12,7 @@
 
 namespace spica {
 
-class AtomicDouble {
+class SPICA_EXPORTS AtomicDouble {
 public:
     explicit AtomicDouble(double v = 0.0);
     operator double() const;

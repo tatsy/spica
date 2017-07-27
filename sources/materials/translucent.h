@@ -8,8 +8,8 @@
 #include "core/common.h"
 #include "core/spectrum.h"
 
-#include "render/render.hpp"
-#include "render/material.h"
+#include "core/render.hpp"
+#include "core/material.h"
 
 namespace spica {
 

@@ -27,6 +27,19 @@ namespace spica {
     }
 
     template <class T>
+    Vector3_<T>::Vector3_(const std::string &str) {
+        std::stringstream ss;
+        ss << str;
+
+        double x, y, z;
+        ss >> x >> y >> z;
+        
+        this->_x = x;
+        this->_y = y;
+        this->_z = z;
+    }
+
+    template <class T>
     Vector3_<T>::Vector3_(const Vector3_<T>& v)
         : _x{v._x}
         , _y{v._y}

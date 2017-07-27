@@ -1,11 +1,10 @@
 #define SPICA_API_EXPORT
 #include "directlighting.h"
 
-#include "../core/interaction.h"
-#include "../core/renderparams.h"
-#include "../scenes/scene.h"
-
-#include "mis.h"
+#include "core/interaction.h"
+#include "core/renderparams.h"
+#include "core/scene.h"
+#include "core/mis.h"
 
 namespace spica {
 
@@ -43,10 +42,10 @@ Spectrum DirectLightingIntegrator::Li(const Scene& scene,
 
     Vector3d wo = isect.wo();
     if (scene.lights().size() > 0) {
-        L += mis::uniformSampleOneLight(isect, scene, arena, sampler);
+        L += uniformSampleOneLight(isect, scene, arena, sampler);
     }
 
-    if (depth + 1 < params.get<int>("MAX_BOUNCES")) {
+    if (depth + 1 < params.getInt("maxDepth")) {
         L += specularReflect(scene, params, ray, isect, sampler, arena, depth + 1);
         L += specularTransmit(scene, params, ray, isect, sampler, arena, depth + 1);
     }

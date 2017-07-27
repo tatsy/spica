@@ -6,8 +6,8 @@
 #include "core/common.h"
 #include "core/bounds3d.h"
 #include "core/triangle.h"
-#include "render/interaction.h"
-#include "render/sampling.h"
+#include "core/interaction.h"
+#include "core/sampling.h"
 
 namespace spica {
 

@@ -6,13 +6,13 @@
 #define _SPICA_FILTER_H_
 
 #include "core/core.hpp"
-
 #include "core/common.h"
+#include "core/cobject.h"
 #include "core/vector2d.h"
 
 namespace spica {
 
-class SPICA_EXPORTS Filter {
+class SPICA_EXPORTS Filter : public CObject {
 public:
     // Public methods
     Filter();

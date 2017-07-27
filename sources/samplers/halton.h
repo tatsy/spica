@@ -6,8 +6,9 @@
 #define _SPICA_HALTON_H_
 
 #include <memory>
-#include "sampler.h"
-#include "random.h"
+#include "core/cobject.h"
+#include "core/sampler.h"
+#include "core/random.h"
 
 namespace spica {
 
@@ -23,6 +24,8 @@ public:
      */
     explicit Halton(int ns = 200, bool isPermute = true,
                     unsigned int seed = 0);
+    explicit Halton(const RenderParams &params);
+
     ~Halton();
 
     double get1D() override;
@@ -45,6 +48,8 @@ private:
     const std::unique_ptr<double[]> samples_;
 
 };
+
+SPICA_EXPORT_PLUGIN(Halton, "Halton sampler");
 
 }  // namespace spica
 

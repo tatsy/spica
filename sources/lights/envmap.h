@@ -7,13 +7,13 @@
 
 #include <vector>
 
-#include "render/light.h"
+#include "core/light.h"
 
 #include "core/spectrum.h"
 #include "core/vector3d.h"
 #include "core/bsphere.h"
 #include "core/mipmap.h"
-#include "render/sampling.h"
+#include "core/sampling.h"
 
 namespace spica {
 

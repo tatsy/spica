@@ -32,6 +32,11 @@ namespace spica {
          */
         Vector3_(T x, T y, T z);
 
+        /**
+         * @param string form vector
+         */
+        Vector3_(const std::string &str);
+
         /** The Vector3d copy constructor
          */
         Vector3_(const Vector3_& v);

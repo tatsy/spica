@@ -5,8 +5,9 @@
 #ifndef _SPICA_GAUSSIAN_H_
 #define _SPICA_GAUSSIAN_H_
 
-#include "../core/common.h"
-#include "filter.h"
+#include "core/common.h"
+#include "core/filter.h"
+#include "core/renderparams.h"
 
 namespace spica {
 
@@ -14,6 +15,7 @@ class SPICA_EXPORTS GaussianFilter : public Filter {
 public:
     // Public methods
     GaussianFilter();
+    explicit GaussianFilter(const RenderParams &params);
     GaussianFilter(const Vector2d& radius, double sigma);
     GaussianFilter(const GaussianFilter&) = default;
     ~GaussianFilter();
@@ -30,6 +32,8 @@ private:
     double beta_;
     double expX_, expY_;
 };
+
+SPICA_EXPORT_PLUGIN(GaussianFilter, "Guassian reconstruction filter");
 
 }  // namespace spica
 

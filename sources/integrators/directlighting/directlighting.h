@@ -5,7 +5,7 @@
 #ifndef _SPICA_DIRECTLIGHTING_H_
 #define _SPICA_DIRECTLIGHTING_H_
 
-#include "integrator.h"
+#include "core/integrator.h"
 
 namespace spica {
 

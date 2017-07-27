@@ -4,10 +4,10 @@
 #include "core/point2d.h"
 #include "core/bounds2d.h"
 
-#include "render/film.h"
-#include "render/sampling.h"
-#include "render/interaction.h"
-#include "render/visibility_tester.h"
+#include "core/film.h"
+#include "core/sampling.h"
+#include "core/interaction.h"
+#include "core/visibility_tester.h"
 
 namespace spica {
 
@@ -17,9 +17,17 @@ OrthographicCamera::OrthographicCamera()
     , areaWorld_{ 0.0 } {
 }
 
+OrthographicCamera::OrthographicCamera(const RenderParams &params)
+    : OrthographicCamera{params.getTransform("toWorld"),
+                         Bounds2d(-1.0, -1.0, 2.0, 2.0),
+                         params.getDouble("apertureRadius"),
+                         params.getDouble("focusDistance"),
+                         std::static_pointer_cast<Film>(params.getObject("film"))} {
+}
+
 OrthographicCamera::OrthographicCamera(const Transform& cameraToWorld,
                                        const Bounds2d& screen, double lensRadius,
-                                       double focalLength, Film* film)
+                                       double focalLength, std::shared_ptr<Film> film)
     : Camera{ cameraToWorld, Transform::orthographic(0.0, 1.0), screen,
               lensRadius, focalLength, film }
     , uCamera_{}

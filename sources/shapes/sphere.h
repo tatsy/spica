@@ -8,7 +8,7 @@
 #include "core/vector3d.h"
 #include "core/ray.h"
 
-#include "render/shape.h"
+#include "core/shape.h"
 
 namespace spica {
 

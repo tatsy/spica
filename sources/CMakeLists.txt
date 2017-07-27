@@ -1,31 +1,31 @@
-set(SPICA_TARGET_NAME spica_renderer CACHE INTERNAL "")
-set(BUILD_TARGET ${SPICA_TARGET_NAME})
-
-set(SOURCE_FILES "spica.h")
-
+# Common build targets
+set(SPICA_MAIN "spica")
+set(SPICA_GUI "spica_gui")
+set(SPICA_LIBCORE "spica_core")
 
 # Process subdirectories
 add_subdirectory(core)
-add_subdirectory(render)
+
 add_subdirectory(cameras)
 add_subdirectory(lights)
 add_subdirectory(accelerators)
 add_subdirectory(integrators)
 add_subdirectory(shapes)
 add_subdirectory(materials)
+add_subdirectory(samplers)
+add_subdirectory(films)
+add_subdirectory(filters)
 
 # process_subdirectory(image)
 # process_subdirectory(filter)
-# process_subdirectory(shape)
 # process_subdirectory(medium)
-# process_subdirectory(random)
 # process_subdirectory(texture)
 
 # Build viewer
-if (BUILD_SPICA_GUI)
-  add_subdirectory(viewer)
+if (SPICA_BUILD_GUI)
+  add_subdirectory(spicagui)
 endif()
 
-if (BUILD_SPICA_MAIN)
-  add_subdirectory(main)
+if (SPICA_BUILD_MAIN)
+  add_subdirectory(spica)
 endif()

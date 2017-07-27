@@ -62,105 +62,101 @@ Thanks!
 
 namespace spica {
 
-    /* Period parameters */
-    const unsigned int Random::MATRIX_A   = 0x9908b0dfU;  /* constant vector a */
-    const unsigned int Random::UPPER_MASK = 0x80000000U;  /* most significant w-r bits */
-    const unsigned int Random::LOWER_MASK = 0x7fffffffU;  /* least significant r bits */
+/* Period parameters */
+const unsigned int Random::MATRIX_A   = 0x9908b0dfU;  /* constant vector a */
+const unsigned int Random::UPPER_MASK = 0x80000000U;  /* most significant w-r bits */
+const unsigned int Random::LOWER_MASK = 0x7fffffffU;  /* least significant r bits */
 
-    Random::Random(unsigned int seed)
-        : mti(N + 1)
-    {
-        init_genrand(seed);
+Random::Random(unsigned int seed)
+    : mti(N + 1)
+{
+    init_genrand(seed);
+}
+
+int Random::nextInt() {
+    return genrand_int31();
+}
+
+int Random::nextInt(const int n) {
+    Assertion(n > 0, "Upper bound of random integers must be positive.");
+    return genrand_int31() % n;
+}
+
+double Random::nextReal() {
+    return genrand_real2();
+}
+
+double Random::normal() {
+    const double r1 = nextReal();
+    const double r2 = nextReal();
+    return sqrt(-2.0 * log(r1)) * sin(2.0 * PI * r2);
+}
+
+double Random::get1D() {
+    return genrand_real2();
+}
+
+/* initializes mt[N] with a seed */
+void Random::init_genrand(unsigned int s) {
+    mt[0] = s & 0xffffffffU;
+    for (mti = 1; mti < N; mti++) {
+        mt[mti] =
+            (1812433253UL * (mt[mti - 1] ^ (mt[mti - 1] >> 30)) + mti);
+        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+        /* In the previous versions, MSBs of the seed affect   */
+        /* only MSBs of the array mt[].                        */
+        /* 2002/01/09 modified by Makoto Matsumoto             */
+        mt[mti] &= 0xffffffffU;
+        /* for >32 bit machines */
     }
+}
 
-    int Random::nextInt() {
-        return genrand_int31();
-    }
+/* generates a random number on [0,0xffffffff]-interval */
+unsigned int Random::genrand_int32(void) {
+    unsigned int y;
+    static unsigned int mag01[2] = { 0x0U, MATRIX_A };
+    /* mag01[x] = x * MATRIX_A  for x=0,1 */
 
-    int Random::nextInt(const int n) {
-        Assertion(n > 0, "Upper bound of random integers must be positive.");
-        return genrand_int31() % n;
-    }
+    if (mti >= N) { /* generate N words at one time */
+        int kk;
 
-    double Random::nextReal() {
-        return genrand_real2();
-    }
+        if (mti == N + 1) /* if init_genrand() has not been called, */
+            init_genrand(5489UL); /* a default initial seed is used */
 
-    double Random::normal() {
-        const double r1 = nextReal();
-        const double r2 = nextReal();
-        return sqrt(-2.0 * log(r1)) * sin(2.0 * PI * r2);
-    }
-
-    double Random::get1D() {
-        return genrand_real2();
-    }
-
-    /* initializes mt[N] with a seed */
-    void Random::init_genrand(unsigned int s) {
-        mt[0] = s & 0xffffffffU;
-        for (mti = 1; mti < N; mti++) {
-            mt[mti] =
-                (1812433253UL * (mt[mti - 1] ^ (mt[mti - 1] >> 30)) + mti);
-            /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
-            /* In the previous versions, MSBs of the seed affect   */
-            /* only MSBs of the array mt[].                        */
-            /* 2002/01/09 modified by Makoto Matsumoto             */
-            mt[mti] &= 0xffffffffU;
-            /* for >32 bit machines */
+        for (kk = 0; kk < N - M; kk++) {
+            y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
+            mt[kk] = mt[kk + M] ^ (y >> 1) ^ mag01[y & 0x1UL];
         }
-    }
-
-    /* generates a random number on [0,0xffffffff]-interval */
-    unsigned int Random::genrand_int32(void) {
-        unsigned int y;
-        static unsigned int mag01[2] = { 0x0U, MATRIX_A };
-        /* mag01[x] = x * MATRIX_A  for x=0,1 */
-
-        if (mti >= N) { /* generate N words at one time */
-            int kk;
-
-            if (mti == N + 1) /* if init_genrand() has not been called, */
-                init_genrand(5489UL); /* a default initial seed is used */
-
-            for (kk = 0; kk < N - M; kk++) {
-                y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
-                mt[kk] = mt[kk + M] ^ (y >> 1) ^ mag01[y & 0x1UL];
-            }
-            for (; kk < N - 1; kk++) {
-                y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
-                mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ mag01[y & 0x1UL];
-            }
-            y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK);
-            mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ mag01[y & 0x1UL];
-
-            mti = 0;
+        for (; kk < N - 1; kk++) {
+            y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
+            mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ mag01[y & 0x1UL];
         }
+        y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK);
+        mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ mag01[y & 0x1UL];
 
-        y = mt[mti++];
-
-        /* Tempering */
-        y ^= (y >> 11);
-        y ^= (y <<  7) & 0x9d2c5680ULL;
-        y ^= (y << 15) & 0xefc60000ULL;
-        y ^= (y >> 18);
-
-        return y;
+        mti = 0;
     }
 
-    std::unique_ptr<Sampler> Random::clone(unsigned int seed) const {
-        return std::make_unique<Random>(seed);
-    }
+    y = mt[mti++];
 
-    /* generates a random number on [0,0x7fffffff]-interval */
-    int Random::genrand_int31(void) {
-        return static_cast<int>(genrand_int32() >> 1);
-    }
+    /* Tempering */
+    y ^= (y >> 11);
+    y ^= (y <<  7) & 0x9d2c5680ULL;
+    y ^= (y << 15) & 0xefc60000ULL;
+    y ^= (y >> 18);
 
-    /* generates a random number on [0,1)-real-interval */
-    double Random::genrand_real2(void) {
-        return genrand_int32()*(1.0 / 4294967296.0);
-        /* divided by 2^32 */
-    }
+    return y;
+}
+
+/* generates a random number on [0,0x7fffffff]-interval */
+int Random::genrand_int31(void) {
+    return static_cast<int>(genrand_int32() >> 1);
+}
+
+/* generates a random number on [0,1)-real-interval */
+double Random::genrand_real2(void) {
+    return genrand_int32()*(1.0 / 4294967296.0);
+    /* divided by 2^32 */
+}
 
 }  // namespace spica

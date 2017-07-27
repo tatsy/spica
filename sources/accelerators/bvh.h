@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include "render/accelerator.h"
+#include "core/accelerator.h"
 
 namespace spica {
 

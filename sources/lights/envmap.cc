@@ -8,9 +8,9 @@
 #include "core/common.h"
 #include "core/point2d.h"
 #include "core/normal3d.h"
-#include "render/sampling.h"
-#include "render/scene.h"
-#include "render/visibility_tester.h"
+#include "core/sampling.h"
+#include "core/scene.h"
+#include "core/visibility_tester.h"
 
 namespace spica {
 

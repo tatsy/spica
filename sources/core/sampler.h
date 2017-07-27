@@ -11,16 +11,17 @@
 
 #include <memory>
 
-#include "../core/common.h"
-#include "../core/uncopyable.h"
-#include "../core/point2d.h"
+#include "core/common.h"
+#include "core/cobject.h"
+#include "core/uncopyable.h"
+#include "core/point2d.h"
 
 namespace spica {
 
     /** Random sampler class.
      *  @ingroup random_module
      */
-    class SPICA_EXPORTS Sampler : public Uncopyable {
+    class SPICA_EXPORTS Sampler : public CObject, Uncopyable {
     public:
         virtual ~Sampler() {}
 

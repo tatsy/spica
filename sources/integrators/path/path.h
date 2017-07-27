@@ -10,7 +10,7 @@
 #include "core/common.h"
 #include "core/core.hpp"
 
-#include "render/integrator.h"
+#include "core/integrator.h"
 
 namespace spica {
 

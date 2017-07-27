@@ -4,8 +4,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "random.h"
-
 namespace spica {
 
 namespace {
@@ -105,6 +103,12 @@ Halton::Halton(int ns, bool isPermute, unsigned int seed)
         }
         p += bases_[i];
     }
+}
+
+Halton::Halton(const RenderParams &params)
+    : Halton{params.getInt("ns"),
+             params.getBool("isPermite"),
+             params.getInt("seed")} {
 }
     
 Halton::~Halton() {

@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include "core/bounds3d.h"
-#include "render/interaction.h"
+#include "core/interaction.h"
 
 namespace spica {
 

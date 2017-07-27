@@ -14,6 +14,8 @@
 #include "core/normal3d.h"
 #include "core/spectrum.h"
 
+#include "core/render.hpp"
+
 namespace spica {
 
 /**
@@ -23,7 +25,8 @@ class SPICA_EXPORTS Ray {
 public:
     // Public methods
     Ray();
-    Ray(const Point3d& origin, const Vector3d& direction, double maxDist = INFTY);
+    Ray(const Point3d& origin, const Vector3d& direction, double maxDist = INFTY,
+        const Medium* medium = nullptr);
     Ray(const Ray& ray);
     virtual ~Ray();
 
@@ -36,6 +39,7 @@ public:
     inline Vector3d dir()     const { return dir_; }
     inline Vector3d invdir()  const { return invdir_; }
     inline double   maxDist() const { return maxDist_; }
+    inline const Medium* medium() const { return medium_; }
     inline void     setMaxDist(double maxDist) { maxDist_ = maxDist; }
 
 private:
@@ -47,6 +51,7 @@ private:
     Vector3d dir_     = { 0.0, 0.0, 0.0 };
     Vector3d invdir_  = { INFTY, INFTY, INFTY };
     double   maxDist_ = INFTY;
+    const Medium* medium_  = nullptr;
 };
 
 }  // namespace spica

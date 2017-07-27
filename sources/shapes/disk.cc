@@ -4,8 +4,8 @@
 #include "core/common.h"
 #include "core/triangle.h"
 #include "core/ray.h"
-#include "render/sampling.h"
-#include "render/interaction.h"
+#include "core/sampling.h"
+#include "core/interaction.h"
 
 namespace spica {
 

@@ -12,8 +12,8 @@
 #include "core/spectrum.h"
 #include "core/interpolation.h"
 
-#include "render/render.hpp"
-#include "render/material.h"
+#include "core/render.hpp"
+#include "core/material.h"
 
 namespace spica {
 

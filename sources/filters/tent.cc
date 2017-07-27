@@ -3,13 +3,17 @@
 
 #include <algorithm>
 
-#include "../core/point2d.h"
-#include "../math/vector2d.h"
+#include "core/point2d.h"
+#include "core/vector2d.h"
 
 namespace spica {
 
 TentFilter::TentFilter()
     : Filter{} {
+}
+
+TentFilter::TentFilter(const RenderParams &params)
+    : TentFilter{Vector2d(params.getDouble("radius", 1.0), params.getDouble("radius", 1.0))} {
 }
 
 TentFilter::TentFilter(const Vector2d& radius)

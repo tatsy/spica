@@ -6,10 +6,10 @@
 #include "core/point2d.h"
 #include "core/bounds2d.h"
 
-#include "render/sampling.h"
-#include "render/interaction.h"
-#include "render/visibility_tester.h"
-#include "render/film.h"
+#include "core/sampling.h"
+#include "core/interaction.h"
+#include "core/visibility_tester.h"
+#include "core/film.h"
 
 namespace spica {
 
@@ -20,10 +20,19 @@ PerspectiveCamera::PerspectiveCamera()
     , areaWorld_{0.0} {
 }
 
+PerspectiveCamera::PerspectiveCamera(const RenderParams &params)
+    : PerspectiveCamera{params.getTransform("toWorld"),
+                        Bounds2d(-1.0, -1.0, 2.0, 2.0),
+                        params.getDouble("apertureRadius"),
+                        params.getDouble("focusDistance"),
+                        params.getDouble("fov"),
+                        std::static_pointer_cast<Film>(params.getObject("film"))} {
+}
+
 PerspectiveCamera::PerspectiveCamera(const Transform& cameraToWorld,
                                      const Bounds2d& screen, double lensRadius,
                                      double focalLength, double fov,
-                                     Film* film)
+                                     std::shared_ptr<Film> film)
     : Camera{ cameraToWorld, 
               Transform::perspective(fov, film->aspect(), 1.0e-2, 1000.0),
               screen, lensRadius, focalLength, film }

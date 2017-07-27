@@ -7,7 +7,7 @@
 
 #include "core/cobject.h"
 #include "core/vector3d.h"
-#include "render/camera.h"
+#include "core/camera.h"
 
 namespace spica {
 
@@ -18,9 +18,11 @@ class SPICA_EXPORTS PerspectiveCamera : public Camera {
 public:
     // Public methods
     PerspectiveCamera();
+    PerspectiveCamera(const RenderParams &params);
     PerspectiveCamera(const Transform& cameraToWorld,
                       const Bounds2d& screen, double lensRadius,
-                      double focalLength, double fov, Film* film);
+                      double focalLength, double fov,
+                      std::shared_ptr<Film> film);
 
     PerspectiveCamera(const PerspectiveCamera&) = default;
     ~PerspectiveCamera() = default;

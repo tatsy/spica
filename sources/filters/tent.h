@@ -5,14 +5,16 @@
 #ifndef _SPICA_TENT_H_
 #define _SPICA_TENT_H_
 
-#include "../core/common.h"
-#include "filter.h"
+#include "core/common.h"
+#include "core/filter.h"
+#include "core/renderparams.h"
 
 namespace spica {
 
 class SPICA_EXPORTS TentFilter : public Filter {
 public:    
     TentFilter();
+    explicit TentFilter(const RenderParams &params);
     explicit TentFilter(const Vector2d& radius);
     TentFilter(const TentFilter&) = default;
     ~TentFilter();
@@ -21,6 +23,8 @@ public:
 
     double evaluate(const Point2d& p) const override;
 };
+
+SPICA_EXPORT_PLUGIN(TentFilter, "Tent reconstruction filter");
 
 }  // namespace spica
 

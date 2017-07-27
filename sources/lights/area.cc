@@ -1,10 +1,10 @@
 #define SPICA_API_EXPORT
 #include "area.h"
 
-#include "render/shape.h"
-#include "render/visibility_tester.h"
-#include "render/sampling.h"
-#include "render/interaction.h"
+#include "core/shape.h"
+#include "core/visibility_tester.h"
+#include "core/sampling.h"
+#include "core/interaction.h"
 
 namespace spica {
 

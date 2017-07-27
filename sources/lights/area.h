@@ -8,8 +8,8 @@
 #include <vector>
 #include <memory>
 
-#include "render/light.h"
-#include "render/shape.h"
+#include "core/light.h"
+#include "core/shape.h"
 
 namespace spica {
 

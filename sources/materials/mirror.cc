@@ -2,12 +2,12 @@
 #include "mirror.h"
 
 #include "core/memory.h"
-#include "render/interaction.h"
+#include "core/interaction.h"
 
-#include "render/texture.h"
-#include "render/bxdf.h"
-#include "render/bsdf.h"
-#include "render/fresnel.h"
+#include "core/texture.h"
+#include "core/bxdf.h"
+#include "core/bsdf.h"
+#include "core/fresnel.h"
 
 namespace spica {
 

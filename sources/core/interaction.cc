@@ -1,13 +1,12 @@
 #define SPICA_API_EXPORT
 #include "interaction.h"
 
-#include "../core/float.h"
-#include "../core/ray.h"
-#include "../core/primitive.h"
-#include "../math/vector3d.h"
-#include "../bxdf/bsdf.h"
-#include "../bxdf/fresnel.h"
-#include "../light/area_light.h"
+#include "core/float.h"
+#include "core/ray.h"
+#include "core/vector3d.h"
+
+#include "core/light.h"
+#include "core/primitive.h"
 
 namespace spica {
 
@@ -76,20 +75,20 @@ Interaction& Interaction::operator=(const Interaction& intr) {
 
 Ray Interaction::spawnRay(const Vector3d& wi) const {
     Point3d origin = offsetRayOrigin(pos_, normal_, wi);
-    return Ray(origin, wi, INFTY, getMedium(wi));
+    return Ray(origin, wi, INFTY); 
 }
 
 Ray Interaction::spawnRayTo(const Point3d& p) const {
     Vector3d d = p - pos_;
     Point3d origin = offsetRayOrigin(pos_, normal_, d);
-    return Ray(origin, d, d.norm(), getMedium(d));
+    return Ray(origin, d, d.norm());
 }
 
 Ray Interaction::spawnRayTo(const Interaction& intr) const {
     Point3d origin = offsetRayOrigin(pos_, normal_, intr.pos_ - pos_);
     Point3d target = offsetRayOrigin(intr.pos_, intr.normal_, origin - intr.pos_);
     Vector3d d = target - origin;
-    return Ray(origin, d, d.norm(), getMedium(d));
+    return Ray(origin, d, d.norm());
 }
 
 
@@ -157,10 +156,9 @@ void SurfaceInteraction::setScatterFuncs(const Ray& ray, MemoryArena& arena) {
 }
 
 Spectrum SurfaceInteraction::Le(const Vector3d& w) const {
-    const AreaLight* area = primitive_->areaLight();
+    const Light* area = primitive_->light();
     return area ? area->L(*this, w) : Spectrum(0.0);
 }
-
 
 // -----------------------------------------------------------------------------
 // SurfaceInteraction method definitions

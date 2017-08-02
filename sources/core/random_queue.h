@@ -4,7 +4,7 @@
 #include <memory>
 #include <algorithm>
 
-#include "../random/random.h"
+#include "core/random.h"
 
 namespace spica {
 

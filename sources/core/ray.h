@@ -7,12 +7,14 @@
 
 #include <memory>
 
-#include "../core/common.h"
-#include "../math/vector2d.h"
-#include "../math/vector3d.h"
-#include "../core/point3d.h"
-#include "../core/normal3d.h"
-#include "../core/spectrum.h"
+#include "core/common.h"
+#include "core/vector2d.h"
+#include "core/vector3d.h"
+#include "core/point3d.h"
+#include "core/normal3d.h"
+#include "core/spectrum.h"
+
+#include "core/render.hpp"
 
 namespace spica {
 

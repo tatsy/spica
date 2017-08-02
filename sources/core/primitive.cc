@@ -1,10 +1,10 @@
 #define SPICA_API_EXPORT
 #include "primitive.h"
 
-#include "../core/interaction.h"
-#include "../shape/shape.h"
-#include "../shape/triangle.h"
-#include "../material/material.h"
+#include "core/triangle.h"
+#include "core/interaction.h"
+#include "core/shape.h"
+#include "core/material.h"
 
 namespace spica {
 
@@ -12,7 +12,7 @@ namespace spica {
 // Primitive method definitions
 // -----------------------------------------------------------------------------
 
-const AreaLight* Aggregate::areaLight() const {
+const Light* Aggregate::light() const {
     Warning("Deprecated function!!");
     return nullptr;
 }
@@ -33,7 +33,7 @@ void Aggregate::setScatterFuncs(SurfaceInteraction* intr,
 
 GeometricPrimitive::GeometricPrimitive(const std::shared_ptr<Shape>& shape,
                                        const std::shared_ptr<Material>& material,
-                                       const std::shared_ptr<AreaLight>& areaLight,
+                                       const std::shared_ptr<Light>& areaLight,
                                        const std::shared_ptr<MediumInterface>& mediumInterface)
     : Primitive{}
     , shape_{ shape }
@@ -55,7 +55,8 @@ bool GeometricPrimitive::intersect(Ray& ray, SurfaceInteraction* isect) const {
     if (mediumInterface_ && mediumInterface_->isMediumTransition()) {
         isect->setMediumInterface(*mediumInterface_);
     } else {
-        isect->setMediumInterface(MediumInterface(ray.medium()));
+        // TODO: Should be reverted?
+        //isect->setMediumInterface(MediumInterface(ray.medium()));
     }
 
     return true;
@@ -69,7 +70,7 @@ const Material* GeometricPrimitive::material() const {
     return material_.get();
 }
 
-const AreaLight* GeometricPrimitive::areaLight() const {
+const Light* GeometricPrimitive::light() const {
     return areaLight_.get();
 }
 

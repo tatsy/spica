@@ -15,24 +15,18 @@ This project uses C++11/14. The build is tested under following environments.
 
 * GNU C compiler (v4.9.0 or higher)
 * LLVM Clang (v3.7.0 or higher)
-* Xcode 8.0 beta
+* Xcode 8.0
 * Microsoft Visual C++ compiler (MSVC 2015)
 
 #### Requirements
 
-This project uses ```Boost C++ Libraries``` for XML parsing. You can download required package
-by ```git submodule update``` or you can specify your own boost library which is already
-installed in your computer.
-
-* Boost 1.60.0 (property_tree)
-
-The optional GUI for the renderer is programmed with ```Qt 5.5```. Therefore,
-you should download and install Qt 5.5 or higher to use the GUI.
+The spica renderer depends on Qt (version 5.5 or higher) for parsing XML
+files and launching GUI.
 
 #### Command
 
 ```shell
-$ git clone https://github.com/tatsy.spica.git
+$ git clone https://github.com/tatsy/spica.git
 $ cmake [-DSPICA_BUILD_VIEWER=ON/OFF] ..
 $ cmake --build .
 ```
@@ -76,4 +70,4 @@ The author sincerely would also like to thank for HDR images provided by sIBL Ar
 
 ## License
 
-The MIT License (MIT). Copyright (c) 2015-2016 Tatsuya Yatagawa (tatsy).
+The MIT License (MIT). Copyright (c) 2015-2017 Tatsuya Yatagawa (tatsy).

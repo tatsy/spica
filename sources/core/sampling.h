@@ -7,14 +7,14 @@
 
 #include <vector>
 
-#include "common.h"
-#include "../math/vector3d.h"
-#include "../shape/spica_shape.h"
-#include "../random/random.h"
+#include "core/common.h"
+#include "core/vector3d.h"
+#include "core/normal3d.h"
+#include "core/random.h"
 
 namespace spica {
 
-class Distribution1D {
+class SPICA_EXPORTS Distribution1D {
 public:
     Distribution1D();
     explicit Distribution1D(const std::vector<double>& data);
@@ -40,7 +40,7 @@ private:
 
 };  // class Distribution1D
 
-class Distribution2D {
+class SPICA_EXPORTS Distribution2D {
 public:
     Distribution2D();
     Distribution2D(const std::vector<double>& data, int width, int height);
@@ -64,13 +64,13 @@ SPICA_EXPORTS Vector3d sampleCosineHemisphere(const Point2d& rands);
 SPICA_EXPORTS inline double   cosineHemispherePdf(double cosTheta) { return cosTheta * INV_PI; }
 SPICA_EXPORTS void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const Point2d& rands);
 
-SPICA_EXPORTS
-void samplePoissonDisk(const Scene& scene, const Point3d& pCamera, 
-                       double minDist, std::vector<Interaction>* points);
-
-SPICA_EXPORTS
-void samplePoissonDisk(const Scene& scene, const Point3d& pCamera, 
-                       double minDist, std::vector<SurfaceInteraction>* points);
+//SPICA_EXPORTS
+//void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
+//                       double minDist, std::vector<Interaction>* points);
+//
+//SPICA_EXPORTS
+//void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
+//                       double minDist, std::vector<SurfaceInteraction>* points);
 
 }  // namespace spica
 

@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "core/accelerator.h"
+#include "core/renderparams.h"
 
 namespace spica {
 
@@ -53,10 +54,12 @@ struct BVHNode {
 /** Binary BVH accelerator class
  *  @ingroup accel_module
  */
-class SPICA_EXPORTS BBVHAccel : public Accelerator {
+class SPICA_EXPORTS BVHAccel : public Accelerator {
 public:
-    BBVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims);
-    virtual ~BBVHAccel();
+    explicit BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims);
+    BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
+              RenderParams &params);
+    virtual ~BVHAccel();
 
     Bounds3d worldBound() const override;
     void construct() override;
@@ -79,6 +82,8 @@ protected:
     std::vector<std::unique_ptr<BVHNode> > nodes_;
 
 };  // class BBVHAccel
+
+SPICA_EXPORT_ACCEL_PLUGIN(BVHAccel, "Standard bounding volume hierarchy");
 
 }  // namespace spica
 

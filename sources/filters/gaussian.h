@@ -15,7 +15,7 @@ class SPICA_EXPORTS GaussianFilter : public Filter {
 public:
     // Public methods
     GaussianFilter();
-    explicit GaussianFilter(const RenderParams &params);
+    explicit GaussianFilter(RenderParams &params);
     GaussianFilter(const Vector2d& radius, double sigma);
     GaussianFilter(const GaussianFilter&) = default;
     ~GaussianFilter();

@@ -13,7 +13,6 @@
 #include "core/uncopyable.h"
 #include "core/triangle.h"
 #include "core/bounds3d.h"
-
 #include "core/primitive.h"
 
 namespace spica {
@@ -26,6 +25,12 @@ public:
     // Public methods
     explicit Accelerator(const std::vector<std::shared_ptr<Primitive>>& primitives)
         : primitives_{ primitives } {}
+
+    Accelerator(const std::vector<std::shared_ptr<Primitive>> &primitives,
+                RenderParams &params)
+        : Accelerator{ primitives_ } {
+    }
+
     virtual ~Accelerator() {}
     virtual void construct() = 0;
     virtual Bounds3d worldBound() const override {

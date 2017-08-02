@@ -12,7 +12,7 @@ namespace spica {
 class SPICA_EXPORTS Independent : public Sampler {
 public:
     explicit Independent(uint32_t seed);
-    explicit Independent(const RenderParams &params);
+    explicit Independent(RenderParams &params);
 
     ~Independent();
 

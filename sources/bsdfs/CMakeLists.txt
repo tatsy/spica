@@ -1,0 +1,12 @@
+macro(add_bsdf)
+  add_spica_plugin(${ARGN} TYPE bsdf)
+endmacro()
+
+add_bsdf(diffuse        diffuse.cc diffuse.h)
+add_bsdf(roughconductor roughconductor.cc roughconductor.h)
+# add_material(glass        glass.cc glass.h)
+# add_material(mirror       mirror.cc mirror.h)
+# add_material(plastic      plastic.cc plastic.h)
+# add_material(subsurface   subsurface.cc subsurface.h)
+# add_material(translucent  translucent.cc translucent.h)
+# add_material(kdsubsurface kdsubsurface.cc kdsubsurface.h)

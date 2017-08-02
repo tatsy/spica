@@ -12,6 +12,7 @@ class RGBSpectrum;
 class VertexData;
 class TriangleData;
 
+class Accelerator;
 class Primitive;
 class GeometricPrimitive;
 

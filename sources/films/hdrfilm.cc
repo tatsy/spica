@@ -12,9 +12,9 @@ HDRFilm::HDRFilm(const Point2i& resolution,
     : Film{resolution, filter, filename, callback} {
 }
 
-HDRFilm::HDRFilm(const RenderParams &params)
-    : HDRFilm{Point2i(params.getInt("width"), params.getInt("height")),
-              std::static_pointer_cast<Filter>(params.getObject("rfilter"))} {
+HDRFilm::HDRFilm(RenderParams &params)
+    : HDRFilm{Point2i(params.getInt("width", true), params.getInt("height", true)),
+              std::static_pointer_cast<Filter>(params.getObject("rfilter", true))} {
 }
 
 void HDRFilm::saveImage(const std::string &filename, const Image &image) const {

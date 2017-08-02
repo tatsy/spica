@@ -12,16 +12,18 @@ namespace spica {
 class SPICA_EXPORTS DirectLightingIntegrator : public SamplerIntegrator {
 public:
     // Public methods
-    DirectLightingIntegrator(const std::shared_ptr<const Camera>& camera,
-                             const std::shared_ptr<Sampler>& sampler);
+    explicit DirectLightingIntegrator(const std::shared_ptr<Sampler>& sampler);
+    explicit DirectLightingIntegrator(RenderParams &params);
 
     Spectrum Li(const Scene& scene,
-                const RenderParams& params,
+                RenderParams& params,
                 const Ray& ray,
                 Sampler& sampler,
                 MemoryArena& arena,
                 int depth = 0) const override;
 };
+
+SPICA_EXPORT_PLUGIN(DirectLightingIntegrator, "Integrate only direct lighting");
 
 }  // namespace spica
 

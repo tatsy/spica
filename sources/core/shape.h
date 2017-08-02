@@ -15,9 +15,7 @@
 #include "core/core.hpp"
 #include "core/common.h"
 #include "core/cobject.h"
-#include "core/triangle.h"
 #include "core/transform.h"
-
 #include "core/render.hpp"
 
 namespace spica {
@@ -36,8 +34,8 @@ enum class ShapeType : int {
 };
     
 /** Abstract shape class.
-    *  @ingroup shape_module
-    */
+ *  @ingroup shape_module
+ */
 class SPICA_EXPORTS Shape : public CObject {
 public:
     // Public methods

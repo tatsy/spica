@@ -26,22 +26,22 @@
 #include "core/integrator.h"
 #include "core/mis.h"
 
-
-// #include "subsurface_integrator.h"
-
 namespace spica {
 
-PathIntegrator::PathIntegrator(const std::shared_ptr<const Camera>& camera,
-                               const std::shared_ptr<Sampler>& sampler)
-    : SamplerIntegrator{ camera, sampler }
+PathIntegrator::PathIntegrator(const std::shared_ptr<Sampler>& sampler)
+    : SamplerIntegrator{ sampler }
     , sampler_{ sampler } {
+}
+
+PathIntegrator::PathIntegrator(RenderParams &params) 
+    : PathIntegrator{std::static_pointer_cast<Sampler>(params.getObject("sampler"))} {
 }
 
 PathIntegrator::~PathIntegrator() {
 }
 
 Spectrum PathIntegrator::Li(const Scene& scene,
-                          const RenderParams& params,
+                          RenderParams& params,
                           const Ray& r,
                           Sampler& sampler,
                           MemoryArena& arena,
@@ -58,8 +58,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
         // Sample Le which contributes without any loss
         if (bounces == 0 || specularBounce) {
             if (isIntersect) {
-                // TODO: Should be reverted!
-                //L += beta * isect.Le(-ray.dir());
+                L += beta * isect.Le(-ray.dir());
             } else {
                 for (const auto& light : scene.lights()) {
                     L += beta * light->Le(ray);
@@ -67,7 +66,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
             }
         }
 
-        if (!isIntersect || bounces >= params.getInt("maxBounces")) break;
+        if (!isIntersect || bounces >= params.getInt("maxDepth")) break;
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
@@ -122,6 +121,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
             beta /= continueProbability;
         }
     }
+
     return L;
 }
 

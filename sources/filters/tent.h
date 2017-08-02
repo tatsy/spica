@@ -14,7 +14,7 @@ namespace spica {
 class SPICA_EXPORTS TentFilter : public Filter {
 public:    
     TentFilter();
-    explicit TentFilter(const RenderParams &params);
+    explicit TentFilter(RenderParams &params);
     explicit TentFilter(const Vector2d& radius);
     TentFilter(const TentFilter&) = default;
     ~TentFilter();

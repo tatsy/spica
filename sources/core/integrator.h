@@ -29,15 +29,15 @@ namespace spica {
 class SPICA_EXPORTS Integrator : public CObject, Uncopyable {
 public:
     // Public methods
-    explicit Integrator(const std::shared_ptr<const Camera>& camera);
+    explicit Integrator();
     virtual ~Integrator();
-    virtual void render(const Scene& scene,
-                        const RenderParams& params) = 0;
+    virtual void render(const std::shared_ptr<const Camera>& camera,
+                        const Scene& scene,
+                        RenderParams& params);
 
 protected:
     std::shared_ptr<const Camera> camera_;
-
-};  // class Integrator
+};
 
 /**
  * The sampler integrator interface.
@@ -48,33 +48,33 @@ protected:
 class SPICA_EXPORTS SamplerIntegrator : public Integrator {
 public:
     // Public methods
-    SamplerIntegrator(const std::shared_ptr<const Camera>& camera,
-                      const std::shared_ptr<Sampler>& sampler);
+    explicit SamplerIntegrator(const std::shared_ptr<Sampler>& sampler);
     virtual ~SamplerIntegrator();
-    virtual void render(const Scene& scene,
-                        const RenderParams& params) override;
+    virtual void render(const std::shared_ptr<const Camera> &camera,
+                        const Scene& scene,
+                        RenderParams& params) override;
 
     virtual void initialize(const Scene& scene,
-                            const RenderParams& params,
+                            RenderParams& params,
                             Sampler& sampler);
 
     virtual void loopStarted(const Scene& scene,
-                             const RenderParams& params,
+                             RenderParams& params,
                              Sampler& sampler);
 
     virtual void loopFinished(const Scene& scene,
-                              const RenderParams& params,
+                              RenderParams& params,
                               Sampler& sampler);
 
     virtual Spectrum Li(const Scene& scene,
-                        const RenderParams& params,
+                        RenderParams& params,
                         const Ray& ray,
                         Sampler& sampler,
                         MemoryArena& arena,
                         int depth = 0) const = 0;
     
     Spectrum specularReflect(const Scene& scene,
-                             const RenderParams& params,
+                             RenderParams& params,
                              const Ray& ray,
                              const SurfaceInteraction& isect,
                              Sampler& sampler,
@@ -82,7 +82,7 @@ public:
                              int depth = 0) const;
 
     Spectrum specularTransmit(const Scene& scene,
-                              const RenderParams& params,
+                              RenderParams& params,
                               const Ray& ray,
                               const SurfaceInteraction& isect,
                               Sampler& sampler,

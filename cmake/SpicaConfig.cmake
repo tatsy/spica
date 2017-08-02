@@ -71,6 +71,11 @@ macro(add_spica_corelib _corelib_name)
   add_library(${_corelib_name} SHARED ${_corelib_srcs})
   source_group("Source Files" FILES ${_corelib_srcs})
 
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+    set_property(TARGET ${_corelib_name} APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
+  endif()
+
   if (_corelib_LINK_LIBRARIES)
     target_link_libraries(${_corelib_name} ${_corelib_LINK_LIBRARIES})
     add_dependencies(${_corelib_name} ${_corelib_LINK_LIBRARIES})
@@ -93,6 +98,11 @@ macro(add_spica_plugin _plugin_name)
   spica_status_message("Plugin: ${_plugin_TYPE}/${_plugin_name}")
   add_library(${_plugin_name} MODULE ${_plugin_srcs})
   source_group("Source Files" FILES ${_plugin_srcs})
+
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")
+    set_property(TARGET ${_plugin_name} APPEND PROPERTY LINK_FLAGS "/DEBUG /PROFILE")
+  endif()
 
   # Link setting
   set(_plugin_core_libraries "${SPICA_PREFIX}_core")

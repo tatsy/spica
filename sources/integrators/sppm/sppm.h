@@ -19,15 +19,15 @@ namespace spica {
 class SPICA_EXPORTS SPPMIntegrator : public Integrator {
 public:
     // Public methods
-    SPPMIntegrator(const std::shared_ptr<const Camera>& camera,
-                   const std::shared_ptr<Sampler>& sampler);
+    SPPMIntegrator(const std::shared_ptr<Sampler>& sampler);
 
-    SPPMIntegrator(const RenderParams &params);
+    SPPMIntegrator(RenderParams &params);
 
     ~SPPMIntegrator();
 
-    void render(const Scene& scene,
-                const RenderParams& params) override;
+    void render(const std::shared_ptr<const Camera>& camera,
+                const Scene& scene,
+                RenderParams& params) override;
         
 private:
     // Private internal class
@@ -35,28 +35,28 @@ private:
 
     // 1st pass: Trace rays from camera
     void traceRays(const Scene& scene,
-                    const RenderParams& params,
+                    RenderParams& params,
                     const std::vector<std::unique_ptr<Sampler>>& samplers,
                     std::vector<MemoryArena>& arenas,
                     std::vector<SPPMPixel>& hpoints) const;
 
     // 2nd pass: Trace photons from lights
     void tracePhotons(const Scene& scene,
-                      const RenderParams& params,
+                      RenderParams& params,
                       const std::vector<std::unique_ptr<Sampler>>& samplers,
                       std::vector<MemoryArena>& arenas,
                       const Distribution1D& lightDistrib,
                       const int numPhotons) const;
 
     void tracePhotonsSub(const Scene& scene,
-                         const RenderParams& params,
+                         RenderParams& params,
                          const Ray& r,
                          const Spectrum& b,
                          Sampler& sampler,
                          MemoryArena& arena) const;
 
     void pathTrace(const Scene& scene, 
-                   const RenderParams& params,
+                   RenderParams& params,
                    const Ray& ray,
                    Sampler& sampler,
                    MemoryArena& arena,

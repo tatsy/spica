@@ -157,7 +157,7 @@ void SurfaceInteraction::setScatterFuncs(const Ray& ray, MemoryArena& arena) {
 
 Spectrum SurfaceInteraction::Le(const Vector3d& w) const {
     const Light* area = primitive_->light();
-    return area->Larea(*this, w);
+    return area ? area->L(*this, w) : Spectrum(0.0);
 }
 
 // -----------------------------------------------------------------------------

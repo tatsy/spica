@@ -17,41 +17,45 @@
 
 namespace spica {
 
-    class Photon;
+class Photon;
 
-    /** Environment mapping
-     *  @ingroup light_module
-     */
-    class SPICA_EXPORTS Envmap : public Light {
-    public:
-        /** The Envmap constructor. */
-        Envmap(const BSphere& worldSphere, const Image& texmap, const Transform& lightToWorld,
-               const Spectrum& L, int numSamples);
+/** Environment mapping
+ *  @ingroup light_module
+ */
+class SPICA_EXPORTS Envmap : public Light {
+public:
+    /** The Envmap constructor. */
+    Envmap(const BSphere& worldSphere, const Image& texmap, const Transform& lightToWorld,
+           double scale, int numSamples = 1);
 
-        virtual ~Envmap();
+    Envmap(RenderParams &params);
 
-        Spectrum sampleLi(const Interaction& pObj, const Point2d& rands,
-                          Vector3d* dir, double* pdf, VisibilityTester* vis) const override;
+    virtual ~Envmap();
 
-        double pdfLi(const Interaction& pObj, const Vector3d& dir) const override;
+    Spectrum sampleLi(const Interaction& pObj, const Point2d& rands,
+                        Vector3d* dir, double* pdf, VisibilityTester* vis) const override;
 
-        Spectrum sampleLe(const Point2d& rand1, const Point2d& rand2,
-                          Ray* ray, Normal3d* nLight, double* pdfPos,
-                          double* pdfDir) const override;
-        void pdfLe(const Ray& ray, const Normal3d& nLight, double* pdfPos,
-                   double* pdfDir) const override;
+    double pdfLi(const Interaction& pObj, const Vector3d& dir) const override;
 
-        Spectrum Le(const Ray& ray) const override;
-        Spectrum power() const override;
+    Spectrum sampleLe(const Point2d& rand1, const Point2d& rand2,
+                        Ray* ray, Normal3d* nLight, double* pdfPos,
+                        double* pdfDir) const override;
+    void pdfLe(const Ray& ray, const Normal3d& nLight, double* pdfPos,
+                double* pdfDir) const override;
 
-        Light* clone() const override;
+    Spectrum Le(const Ray& ray) const override;
+    Spectrum power() const override;
 
-    private:
-        std::unique_ptr<const MipMap> mipmap_;
-        Point3d worldCenter_;
-        double   worldRadius_;
-        Distribution2D distrib_;
-    };
+    Light* clone() const override;
+
+private:
+    std::unique_ptr<const MipMap> mipmap_;
+    Point3d worldCenter_;
+    double   worldRadius_;
+    Distribution2D distrib_;
+};
+
+SPICA_EXPORT_PLUGIN(Envmap, "Environment mapping");
 
 }  // namespace spica
 

@@ -38,29 +38,32 @@ public:
     template <class T>
     void add(const std::string &name, const T &value);
 
-    bool getBool(const std::string &name) const;
-    bool getBool(const std::string &name, bool value) const;
-    int getInt(const std::string &name) const;
-    int getInt(const std::string &name, int value) const;
-    double getDouble(const std::string &name) const;
-    double getDouble(const std::string &name, double value) const;
-    std::string getString(const std::string &name) const;
-    std::string getString(const std::string &name, const std::string &value) const;
-    Point2d getPoint2d(const std::string &name) const;
-    Vector2d getVector2d(const std::string &name) const;
-    Bounds2d getBounds2d(const std::string &name) const;
-    Point3d getPoint3d(const std::string &name) const;
-    Vector3d getVector3d(const std::string &name) const;
-    Bounds3d getBounds3d(const std::string &name) const;
-    Normal3d getNormal3d(const std::string &name) const;
-    Spectrum getSpectrum(const std::string &name) const;
-    Transform getTransform(const std::string &name) const;
-    std::shared_ptr<CObject> getObject(const std::string &name) const;
+    bool getBool(const std::string &name, bool remove = false);
+    bool getBool(const std::string &name, bool value, bool remove = false);
+    int getInt(const std::string &name, bool remove = false);
+    int getInt(const std::string &name, int value, bool remove = false);
+    double getDouble(const std::string &name, bool remove = false);
+    double getDouble(const std::string &name, double value, bool remove = false);
+    std::string getString(const std::string &name, bool remove = false);
+    std::string getString(const std::string &name, const std::string &value, bool remove = false);
+    Point2d getPoint2d(const std::string &name, bool remove = false);
+    Vector2d getVector2d(const std::string &name, bool remove = false);
+    Bounds2d getBounds2d(const std::string &name, bool remove = false);
+    Point3d getPoint3d(const std::string &name, bool remove = false);
+    Vector3d getVector3d(const std::string &name, bool remove = false);
+    Bounds3d getBounds3d(const std::string &name, bool remove = false);
+    Normal3d getNormal3d(const std::string &name, bool remove = false);
+    Spectrum getSpectrum(const std::string &name, bool remove = false);
+    Transform getTransform(const std::string &name, bool remove = false);
+    Transform getTransform(const std::string &name, const Transform &value, bool remove = false);
+    std::shared_ptr<CObject> getTexture(const std::string &name, bool remove = false);
+    std::shared_ptr<CObject> getObject(const std::string &name, bool remove = false);
+    std::shared_ptr<CObject> getObject(const std::string &name, const std::shared_ptr<CObject> &value, bool remove = false);
 
 private:
     RenderParams();
-    RenderParams(const RenderParams &) = delete;
-    RenderParams &operator=(const RenderParams &) = delete;
+    RenderParams(RenderParams &) = delete;
+    RenderParams &operator=(RenderParams &) = delete;
     
 private:
     // Private fields

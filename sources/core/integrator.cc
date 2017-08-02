@@ -20,20 +20,24 @@ namespace spica {
 // Integrator method definitions
 // -----------------------------------------------------------------------------
 
-Integrator::Integrator(const std::shared_ptr<const Camera>& camera)
-    : camera_{ camera } {
+Integrator::Integrator() {
 }
 
 Integrator::~Integrator() {
+}
+
+void Integrator::render(const std::shared_ptr<const Camera> &camera,
+                        const Scene &scene,
+                        RenderParams &params) {
+    this->camera_ = camera;
 }
 
 // -----------------------------------------------------------------------------
 // SamplerIntegrator method definitions
 // -----------------------------------------------------------------------------
 
-SamplerIntegrator::SamplerIntegrator(const std::shared_ptr<const Camera>& camera,
-                                     const std::shared_ptr<Sampler>& sampler)
-    : Integrator{ camera }
+SamplerIntegrator::SamplerIntegrator(const std::shared_ptr<Sampler>& sampler)
+    : Integrator{}
     , sampler_{ sampler } {
 }
 
@@ -41,23 +45,25 @@ SamplerIntegrator::~SamplerIntegrator() {
 }
 
 void SamplerIntegrator::initialize(const Scene& scene,
-                                   const RenderParams& parmas,
+                                   RenderParams& parmas,
                                    Sampler& sampler) {
 }
 
 void SamplerIntegrator::loopStarted(const Scene& scene,
-                                    const RenderParams& parmas,
+                                    RenderParams& parmas,
                                     Sampler& sampler) {
 }
 
 void SamplerIntegrator::loopFinished(const Scene& scene,
-                                     const RenderParams& parmas,
+                                     RenderParams& parmas,
                                      Sampler& sampler) {
 }
 
-void SamplerIntegrator::render(const Scene& scene,
-                               const RenderParams& params) {
+void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
+                               const Scene& scene,
+                               RenderParams& params) {
     // Initialization
+    Integrator::render(camera, scene, params);
     auto initSampler = sampler_->clone((unsigned int)time(0));
     initialize(scene, params, *initSampler);
 
@@ -70,7 +76,7 @@ void SamplerIntegrator::render(const Scene& scene,
 
     // Trace rays
     const int numPixels  = width * height;
-    const int numSamples = params.getInt("samples");
+    const int numSamples = params.getInt("sampleCount");
     for (int i = 0; i < numSamples; i++) {
         // Before loop computations
         loopStarted(scene, params, *initSampler);
@@ -117,7 +123,7 @@ void SamplerIntegrator::render(const Scene& scene,
 }
 
 Spectrum SamplerIntegrator::specularReflect(const Scene& scene,
-                                            const RenderParams& params,
+                                            RenderParams& params,
                                             const Ray& ray,
                                             const SurfaceInteraction& isect,
                                             Sampler& sampler,
@@ -138,7 +144,7 @@ Spectrum SamplerIntegrator::specularReflect(const Scene& scene,
 }
 
 Spectrum SamplerIntegrator::specularTransmit(const Scene& scene,
-                                             const RenderParams& params,
+                                             RenderParams& params,
                                              const Ray& ray,
                                              const SurfaceInteraction& isect,
                                              Sampler& sampler,

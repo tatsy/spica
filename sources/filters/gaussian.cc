@@ -15,9 +15,10 @@ GaussianFilter::GaussianFilter()
     , expY_{ 0.0 } {
 } 
 
-GaussianFilter::GaussianFilter(const RenderParams &params)
-    : GaussianFilter{Vector2d(params.getDouble("radius", 1.0), params.getDouble("radius", 1.0)),
-                     params.getDouble("sigma", 0.5)} {
+GaussianFilter::GaussianFilter(RenderParams &params)
+    : GaussianFilter{Vector2d(params.getDouble("radius", 1.0),
+                              params.getDouble("radius", 1.0)),
+                     params.getDouble("sigma", 0.5, true)} {
 }
  
 GaussianFilter::GaussianFilter(const Vector2d& radius, double sigma)

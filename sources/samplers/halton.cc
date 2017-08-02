@@ -105,10 +105,10 @@ Halton::Halton(int ns, bool isPermute, unsigned int seed)
     }
 }
 
-Halton::Halton(const RenderParams &params)
-    : Halton{params.getInt("ns"),
-             params.getBool("isPermite"),
-             params.getInt("seed")} {
+Halton::Halton(RenderParams &params)
+    : Halton{params.getInt("ns", true),
+             params.getBool("isPermite", true, true),
+             params.getInt("seed", 0, true)} {
 }
     
 Halton::~Halton() {

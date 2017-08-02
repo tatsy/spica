@@ -10,7 +10,7 @@
 
 namespace spica {
 
-struct BBVHAccel::BucketInfo {
+struct BVHAccel::BucketInfo {
     int count;
     Bounds3d bounds;
     BucketInfo()
@@ -19,7 +19,7 @@ struct BBVHAccel::BucketInfo {
     }
 };
 
-struct BBVHAccel::ComparePoint {
+struct BVHAccel::ComparePoint {
     int dim;
     explicit ComparePoint(int d) : dim(d) {}
     bool operator()(const BVHPrimitiveInfo& a,
@@ -28,7 +28,7 @@ struct BBVHAccel::ComparePoint {
     }
 };
 
-struct BBVHAccel::CompareToBucket {
+struct BVHAccel::CompareToBucket {
     int splitBucket, nBuckets, dim;
     const Bounds3d& centroidBounds;
 
@@ -52,20 +52,25 @@ struct BBVHAccel::CompareToBucket {
     }
 };
 
-BBVHAccel::BBVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims)
+BVHAccel::BVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims)
     : Accelerator{ prims }
     , root_{ nullptr } {
     construct();
 }
 
-BBVHAccel::~BBVHAccel() {
+BVHAccel::BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
+                   RenderParams &params)
+    : BVHAccel{prims} {
 }
 
-Bounds3d BBVHAccel::worldBound() const {
+BVHAccel::~BVHAccel() {
+}
+
+Bounds3d BVHAccel::worldBound() const {
     return nodes_.empty() ? Bounds3d() : nodes_[0]->bounds;
 }
 
-void BBVHAccel::construct() {
+void BVHAccel::construct() {
     if (primitives_.empty()) return;
         
     std::vector<BVHPrimitiveInfo> primitiveInfo(primitives_.size());
@@ -76,7 +81,7 @@ void BBVHAccel::construct() {
     root_ = constructRec(primitiveInfo, 0, primitives_.size());
 }
 
-BVHNode* BBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
+BVHNode* BVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
                         int start, int end) {
     if (start == end) return nullptr;
 
@@ -165,7 +170,7 @@ BVHNode* BBVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
     return std::move(node);
 }
 
-bool BBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
+bool BVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
     std::stack<BVHNode*> nodeStack;
     nodeStack.push(root_);
 
@@ -196,7 +201,7 @@ bool BBVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
     return hit;
 }
 
-bool BBVHAccel::intersect(Ray& ray) const {
+bool BVHAccel::intersect(Ray& ray) const {
 std::stack<BVHNode*> nodeStack;
     nodeStack.push(root_);
 
@@ -223,7 +228,7 @@ std::stack<BVHNode*> nodeStack;
     return false;    
 }
 
-std::vector<Triangle> BBVHAccel::triangulate() const {
+std::vector<Triangle> BVHAccel::triangulate() const {
     std::vector<Triangle> tris;
     for (const auto& p : primitives_) {
         auto ts = p->triangulate();

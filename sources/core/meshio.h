@@ -9,10 +9,9 @@
 #include <vector>
 #include <memory>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
-#include "../core/uncopyable.h"
-#include "../core/transform.h"
+#include "core/common.h"
+#include "core/uncopyable.h"
+#include "core/transform.h"
 
 namespace spica {
 
@@ -53,30 +52,15 @@ private:
     std::shared_ptr<Texture<double>> bumpMap_ = nullptr;
 };
 
-/**
- * Mesh IO interface.
- */
-class SPICA_EXPORTS MeshIO : private Uncopyable {
-public:
-    MeshIO();
-    virtual ~MeshIO();
+namespace meshio {
 
-    /**
-     * Load mesh from .obj or .ply file.
-     */
-    std::vector<ShapeGroup> load(const std::string& filename,
-                                 const Transform& o2w = Transform()) const;
+SPICA_EXPORTS std::vector<ShapeGroup> loadOBJ(const std::string& filename,
+                                              const Transform& o2w = Transform());
 
-    void save(const std::string& filename,
-              const std::vector<Triangle>& trimesh) const;
+SPICA_EXPORTS std::vector<ShapeGroup> loadPLY(const std::string& filename,
+                                              const Transform& o2w = Transform());
 
-private:
-    std::vector<ShapeGroup> loadObj(const std::string& filename,
-                                    const Transform& o2w = Transform()) const;
-
-    std::vector<ShapeGroup> loadPly(const std::string& filename,
-                                    const Transform& o2w = Transform()) const;
-};
+}  // namespace meshio
 
 }  // namespace spica
 

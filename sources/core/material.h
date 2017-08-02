@@ -13,14 +13,30 @@
 
 namespace spica {
 
-class SPICA_EXPORTS Material : public CObject {
+class SPICA_EXPORTS SurfaceMaterial : public CObject {
 public:
-    virtual ~Material() {}
+    virtual ~SurfaceMaterial();
     virtual void setScatterFuncs(SurfaceInteraction* intr, MemoryArena& arena) const = 0;
-    // static void bump(SurfaceInteraction* intr, const std::shared_ptr<Texture<double> > &bumpmap);
-    virtual bool isSubsurface() const { return false; }
+    static void bump(SurfaceInteraction* intr, const std::shared_ptr<Texture<double> > &bumpmap);
+};
 
-};  // class Material
+class SPICA_EXPORTS SubsurfaceMaterial : public CObject {
+public:
+    virtual ~SubsurfaceMaterial();
+    virtual void setScatterFuncs(const SurfaceInteraction *intr, MemoryArena &arena) const = 0;
+};
+
+class SPICA_EXPORTS Material {
+public:
+    Material(const std::shared_ptr<SurfaceMaterial> &bsdf,
+             const std::shared_ptr<SubsurfaceMaterial> &subsurface = nullptr);
+    void setScatterFuncs(SurfaceInteraction *intr, MemoryArena &arena) const;
+    bool isSubsurface() const { return static_cast<bool>(subsurface_); }
+
+private:
+    std::shared_ptr<SurfaceMaterial> bsdf_ = nullptr;
+    std::shared_ptr<SubsurfaceMaterial> subsurface_ = nullptr;
+};
 
 }  // namespace spica
 

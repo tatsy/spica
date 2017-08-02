@@ -7,7 +7,7 @@ Independent::Independent(uint32_t seed)
     : random_{seed} {
 }
 
-Independent::Independent(const RenderParams &params)
+Independent::Independent(RenderParams &params)
     : random_{0} {
 }
 

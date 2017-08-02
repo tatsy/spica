@@ -13,7 +13,7 @@ Light::Light(LightType type, const Transform& lightToWorld, int numSamples)
 Light::~Light() {
 }
 
-Spectrum Light::Larea(const Interaction& pLight, const Vector3d& dir) const {
+Spectrum Light::L(const Interaction& pLight, const Vector3d& dir) const {
     return Spectrum(0.0);
 }
 

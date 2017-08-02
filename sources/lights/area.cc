@@ -17,6 +17,12 @@ namespace spica {
         , Lemit_{ Lemit } {
     }
 
+    AreaLight::AreaLight(RenderParams &params)
+        : AreaLight{std::static_pointer_cast<Shape>(params.getObject("shape", true)),
+                    params.getTransform("toWorld", true),
+                    params.getSpectrum("radiance")} {
+    }
+
     AreaLight::~AreaLight() {
     }
 

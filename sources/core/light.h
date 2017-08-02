@@ -84,7 +84,7 @@ namespace spica {
 
         LightType type() const;
 
-        Spectrum Larea(const Interaction& pLight, const Vector3d& dir) const;
+        virtual Spectrum L(const Interaction& pLight, const Vector3d& dir) const;
 
         /**
          * Sample incident radiance (Li) at the intersecting point.

@@ -17,7 +17,7 @@ public:
             const std::string& filename = "image",
             const std::shared_ptr<std::function<void(const Image&)>> &callback = nullptr);
 
-    LDRFilm(const RenderParams &params);
+    LDRFilm(RenderParams &params);
 
 protected:
     void saveImage(const std::string &filename, const Image &image) const override;

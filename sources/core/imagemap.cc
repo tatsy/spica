@@ -1,9 +1,9 @@
 #define SPICA_API_EXPORT
 #include "imagemap.h"
 
-#include "../core/point2d.h"
-#include "../math/vector2d.h"
-#include "../image/mipmap.h"
+#include "core/point2d.h"
+#include "core/vector2d.h"
+#include "core/mipmap.h"
 
 namespace spica {
 

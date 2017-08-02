@@ -8,16 +8,16 @@
 #include <array>
 
 #include "core/core.hpp"
-
 #include "core/common.h"
 #include "core/point2d.h"
 #include "core/point3d.h"
 #include "core/normal3d.h"
 #include "core/transform.h"
+#include "core/shape.h"
 
 namespace spica {
 
-class SPICA_EXPORTS Triangle {
+class SPICA_EXPORTS Triangle : public Shape {
 public:
     // Public methods
     Triangle();
@@ -37,14 +37,17 @@ public:
     Triangle& operator=(const Triangle& t);
     const Point3d& operator[](int i) const;
 
-    bool intersect(const Ray& ray, double *tHit, Point2d *uv) const;
+    bool intersect(const Ray& ray, double* tHit,
+                   SurfaceInteraction* isect) const override;
+    bool intersect(const Ray& ray) const override;
 
-    Point2d sample(const Point2d& rands, Point3d *pos, Normal3d *nrm) const;
+    Interaction sample(const Point2d& rands) const override;
 
-    Bounds3d worldBound()  const;
-    Bounds3d objectBound() const;
+    Bounds3d worldBound()  const override;
+    Bounds3d objectBound() const override;
 
-    double area() const;
+    double area() const override;
+    std::vector<Triangle> triangulate() const override;
 
     Point3d gravity() const;
     const Normal3d& normal(int i) const;
@@ -60,4 +63,4 @@ private:
 
 }  // namespace spica
 
-#endif  // _SPICA_TRIANGLE_H_
+#endif // _SPICA_TRIANGLE_H_

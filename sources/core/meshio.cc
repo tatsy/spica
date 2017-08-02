@@ -5,23 +5,19 @@
 #include <fstream>
 #include <sstream>
 
-#include <boost/filesystem/path.hpp>
-
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-#include "../core/common.h"
-#include "../core/triplet.h"
-#include "../core/path.h"
-#include "../shape/triangle.h"
-#include "../math/vector2d.h"
-#include "../core/point3d.h"
-
-#include "../image/image.h"
-
-#include "../image/mipmap.h"
-#include "../texture/texture.h"
-#include "../texture/imagemap.h"
+#include "core/common.h"
+#include "core/triplet.h"
+#include "core/path.h"
+#include "core/triangle.h"
+#include "core/vector2d.h"
+#include "core/point3d.h"
+#include "core/image.h"
+#include "core/mipmap.h"
+#include "core/texture.h"
+#include "core/imagemap.h"
 
 namespace spica {
 
@@ -74,30 +70,10 @@ ShapeGroup& ShapeGroup::operator=(ShapeGroup&& sg) {
 // MeshIO method definitions
 // ----------------------------------------------------------------------------
 
-MeshIO::MeshIO() {
-}
+namespace meshio {
 
-MeshIO::~MeshIO() {
-}
-
-std::vector<ShapeGroup> MeshIO::load(const std::string& filename,
-                                     const Transform& o2w) const {
-    boost::filesystem::path path(filename);
-    std::string extension = path.extension().string();
-
-    std::vector<ShapeGroup> groups;
-    if (extension == ".obj") {
-        groups = loadObj(filename, o2w);
-    } else if (extension == ".ply") {
-        groups = loadPly(filename, o2w);       
-    } else {
-        FatalError("Unknown 3D mesh file extension: %s", extension.c_str());
-    }
-    return std::move(groups);
-}
-
-std::vector<ShapeGroup> MeshIO::loadPly(const std::string& filename,
-                                        const Transform& objectToWorld) const {
+std::vector<ShapeGroup> loadPLY(const std::string& filename,
+                                const Transform& objectToWorld) {
     std::ifstream ifs(filename.c_str(),
                       std::ios::in | std::ios::binary);
 
@@ -189,18 +165,13 @@ std::vector<ShapeGroup> MeshIO::loadPly(const std::string& filename,
     return std::move(ret);
 }
 
-std::vector<ShapeGroup> MeshIO::loadObj(const std::string& filename,
-                                        const Transform& objectToWorld) const {
+std::vector<ShapeGroup> loadOBJ(const std::string& filename,
+                                const Transform& objectToWorld) {
     // Load OBJ file with "tinyobjloader".
-    boost::filesystem::path path(filename);
-    std::string basename = path.parent_path().string();
-
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string errors;
-    bool success = tinyobj::LoadObj(shapes, materials, errors, filename.c_str(),
-                                    basename.c_str(),
-                                    tinyobj::triangulation | tinyobj::calculate_normals);
+    bool success = tinyobj::LoadObj(shapes, materials, errors, filename.c_str());
     if (!errors.empty()) {
         Warning(errors.c_str());
     }
@@ -275,10 +246,6 @@ std::vector<ShapeGroup> MeshIO::loadObj(const std::string& filename,
     return std::move(groups);
 }
 
-void MeshIO::save(const std::string& filename,
-                     const std::vector<Triangle>& trimesh) const {
-    std::cerr << "[ERROR] not implemented yet" << std::endl;
-    std::abort();
 }
 
 }  // namespace spica

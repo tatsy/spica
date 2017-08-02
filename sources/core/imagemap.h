@@ -8,9 +8,8 @@
 #include <string>
 #include <memory>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
-#include "../core/spectrum.h"
+#include "core/common.h"
+#include "core/spectrum.h"
 
 #include "texture.h"
 

@@ -7,6 +7,7 @@
 
 #include "core/core.hpp"
 #include "core/common.h"
+#include "core/cobject.h"
 #include "core/vector3d.h"
 
 #include "core/render.hpp"
@@ -58,7 +59,7 @@ private:
  * Texture interface.
  */
 template <class T>
-class Texture {
+class Texture : public CObject {
 public:
     virtual T evaluate(const SurfaceInteraction& intr) const = 0;
     virtual ~Texture() {}

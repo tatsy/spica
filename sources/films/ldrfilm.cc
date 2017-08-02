@@ -12,9 +12,9 @@ LDRFilm::LDRFilm(const Point2i& resolution,
     : Film{resolution, filter, filename, callback} {
 }
 
-LDRFilm::LDRFilm(const RenderParams &params) 
-    : LDRFilm{Point2i(params.getInt("width"), params.getInt("height")),
-              std::static_pointer_cast<Filter>(params.getObject("rfilter"))} {
+LDRFilm::LDRFilm(RenderParams &params) 
+    : LDRFilm{Point2i(params.getInt("width", true), params.getInt("height", true)),
+              std::static_pointer_cast<Filter>(params.getObject("rfilter", true))} {
 }
 
 void LDRFilm::saveImage(const std::string &filename, const Image &image) const {

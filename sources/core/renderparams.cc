@@ -1,6 +1,8 @@
 #define SPICA_API_EXPORT
 #include "renderparams.h"
 
+#include "core/constant.h"
+
 namespace spica {
 
 RenderParams &RenderParams::getInstance() {
@@ -118,120 +120,289 @@ void SPICA_EXPORTS RenderParams::add(const std::string &name, const std::shared_
     objects[name] = value;
 }
  
-bool RenderParams::getBool(const std::string &name) const {
+bool RenderParams::getBool(const std::string &name, bool remove) {
     const auto it = bools.find(name);
     Assertion(it != bools.cend(), "Bool not found: name = %s", name.c_str());
+
+    if (remove) {
+        bool ret = it->second;
+        bools.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-bool RenderParams::getBool(const std::string &name, bool value) const {
+bool RenderParams::getBool(const std::string &name, bool value, bool remove) {
     const auto it = bools.find(name);
     if (it != bools.cend()) {
         return it->second;
     }
+
+    if (remove) {
+        const bool ret = it->second;
+        bools.erase(it);
+        return ret;
+    }
     return value;
 }
 
-int RenderParams::getInt(const std::string &name) const {
+int RenderParams::getInt(const std::string &name, bool remove) {
     const auto it = ints.find(name);
     Assertion(it != ints.cend(), "Int not found: name = %s", name.c_str());
+
+    if (remove) {
+        const int ret = it->second;
+        ints.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-int RenderParams::getInt(const std::string &name, int value) const {
+int RenderParams::getInt(const std::string &name, int value, bool remove) {
     const auto it = ints.find(name);
     if (it != ints.cend()) {
         return it->second;
     }
+
+    if (remove) {
+        const int ret = it->second;
+        ints.erase(it);
+        return ret;
+    }
     return value;
 }
 
-double RenderParams::getDouble(const std::string &name) const {
+double RenderParams::getDouble(const std::string &name, bool remove) {
     const auto it = doubles.find(name);
     Assertion(it != doubles.cend(), "Double not found: name = %s", name.c_str());
+
+    if (remove) {
+        const double ret = it->second;
+        doubles.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-double RenderParams::getDouble(const std::string &name, double value) const {
+double RenderParams::getDouble(const std::string &name, double value, bool remove) {
     const auto it = doubles.find(name);
     if (it != doubles.cend()) {
+        if (remove) {
+            const double ret = it->second;
+            doubles.erase(it);
+            return ret;
+        }
         return it->second;
     }
+
     return value;
 }
 
-std::string RenderParams::getString(const std::string &name) const {
+std::string RenderParams::getString(const std::string &name, bool remove) {
     const auto it = strings.find(name);
     Assertion(it != strings.cend(), "String not found: name = %s", name.c_str());
+
+    if (remove) {
+        const std::string ret = it->second;
+        strings.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-std::string RenderParams::getString(const std::string &name, const std::string &value) const {
+std::string RenderParams::getString(const std::string &name, const std::string &value, bool remove) {
     const auto it = strings.find(name);
     if (it != strings.cend()) {
+        if (remove) {
+            const std::string ret = it->second;
+            strings.erase(it);
+            return ret;
+        }
         return it->second;
     }
+
     return value;
 }
 
-Point2d RenderParams::getPoint2d(const std::string &name) const {
+Point2d RenderParams::getPoint2d(const std::string &name, bool remove) {
     const auto it = point2ds.find(name);
     Assertion(it != point2ds.cend(), "Point2d not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        point2ds.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-Vector2d RenderParams::getVector2d(const std::string &name) const {
+Vector2d RenderParams::getVector2d(const std::string &name, bool remove) {
     const auto it = vector2ds.find(name);
     Assertion(it != vector2ds.cend(), "Vector2d not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        vector2ds.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-Bounds2d RenderParams::getBounds2d(const std::string &name) const {
+Bounds2d RenderParams::getBounds2d(const std::string &name, bool remove) {
     const auto it = bounds2ds.find(name);
     Assertion(it != bounds2ds.cend(), "Bounds2d not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        bounds2ds.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-Point3d RenderParams::getPoint3d(const std::string &name) const {
+Point3d RenderParams::getPoint3d(const std::string &name, bool remove) {
     const auto it = point3ds.find(name);
     Assertion(it != point3ds.cend(), "Point3d not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        point3ds.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-Vector3d RenderParams::getVector3d(const std::string &name) const {
+Vector3d RenderParams::getVector3d(const std::string &name, bool remove) {
     const auto it = vector3ds.find(name);
     Assertion(it != vector3ds.cend(), "Vector3d not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        vector3ds.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-Bounds3d RenderParams::getBounds3d(const std::string &name) const {
+Bounds3d RenderParams::getBounds3d(const std::string &name, bool remove) {
     const auto it = bounds3ds.find(name);
     Assertion(it != bounds3ds.cend(), "Bounds3d not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        bounds3ds.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-Normal3d RenderParams::getNormal3d(const std::string &name) const {
+Normal3d RenderParams::getNormal3d(const std::string &name, bool remove) {
     const auto it = normals.find(name);
     Assertion(it != normals.cend(), "Normal not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        normals.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-Spectrum RenderParams::getSpectrum(const std::string &name) const {
+Spectrum RenderParams::getSpectrum(const std::string &name, bool remove) {
     const auto it = spectrums.find(name);
     Assertion(it != spectrums.cend(), "Spectrum not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        spectrums.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-Transform RenderParams::getTransform(const std::string &name) const {
+Transform RenderParams::getTransform(const std::string &name, bool remove) {
     const auto it = transforms.find(name);
     Assertion(it != transforms.cend(), "Transform not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        transforms.erase(it);
+        return ret;
+    }
     return it->second;
 }
 
-std::shared_ptr<CObject> RenderParams::getObject(const std::string &name) const {
+Transform RenderParams::getTransform(const std::string &name, const Transform &value, bool remove) {
+    const auto it = transforms.find(name);
+    if (it != transforms.cend()) {
+        if (remove) {
+            const auto ret = it->second;
+            transforms.erase(it);
+            return ret;
+        }
+        return it->second;
+    }
+
+    return value;
+}
+
+std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, bool remove) {
+    const auto it = objects.find(name);
+    if (it != objects.cend()) {
+        if (remove) {
+            const auto ret = it->second;
+            objects.erase(it);
+            return ret;
+        }
+        return it->second;
+    }
+
+    const auto sit = spectrums.find(name);
+    if (sit != spectrums.cend()) {
+        Spectrum s = sit->second;
+        if (remove) {
+            spectrums.erase(sit);
+        }
+        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<Spectrum>>(s));
+    }
+
+    const auto dit = doubles.find(name);
+    if (dit != doubles.cend()) {
+        double d = dit->second;
+        if (remove) {
+            doubles.erase(dit);
+        }
+        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(d));
+    }
+
+    Warning("Texture not found: name = \"%s\"", name.c_str());
+    return nullptr;
+}
+
+std::shared_ptr<CObject> RenderParams::getObject(const std::string &name, bool remove) {
     const auto it = objects.find(name);
     Assertion(it != objects.cend(), "Object not found: name = %s", name.c_str());
+
+    if (remove) {
+        const auto ret = it->second;
+        objects.erase(it);
+        return ret;
+    }
     return it->second;
+}
+
+std::shared_ptr<CObject> RenderParams::getObject(const std::string &name, const std::shared_ptr<CObject> &value, bool remove) {
+    const auto it = objects.find(name);
+    if (it != objects.cend()) {
+        if (remove) {
+            const auto ret = it->second;
+            objects.erase(it);
+            return ret;
+        }
+        return it->second;
+    }
+
+    return value;
 }
 
 }  // namespace spica

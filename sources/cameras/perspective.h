@@ -18,7 +18,7 @@ class SPICA_EXPORTS PerspectiveCamera : public Camera {
 public:
     // Public methods
     PerspectiveCamera();
-    PerspectiveCamera(const RenderParams &params);
+    PerspectiveCamera(RenderParams &params);
     PerspectiveCamera(const Transform& cameraToWorld,
                       const Bounds2d& screen, double lensRadius,
                       double focalLength, double fov,

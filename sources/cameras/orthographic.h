@@ -19,7 +19,7 @@ class SPICA_EXPORTS OrthographicCamera : public Camera {
 public:
     // Public methods
     OrthographicCamera();
-    OrthographicCamera(const RenderParams &params);
+    OrthographicCamera(RenderParams &params);
     OrthographicCamera(const Transform& cameraToWorld,
                         const Bounds2d& screen, double lensRadius,
                         double focalLength, std::shared_ptr<Film> film);

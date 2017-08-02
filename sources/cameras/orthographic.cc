@@ -17,12 +17,12 @@ OrthographicCamera::OrthographicCamera()
     , areaWorld_{ 0.0 } {
 }
 
-OrthographicCamera::OrthographicCamera(const RenderParams &params)
-    : OrthographicCamera{params.getTransform("toWorld"),
-                         Bounds2d(-1.0, -1.0, 2.0, 2.0),
-                         params.getDouble("apertureRadius"),
-                         params.getDouble("focusDistance"),
-                         std::static_pointer_cast<Film>(params.getObject("film"))} {
+OrthographicCamera::OrthographicCamera(RenderParams &params)
+    : OrthographicCamera{params.getTransform("toWorld", true),
+                         Bounds2d(-1.0, -1.0, 1.0, 1.0),
+                         params.getDouble("apertureRadius", true),
+                         params.getDouble("focusDistance", true),
+                         std::static_pointer_cast<Film>(params.getObject("film", true))} {
 }
 
 OrthographicCamera::OrthographicCamera(const Transform& cameraToWorld,

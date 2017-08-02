@@ -15,7 +15,7 @@
 namespace spica {
 
 Envmap::Envmap(const BSphere& worldSphere, const Image& texmap, const Transform& lightToWorld,
-               const Spectrum& L, int numSamples)
+               double scale, int numSamples)
     : Light{ LightType::Envmap, lightToWorld, numSamples }
     , mipmap_{ nullptr }
     , worldCenter_{ worldSphere.center() }
@@ -27,7 +27,7 @@ Envmap::Envmap(const BSphere& worldSphere, const Image& texmap, const Transform&
     Image tmap(width, height);
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            tmap.pixel(x, y) = texmap(x, y) * L;
+            tmap.pixel(x, y) = texmap(x, y) * scale;
         }
     }
     mipmap_ = std::make_unique<MipMap>(tmap, ImageWrap::Repeat);
@@ -44,6 +44,13 @@ Envmap::Envmap(const BSphere& worldSphere, const Image& texmap, const Transform&
         }
     }
     distrib_ = Distribution2D(gray, width, height);
+}
+
+Envmap::Envmap(RenderParams &params)
+    : Envmap{BSphere(params.getPoint3d("worldCenter", true), params.getDouble("worldRadius", 0.0, true)),
+             Image::fromFile(params.getString("filename", true)),
+             params.getTransform("toWorld", true),
+             params.getDouble("scale", true)} {
 }
 
 Envmap::~Envmap() {

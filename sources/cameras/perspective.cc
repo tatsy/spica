@@ -20,13 +20,13 @@ PerspectiveCamera::PerspectiveCamera()
     , areaWorld_{0.0} {
 }
 
-PerspectiveCamera::PerspectiveCamera(const RenderParams &params)
-    : PerspectiveCamera{params.getTransform("toWorld"),
-                        Bounds2d(-1.0, -1.0, 2.0, 2.0),
-                        params.getDouble("apertureRadius"),
-                        params.getDouble("focusDistance"),
-                        params.getDouble("fov"),
-                        std::static_pointer_cast<Film>(params.getObject("film"))} {
+PerspectiveCamera::PerspectiveCamera(RenderParams &params)
+    : PerspectiveCamera{params.getTransform("toWorld", true),
+                        Bounds2d(-1.0, -1.0, 1.0, 1.0),
+                        params.getDouble("apertureRadius", true),
+                        params.getDouble("focusDistance", true),
+                        params.getDouble("fov", true) * PI / 180.0,
+                        std::static_pointer_cast<Film>(params.getObject("film", true))} {
 }
 
 PerspectiveCamera::PerspectiveCamera(const Transform& cameraToWorld,

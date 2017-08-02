@@ -21,14 +21,14 @@ namespace spica {
 class SPICA_EXPORTS PathIntegrator : public SamplerIntegrator {
 public:
     // Public methods
-    PathIntegrator(const std::shared_ptr<const Camera>& camera,
-                   const std::shared_ptr<Sampler>& sampler);
+    explicit PathIntegrator(const std::shared_ptr<Sampler>& sampler);
+    explicit PathIntegrator(RenderParams &params);
     ~PathIntegrator();
 
 protected:
     // Protected methods
     virtual Spectrum Li(const Scene& scene,
-                        const RenderParams& params,
+                        RenderParams& params,
                         const Ray& ray,
                         Sampler& sampler,
                         MemoryArena& arena,
@@ -37,6 +37,8 @@ protected:
     // Private
     std::shared_ptr<Sampler> sampler_;
 };
+
+SPICA_EXPORT_PLUGIN(PathIntegrator, "Path tracing integrator");
 
 }  // namespace spica
 

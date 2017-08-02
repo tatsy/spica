@@ -25,6 +25,9 @@ public:
 private:
     void parseChildren(QDomNode &node);
     Transform parseTransform(QDomNode &node);
+    std::shared_ptr<Primitive> createPrimitive(const std::shared_ptr<Shape> &shape,
+                                               const Transform &transform,
+                                               const std::shared_ptr<Material> &material);
 
     void storeToParam(QDomNode &node);
 
@@ -32,9 +35,10 @@ private:
     PluginManager &plugins_;
     RenderParams &params_;
 
-    std::shared_ptr<Integrator> integrator_ = nullptr;
+    std::shared_ptr<Camera> camera_ = nullptr;
     std::vector<std::shared_ptr<Primitive>> primitives_;
     std::vector<std::shared_ptr<Light>> lights_;
+    bool waitAreaLight_ = false;
 };
 
 }  // namespace spica

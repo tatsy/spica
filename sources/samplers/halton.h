@@ -24,7 +24,7 @@ public:
      */
     explicit Halton(int ns = 200, bool isPermute = true,
                     unsigned int seed = 0);
-    explicit Halton(const RenderParams &params);
+    explicit Halton(RenderParams &params);
 
     ~Halton();
 

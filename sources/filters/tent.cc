@@ -12,8 +12,9 @@ TentFilter::TentFilter()
     : Filter{} {
 }
 
-TentFilter::TentFilter(const RenderParams &params)
-    : TentFilter{Vector2d(params.getDouble("radius", 1.0), params.getDouble("radius", 1.0))} {
+TentFilter::TentFilter(RenderParams &params)
+    : TentFilter{Vector2d(params.getDouble("radius", 1.0),
+                          params.getDouble("radius", 1.0, true))} {
 }
 
 TentFilter::TentFilter(const Vector2d& radius)

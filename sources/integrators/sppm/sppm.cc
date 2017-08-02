@@ -52,22 +52,22 @@ struct SPPMIntegrator::SPPMPixel {
 
 const double SPPMIntegrator::kAlpha_ = 0.7;
 
-SPPMIntegrator::SPPMIntegrator(const std::shared_ptr<const Camera>& camera,
-                               const std::shared_ptr<Sampler>& sampler)
-    : Integrator{ camera }
+SPPMIntegrator::SPPMIntegrator(const std::shared_ptr<Sampler>& sampler)
+    : Integrator{}
     , sampler_{ sampler } {
 }
 
-SPPMIntegrator::SPPMIntegrator(const RenderParams &params)
-    : SPPMIntegrator{std::static_pointer_cast<Camera>(params.getObject("sensor")),
-                     std::static_pointer_cast<Sampler>(params.getObject("sampler"))} {
+SPPMIntegrator::SPPMIntegrator(RenderParams &params)
+    : SPPMIntegrator{std::static_pointer_cast<Sampler>(params.getObject("sampler", true))} {
 }
 
 SPPMIntegrator::~SPPMIntegrator() {
 }
 
-void SPPMIntegrator::render(const Scene& scene,
-                            const RenderParams& params) {
+void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
+                            const Scene& scene,
+                            RenderParams& params) {
+    Integrator::render(camera, scene, params);
     const int width  = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
     const int numPoints = width * height;
@@ -197,7 +197,7 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
 }
 
 void SPPMIntegrator::traceRays(const Scene& scene,
-                               const RenderParams& params,
+                               RenderParams& params,
                                const std::vector<std::unique_ptr<Sampler>>& samplers,
                                std::vector<MemoryArena>& arenas,
                                std::vector<SPPMPixel>& hpoints) const {
@@ -235,7 +235,7 @@ void SPPMIntegrator::traceRays(const Scene& scene,
 }
 
 void SPPMIntegrator::tracePhotons(const Scene& scene, 
-                                  const RenderParams& params,
+                                  RenderParams& params,
                                   const std::vector<std::unique_ptr<Sampler>>& samplers,
                                   std::vector<MemoryArena>& arenas,
                                   const Distribution1D& lightDistrib,
@@ -286,7 +286,7 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
 }
 
 void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
-                                     const RenderParams& params,
+                                     RenderParams& params,
                                      const Ray& r,
                                      const Spectrum& b,
                                      Sampler& sampler,
@@ -380,7 +380,7 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
 }
 
 void SPPMIntegrator::pathTrace(const Scene& scene,
-                               const RenderParams& params,
+                               RenderParams& params,
                                const Ray& r,
                                Sampler& sampler,
                                MemoryArena& arena,

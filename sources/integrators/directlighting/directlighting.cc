@@ -5,17 +5,21 @@
 #include "core/renderparams.h"
 #include "core/scene.h"
 #include "core/mis.h"
+#include "core/sampler.h"
 
 namespace spica {
 
 DirectLightingIntegrator::DirectLightingIntegrator(
-    const std::shared_ptr<const Camera>& camera,
     const std::shared_ptr<Sampler>& sampler)
-    : SamplerIntegrator{ camera, sampler } {
+    : SamplerIntegrator{ sampler } {
+}
+
+DirectLightingIntegrator::DirectLightingIntegrator(RenderParams &params)
+    : DirectLightingIntegrator{std::static_pointer_cast<Sampler>(params.getObject("sampler", true))} {
 }
 
 Spectrum DirectLightingIntegrator::Li(const Scene& scene,
-                                      const RenderParams& params,
+                                      RenderParams& params,
                                       const Ray& r,
                                       Sampler& sampler,
                                       MemoryArena& arena,

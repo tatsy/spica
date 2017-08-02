@@ -12,7 +12,8 @@ class Integrator;
 class Camera;
 class Medium;
 class MediumInterface;
-class Material;
+class SurfaceMaterial;
+class SubsurfaceMaterial;
 
 // Scene
 class Scene;

@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "core/core.hpp"
+#include "core/render.hpp"
 #include "core/common.h"
 #include "core/spectrum.h"
 #include "core/interpolation.h"
@@ -43,7 +44,7 @@ class SPICA_EXPORTS SeparableBSSRDF : public BSSRDF {
 public:
     // Public methods
     SeparableBSSRDF(const SurfaceInteraction& po, double eta,
-                    const Material* material);
+                    const SubsurfaceMaterial* material);
     Spectrum S(const SurfaceInteraction& pi, const Vector3d& wi) const override;
     Spectrum sample(const Scene& scene, double rand1, const Point2d& rand2,
                     MemoryArena& arena, SurfaceInteraction* po,
@@ -70,7 +71,7 @@ private:
     // Private fields
     const Normal3d normal_;
     const Vector3d tangent_, binormal_;
-    const Material* material_;
+    const SubsurfaceMaterial* material_;
 
     // Friend
     friend class SeparableBSSRDFAdapter;
@@ -81,7 +82,7 @@ private:
  */
 class SPICA_EXPORTS DiffuseBSSRDF : public SeparableBSSRDF {
 public:
-    DiffuseBSSRDF(const SurfaceInteraction& po, const Material* material,
+    DiffuseBSSRDF(const SurfaceInteraction& po, const SubsurfaceMaterial* material,
                   double eta, const Spectrum& sigmaAbsorb,
                   const Spectrum& sigmaScatter, const CatmullRom2D& table);
 
@@ -132,7 +133,7 @@ class DipoleDiffusionReflectance : public DiffusionReflectance {
 public:
     DipoleDiffusionReflectance(const Spectrum &sigma_a, const Spectrum &sigmap_s,
                                float eta);
-    
+
     Spectrum operator()(const Point3d& po, const Point3d& pi) const override;
 
 private:
@@ -151,7 +152,7 @@ SPICA_EXPORTS
 void subsurfaceFromDiffuse(const CatmullRom2D& table, const Spectrum& albedoEff,
                            const Spectrum& mfp, Spectrum* sigA, Spectrum* sigS);
 
-SPICA_EXPORTS 
+SPICA_EXPORTS
 void computeBeamDiffusionBSSRDF(double g, double eta, CatmullRom2D* table,
                                 int albedoDivide = 100, int radiusDivide = 64);
 

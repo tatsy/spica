@@ -10,6 +10,7 @@
 #include "core/bsdf.h"
 #include "core/fresnel.h"
 #include "core/phase.h"
+#include "core/material.h"
 
 namespace spica {
 
@@ -49,9 +50,9 @@ double beamDiffusionMultipleScatter(double sigma_s, double sigma_a, double g,
                              std::exp(-sigma_tr * dv) / dv);
 
         const double EDn = (1.0 / (4.0 * PI)) *
-            (zr * (1.0 + sigma_tr * dr) * 
+            (zr * (1.0 + sigma_tr * dr) *
                 std::exp(-sigma_tr * dr) / (dr * dr * dr) -
-             zv * (1.0 + sigma_tr * dv) * 
+             zv * (1.0 + sigma_tr * dv) *
                 std::exp(-sigma_tr * dv) / (dv * dv * dv));
 
         const double E = phiD * cPhi + EDn * cE;
@@ -64,7 +65,7 @@ double beamDiffusionMultipleScatter(double sigma_s, double sigma_a, double g,
 double beamDiffusionSingleScatter(double sigma_s, double sigma_a, double g,
                                   double eta, double r) {
     static const int nSamples = 100;
-    
+
     const double sigma_t = sigma_a + sigma_s;
     const double albedo  = sigma_s / sigma_t;
     const double tCrit   = r * std::sqrt(eta * eta - 1.0);
@@ -140,7 +141,7 @@ BSSRDF::BSSRDF(const SurfaceInteraction& po, double eta)
 // SeparableBSSRDF method definitions
 // -----------------------------------------------------------------------------
 SeparableBSSRDF::SeparableBSSRDF(const SurfaceInteraction& po,
-                                 double eta, const Material* material)
+                                 double eta, const SubsurfaceMaterial* material)
     : BSSRDF{ po, eta }
     , normal_{ po.normal().normalized() }
     , tangent_{ po.dpdu().normalized() }
@@ -185,14 +186,14 @@ Spectrum SeparableBSSRDF::sampleSp(const Scene& scene, double rand1,
         xAxis = Vector3d(normal_);
         yAxis = tangent_;
         zAxis = binormal_;
-        rand1 = (rand1 - 0.75) * 4.0;        
+        rand1 = (rand1 - 0.75) * 4.0;
     }
 
     // Choose spectral chennel for sampling
     const int ch =
         std::min((int)(rand1 * Spectrum::channels), Spectrum::channels - 1);
     rand1 = rand1 * Spectrum::channels - ch;
-    
+
     // Sample distance on XY-plane
     const double r = sampleSr(ch, rand2[0]);
     if (r < 0.0) return Spectrum(0.0);
@@ -203,7 +204,7 @@ Spectrum SeparableBSSRDF::sampleSp(const Scene& scene, double rand1,
     const double zCoord = std::sqrt(rMax * rMax - r * r);
 
     // Compute sampling ray
-    Point3d pFrom = 
+    Point3d pFrom =
         po_.pos() + (xAxis * std::cos(phi) + yAxis * std::sin(phi)) * r -
         zCoord * zAxis;
     Point3d pTo   = pFrom + 2.0 * zCoord * zAxis;
@@ -216,7 +217,7 @@ Spectrum SeparableBSSRDF::sampleSp(const Scene& scene, double rand1,
         SurfaceInteraction isect;
         if (!scene.intersect(ray, &isect)) break;
 
-        if (isect.primitive()->material() == material_) {
+        if (isect.primitive()->material()->subsurface().get() == material_) {
             candidates.push_back(isect);
         }
         ray = isect.spawnRayTo(pTo);
@@ -281,10 +282,10 @@ Spectrum SeparableBSSRDF::Sw(const Vector3d& wi) const {
 // -----------------------------------------------------------------------------
 
 DiffuseBSSRDF::DiffuseBSSRDF(const SurfaceInteraction& po,
-                             const Material* material,
+                             const SubsurfaceMaterial* material,
                              double eta, const Spectrum& sigmaAbsorb,
                              const Spectrum& sigmaScatter,
-                             const CatmullRom2D& table) 
+                             const CatmullRom2D& table)
     : SeparableBSSRDF{ po, eta, material }
     , table_{ table }
     , sigmaAbsorb_{ sigmaAbsorb }
@@ -387,7 +388,7 @@ double DiffusionReflectance::Fdr() const {
                0.0636 * eta_;
     } else {
         return -0.4399f + 0.7099 / eta_ - 0.3319 / (eta_ * eta_) +
-               0.0636 / (eta_ * eta_ * eta_);    
+               0.0636 / (eta_ * eta_ * eta_);
     }
 }
 

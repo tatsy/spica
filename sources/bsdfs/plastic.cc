@@ -11,22 +11,24 @@
 
 namespace spica {
 
-PlasticMaterial::PlasticMaterial(const std::shared_ptr<Texture<Spectrum>>& Kd,
-                                 const std::shared_ptr<Texture<Spectrum>>& Ks,
-                                 const std::shared_ptr<Texture<double>>& roughness,
-                                 const std::shared_ptr<Texture<double>>& bumpMap,
-                                 bool remapRoughness)
-    : Material{}
+Plastic::Plastic(const std::shared_ptr<Texture<Spectrum>>& Kd,
+                 const std::shared_ptr<Texture<Spectrum>>& Ks,
+                 const std::shared_ptr<Texture<double>>& bumpMap)
+    : SurfaceMaterial{}
     , Kd_{ Kd }
     , Ks_{ Ks }
-    , roughness_{ roughness }
-    , bumpMap_{ bumpMap }
-    , remapRoughness_{ remapRoughness } {
+    , bumpMap_{ bumpMap } {
 }
 
-void PlasticMaterial::setScatterFuncs(SurfaceInteraction* isect,
-                                      MemoryArena& arena) const {
-    // if (bumpMap_) bump(bumpMap_, isect);
+Plastic::Plastic(RenderParams &params)
+    : Plastic{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("diffuseReflectance")),
+              std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance")),
+              std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
+}
+
+void Plastic::setScatterFuncs(SurfaceInteraction* isect,
+                              MemoryArena& arena) const {
+    if (bumpMap_) bump(isect, bumpMap_);
 
     isect->setBSDF(arena.allocate<BSDF>(*isect));
     
@@ -37,15 +39,8 @@ void PlasticMaterial::setScatterFuncs(SurfaceInteraction* isect,
 
     Spectrum ks = Ks_->evaluate(*isect);
     if (!ks.isBlack()) {
-        Fresnel* fresnel = arena.allocate<FresnelDielectric>(1.5, 1.0);
-        double rough = roughness_ ? roughness_->evaluate(*isect) : 0.0;
-        if (remapRoughness_) {
-            rough = TrowbridgeReitzDistribution::roughnessToAlpha(rough);
-        }
-
-        MicrofacetDistribution* distrib =
-            arena.allocate<TrowbridgeReitzDistribution>(rough, rough);
-        isect->bsdf()->add(arena.allocate<MicrofacetReflection>(ks, distrib, fresnel));
+        Fresnel* fresnel = arena.allocate<FresnelNoOp>();
+        isect->bsdf()->add(arena.allocate<SpecularReflection>(ks, fresnel));
     }
 }
 

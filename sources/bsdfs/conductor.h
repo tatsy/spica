@@ -8,17 +8,18 @@
 #include "core/core.hpp"
 #include "core/common.h"
 #include "core/spectrum.h"
-
 #include "core/render.hpp"
 #include "core/material.h"
 
 namespace spica {
 
-class SPICA_EXPORTS MirrorMaterial : public Material {
+class SPICA_EXPORTS Conductor : public SurfaceMaterial {
 public:
     // Public methods
-    MirrorMaterial(const std::shared_ptr<Texture<Spectrum>>& Kr,
-                   const std::shared_ptr<Texture<double>>& bump = nullptr);
+    Conductor(const std::shared_ptr<Texture<Spectrum>>& Kr,
+              const std::shared_ptr<Texture<double>>& bump = nullptr);
+
+    Conductor(RenderParams &params);
 
     void setScatterFuncs(SurfaceInteraction* intr,
                          MemoryArena& arena) const override;
@@ -28,6 +29,8 @@ private:
     std::shared_ptr<Texture<Spectrum>> Kr_;
     std::shared_ptr<Texture<double>> bumpMap_;
 };
+
+SPICA_EXPORT_PLUGIN(Conductor, "Conductor surface");
 
 }  // namespace spica
 

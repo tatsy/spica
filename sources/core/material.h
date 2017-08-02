@@ -23,7 +23,7 @@ public:
 class SPICA_EXPORTS SubsurfaceMaterial : public CObject {
 public:
     virtual ~SubsurfaceMaterial();
-    virtual void setScatterFuncs(const SurfaceInteraction *intr, MemoryArena &arena) const = 0;
+    virtual void setScatterFuncs(SurfaceInteraction *intr, MemoryArena &arena) const = 0;
 };
 
 class SPICA_EXPORTS Material {
@@ -32,6 +32,14 @@ public:
              const std::shared_ptr<SubsurfaceMaterial> &subsurface = nullptr);
     void setScatterFuncs(SurfaceInteraction *intr, MemoryArena &arena) const;
     bool isSubsurface() const { return static_cast<bool>(subsurface_); }
+    
+    inline std::shared_ptr<SurfaceMaterial> surface() const {
+        return bsdf_;
+    }
+
+    inline std::shared_ptr<SubsurfaceMaterial> subsurface() const {
+        return subsurface_;
+    }
 
 private:
     std::shared_ptr<SurfaceMaterial> bsdf_ = nullptr;

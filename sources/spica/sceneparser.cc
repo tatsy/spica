@@ -177,7 +177,8 @@ void SceneParser::storeToParam(QDomNode &node) {
         std::string type = attrs.namedItem("type").nodeValue().toStdString();
 
         auto surface = std::static_pointer_cast<SurfaceMaterial>(params_.getObject("bsdf", nullptr, true));
-        auto material = std::make_shared<Material>(surface);
+        auto subsurface = std::static_pointer_cast<SubsurfaceMaterial>(params_.getObject("subsurface", nullptr, true));
+        auto material = std::make_shared<Material>(surface, subsurface);
         auto transform = params_.getTransform("toWorld", Transform(), true);
         
         if (type == "obj") {

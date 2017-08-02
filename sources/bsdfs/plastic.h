@@ -6,29 +6,30 @@
 #define _SPICA_PLASTIC_H_
 
 #include "core/common.h"
+#include "core/cobject.h"
 #include "core/spectrum.h"
-
 #include "core/render.hpp"
 #include "core/material.h"
 
 namespace spica {
 
-class SPICA_EXPORTS PlasticMaterial : public Material {
+class SPICA_EXPORTS Plastic : public SurfaceMaterial {
 public:
-    PlasticMaterial(const std::shared_ptr<Texture<Spectrum>>& Kd,
-                    const std::shared_ptr<Texture<Spectrum>>& Ks,
-                    const std::shared_ptr<Texture<double>>& roughness = nullptr,
-                    const std::shared_ptr<Texture<double>>& bumpMap = nullptr,
-                    bool remapRoughness = false);
+    Plastic(const std::shared_ptr<Texture<Spectrum>>& Kd,
+            const std::shared_ptr<Texture<Spectrum>>& Ks,
+            const std::shared_ptr<Texture<double>>& bumpMap = nullptr);
+
+    explicit Plastic(RenderParams &params);
 
     void setScatterFuncs(SurfaceInteraction* isect,
                          MemoryArena& arena) const override;
 
 private:
     std::shared_ptr<Texture<Spectrum>> Kd_, Ks_;
-    std::shared_ptr<Texture<double>> roughness_, bumpMap_;
-    bool remapRoughness_;
+    std::shared_ptr<Texture<double>> bumpMap_;
 };
+
+SPICA_EXPORT_PLUGIN(Plastic, "Plastic-like surface");
 
 }  // namespace spica
 

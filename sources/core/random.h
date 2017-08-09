@@ -43,6 +43,7 @@ namespace spica {
         double normal();
 
         double get1D();
+        Point2d get2D();
 
     private:
         void init_genrand(unsigned int s);

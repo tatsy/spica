@@ -36,7 +36,6 @@ void Film::save(int id) const {
 
     saveImage(savefile, res);
 
-    MsgInfo("save: %s", savefile);
     if (saveCallback_) {
         (*saveCallback_)(res);
     }
@@ -55,7 +54,6 @@ void Film::saveMLT(double scale, int id) const {
     sprintf(savefile, format, id);
     saveImage(savefile, res);
 
-    MsgInfo("save: %s", savefile);
     if (saveCallback_) {
         (*saveCallback_)(res);
     }

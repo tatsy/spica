@@ -79,7 +79,10 @@ namespace spica {
                                  const RGBSpectrum& lo = RGBSpectrum(0.0, 0.0, 0.0),
                                  const RGBSpectrum& hi = RGBSpectrum(INFTY, INFTY, INFTY));
 
-        bool  isBlack() const;
+        bool isBlack() const;
+        bool isInf() const;
+        bool isNaN() const;
+        bool isValid() const;
         double dot(const RGBSpectrum& RGBSpectrum) const;
         double norm() const;
         double squaredNorm() const;

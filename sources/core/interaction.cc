@@ -106,12 +106,13 @@ SurfaceInteraction::SurfaceInteraction()
     , bsdf_{} {
 }
 
-SurfaceInteraction::SurfaceInteraction(const Point3d& pos, const Point2d& uv,
+SurfaceInteraction::SurfaceInteraction(const Point3d& pos, const Normal3d &n,
+                                       const Point2d& uv,
                                        const Vector3d& wo,
                                        const Vector3d& dpdu, const Vector3d& dpdv,
                                        const Normal3d& dndu, const Normal3d& dndv,
                                        const Shape* shape)
-    : Interaction{ pos, Normal3d(vect::normalize(vect::cross(dpdu, dpdv))), wo }
+    : Interaction{ pos, vect::normalize(n), wo }
     , uv_{ uv }
     , dpdu_{ dpdu }
     , dpdv_{ dpdv }

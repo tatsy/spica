@@ -5,16 +5,99 @@
 
 #include "core/point2d.h"
 #include "core/vector3d.h"
+#include "core/math.h"
 #include "core/vect_math.h"
 
 namespace spica {
+
+namespace {
+
+static void beckmannSample11(const double cosThetaI, double U1, double U2, double *slopex, double *slopey) {
+    /* Special case (normal incidence) */
+    if (cosThetaI > 0.9999) {
+        const double r = std::sqrt(-std::log(1.0 - U1));
+        const double sinPhi = std::sin(2.0 * PI * U2);
+        const double cosPhi = std::cos(2.0 * PI * U2);
+        *slopex = r * cosPhi;
+        *slopey = r * sinPhi;
+        return;
+    }
+
+    // Solve inverse of C22 with the simple binary search
+    const double sinThetaI = std::sqrt(std::max(0.0, 1.0 - cosThetaI * cosThetaI));
+    const double tanThetaI = sinThetaI / cosThetaI;
+    const double cotThetaI = 1.0 / tanThetaI;
+
+    double low = -1.0;
+    double high = math::erf(cotThetaI);
+    double samplex = std::max(U1, 1.0e-6);
+
+    double thetaI = std::acos(cosThetaI);
+    double fit = 1.0 + thetaI * (-0.876 + thetaI * (0.4265 - 0.0594 * thetaI));
+    double mid = high - (1.0 + high) * std::pow(1.0 - samplex, fit);
+
+    // Normalization factor below equals to (G1(w) / 2)^{-1}
+    static const double SQRT_PI_INV = 1.0 / std::sqrt(PI);
+    const double normalization = 1.0 / (1.0 + high + SQRT_PI_INV * tanThetaI * std::exp(-cotThetaI * cotThetaI));
+
+    for (int it = 0; it < 16; it++) {
+        if (mid < low || high < mid) {
+            mid = 0.5 * (low + high);
+        }
+
+        double ierf = math::erfinv(mid);
+        double value = normalization * (1.0 + mid + SQRT_PI_INV * tanThetaI * std::exp(-ierf * ierf)) - samplex;
+        double derivative = normalization * (1.0 - ierf * tanThetaI);
+
+        if (std::abs(value) < 1.0e-6) break;
+
+        if (value > 0.0) {
+            high = mid;
+        } else {
+            low = mid;
+        }
+
+        mid -= value / derivative;
+    }
+
+    *slopex = math::erfinv(mid);
+    *slopey = math::erfinv(2.0 * std::max(U2, 1.0e-6) - 1.0);
+}
+
+static Vector3d beckmannSample(const Vector3d &wi, double alphax, double alphay, double U1, double U2) {
+    // Sampling strategy in Algorithm 4 of [Heitz et al. 2014]
+    // "Importance Sampling Microfacet-Based BSDFs using the Distribution of Visible Normals"
+
+    // 1. Stretch wi
+    Vector3d wiStretched = vect::normalize(Vector3d(alphax * wi.x(), alphay * wi.y(), wi.z()));
+
+    // 2. Simulate P22_{wi}(x_slope, y_slope, 1, 1)
+    double slopex, slopey;
+    beckmannSample11(vect::cosTheta(wiStretched), U1, U2, &slopex, &slopey);
+ 
+    // 3. Rotate
+    const double tmp = vect::cosPhi(wiStretched) * slopex - vect::sinPhi(wiStretched) * slopey;
+    slopey = vect::sinPhi(wiStretched) * slopex + vect::cosPhi(wiStretched) * slopey;
+    slopex = tmp;
+
+    // 4. Unstretch
+    slopex *= alphax;
+    slopey *= alphay;
+
+    // 5. Compute normal
+    return vect::normalize(Vector3d(-slopex, -slopey, 1.0));
+}
+
+}  // anonymous namespace
 
 // -----------------------------------------------------------------------------
 // MicrofacetDistribution method definitions
 // -----------------------------------------------------------------------------
 
-MicrofacetDistribution::MicrofacetDistribution(bool sampleVisibleArea)
-    : sampleVisibleArea_{ sampleVisibleArea } {
+MicrofacetDistribution::MicrofacetDistribution(double alphax, double alphay, bool sampleVisibleArea)
+    : alphax_{alphax}
+    , alphay_{alphay}
+    , sampleVisibleArea_{ sampleVisibleArea } {
 }
 
 MicrofacetDistribution::~MicrofacetDistribution() {
@@ -43,9 +126,7 @@ double MicrofacetDistribution::pdf(const Vector3d& wo, const Vector3d& wh) const
 TrowbridgeReitzDistribution::TrowbridgeReitzDistribution(double alphax,
                                                          double alphay,
                                                          bool samplevis)
-    : MicrofacetDistribution{ samplevis }
-    , alphax_{ alphax }
-    , alphay_{ alphay } {
+    : MicrofacetDistribution{ alphax, alphay, samplevis } {
 }
 
 double TrowbridgeReitzDistribution::D(const Vector3d& wh) const {
@@ -173,6 +254,95 @@ void TrowbridgeReitzDistribution::sampleSlopes(double cosTheta,
     *slopey = S * z * std::sqrt(1.0 + (*slopex) * (*slopex));
     Assertion(!std::isinf(*slopey), "slopey is infinity.");
     Assertion(!std::isnan(*slopey), "slopey is NaN");
+}
+
+
+// -----------------------------------------------------------------------------
+// BeckmannDistribution method definitions
+// -----------------------------------------------------------------------------
+
+BeckmannDistribution::BeckmannDistribution(double alphax, double alphay, bool sampleVis)
+    : MicrofacetDistribution{alphax, alphay, sampleVis} {
+}
+
+double BeckmannDistribution::D(const Vector3d &wh) const {
+    // See P.15 of [Heitz et al. 2014]
+    // "Understanding the Masking-Shadowing Function in Micorfacet-Based BRDFs"
+    const double tan2Theta = vect::tan2Theta(wh);
+    if (std::isinf(tan2Theta)) return 0.0;
+
+    const double cos4Theta = vect::cos2Theta(wh) * vect::cos2Theta(wh);
+    const double alpha_b_2 = vect::cos2Phi(wh) / (alphax_ * alphax_) +
+                             vect::cos2Phi(wh) / (alphay_ * alphay_);
+
+    return std::exp(-tan2Theta / alpha_b_2) / (PI * alphax_ * alphay_ * cos4Theta);
+}
+
+Vector3d BeckmannDistribution::sample(const Vector3d &wo, const Point2d &rands) const {
+    if (!sampleVisibleArea_) {
+        double tan2Theta, phi;
+        if (alphax_ == alphay_) {
+            // Sample theta_m and phi_m on the isotropic rough surface.
+            // See Eq.(28) and (29) of [Walter et al. 2007].
+            // "Microfacet Models for Refraction through Rough Surfaces"
+            const double logSample = std::log(1 - rands[0]);
+            Assertion(!std::isinf(logSample), "Invalid log sample detected!");
+
+            tan2Theta = -alphax_ * alphax_ * logSample;
+            phi = 2.0 * PI * rands[1];
+        } else {
+            // Sample theta_m and phi_m on the anisotropic rough surface.
+            const double logSample = std::log(1 - rands[0]);
+            Assertion(!std::isinf(logSample), "Invalid log sample detected!");
+
+            // Derived from the equation on P.15 of [Heitz et al. 2014]
+            phi = std::atan(alphay_ / alphax_ * std::tan(2.0 * PI * rands[1] + 0.5 * PI));
+            if (rands[1] > 0.5) {
+                phi += PI;
+            }
+
+            const double sinPhi = std::sin(phi);
+            const double cosPhi = std::cos(phi);
+            const double alphax2 = alphax_ * alphax_;
+            const double alphay2 = alphay_ * alphay_;
+            tan2Theta = -logSample / (cosPhi * cosPhi / alphax2 + sinPhi * sinPhi / alphay2);
+        }
+
+        const double cosTheta = 1.0 / std::sqrt(1.0 + tan2Theta);
+        const double sinTheta = std::sqrt(std::max(0.0, 1.0 - cosTheta * cosTheta));
+        const double cosPhi = std::cos(phi);
+        const double sinPhi = std::sin(phi);
+        Vector3d wh = Vector3d(cosPhi * cosTheta, cosPhi * sinTheta, sinPhi);
+        if (!vect::sameHemisphere(wo, wh)) wh = -wh;
+        return wh;
+    } else {
+        Vector3d wh;
+        bool flip = wo.z() < 0.0;
+        wh = beckmannSample(flip ? -wo : wo, alphax_, alphay_, rands[0], rands[1]);
+        if (flip) wh = -wh;
+        return wh;
+    }
+}
+
+double BeckmannDistribution::roughnessToAlpha(double rough) {
+    rough = std::max(rough, 1.0e-3);
+    double x = std::log(rough);
+    return 1.62142 + x * (0.819955 + x * (0.1734 +  x * (0.0171201 + 0.000640711 * x)));
+}
+
+double BeckmannDistribution::lambda(const Vector3d &w) const {
+    const double absTanTheta = std::abs(vect::tanTheta(w));
+    if (std::isinf(absTanTheta)) {
+        return 0.0;
+    }
+
+    const double alpha = std::sqrt(vect::cos2Phi(w) * alphax_ * alphax_ + vect::sin2Phi(w) * alphay_ * alphay_);
+    const double a = 1.0 / (alpha * absTanTheta);
+    if (a >= 1.6) return 0.0;
+
+    // Below is an approximation of following equation in [0, 1.6] 
+    // (erf(a) - 1) / 2 + (1 / (2 * a * sqrt(pi)) * exp(-a * a)
+    return (1.0 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
 }
 
 }  // namespace spica

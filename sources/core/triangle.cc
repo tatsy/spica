@@ -122,7 +122,7 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
         dndu = invM[0][0] * dn01 + invM[0][1] * dn02;
         dndv = invM[1][0] * dn01 + invM[1][1] * dn02;
     }
-    *isect = SurfaceInteraction(pos, uv, -ray.dir(), dpdu, dpdv, dndu, dndv, this);
+    *isect = SurfaceInteraction(pos, nrm, uv, -ray.dir(), dpdu, dpdv, dndu, dndv, this);
     return true;
 }
 

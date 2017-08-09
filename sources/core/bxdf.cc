@@ -15,22 +15,6 @@ namespace {
 
 inline double absCosTheta(const Vector3d& w) { return std::abs(w.z()); }
 
-bool refract(const Vector3d& wi, const Vector3d& n, double eta, Vector3d* wt) {
-    double cosThetaI = vect::dot(n, wi);
-    double sin2ThetaI = std::max(0.0, 1.0 - cosThetaI * cosThetaI);
-    double sin2ThetaT = eta * eta * sin2ThetaI;
-
-    if (sin2ThetaT >= 1.0) return false;
-    double cosThetaT = std::sqrt(1.0 - sin2ThetaT);
-    *wt = eta * (-wi) + (eta * cosThetaI - cosThetaT) * Vector3d(n);
-    return true;
-}
-
-template <class T>
-inline Normal3_<T> faceforward(const Normal3_<T>& n, const Vector3_<T>& v) {
-    return vect::dot(n, v) < 0.0 ? -n : n;
-}
-
 }  // anonymous namespace
 
 // -----------------------------------------------------------------------------
@@ -139,7 +123,7 @@ Spectrum SpecularTransmission::sample(const Vector3d& wo, Vector3d* wi,
     double etaI = entering ? etaA_ : etaB_;
     double etaT = entering ? etaB_ : etaA_;
 
-    if (!refract(wo, Vector3d(faceforward(Normal3d(0.0, 0.0, 1.0), wo)),
+    if (!vect::refract(wo, Vector3d(vect::faceforward(Normal3d(0.0, 0.0, 1.0), wo)),
         etaI / etaT, wi)) {
         return Spectrum(0.0);
     }
@@ -197,7 +181,7 @@ Spectrum FresnelSpecular::sample(const Vector3d& wo, Vector3d* wi,
         double etaI = entering ? etaA_ : etaB_;
         double etaT = entering ? etaB_ : etaA_;
 
-        if (!refract(wo, Vector3d(faceforward(Normal3d(0.0, 0.0, 1.0), wo)), etaI / etaT, wi)) {
+        if (!vect::refract(wo, Vector3d(vect::faceforward(Normal3d(0.0, 0.0, 1.0), wo)), etaI / etaT, wi)) {
             return Spectrum(0.0);
         }
 
@@ -255,8 +239,7 @@ Spectrum MicrofacetReflection::sample(const Vector3d& wo, Vector3d* wi,
     if (!vect::sameHemisphere(wo, *wi)) return Spectrum(0.0);
 
     *pdf = distrib_->pdf(wo, wh) / (4.0 * vect::dot(wo, wh));
-    auto ret = f(wo, *wi);
-    return ret;
+    return f(wo, *wi);
 }
 
 double MicrofacetReflection::pdf(const Vector3d& wo, const Vector3d& wi) const {
@@ -311,7 +294,7 @@ Spectrum MicrofacetTransmission::sample(const Vector3d& wo, Vector3d* wi,
 
     Vector3d wh = distrib_->sample(wo, rands);
     double eta = vect::cosTheta(wo) > 0.0 ? (etaA_ / etaB_) : (etaB_ / etaA_);
-    if (!refract(wo, wh, eta, wi)) return Spectrum(0.0);
+    if (!vect::refract(wo, wh, eta, wi)) return Spectrum(0.0);
     *pdf = this->pdf(wo, *wi);
     return f(wo, *wi);
 }

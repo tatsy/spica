@@ -96,6 +96,10 @@ double Random::get1D() {
     return genrand_real2();
 }
 
+Point2d Random::get2D() {
+    return Point2d(get1D(), get1D());
+}
+
 /* initializes mt[N] with a seed */
 void Random::init_genrand(unsigned int s) {
     mt[0] = s & 0xffffffffU;

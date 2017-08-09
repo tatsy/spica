@@ -133,6 +133,29 @@ Vector3_<typename Vec1::type> reflect(const Vec1& wo, const Vec2& n) {
     return Vector3_<Type>(- wo + Vector3_<Type>(n) * Type(2) * vect::dot(n, wo));        
 }
 
+/** 
+ * Compute refraction vector of v w.r.t n
+ * @param v incident direction
+ * @param n normal of hitpoint
+ * @return true if refracted, false if totally reflected
+ */
+template <class Vec1, class Vec2>
+bool refract(const Vec1& wi, const Vec2& n, double eta, Vec1* wt) {
+    double cosThetaI = vect::dot(n, wi);
+    double sin2ThetaI = std::max(0.0, 1.0 - cosThetaI * cosThetaI);
+    double sin2ThetaT = eta * eta * sin2ThetaI;
+
+    if (sin2ThetaT >= 1.0) return false;
+    double cosThetaT = std::sqrt(1.0 - sin2ThetaT);
+    *wt = eta * (-wi) + (eta * cosThetaI - cosThetaT) * Vector3d(n);
+    return true;
+}
+
+template <class Vec1, class Vec2>
+inline Vec1 faceforward(const Vec1& n, const Vec2& v) {
+    return vect::dot(n, v) < 0.0 ? -n : n;
+}
+
 }  // namespace vect
 
 }  // namespace spica

@@ -50,6 +50,7 @@ public:
     Vector2d getVector2d(const std::string &name, bool remove = false);
     Bounds2d getBounds2d(const std::string &name, bool remove = false);
     Point3d getPoint3d(const std::string &name, bool remove = false);
+    Point3d getPoint3d(const std::string &name, const Point3d &value, bool remove = false);
     Vector3d getVector3d(const std::string &name, bool remove = false);
     Bounds3d getBounds3d(const std::string &name, bool remove = false);
     Normal3d getNormal3d(const std::string &name, bool remove = false);

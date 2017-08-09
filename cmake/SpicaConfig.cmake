@@ -33,14 +33,6 @@ endif()
 if(APPLE)
   set(LIB_PREFIX "lib")
   set(LIB_SUFFIX ".dylib")
-<<<<<<< HEAD
-endif()
-
-if (LINUX)
-  set(LIB_PREFIX "lib")
-  set(LIB_SUFFIX ".so")
-=======
->>>>>>> updator
 endif()
 
 if (LINUX)
@@ -99,7 +91,7 @@ endmacro()
 # spica's plugin building
 # ------------------------------------------------------------------------------
 macro(add_spica_plugin _plugin_name)
-  CMAKE_PARSE_ARGUMENTS(_plugin "" "TYPE" "LINK_LIBRARIES" ${ARGV})
+  CMAKE_PARSE_ARGUMENTS(_plugin "" "TYPE" "LINK_LIBRARIES" ${ARGN})
   set(_plugin_srcs ${_plugin_UNPARSED_ARGUMENTS})
 
   # Define library

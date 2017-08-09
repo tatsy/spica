@@ -16,6 +16,7 @@ add_subdirectory(films)
 add_subdirectory(filters)
 add_subdirectory(bsdfs)
 add_subdirectory(subsurface)
+add_subdirectory(textures)
 
 # process_subdirectory(image)
 # process_subdirectory(filter)

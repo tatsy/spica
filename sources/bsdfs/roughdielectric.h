@@ -22,6 +22,7 @@ public:
                     const std::shared_ptr<Texture<double>>& uRoughness,
                     const std::shared_ptr<Texture<double>>& vRoughness,
                     const std::shared_ptr<Texture<double>>& index,
+                    const std::string &distribution = "beckmann",
                     const std::shared_ptr<Texture<double>>& bumpMap = nullptr,
                     bool remapRoughness = false);
 
@@ -35,6 +36,7 @@ private:
     std::shared_ptr<Texture<Spectrum>> Kr_, Kt_;
     std::shared_ptr<Texture<double>> uRoughness_, vRoughness_;
     std::shared_ptr<Texture<double>> index_;
+    std::string distribution_;
     std::shared_ptr<Texture<double>> bumpMap_;
     bool remapRoughness_;
 };

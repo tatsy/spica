@@ -14,36 +14,36 @@ namespace spica {
 
     template <class T>
     Vector3_<T>::Vector3_()
-        : _x{ 0 }
-        , _y{ 0 }
-        , _z{ 0 } {
+        : x_{ 0 }
+        , y_{ 0 }
+        , z_{ 0 } {
     }
 
     template <class T>
     Vector3_<T>::Vector3_(T x, T y, T z)
-        : _x{x}
-        , _y{y}
-        , _z{z} {
+        : x_{x}
+        , y_{y}
+        , z_{z} {
     }
 
     template <class T>
     Vector3_<T>::Vector3_(const std::string &str) {
-        std::stringstream ss;
-        ss << str;
-
         double x, y, z;
-        ss >> x >> y >> z;
-        
-        this->_x = x;
-        this->_y = y;
-        this->_z = z;
+        if (sscanf(str.c_str(), "%lf %lf %lf", &x ,&y, &z) == 3 ||
+            sscanf(str.c_str(), "%lf, %lf, %lf", &x, &y, &z) == 3) {
+            this->x_ = x;
+            this->y_ = y;
+            this->z_ = z;
+        } else {
+            FatalError("Cannot parse string \"%s\" for Vector3d", str.c_str());
+        }
     }
 
     template <class T>
     Vector3_<T>::Vector3_(const Vector3_<T>& v)
-        : _x{v._x}
-        , _y{v._y}
-        , _z{v._z} {
+        : x_{v.x_}
+        , y_{v.y_}
+        , z_{v.z_} {
     }
 
     template <class T>
@@ -53,27 +53,27 @@ namespace spica {
     template <class T>
     Vector3_<T>&
     Vector3_<T>::operator=(const Vector3_<T>& v) {
-        this->_x = v._x;
-        this->_y = v._y;
-        this->_z = v._z;
+        this->x_ = v.x_;
+        this->y_ = v.y_;
+        this->z_ = v.z_;
         return *this;
     }
 
     template <class T>
     Vector3_<T>&
     Vector3_<T>::operator+=(const Vector3_<T>& v) {
-        this->_x += v._x;
-        this->_y += v._y;
-        this->_z += v._z;
+        this->x_ += v.x_;
+        this->y_ += v.y_;
+        this->z_ += v.z_;
         return *this;
     }
 
     template <class T>
     Vector3_<T>&
     Vector3_<T>::operator+=(double x) {
-        this->_x += x;
-        this->_y += x;
-        this->_z += x;
+        this->x_ += x;
+        this->y_ += x;
+        this->z_ += x;
         return *this;
     }
 
@@ -94,34 +94,34 @@ namespace spica {
     template <class T>
     Vector3_<T>
     Vector3_<T>::operator-() const {
-        return { -_x, -_y, -_z };
+        return { -x_, -y_, -z_ };
     }
 
     template <class T>
     Vector3_<T>&
     Vector3_<T>::operator*=(const Vector3_<T>& v) {
-        this->_x *= v._x;
-        this->_y *= v._y;
-        this->_z *= v._z;
+        this->x_ *= v.x_;
+        this->y_ *= v.y_;
+        this->z_ *= v.z_;
         return *this;
     }
 
     template <class T>
     Vector3_<T>&
     Vector3_<T>::operator*=(double s) {
-        this->_x *= s;
-        this->_y *= s;
-        this->_z *= s;
+        this->x_ *= s;
+        this->y_ *= s;
+        this->z_ *= s;
         return *this;
     }
 
     template <class T>
     Vector3_<T>&
     Vector3_<T>::operator/=(const Vector3_<T>& v) {
-        Assertion(v._x != 0 && v._y != 0 && v._z != 0, "Zero division");
-        this->_x /= v._x;
-        this->_y /= v._y;
-        this->_z /= v._z;
+        Assertion(v.x_ != 0 && v.y_ != 0 && v.z_ != 0, "Zero division");
+        this->x_ /= v.x_;
+        this->y_ /= v.y_;
+        this->z_ /= v.z_;
         return *this;
     }
 
@@ -135,14 +135,14 @@ namespace spica {
     template <class T>
     T Vector3_<T>::operator[](int i) const {
         Assertion(i >= 0 && i <= 2, "Index out of bounds!!");
-        if (i == 0) return _x;
-        if (i == 1) return _y;
-        return _z;
+        if (i == 0) return x_;
+        if (i == 1) return y_;
+        return z_;
     }
 
     template <class T>
     bool Vector3_<T>::operator==(const Vector3_<T>& v) const {
-        return (this->_x == v._x && this->_y == v._y && this->_z == v._z);
+        return (this->x_ == v.x_ && this->y_ == v.y_ && this->z_ == v.z_);
     }
 
     template <class T>
@@ -152,7 +152,7 @@ namespace spica {
 
     template <class T>
     T Vector3_<T>::dot(const Vector3_<T>& v) const {
-        return this->_x * v._x + this->_y * v._y + this->_z * v._z;
+        return this->x_ * v.x_ + this->y_ * v.y_ + this->z_ * v.z_;
     }
 
     template <class T>
@@ -164,9 +164,9 @@ namespace spica {
     template <class T>
     Vector3_<T>
     Vector3_<T>::cross(const Vector3_<T>& v) const {
-        T x = this->_y * v._z - this->_z * v._y;
-        T y = this->_z * v._x - this->_x * v._z;
-        T z = this->_x * v._y - this->_y * v._x;
+        T x = this->y_ * v.z_ - this->z_ * v.y_;
+        T y = this->z_ * v.x_ - this->x_ * v.z_;
+        T z = this->x_ * v.y_ - this->y_ * v.x_;
         return { x, y, z };
     }
 
@@ -211,9 +211,9 @@ namespace spica {
     Vector3_<T>
     Vector3_<T>::minimum(const Vector3_<T>& v1,
                                          const Vector3_<T>& v2) {
-        T x = std::min(v1._x, v2._x);
-        T y = std::min(v1._y, v2._y);
-        T z = std::min(v1._z, v2._z);
+        T x = std::min(v1.x_, v2.x_);
+        T y = std::min(v1.y_, v2.y_);
+        T z = std::min(v1.z_, v2.z_);
         return { x, y, z };
     }
 
@@ -230,9 +230,9 @@ namespace spica {
     template <class T>
     T Vector3_<T>::get(int d) const {
         Assertion(0 <= d && d <= 2, "Dimension must be between 0 and 2");
-        if (d == 0) return _x;
-        if (d == 1) return _y;
-        if (d == 2) return _z;
+        if (d == 0) return x_;
+        if (d == 1) return y_;
+        if (d == 2) return z_;
         return 0.0;
     }
 
@@ -241,7 +241,7 @@ namespace spica {
         std::stringstream ss;
         ss << std::fixed;
         ss << std::setprecision(8);
-        ss << "(" << _x << ", " << _y << ", " << _z << ")";
+        ss << "(" << x_ << ", " << y_ << ", " << z_ << ")";
         return std::move(ss.str());
     }
 

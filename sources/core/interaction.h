@@ -68,7 +68,8 @@ private:
 class SPICA_EXPORTS SurfaceInteraction : public Interaction {
 public:
     SurfaceInteraction();
-    SurfaceInteraction(const Point3d& p, const Point2d& uv, const Vector3d& wo,
+    SurfaceInteraction(const Point3d& p, const Normal3d &n,
+                       const Point2d& uv, const Vector3d& wo,
                        const Vector3d& dpdu, const Vector3d& dpdv,
                        const Normal3d& dndu, const Normal3d& dndv,
                        const Shape* shape);

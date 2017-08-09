@@ -35,5 +35,6 @@ SPICA_EXPORTS void parallel_for(int start, int end, const std::function<void(int
 
 SPICA_EXPORTS int numSystemThreads();
 SPICA_EXPORTS int getThreadID();
+SPICA_EXPORTS void setNumThreads(uint32_t n);
 
 #endif  // _SPICA_PARALLEL_H_

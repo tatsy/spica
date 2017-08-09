@@ -650,6 +650,18 @@ bool RGBSpectrum::isBlack() const {
     return r_ == 0.0 && g_ == 0.0 && b_ == 0.0;
 }
 
+bool RGBSpectrum::isInf() const {
+    return std::isinf(r_) || std::isinf(g_) || std::isinf(b_);
+}
+
+bool RGBSpectrum::isNaN() const {
+    return std::isnan(r_) || std::isnan(g_) || std::isnan(b_);
+}
+
+bool RGBSpectrum::isValid() const {
+    return !isInf() && !isNaN();
+}
+
 double RGBSpectrum::dot(const RGBSpectrum& color) const {
     return r_ * color.r_ + g_ * color.g_ + b_ * color.b_;
 }

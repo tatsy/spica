@@ -14,11 +14,14 @@ HDRFilm::HDRFilm(const Point2i& resolution,
 
 HDRFilm::HDRFilm(RenderParams &params)
     : HDRFilm{Point2i(params.getInt("width", true), params.getInt("height", true)),
-              std::static_pointer_cast<Filter>(params.getObject("rfilter", true))} {
+              std::static_pointer_cast<Filter>(params.getObject("rfilter", true)),
+              params.getString("outputFile")} {
 }
 
 void HDRFilm::saveImage(const std::string &filename, const Image &image) const {
-    image.save(filename + ".hdr");
+    const std::string outfile = filename + ".hdr";
+    image.save(outfile);
+    MsgInfo("Save: %s", outfile.c_str());
 }
 
 }  // namespace spica

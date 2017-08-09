@@ -8,6 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 
+static int numUserThreads = std::thread::hardware_concurrency();
+
 namespace spica {
 
 inline uint64_t doubleToBits(double v) {
@@ -163,9 +165,13 @@ void parallel_for(int start, int end, const std::function<void(int)>& func,
 }
 
 int numSystemThreads() {
-    return std::max(1u, std::thread::hardware_concurrency());
+    return std::max(1, numUserThreads);
 }
 
 int getThreadID() {
     return threadID;
+}
+
+void setNumThreads(uint32_t n) {
+    numUserThreads = std::min(n, std::thread::hardware_concurrency()); 
 }

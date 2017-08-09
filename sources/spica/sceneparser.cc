@@ -9,6 +9,7 @@
 #include <QtXml/qdom.h>
 
 #include "core/cobject.h"
+#include "core/parallel.h"
 #include "core/camera.h"
 #include "core/shape.h"
 #include "core/material.h"
@@ -60,6 +61,8 @@ void SceneParser::parse() {
 
     auto accelerator = std::shared_ptr<Accelerator>(plugins_.createAccelerator(accelType, primitives_, params_));
     Scene scene(accelerator, lights_);
+
+    setNumThreads(params_.getInt("numUserThreads"));
     integrator->render(camera_, scene, params_);
 }
 
@@ -83,7 +86,19 @@ Transform SceneParser::parseTransform(QDomNode &parent) {
         const auto &subAttrs = node.attributes();
 
         Transform sub;
-        if (node.nodeName() == "scale") {
+        if (node.nodeName() == "matrix") {
+            const QString values = subAttrs.namedItem("value").nodeValue();
+            QStringList valueList = values.split(" ");
+            Assertion(valueList.length() == 16, "# of matrix values is not 16!");
+
+            double m[4][4];
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    m[i][j] = valueList[i * 4 + j].toDouble();
+                }
+            }
+            sub = Transform(m);
+        } else if (node.nodeName() == "scale") {
             const double x = subAttrs.namedItem("x").nodeValue().toDouble();
             const double y = subAttrs.namedItem("y").nodeValue().toDouble();
             const double z = subAttrs.namedItem("z").nodeValue().toDouble();
@@ -158,6 +173,11 @@ void SceneParser::storeToParam(QDomNode &node) {
         }
     } else if (nodeName == "string") {
         std::string value = attrs.namedItem("value").nodeValue().toStdString();
+        if (name == "filename") {
+            QFileInfo fileinfo(xmlFile_.c_str());
+            value = fileinfo.absoluteDir().filePath(value.c_str()).toStdString();            
+        }
+
         if (name != "") {
             params_.add(name, value);
         }
@@ -183,7 +203,7 @@ void SceneParser::storeToParam(QDomNode &node) {
         
         if (type == "obj") {
             QFileInfo fileinfo(xmlFile_.c_str());
-            const std::string filename = fileinfo.absoluteDir().filePath(params_.getString("filename").c_str()).toStdString();
+            const std::string filename = params_.getString("filename");
             std::vector<ShapeGroup> groups = meshio::loadOBJ(filename, transform);
             for (const auto &g : groups) {
                 for (const auto &s : g.shapes()) {

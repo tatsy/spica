@@ -11,27 +11,30 @@
 
 namespace spica {
 
-Conductor::Conductor(const std::shared_ptr<Texture<Spectrum>>& Kr,
+Conductor::Conductor(const std::shared_ptr<Texture<Spectrum>>& eta,
+                     const std::shared_ptr<Texture<Spectrum>> &k,
                      const std::shared_ptr<Texture<double>>& bump)
-    : Kr_{ Kr }
+    : eta_{eta}
+    , k_{k}
     , bumpMap_{ bump } {
 }
 
 Conductor::Conductor(RenderParams &params)
-    : Conductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance")),
+    : Conductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("eta")),
+                std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("k")),
                 std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
 }
 
-void Conductor::setScatterFuncs(SurfaceInteraction* intr,
+void Conductor::setScatterFuncs(SurfaceInteraction* isect,
                                 MemoryArena& arena) const {
-    if (bumpMap_) bump(intr, bumpMap_);
+    if (bumpMap_) bump(isect, bumpMap_);
 
-    intr->setBSDF(arena.allocate<BSDF>(*intr));
-    Spectrum r = Spectrum::clamp(Kr_->evaluate(*intr));
-    if (!r.isBlack()) {
-        Fresnel* fresnel = arena.allocate<FresnelNoOp>();
-        intr->bsdf()->add(arena.allocate<SpecularReflection>(r, fresnel));
-    }
+    isect->setBSDF(arena.allocate<BSDF>(*isect));
+
+    const Spectrum eta = eta_->evaluate(*isect);
+    const Spectrum k = k_->evaluate(*isect);
+    Fresnel* fresnel = arena.allocate<FresnelConductor>(Spectrum(1.0), eta, k);
+    isect->bsdf()->add(arena.allocate<SpecularReflection>(Spectrum(1.0), fresnel));
 }
 
 }  // namespace spica

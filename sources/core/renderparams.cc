@@ -272,6 +272,19 @@ Point3d RenderParams::getPoint3d(const std::string &name, bool remove) {
     return it->second;
 }
 
+Point3d RenderParams::getPoint3d(const std::string &name, const Point3d &value, bool remove) {
+    const auto it = point3ds.find(name);
+    if (it != point3ds.cend()) {
+        if (remove) {
+            const auto ret = it->second;
+            point3ds.erase(it);
+            return ret;
+        }
+        return it->second;
+    }
+    return value;
+}
+
 Vector3d RenderParams::getVector3d(const std::string &name, bool remove) {
     const auto it = vector3ds.find(name);
     Assertion(it != vector3ds.cend(), "Vector3d not found: name = %s", name.c_str());

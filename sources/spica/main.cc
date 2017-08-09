@@ -1,5 +1,7 @@
 #include <QtWidgets/qapplication.h>
 #include <QtCore/qcommandlineparser.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qdir.h>
 
 #include <iostream>
 
@@ -24,7 +26,7 @@ int main(int argc, char** argv) {
             QApplication::translate("main", "# of threads to use for rendering (default = 4)"),
             QApplication::translate("main", "nthreads")},
         {{"o", "output"},
-            QApplication::translate("main", "Base of output filename (default = image_)"),
+            QApplication::translate("main", "Base of output filename (default = (basename of XML)"),
             QApplication::translate("main", "output")},
         {"gui",
             QApplication::translate("main", "Show GUI if this options is set (default = OFF)")}
@@ -47,9 +49,12 @@ int main(int argc, char** argv) {
     }
     printf("Threads: %d\n", nThreads);
 
-    std::string outfile = "image_";
+    std::string outfile = "";
     if (parser.isSet("output")) {
         outfile = parser.value("output").toStdString();
+    } else {
+        QFileInfo fileinfo(sceneFile.c_str());
+        outfile = fileinfo.absoluteFilePath().split(".", QString::SkipEmptyParts).at(0).toStdString();    
     }
 
     bool enableGui = false;
@@ -60,6 +65,8 @@ int main(int argc, char** argv) {
 
     // Set parameters
     RenderParams &params = RenderParams::getInstance();
+    params.add("numUserThreads", nThreads);
+    params.add("outputFile", outfile);
 
     // Generate rendering process
     SceneParser sceneParser(sceneFile);

@@ -25,7 +25,7 @@ public:
     // Public methods
     Film(const Point2i& resolution,
          const std::shared_ptr<Filter> &filter,
-         const std::string& filename = "image",
+         const std::string& filename,
          const std::shared_ptr<std::function<void(const Image&)>> &callback = nullptr);
 
     ~Film() = default;

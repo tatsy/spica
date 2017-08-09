@@ -15,6 +15,7 @@ RoughDielectric::RoughDielectric(const std::shared_ptr<Texture<Spectrum>>& Kr,
                                  const std::shared_ptr<Texture<double>>& uRoughness,
                                  const std::shared_ptr<Texture<double>>& vRoughness,
                                  const std::shared_ptr<Texture<double>>& index,
+                                 const std::string &distribution,
                                  const std::shared_ptr<Texture<double>>& bumpMap,
                                  bool remapRoughness)
     : Kr_{ Kr }
@@ -22,6 +23,7 @@ RoughDielectric::RoughDielectric(const std::shared_ptr<Texture<Spectrum>>& Kr,
     , uRoughness_{ uRoughness }
     , vRoughness_{ vRoughness }
     , index_{ index }
+    , distribution_{ distribution }
     , bumpMap_{ bumpMap }
     , remapRoughness_{ remapRoughness } {
 }
@@ -32,6 +34,7 @@ RoughDielectric::RoughDielectric(RenderParams &params)
                       std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
                       std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
                       std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR")),
+                      params.getString("distribution", "beckmann", true),
                       std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
 }
 
@@ -59,10 +62,16 @@ void RoughDielectric::setScatterFuncs(SurfaceInteraction* isect,
             vRough = TrowbridgeReitzDistribution::roughnessToAlpha(vRough);
         }
 
-        MicrofacetDistribution* distrib = 
-            isSpecular ? nullptr
-                       : arena.allocate<TrowbridgeReitzDistribution>(
-                           uRough, vRough);
+        MicrofacetDistribution* distrib = nullptr;
+        if (!isSpecular) {
+            if (distribution_ == "beckmann") {
+                distrib = arena.allocate<BeckmannDistribution>(uRough, vRough);
+            } else if (distribution_ == "ggx") {
+                distrib = arena.allocate<TrowbridgeReitzDistribution>(uRough, vRough);
+            } else {
+                FatalError("Unknown microfacet distribution type: %s", distribution_.c_str());
+            }
+        }
 
         if (!re.isBlack()) {
             Fresnel* fresnel = arena.allocate<FresnelDielectric>(1.0, eta);

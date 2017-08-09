@@ -14,13 +14,17 @@ class SPICA_EXPORTS LDRFilm : public Film {
 public:
     LDRFilm(const Point2i& resolution,
             const std::shared_ptr<Filter> &filter,
-            const std::string& filename = "image",
+            const std::string& filename,
+            double gamma = 2.2,
             const std::shared_ptr<std::function<void(const Image&)>> &callback = nullptr);
 
     LDRFilm(RenderParams &params);
 
 protected:
     void saveImage(const std::string &filename, const Image &image) const override;
+
+private:
+    double gamma_;
 };
 
 SPICA_EXPORT_PLUGIN(LDRFilm, "Low dynamic range film");

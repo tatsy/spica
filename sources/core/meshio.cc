@@ -131,7 +131,7 @@ std::vector<ShapeGroup> loadPLY(const std::string& filename,
             Assertion(numVerts > 0 && numFaces > 0, "numVerts and numFaces must be positive");
 
             float ff[3];
-            float tt[2];
+            //float tt[2];
             std::vector<Point3d> vertices;
             for (size_t i = 0; i < numVerts; i++) {
                 ifs.read((char*)ff, sizeof(float) * 3);
@@ -168,10 +168,11 @@ std::vector<ShapeGroup> loadPLY(const std::string& filename,
 std::vector<ShapeGroup> loadOBJ(const std::string& filename,
                                 const Transform& objectToWorld) {
     // Load OBJ file with "tinyobjloader".
+    tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string errors;
-    bool success = tinyobj::LoadObj(shapes, materials, errors, filename.c_str());
+    bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &errors, filename.c_str());
     if (!errors.empty()) {
         Warning(errors.c_str());
     }
@@ -182,64 +183,58 @@ std::vector<ShapeGroup> loadOBJ(const std::string& filename,
 
     // Prepare return object.
     std::vector<ShapeGroup> groups;
-    for (int i = 0; i < shapes.size(); i++) {
-        auto& shape = shapes[i];
+    for (const auto &s : shapes) {
+        std::vector<Point3d> positions;
+        std::vector<Normal3d> normals;
+        std::vector<Point2d> texcoords;
+        for (const auto &index : s.mesh.indices) {
+            Point3d position;
+            Normal3d normal;
+            Point2d texcoord;
         
+            if (index.vertex_index >= 0) {
+                position = Point3d(attrib.vertices[index.vertex_index * 3 + 0],
+                                   attrib.vertices[index.vertex_index * 3 + 1],
+                                   attrib.vertices[index.vertex_index * 3 + 2]);
+            }
+
+            if (index.normal_index >= 0) {
+                normal = Normal3d(attrib.normals[index.normal_index * 3 + 0],
+                                  attrib.normals[index.normal_index * 3 + 1],
+                                  attrib.normals[index.normal_index * 3 + 2]);
+            }
+
+            if (index.texcoord_index >= 0) {
+                texcoord = Point2d(attrib.texcoords[index.texcoord_index * 2 + 0],
+                                   attrib.texcoords[index.texcoord_index * 2 + 1]);
+            }
+
+            positions.push_back(position);
+            normals.push_back(normal);
+            texcoords.push_back(texcoord);
+        }
+
         std::vector<std::shared_ptr<Shape>> tris;
-        for (int j = 0; j < shape.mesh.indices.size(); j += 3) {
-            const int i0 = shape.mesh.indices[j + 0];
-            const int i1 = shape.mesh.indices[j + 1];
-            const int i2 = shape.mesh.indices[j + 2];
-
-            Point3d p0(shape.mesh.positions[i0 * 3 + 0],
-                       shape.mesh.positions[i0 * 3 + 1],
-                       shape.mesh.positions[i0 * 3 + 2]);
-            Point3d p1(shape.mesh.positions[i1 * 3 + 0],
-                       shape.mesh.positions[i1 * 3 + 1],
-                       shape.mesh.positions[i1 * 3 + 2]);
-            Point3d p2(shape.mesh.positions[i2 * 3 + 0],
-                       shape.mesh.positions[i2 * 3 + 1],
-                       shape.mesh.positions[i2 * 3 + 2]);
-
-            Normal3d n0, n1, n2;
-            if (!shape.mesh.normals.empty()) {
-                n0 = Normal3d(shape.mesh.normals[i0 * 3 + 0],
-                              shape.mesh.normals[i0 * 3 + 1],
-                              shape.mesh.normals[i0 * 3 + 2]);
-                n1 = Normal3d(shape.mesh.normals[i1 * 3 + 0],
-                              shape.mesh.normals[i1 * 3 + 1],
-                              shape.mesh.normals[i1 * 3 + 2]);
-                n2 = Normal3d(shape.mesh.normals[i2 * 3 + 0],
-                              shape.mesh.normals[i2 * 3 + 1],
-                              shape.mesh.normals[i2 * 3 + 2]);
-            }
-
-            Point2d t0, t1, t2;
-            if (!shape.mesh.texcoords.empty()) {
-                t0 = Point2d(shape.mesh.texcoords[i0 * 2 + 0],
-                             shape.mesh.texcoords[i0 * 2 + 1]);
-                t1 = Point2d(shape.mesh.texcoords[i1 * 2 + 0],
-                             shape.mesh.texcoords[i1 * 2 + 1]);
-                t2 = Point2d(shape.mesh.texcoords[i2 * 2 + 0],
-                             shape.mesh.texcoords[i2 * 2 + 1]);
-            }
-            tris.emplace_back(
-                new Triangle(p0, p1, p2, n0, n1, n2, t0, t1, t2, objectToWorld));
+        for (int i = 0; i < positions.size(); i += 3) {
+            auto tri = std::make_shared<Triangle>(positions[i + 0], positions[i + 1], positions[i + 2],
+                                                  normals[i + 0], normals[i + 1], normals[i + 2],
+                                                  texcoords[i + 0], texcoords[i + 1], texcoords[i + 2], objectToWorld);
+            tris.push_back(tri);
         }
 
         std::shared_ptr<ImageTexture>    mapKd   = nullptr;
         std::shared_ptr<Texture<double>> bumpMap = nullptr;
-        if (!materials.empty()) {
-            if (!materials[i].diffuse_texname.empty()) {
-                Image image = Image::fromFile(materials[i].diffuse_texname);
-                auto uvMap = std::shared_ptr<UVMapping2D>();
-                mapKd = std::make_shared<ImageTexture>(image, uvMap, ImageWrap::Black);
-            }
+        //if (!materials.empty()) {
+        //    if (!materials[i].diffuse_texname.empty()) {
+        //        Image image = Image::fromFile(materials[i].diffuse_texname);
+        //        auto uvMap = std::shared_ptr<UVMapping2D>();
+        //        mapKd = std::make_shared<ImageTexture>(image, uvMap, ImageWrap::Black);
+        //    }
 
-            if (!materials[i].bump_texname.empty()) {
-                Image image = Image::fromFile(materials[i].bump_texname);
-            }
-        }
+        //    if (!materials[i].bump_texname.empty()) {
+        //        Image image = Image::fromFile(materials[i].bump_texname);
+        //    }
+        //}
         groups.emplace_back(tris, mapKd, bumpMap);
     }
 

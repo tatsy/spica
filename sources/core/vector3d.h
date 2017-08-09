@@ -95,32 +95,32 @@ namespace spica {
 
         /** Get x.
          */
-        inline T x() const { return _x; }
+        inline T x() const { return x_; }
 
         /** Get y.
          */
-        inline T y() const { return _y; }
+        inline T y() const { return y_; }
 
         /** Get z.
          */
-        inline T z() const { return _z; }
+        inline T z() const { return z_; }
 
         /** Get reference to x.
          */
-        inline T& xRef() { return _x; }
+        inline T& xRef() { return x_; }
 
         /** Get reference to y.
          */
-        inline T& yRef() { return _y; }
+        inline T& yRef() { return y_; }
 
         /** Get reference to z.
          */
-        inline T& zRef() { return _z; }
+        inline T& zRef() { return z_; }
 
         using type = T;
 
     protected:
-        T _x, _y, _z;
+        T x_, y_, z_;
 
         static_assert(std::is_arithmetic<T>::value,
                       "Template type must be arithmetic!!");

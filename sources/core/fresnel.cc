@@ -57,7 +57,7 @@ Spectrum FrConductor(double cosThetaI, const Spectrum& etaI,
 
     Spectrum t3 = cosThetaI2 * a2plusb2 + sinThetaI2 * sinThetaI2;
     Spectrum t4 = t2 * sinThetaI2;
-    Spectrum Rp = Rs * (t3 - t4) / (t3 + t4);
+    Spectrum Rp = Rs * (t3 - t4) / (t3 + t4 + EPS);
 
     return 0.5 * (Rp + Rs);
 }

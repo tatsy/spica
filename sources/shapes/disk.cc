@@ -66,8 +66,9 @@ bool Disk::intersect(const Ray& ray, double* tHit,
     const double sinTheta = sin(theta);
     const Vector3d dpdu = radius_ * (uVec * cosTheta + vVec * sinTheta);
     const Vector3d dpdv = 2.0 * PI * r * (-uVec * sinTheta + vVec * cosTheta);
+    const Normal3d nrm = Normal3d(vect::cross(dpdu, dpdv));
 
-    *isect = SurfaceInteraction(pos, Point2d(u, v), -ray.dir(),
+    *isect = SurfaceInteraction(pos, nrm, Point2d(u, v), -ray.dir(),
                                 dpdu, dpdv, Normal3d(0.0, 0.0, 0.0),
                                 Normal3d(0.0, 0.0, 0.0), this);
     return true;

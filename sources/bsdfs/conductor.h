@@ -16,8 +16,9 @@ namespace spica {
 class SPICA_EXPORTS Conductor : public SurfaceMaterial {
 public:
     // Public methods
-    Conductor(const std::shared_ptr<Texture<Spectrum>>& Kr,
-              const std::shared_ptr<Texture<double>>& bump = nullptr);
+    Conductor(const std::shared_ptr<Texture<Spectrum>> & eta,
+              const std::shared_ptr<Texture<Spectrum>> &k,
+              const std::shared_ptr<Texture<double>> &bump = nullptr);
 
     Conductor(RenderParams &params);
 
@@ -26,7 +27,8 @@ public:
 
 private:
     // Private fields
-    std::shared_ptr<Texture<Spectrum>> Kr_;
+    std::shared_ptr<Texture<Spectrum>> eta_;
+    std::shared_ptr<Texture<Spectrum>> k_;
     std::shared_ptr<Texture<double>> bumpMap_;
 };
 

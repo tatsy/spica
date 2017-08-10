@@ -41,7 +41,7 @@ MicrosurfaceDielectric::MicrosurfaceDielectric(RenderParams &params)
                              std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
                              std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
                              std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR")),
-                             params.getString("slopeDistribution", "beckmann", true),
+                             params.getString("distribution", "beckmann", true),
                              params.getString("heightDistribution", "gaussian", true),
                              std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
 }

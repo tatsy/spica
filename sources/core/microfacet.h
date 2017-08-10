@@ -15,6 +15,7 @@ namespace spica {
  */
 class SPICA_EXPORTS MicrofacetDistribution {
 public:
+    MicrofacetDistribution(double alphax, double alphay, bool sampleVisibleArea);
     virtual ~MicrofacetDistribution();
     virtual double D(const Vector3d& wh) const = 0;
     virtual double lambda(const Vector3d& w) const = 0;
@@ -29,7 +30,6 @@ public:
     inline double alphay() const { return alphay_; }
 
 protected:
-    MicrofacetDistribution(double alphax, double alphay, bool sampleVisibleArea);
     const bool sampleVisibleArea_;
     const double alphax_, alphay_;
 };

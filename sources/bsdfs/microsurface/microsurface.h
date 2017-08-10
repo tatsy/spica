@@ -130,6 +130,8 @@ protected:
     double G1(const Vector3d &wi, double h0) const;
     //! Sample height in outgoing direction
     double sampleHeight(const Vector3d &wr, double hr, double U) const;
+    //! Evaluate sample PDF
+    double pdf(const Vector3d &wo, const Vector3d &wi) const override;
 
 protected:
     //! Sample wo with a random walk

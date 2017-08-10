@@ -21,6 +21,7 @@ MicrosurfaceConductor::MicrosurfaceConductor(const std::shared_ptr<Texture<Spect
                                              const std::shared_ptr<Texture<double>>& vRoughness,
                                              const std::string &slopeDistribution,
                                              const std::string &heightDistribution,
+                                             int scatteringOrder,
                                              const std::shared_ptr<Texture<double>>& bumpMap,
                                              bool remapRoughness)
     : eta_{eta}
@@ -29,6 +30,7 @@ MicrosurfaceConductor::MicrosurfaceConductor(const std::shared_ptr<Texture<Spect
     , vRoughness_{vRoughness}
     , slopeDistribution_{slopeDistribution}
     , heightDistribution_{heightDistribution}
+    , scatteringOrder_{scatteringOrder}
     , bumpMap_{bumpMap}
     , remapRoughness_{remapRoughness} {
 }
@@ -38,8 +40,9 @@ MicrosurfaceConductor::MicrosurfaceConductor(RenderParams &params)
                             std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("k")),
                             std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
                             std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
-                            params.getString("slopeDistribution", "beckmann", true),
+                            params.getString("distribution", "beckmann", true),
                             params.getString("heightDistribution", "gaussian", true),
+                            params.getInt("scatteringOrder", 4, true),
                             std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
 }
 
@@ -86,7 +89,7 @@ void MicrosurfaceConductor::setScatterFuncs(SurfaceInteraction *isect,
             sDist = arena.allocate<MicrosurfaceTrowbridgeReitzSlope>(uRough, vRough);
         }
 
-        isect->bsdf()->add(arena.allocate<MicrosurfaceReflection>(Spectrum(1.0), fresnel, hDist, sDist));
+        isect->bsdf()->add(arena.allocate<MicrosurfaceReflection>(Spectrum(1.0), fresnel, hDist, sDist, scatteringOrder_));
     }
 }
 

@@ -13,7 +13,8 @@ namespace spica {
 namespace {
 
 static void beckmannSample11(const double cosThetaI, double U1, double U2, double *slopex, double *slopey) {
-    /* Special case (normal incidence) */
+    // Special case (normal incidence)
+    // This case is equivarent to isotropic roughness case
     if (cosThetaI > 0.9999) {
         const double r = std::sqrt(-std::log(1.0 - U1));
         const double sinPhi = std::sin(2.0 * PI * U2);
@@ -23,44 +24,46 @@ static void beckmannSample11(const double cosThetaI, double U1, double U2, doubl
         return;
     }
 
-    // Solve inverse of C22 with the simple binary search
+    // Solve inverse of C22 with the bisection method
+    // The following approach is reported in [Jakob 2014]
+    // "An Improved Visible Normal Sampling Routine for the Beckmann Distribution"
     const double sinThetaI = std::sqrt(std::max(0.0, 1.0 - cosThetaI * cosThetaI));
     const double tanThetaI = sinThetaI / cosThetaI;
     const double cotThetaI = 1.0 / tanThetaI;
 
-    double low = -1.0;
-    double high = math::erf(cotThetaI);
+    double a = -1.0;
+    double c = math::erf(cotThetaI);
     double samplex = std::max(U1, 1.0e-6);
 
     double thetaI = std::acos(cosThetaI);
     double fit = 1.0 + thetaI * (-0.876 + thetaI * (0.4265 - 0.0594 * thetaI));
-    double mid = high - (1.0 + high) * std::pow(1.0 - samplex, fit);
+    double b = c - (1.0 + c) * std::pow(1.0 - samplex, fit);
 
     // Normalization factor below equals to (G1(w) / 2)^{-1}
     static const double SQRT_PI_INV = 1.0 / std::sqrt(PI);
-    const double normalization = 1.0 / (1.0 + high + SQRT_PI_INV * tanThetaI * std::exp(-cotThetaI * cotThetaI));
+    const double normalization = 1.0 / (1.0 + c + SQRT_PI_INV * tanThetaI * std::exp(-cotThetaI * cotThetaI));
 
     for (int it = 0; it < 16; it++) {
-        if (mid < low || high < mid) {
-            mid = 0.5 * (low + high);
+        if (b < a || c < b) {
+            b = 0.5 * (a + c);
         }
 
-        double ierf = math::erfinv(mid);
-        double value = normalization * (1.0 + mid + SQRT_PI_INV * tanThetaI * std::exp(-ierf * ierf)) - samplex;
-        double derivative = normalization * (1.0 - ierf * tanThetaI);
+        double xm = math::erfinv(b);
+        double value = normalization * (1.0 + b + SQRT_PI_INV * tanThetaI * std::exp(-xm * xm)) - samplex;
+        double derivative = normalization * (1.0 - xm * tanThetaI);
 
         if (std::abs(value) < 1.0e-6) break;
 
         if (value > 0.0) {
-            high = mid;
+            c = b;
         } else {
-            low = mid;
+            a = b;
         }
 
-        mid -= value / derivative;
+        b -= value / derivative;
     }
 
-    *slopex = math::erfinv(mid);
+    *slopex = math::erfinv(b);
     *slopey = math::erfinv(2.0 * std::max(U2, 1.0e-6) - 1.0);
 }
 
@@ -97,7 +100,7 @@ static Vector3d beckmannSample(const Vector3d &wi, double alphax, double alphay,
 MicrofacetDistribution::MicrofacetDistribution(double alphax, double alphay, bool sampleVisibleArea)
     : alphax_{alphax}
     , alphay_{alphay}
-    , sampleVisibleArea_{ sampleVisibleArea } {
+    , sampleVisibleArea_{sampleVisibleArea} {
 }
 
 MicrofacetDistribution::~MicrofacetDistribution() {
@@ -126,7 +129,7 @@ double MicrofacetDistribution::pdf(const Vector3d& wo, const Vector3d& wh) const
 TrowbridgeReitzDistribution::TrowbridgeReitzDistribution(double alphax,
                                                          double alphay,
                                                          bool samplevis)
-    : MicrofacetDistribution{ alphax, alphay, samplevis } {
+    : MicrofacetDistribution{alphax, alphay, samplevis} {
 }
 
 double TrowbridgeReitzDistribution::D(const Vector3d& wh) const {

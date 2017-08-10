@@ -75,7 +75,7 @@ MicrosurfaceSlope::MicrosurfaceSlope(double alphax, double alphay)
 }
 
 double MicrosurfaceSlope::D(const Vector3d &wm) const {
-    if (vect::cosTheta(wm) <= 0.0) {
+    if (wm.z() <= 0.0) {
         return 0.0;
     }
 
@@ -184,39 +184,52 @@ Vector2d MicrosurfaceBeckmannSlope::sampleP22_11(double cosThetaI, double U1, do
     const double tanThetaI = sinThetaI / cosThetaI;
     const double cotThetaI = 1.0 / tanThetaI;
 
-    double low = -1.0;
-    double high = math::erf(cotThetaI);
-    double samplex = std::max(U1, 1.0e-6);
-
-    double thetaI = std::acos(cosThetaI);
-    double fit = 1.0 + thetaI * (-0.876 + thetaI * (0.4265 - 0.0594 * thetaI));
-    double mid = high - (1.0 + high) * std::pow(1.0 - samplex, fit);
-
-    // Normalization factor below equals to (G1(w) / 2)^{-1}
-    static const double SQRT_PI_INV = 1.0 / std::sqrt(PI);
-    const double normalization = 1.0 / (1.0 + high + SQRT_PI_INV * tanThetaI * std::exp(-cotThetaI * cotThetaI));
-
-    for (int it = 0; it < 16; it++) {
-        if (mid < low || high < mid) {
-            mid = 0.5 * (low + high);
-        }
-
-        double ierf = math::erfinv(mid);
-        double value = normalization * (1.0 + mid + SQRT_PI_INV * tanThetaI * std::exp(-ierf * ierf)) - samplex;
-        double derivative = normalization * (1.0 - ierf * tanThetaI);
-
-        if (std::abs(value) < 1.0e-6) break;
-
-        if (value > 0.0) {
-            high = mid;
-        } else {
-            low = mid;
-        }
-
-        mid -= value / derivative;
+    static const double INV_2_SQRT_PI = 1.0 / (2.0 * std::sqrt(PI));
+    double a = cotThetaI;
+    const double pArea = 0.5 * (math::erf(a) + 1.0) * cosThetaI + INV_2_SQRT_PI * sinThetaI * std::exp(-a * a);
+    if (pArea < 0.0001 || std::isinf(pArea) || std::isnan(pArea)) {
+        return Vector2d(0.0, 0.0);
     }
 
-    const double slopex = math::erfinv(mid);
+    // VNDF normalization factor
+    const double c = 1.0 / pArea;
+
+    // Bisection method
+    double erfMin = -0.9999;
+    double erfMax = std::max(erfMin, math::erf(cotThetaI));
+    double erfCurrent = 0.5 * (erfMin + erfMax);
+
+    const double samplex = U1;
+    while (erfMax - erfMin > 1.0e-5) {
+        if (erfCurrent < erfMin || erfMax < erfMax) {
+            erfCurrent = 0.5 * (erfMin + erfMax);
+        }
+
+        // Evaluate slope
+        const double slope = math::erfinv(erfCurrent);
+
+        // CDF
+        const double CDF = (slope >= cotThetaI) ? 1.0 : c * (INV_2_SQRT_PI * sinThetaI * std::exp(-slope * slope) + cosThetaI * (0.5 + 0.5 * math::erf(slope)));
+        const double diff = CDF - samplex;
+
+        // Test
+        if (std::abs(diff) < 1.0e-5) {
+            break;
+        }
+
+        // Update bounds
+        if (diff > 0.0) {
+            erfMax = erfCurrent;
+        } else {
+            erfMin = erfCurrent;
+        }
+
+        // Update estimate
+        const double derivative = 0.5 * c * cosThetaI - 0.5 * c * sinThetaI * slope;
+        erfCurrent -= diff / derivative;
+    }
+
+    const double slopex = math::erfinv(std::min(erfMax, std::max(erfMin, erfCurrent)));
     const double slopey = math::erfinv(2.0 * std::max(U2, 1.0e-6) - 1.0);
     return Vector2d(slopex, slopey);
 }
@@ -356,8 +369,15 @@ double MicrosurfaceDistribution::sampleHeight(const Vector3d &wr, double hr, dou
 
     const double C1 = hDist_->C1(hr);
     const double lambda = sDist_->lambda(wr);
-    const double h = C1 / std::pow(1.0 - U, 1.0 / lambda);
+    const double h = hDist_->invC1(C1 / std::pow(1.0 - U, 1.0 / lambda));
     return h;
+}
+
+double MicrosurfaceDistribution::pdf(const Vector3d &wo, const Vector3d &wi) const {
+    const Vector3d wh = vect::normalize(wi + wo);
+    const double D = sDist_->D(wh);
+    const double G = G1(wo);
+    return D * G * std::abs(vect::dot(wo, wh)) / (4.0 * std::abs(vect::cosTheta(wo)));
 }
 
 Vector3d MicrosurfaceDistribution::sampleWi(const Vector3d &wo) const {
@@ -407,9 +427,9 @@ Spectrum MicrosurfaceReflection::f(const Vector3d &wo, const Vector3d &wi) const
     const double cosThetaI = vect::cosTheta(wi);
     if (cosThetaI == 0.0 || cosThetaO == 0.0) return Spectrum(0.0);
 
-    const Vector3d wh = vect::normalize(wi + wo);
-    const Spectrum er = eval(wo, wi);
-    return re_ * er;
+    // [Heitz et al. 2014] Eq.(43)
+    const Spectrum e = eval(wo, wi);
+    return re_ * e;
 }
 
 Spectrum MicrosurfaceReflection::sample(const Vector3d& wo, Vector3d* wi,
@@ -420,7 +440,7 @@ Spectrum MicrosurfaceReflection::sample(const Vector3d& wo, Vector3d* wi,
     *wi = sampleWi(wo);
     if (!vect::sameHemisphere(wo, *wi)) return Spectrum(0.0);
 
-    *pdf = 1.0;
+    *pdf = this->pdf(wo, *wi);
     return f(wo, *wi);
 }
 
@@ -452,17 +472,17 @@ Spectrum MicrosurfaceReflection::eval(const Vector3d &wo, const Vector3d &wi) co
         // Update er
         const Vector3d wh = vect::normalize(wr + wrNext);
         Spectrum F = fresnel_->evaluate(vect::dot(wrNext, wh));
-        er *= F;
 
-        // Next event estimation
-        double phase = evalPhaseFunction(-wr, wi);
+        // [Heitz et al. 2016] Eq(35)
+        Spectrum phase = F * evalPhaseFunction(-wr, wi);
         double shadowing = G1(wi, hr);
-
-        Spectrum I = er * phase * shadowing;
-
+        Spectrum I = phase * shadowing;
         if (I.isValid()) {
             sum += I;
         }
+
+        // Update weight and direction
+        er = F * er;
         wr = wrNext;
 
         // Check validity
@@ -481,7 +501,7 @@ double MicrosurfaceReflection::evalPhaseFunction(const Vector3d &wo, const Vecto
     }
 
     // [Heitz et al. 2016] Eq(35)
-    return 0.25 * sDist_->D_wi(wo, wh) / vect::dot(wo, wh);
+    return sDist_->D_wi(wo, wh) / (4.0 * vect::dot(wo, wh));
 }
 
 Vector3d MicrosurfaceReflection::samplePhaseFunction(const Vector3d &wi) const {

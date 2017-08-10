@@ -23,6 +23,7 @@ public:
                           const std::shared_ptr<Texture<double>> &vRoughness,
                           const std::string &slopeDistribution = "beckmann",
                           const std::string &heightDistribution = "gaussian",
+                          int scatteringOrder = 4,
                           const std::shared_ptr<Texture<double>> &bumpMap = nullptr,
                           bool remapRoughness = false);
 
@@ -37,6 +38,7 @@ private:
     std::shared_ptr<Texture<Spectrum>> k_;
     std::shared_ptr<Texture<double>> uRoughness_, vRoughness_;
     std::string slopeDistribution_, heightDistribution_;
+    int scatteringOrder_;
     std::shared_ptr<Texture<double>> bumpMap_;
     bool remapRoughness_;
 };

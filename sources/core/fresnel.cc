@@ -81,7 +81,7 @@ double FrDielectric(double cosThetaI, double etaI, double etaT) {
                    ((etaT * cosThetaI) + (etaI * cosThetaT));
     double Rperp = ((etaI * cosThetaI) - (etaT * cosThetaT)) /
                    ((etaI * cosThetaI) + (etaT * cosThetaT));
-    return (Rpara * Rpara + Rperp * Rperp) / 2.0;
+    return 0.5 * (Rpara * Rpara + Rperp * Rperp);
 }
 
 }  // namespace spica

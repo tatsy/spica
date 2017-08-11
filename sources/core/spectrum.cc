@@ -667,7 +667,7 @@ double RGBSpectrum::dot(const RGBSpectrum& color) const {
 }
 
 double RGBSpectrum::norm() const {
-    return ::sqrt(this->squaredNorm());
+    return std::sqrt(this->squaredNorm());
 }
 
 double RGBSpectrum::squaredNorm() const {
@@ -679,10 +679,9 @@ double RGBSpectrum::luminance() const {
 }
     
 RGBSpectrum RGBSpectrum::sqrt(const RGBSpectrum& c) {
-    using ::sqrt;
     Assertion(c.r_ >= 0.0 && c.g_ >= 0.0 && c.b_ >= 0.0,
               "Specified vector has negative entries !!");
-    return RGBSpectrum(sqrt(c.r_), sqrt(c.g_), sqrt(c.b_));
+    return RGBSpectrum(std::sqrt(c.r_), std::sqrt(c.g_), std::sqrt(c.b_));
 }
 
 RGBSpectrum RGBSpectrum::exp(const RGBSpectrum& c) {

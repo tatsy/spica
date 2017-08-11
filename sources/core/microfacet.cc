@@ -276,9 +276,9 @@ double BeckmannDistribution::D(const Vector3d &wh) const {
 
     const double cos4Theta = vect::cos2Theta(wh) * vect::cos2Theta(wh);
     const double alpha_b_2 = vect::cos2Phi(wh) / (alphax_ * alphax_) +
-                             vect::cos2Phi(wh) / (alphay_ * alphay_);
+                             vect::sin2Phi(wh) / (alphay_ * alphay_);
 
-    return std::exp(-tan2Theta / alpha_b_2) / (PI * alphax_ * alphay_ * cos4Theta);
+    return std::exp(-tan2Theta * alpha_b_2) / (PI * alphax_ * alphay_ * cos4Theta);
 }
 
 Vector3d BeckmannDistribution::sample(const Vector3d &wo, const Point2d &rands) const {
@@ -315,7 +315,7 @@ Vector3d BeckmannDistribution::sample(const Vector3d &wo, const Point2d &rands) 
         const double sinTheta = std::sqrt(std::max(0.0, 1.0 - cosTheta * cosTheta));
         const double cosPhi = std::cos(phi);
         const double sinPhi = std::sin(phi);
-        Vector3d wh = Vector3d(cosPhi * cosTheta, cosPhi * sinTheta, sinPhi);
+        Vector3d wh(cosPhi * sinTheta, sinPhi * sinTheta, cosTheta);
         if (!vect::sameHemisphere(wo, wh)) wh = -wh;
         return wh;
     } else {

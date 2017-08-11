@@ -173,7 +173,7 @@ private:
 class SPICA_EXPORTS MicrofacetTransmission : public BxDF {
 public:
     // Public methods
-    MicrofacetTransmission(const Spectrum& tr,
+    MicrofacetTransmission(const Spectrum &re, const Spectrum& tr,
                            MicrofacetDistribution* distrib, double etaA,
                            double etaB);
     Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
@@ -183,12 +183,11 @@ public:
 
 private:
     // Private fields
+    const Spectrum re_;
     const Spectrum tr_;
     const MicrofacetDistribution* distrib_;
     const double etaA_, etaB_;
-    std::unique_ptr<FresnelDielectric> fresnel_;
-
-};  // class MicrofacetTransmission
+};
 
 }  // namespace spica
 

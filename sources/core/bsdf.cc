@@ -72,10 +72,10 @@ Spectrum BSDF::sample(const Vector3d& woWorld, Vector3d* wiWorld,
         return Spectrum(0.0);
     }
 
-    int comps = std::min((int)(rands[0] * matchComps), matchComps - 1);
+    const int comp = std::min((int)(rands[0] * matchComps), matchComps - 1);
 
     BxDF* bxdf = nullptr;
-    int count = comps;
+    int count = comp;
     for (int i = 0; i < nBxDFs_; i++) {
         if ((bxdfs_[i]->type() & type) != BxDFType::None && count-- == 0) {
             bxdf = bxdfs_[i];
@@ -84,8 +84,7 @@ Spectrum BSDF::sample(const Vector3d& woWorld, Vector3d* wiWorld,
     }
     Assertion(bxdf, "BxDF not found!!");
 
-    Point2d uRemapped(std::min(rands[0] * matchComps - comps, 1 - EPS), rands[1]);
-
+    Point2d uRemapped(std::min(rands[0] * matchComps - comp, 1.0 - EPS), rands[1]);
     Vector3d wi, wo = worldToLocal(woWorld).normalized();
     if (wo.z() == 0.0) return Spectrum(0.0);
 

@@ -58,8 +58,13 @@ void RoughDielectric::setScatterFuncs(SurfaceInteraction* isect,
     } else {
         // Non-specular reflection
         if (remapRoughness_) {
-            uRough = TrowbridgeReitzDistribution::roughnessToAlpha(uRough);   
-            vRough = TrowbridgeReitzDistribution::roughnessToAlpha(vRough);
+            if (distribution_ == "beckmann") {
+                uRough = BeckmannDistribution::roughnessToAlpha(uRough);   
+                vRough = BeckmannDistribution::roughnessToAlpha(vRough);            
+            } else if (distribution_ == "ggx") {
+                uRough = TrowbridgeReitzDistribution::roughnessToAlpha(uRough);   
+                vRough = TrowbridgeReitzDistribution::roughnessToAlpha(vRough);
+            }
         }
 
         MicrofacetDistribution* distrib = nullptr;
@@ -73,22 +78,7 @@ void RoughDielectric::setScatterFuncs(SurfaceInteraction* isect,
             }
         }
 
-        if (!re.isBlack()) {
-            Fresnel* fresnel = arena.allocate<FresnelDielectric>(1.0, eta);
-            if (isSpecular) {
-                isect->bsdf()->add(arena.allocate<SpecularReflection>(re, fresnel));
-            } else {
-                isect->bsdf()->add(arena.allocate<MicrofacetReflection>(re, distrib, fresnel));
-            }
-        }
-
-        if (!tr.isBlack()) {
-            if (isSpecular) {
-                isect->bsdf()->add(arena.allocate<SpecularTransmission>(tr, 1.0, eta));
-            } else {
-                isect->bsdf()->add(arena.allocate<MicrofacetTransmission>(tr, distrib, 1.0, eta));
-            }
-        }
+        isect->bsdf()->add(arena.allocate<MicrofacetTransmission>(re, tr, distrib, 1.0, eta));
     }
 }
 

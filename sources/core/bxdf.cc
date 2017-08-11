@@ -15,6 +15,8 @@ namespace {
 
 inline double absCosTheta(const Vector3d& w) { return std::abs(w.z()); }
 
+static thread_local Random random;
+
 }  // anonymous namespace
 
 // -----------------------------------------------------------------------------
@@ -253,38 +255,43 @@ double MicrofacetReflection::pdf(const Vector3d& wo, const Vector3d& wi) const {
 // MicrofacetTransmission method definitions
 // -----------------------------------------------------------------------------
 
-MicrofacetTransmission::MicrofacetTransmission(const Spectrum& tr,
+MicrofacetTransmission::MicrofacetTransmission(const Spectrum &re, const Spectrum& tr,
                                                MicrofacetDistribution* distrib,
                                                double etaA, double etaB)
-    : BxDF{ BxDFType::Transmission | BxDFType::Glossy }
+    : BxDF{ BxDFType::Reflection | BxDFType::Transmission | BxDFType::Glossy }
+    , re_{ re }
     , tr_{ tr }
     , distrib_{ distrib }
     , etaA_{ etaA }
-    , etaB_{ etaB }
-    , fresnel_{ std::make_unique<FresnelDielectric>(etaA, etaB) } {
+    , etaB_{ etaB } {
 }
 
 Spectrum MicrofacetTransmission::f(const Vector3d& wo,
                                    const Vector3d& wi) const {
-    if (vect::sameHemisphere(wo, wi)) return Spectrum(0.0);
-
     double cosThetaO = vect::cosTheta(wo);
     double cosThetaI = vect::cosTheta(wi);
     if (cosThetaO == 0.0 || cosThetaI == 0.0) return Spectrum(0.0);
 
-    double eta = cosThetaO > 0.0 ? (etaB_ / etaA_) : (etaA_ / etaB_);
-    Vector3d wh = vect::normalize(wo + wi * eta);
-    if (wh.z() < 0.0) wh = -wh;
+    bool entering = cosThetaO > 0.0;
+    double etaI = entering ? etaA_ : etaB_;
+    double etaT = entering ? etaB_ : etaA_;
+    double F = FrDielectric(vect::cosTheta(wo), etaA_, etaB_);
 
-    Spectrum F = fresnel_->evaluate(vect::dot(wo, wh));
+    if (vect::sameHemisphere(wo, wi)) {
+        // Reflection
+        Vector3d wh = vect::normalize(wo + wi);
+        return re_ * distrib_->D(wh) * distrib_->G(wo, wi) / (4.0 * cosThetaI * cosThetaO);
+    } else {
+        // Transmission
+        double eta = cosThetaO > 0.0 ? (etaB_ / etaA_) : (etaA_ / etaB_);
+        Vector3d wh = vect::normalize(wo + wi * eta);
+        if (wh.z() < 0.0) wh = -wh;
 
-    double sqrtDenom = vect::dot(wo, wh) + eta * vect::dot(wi, wh);
-    double factor = 1.0;
-
-    return (Spectrum(1.0) - F) * tr_ *
-           std::abs(distrib_->D(wh) * distrib_->G(wo, wi) * eta * eta *
-                    vect::absDot(wi, wh) * vect::absDot(wo, wh) * factor * factor /
-                    (cosThetaI * cosThetaO * sqrtDenom * sqrtDenom));
+        double sqrtDenom = vect::dot(wo, wh) + eta * vect::dot(wi, wh);
+        return tr_ * std::abs(distrib_->D(wh) * distrib_->G(wo, wi) * eta * eta *
+               vect::absDot(wi, wh) * vect::absDot(wo, wh) /
+               (cosThetaI * cosThetaO * sqrtDenom * sqrtDenom));
+    }
 }
 
 Spectrum MicrofacetTransmission::sample(const Vector3d& wo, Vector3d* wi,
@@ -292,24 +299,46 @@ Spectrum MicrofacetTransmission::sample(const Vector3d& wo, Vector3d* wi,
                                         BxDFType* sampledType) const {
     if (wo.z() == 0.0) return Spectrum(0.0);
 
-    Vector3d wh = distrib_->sample(wo, rands);
-    double eta = vect::cosTheta(wo) > 0.0 ? (etaA_ / etaB_) : (etaB_ / etaA_);
-    if (!vect::refract(wo, wh, eta, wi)) return Spectrum(0.0);
+    const double F = FrDielectric(vect::cosTheta(wo), etaA_, etaB_);
+    if (random.get1D() < F) {
+        // Reflection
+        Vector3d wh = distrib_->sample(wo, rands);
+        *wi = vect::reflect(wo, wh);
+        if (sampledType) {
+            *sampledType = BxDFType::Reflection | BxDFType::Glossy;
+        }
+    } else {
+        // Transmission
+        Vector3d wh = distrib_->sample(wo, rands);
+        double eta = vect::cosTheta(wo) > 0.0 ? (etaA_ / etaB_) : (etaB_ / etaA_);
+        if (!vect::refract(wo, wh, eta, wi)) return Spectrum(0.0);
+
+        if (sampledType) {
+            *sampledType = BxDFType::Transmission | BxDFType::Glossy;
+        }
+    }
+
     *pdf = this->pdf(wo, *wi);
     return f(wo, *wi);
 }
 
 double MicrofacetTransmission::pdf(const Vector3d& wo,
                                    const Vector3d& wi) const {
-    if (vect::sameHemisphere(wo, wi)) return 0.0;
-
-    double eta = vect::cosTheta(wo) > 0.0 ? (etaB_ / etaA_) : (etaA_ / etaB_);
-    Vector3d wh = vect::normalize(wo + wi * eta);
+    const double F = FrDielectric(vect::cosTheta(wo), etaA_, etaB_);
+    if (vect::sameHemisphere(wo, wi)) {
+        // Reflection
+        Vector3d wh = vect::normalize(wi + wo);
+        return distrib_->pdf(wo, wh) / (4.0 * vect::dot(wo, wh));
+    } else {
+        // Transmission
+        double eta = vect::cosTheta(wo) > 0.0 ? (etaB_ / etaA_) : (etaA_ / etaB_);
+        Vector3d wh = vect::normalize(wo + wi * eta);
     
-    double sqrtDenom = vect::dot(wo, wh) + eta * vect::dot(wi, wh);
-    double dwhdwi = std::abs((eta * eta * vect::dot(wi, wh)) /
-                             (sqrtDenom * sqrtDenom));
-    return distrib_->pdf(wo, wh) * dwhdwi;
+        double sqrtDenom = vect::dot(wo, wh) + eta * vect::dot(wi, wh);
+        double dwhdwi = std::abs((eta * eta * vect::dot(wi, wh)) /
+                                 (sqrtDenom * sqrtDenom));
+        return distrib_->pdf(wo, wh) * dwhdwi;
+    }
 }
 
 }  // namespace spica

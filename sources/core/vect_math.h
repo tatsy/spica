@@ -64,7 +64,7 @@ double cos2Theta(const Vec& w) {
 
 template <class Vec>
 double sin2Theta(const Vec& w) {
-    return std::sqrt(std::max(0.0, 1.0 - cos2Theta(w)));
+    return std::max(0.0, 1.0 - cos2Theta(w));
 }
 
 template <class Vec>
@@ -79,7 +79,7 @@ double tanTheta(const Vec& w) {
 
 template <class Vec>
 double tan2Theta(const Vec& w) {
-    return sin2Theta(w) / cos2Theta(w);
+    return sin2Theta(w) / (cos2Theta(w) + EPS);
 }
 
 template <class Vec>

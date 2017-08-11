@@ -520,21 +520,92 @@ MicrosurfaceScattering::MicrosurfaceScattering(const Spectrum &re, const Spectru
     , re_{re}
     , tr_{tr}
     , etaA_{etaA}
-    , etaB_{etaB} {
+    , etaB_{etaB}
+    , fresnel_{new FresnelDielectric(etaA_, etaB_)} {
 }
 
 Spectrum MicrosurfaceScattering::f(const Vector3d& wo, const Vector3d& wi) const {
-    return Spectrum(0.0);
+    const double cosThetaO = vect::cosTheta(wo);
+    const double cosThetaI = vect::cosTheta(wi);
+    if (cosThetaI == 0.0 || cosThetaO == 0.0) return Spectrum(0.0);
+
+    // [Heitz et al. 2014] Eq.(43)
+    const Spectrum e = eval(wo, wi);
+    return re_ * e;
 }
 
 Spectrum MicrosurfaceScattering::sample(const Vector3d& wo, Vector3d* wi,
                                         const Point2d& rands, double* pdf,
                                         BxDFType* sampledType) const {
-    return Spectrum(0.0);
+    if (wo.z() == 0.0) return Spectrum(0.0);
+
+    *wi = sampleWi(wo);
+    if (vect::dot(wo, *wi) == 0.0) return Spectrum(0.0);
+
+    *pdf = this->pdf(wo, *wi);
+    return f(wo, *wi);
+}
+
+Vector3d MicrosurfaceScattering::sampleWi(const Vector3d &wo) const {
+    // Initialization
+    Vector3d wr = -wo;
+    double hr = 1.0 + hDist_->invC1(0.9999);
+    bool outside = true;
+
+    // Random walk
+    for (int r = 0; r < scatteringOrder_; r++) {
+        // Next height
+        const double U = random.get1D();
+        hr = outside ? sampleHeight(wr, hr, U) : -sampleHeight(-wr, -hr, U);
+
+        // Leave the microsurface
+        if (hr == INFTY || hr == -INFTY) {
+            break;
+        }
+
+        // Next direction
+        wr = samplePhaseFunction(-wr, outside, &outside);
+    }
+
+    return wr;
 }
 
 Spectrum MicrosurfaceScattering::eval(const Vector3d &wo, const Vector3d &wi) const {
-    return Spectrum(0.0);
+    // Initialization
+    Vector3d wr = -wo;
+    double hr = 1.0 + hDist_->invC1(0.999);
+    bool outside = true;
+
+    // Random walk
+    double sum = 0.0;
+    for (int r = 0; r < scatteringOrder_; r++) {
+        // Next height
+        const double U = random.get1D();
+        hr = outside ? sampleHeight(wr, hr, U) : -sampleHeight(-wr, -hr, U);
+
+        // Leave the surface
+        if (hr == INFTY || hr == -INFTY) {
+            break;
+        }
+    
+        // [Heitz et al. 2016] Eq(35)
+        double phase = evalPhaseFunction(-wr, wi, outside, wi.z() > 0.0);
+        double shadowing = G1(wi, hr);
+        double I = phase * shadowing;
+        if (!std::isinf(I) && !std::isnan(I)) {
+            sum += I;
+        }
+
+        // Next direction
+        wr = samplePhaseFunction(-wr, outside, &outside);
+
+        // Check validity
+        if (std::isinf(hr) || std::isnan(hr) || std::isinf(wr.z()) || std::isnan(wr.z())) {
+            return Spectrum(0.0);
+        }
+    }
+    
+    return Spectrum(sum);
 }
 
 double MicrosurfaceScattering::evalPhaseFunction(const Vector3d &wo, const Vector3d &wi) const {
@@ -542,11 +613,56 @@ double MicrosurfaceScattering::evalPhaseFunction(const Vector3d &wo, const Vecto
 }
 
 double MicrosurfaceScattering::evalPhaseFunction(const Vector3d &wo, const Vector3d &wi, bool woOutside, bool wiOutside) const {
-    return 0.0;
+    const double eta = woOutside ? etaB_ / etaA_ : etaA_ / etaB_;
+
+    if (woOutside == wiOutside) {
+        // Reflection
+        const Vector3d wh = vect::normalize(wi + wo);
+        return woOutside ? sDist_->D_wi( wo,  wh) / (4.0 * vect::dot( wo,  wh)) * fresnel_->evaluate(vect::dot( wo,  wh)).luminance() :
+                           sDist_->D_wi(-wo, -wh) / (4.0 * vect::dot(-wo, -wh)) * fresnel_->evaluate(vect::dot(-wo, -wh)).luminance();
+    } else {
+        // Transmission
+        Vector3d wh = -vect::normalize(wi + wo);
+        double sign = wh.z() == 0.0 ? 0.0 : wh.z() / std::abs(wh.z());
+        wh *= woOutside ? sign : -sign;
+        if (vect::dot(wh, wo) < 0.0) {
+            return 0.0;
+        }
+
+        if (woOutside) {
+            const double F = fresnel_->evaluate(vect::dot(wo, wh)).luminance();
+            const double denom = vect::dot(wo, wh) + eta * vect::dot(wi, wh);
+            return eta * eta * (1.0 - F) * sDist_->D_wi(wo, wh) * std::max(0.0, -vect::dot(wi, wh)) / (denom * denom);
+        } else {
+            const double F = fresnel_->evaluate(vect::dot(-wo, -wh)).luminance();
+            const double denom = vect::dot(-wo, -wh) + eta * vect::dot(-wi, -wh);
+            return eta * eta * (1.0 - F) * sDist_->D_wi(-wo, -wh) * std::max(0.0, -vect::dot(-wi, -wh)) / (denom * denom);        
+        }
+    }
 }
 
 Vector3d MicrosurfaceScattering::samplePhaseFunction(const Vector3d &wi) const {
-    return Vector3d(0.0, 0.0, 1.0);
+    bool wiOutside;
+    return samplePhaseFunction(wi, true, &wiOutside);
+}
+
+Vector3d MicrosurfaceScattering::samplePhaseFunction(const Vector3d &wi, bool wiOutside, bool *woOutside) const {
+    const Point2d U = random.get2D();
+    const double eta = wiOutside ? etaB_ / etaA_ : etaA_ / etaB_;
+
+    const Vector3d wm = wiOutside ? sDist_->sampleD_wi(wi, U) :
+                                    sDist_->sampleD_wi(-wi, U);
+
+    const double F = fresnel_->evaluate(vect::dot(wi, wm)).luminance();
+    Vector3d wo;
+    if (random.get1D() < F || !vect::refract(wi, wm, eta, &wo)) {
+        // Reflection
+        return vect::reflect(wi, wm);
+    } else {
+        // Transmission
+        *woOutside = !wiOutside;
+        return wo.normalized();
+    }
 }
 
 }  //namespace spica

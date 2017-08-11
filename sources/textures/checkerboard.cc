@@ -28,7 +28,7 @@ Spectrum Checkerboard::evaluate(const SurfaceInteraction &intr) const {
     Point2d uv = intr.uv();
     const int iu = static_cast<int>((uv.x() * uScale_ + uOffset_) * 2.0);
     const int iv = static_cast<int>((uv.y() * vScale_ + vOffset_) * 2.0);
-    if ((iu + iv) % 2 == 0) {
+    if ((iu + iv) % 2 != 0) {
         return color0_;
     } else {
         return color1_;

@@ -135,7 +135,7 @@ protected:
 
 protected:
     //! Sample wo with a random walk
-    Vector3d sampleWi(const Vector3d &wo) const;
+    virtual Vector3d sampleWi(const Vector3d &wo) const;
     //! Evaluate BSDF with a random wakl
     virtual Spectrum eval(const Vector3d &wo, const Vector3d &wi) const = 0;
     //! Evaluate local phase function
@@ -186,6 +186,8 @@ public:
                     BxDFType* sampledType = nullptr) const override;
 
 protected:
+    //! Sample wo with a random walk
+    Vector3d sampleWi(const Vector3d &wo) const override;
     //! Evaluate BSDF with a random wakl
     Spectrum eval(const Vector3d &wo, const Vector3d &wi) const override;
     //! Evaluate local phase function
@@ -193,11 +195,12 @@ protected:
     double evalPhaseFunction(const Vector3d &wo, const Vector3d &wi, bool woOutside, bool wiOutside) const;
     //! Sample local phase function
     Vector3d samplePhaseFunction(const Vector3d &wi) const override;
-    Vector3d samplePhaseFunction(const Vector3d &wi, bool woOutside, bool wiOutside) const;
+    Vector3d samplePhaseFunction(const Vector3d &wi, bool woOutside, bool *wiOutside) const;
 
 private:
     Spectrum re_, tr_;
     double etaA_, etaB_;
+    std::unique_ptr<FresnelDielectric> fresnel_;
 };
 
 }  //namespace spica

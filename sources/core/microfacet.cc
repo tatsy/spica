@@ -190,8 +190,9 @@ double TrowbridgeReitzDistribution::lambda(const Vector3d& w) const {
 
     double alpha = std::sqrt(vect::cos2Phi(w) * alphax_ * alphax_ + 
                              vect::sin2Phi(w) * alphay_ * alphay_);
-    double tmp = (alpha * absTanTheta) * (alpha * absTanTheta);
-    return (-1.0 + std::sqrt(1.0 + tmp)) / 2.0;
+    double aInv = alpha * absTanTheta;
+    double aSign = aInv >= 0.0 ? 1.0 : -1.0;
+    return (-1.0 + aSign * std::sqrt(1.0 + aInv * aInv)) / 2.0;
 }
 
 Vector3d TrowbridgeReitzDistribution::sampleVA(const Vector3d& wi,

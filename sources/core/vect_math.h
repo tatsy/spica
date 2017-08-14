@@ -74,7 +74,7 @@ double sinTheta(const Vec& w) {
 
 template <class Vec>
 double tanTheta(const Vec& w) {
-    return sinTheta(w) / cosTheta(w);
+    return sinTheta(w) / (cosTheta(w) + EPS);
 }
 
 template <class Vec>

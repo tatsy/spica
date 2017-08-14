@@ -22,15 +22,17 @@ MicrosurfaceDielectric::MicrosurfaceDielectric(const std::shared_ptr<Texture<Spe
                                                const std::shared_ptr<Texture<double>>& index,
                                                const std::string &slopeDistribution,
                                                const std::string &heightDistribution,
+                                               int scatteringOrder,
                                                const std::shared_ptr<Texture<double>>& bumpMap,
                                                bool remapRoughness)
     : Kr_{Kr}
-    , Kt_{Kr}
+    , Kt_{Kt}
     , uRoughness_{uRoughness}
     , vRoughness_{vRoughness}
     , index_{index}
     , slopeDistribution_{slopeDistribution}
     , heightDistribution_{heightDistribution}
+    , scatteringOrder_{scatteringOrder}
     , bumpMap_{bumpMap}
     , remapRoughness_{remapRoughness} {
 }
@@ -43,6 +45,7 @@ MicrosurfaceDielectric::MicrosurfaceDielectric(RenderParams &params)
                              std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR")),
                              params.getString("distribution", "beckmann", true),
                              params.getString("heightDistribution", "gaussian", true),
+                             params.getInt("scatteringOrder", 4, true),
                              std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
 }
 
@@ -89,7 +92,7 @@ void MicrosurfaceDielectric::setScatterFuncs(SurfaceInteraction *isect,
             sDist = arena.allocate<MicrosurfaceTrowbridgeReitzSlope>(uRough, vRough);
         }
 
-        isect->bsdf()->add(arena.allocate<MicrosurfaceScattering>(re, tr, 1.0, eta, hDist, sDist));
+        isect->bsdf()->add(arena.allocate<MicrosurfaceFresnel>(re, tr, 1.0, eta, hDist, sDist, scatteringOrder_));
     }
 }
 

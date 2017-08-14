@@ -68,7 +68,7 @@ public:
     //! Sample visible normals
     Vector3d sampleD_wi(const Vector3d &wi, const Point2d &U) const;
     //! Projected area towards incident direction
-    double projectedArea(const Vector3d &wi) const;
+    virtual double projectedArea(const Vector3d &wi) const = 0;
 
     //! Slope distribution
     virtual double P22(double slopex, double slopey) const = 0;
@@ -89,6 +89,8 @@ protected:
 class MicrosurfaceBeckmannSlope : public MicrosurfaceSlope {
 public:
     MicrosurfaceBeckmannSlope(double alphax, double alphay);
+    //! Projected area towards incident direction
+    double projectedArea(const Vector3d &wi) const;
 
     //! Slope distribution
     double P22(double slopex, double slopey) const override;
@@ -102,6 +104,8 @@ public:
 class MicrosurfaceTrowbridgeReitzSlope : public MicrosurfaceSlope {
 public:
     MicrosurfaceTrowbridgeReitzSlope(double alphax, double alphay);
+    //! Projected area towards incident direction
+    double projectedArea(const Vector3d &wi) const;
 
     //! Slope distribution
     double P22(double slopex, double slopey) const override;
@@ -130,8 +134,6 @@ protected:
     double G1(const Vector3d &wi, double h0) const;
     //! Sample height in outgoing direction
     double sampleHeight(const Vector3d &wr, double hr, double U) const;
-    //! Evaluate sample PDF
-    double pdf(const Vector3d &wo, const Vector3d &wi) const override;
 
 protected:
     //! Sample wo with a random walk
@@ -139,9 +141,11 @@ protected:
     //! Evaluate BSDF with a random wakl
     virtual Spectrum eval(const Vector3d &wo, const Vector3d &wi) const = 0;
     //! Evaluate local phase function
-    virtual double evalPhaseFunction(const Vector3d &wo, const Vector3d &wi) const = 0;
+    virtual Spectrum evalPhaseFunction(const Vector3d &wo, const Vector3d &wi) const = 0;
     //! Sample local phase function
     virtual Vector3d samplePhaseFunction(const Vector3d &wi) const = 0;
+    //! Compute MIS weight
+    virtual double misWeight(const Vector3d &wo, const Vector3d &wi) const = 0;
 
     // Protected parameters
     const MicrosurfaceHeight *hDist_;
@@ -160,13 +164,17 @@ public:
     Spectrum sample(const Vector3d& wo, Vector3d* wi,
                     const Point2d& rands, double* pdf,
                     BxDFType* sampledType = nullptr) const override;
+    //! Evaluate sample PDF
+    double pdf(const Vector3d &wo, const Vector3d &wi) const override;
 
 protected:
     Spectrum eval(const Vector3d &wo, const Vector3d &wi) const override;
     //! Evaluate local phase function
-    double evalPhaseFunction(const Vector3d &wo, const Vector3d &wi) const override;
+    Spectrum evalPhaseFunction(const Vector3d &wo, const Vector3d &wi) const override;
     //! Sample local phase function
     Vector3d samplePhaseFunction(const Vector3d &wi) const override;
+    //! Compute MIS weight
+    double misWeight(const Vector3d &wo, const Vector3d &wi) const override;
 
 private:
     // Private parameters
@@ -174,16 +182,17 @@ private:
     Fresnel *fresnel_;
 };
 
-//! Microsurface scattering (namely reflection and transmission)
-class MicrosurfaceScattering : public MicrosurfaceDistribution {
+//! Microsurface Fresnel reflection/transmission
+class MicrosurfaceFresnel : public MicrosurfaceDistribution {
 public:
-    MicrosurfaceScattering(const Spectrum &re, const Spectrum &tr, double etaA, double etaB,
+    MicrosurfaceFresnel(const Spectrum &re, const Spectrum &tr, double etaA, double etaB,
                            MicrosurfaceHeight *hDist, MicrosurfaceSlope *sDist, int scatteringOrder = 4);
 
     Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
     Spectrum sample(const Vector3d& wo, Vector3d* wi,
                     const Point2d& rands, double* pdf,
                     BxDFType* sampledType = nullptr) const override;
+    virtual double pdf(const Vector3d &wo, const Vector3d &wi) const override;
 
 protected:
     //! Sample wo with a random walk
@@ -191,11 +200,13 @@ protected:
     //! Evaluate BSDF with a random wakl
     Spectrum eval(const Vector3d &wo, const Vector3d &wi) const override;
     //! Evaluate local phase function
-    double evalPhaseFunction(const Vector3d &wo, const Vector3d &wi) const override;
-    double evalPhaseFunction(const Vector3d &wo, const Vector3d &wi, bool woOutside, bool wiOutside) const;
+    Spectrum evalPhaseFunction(const Vector3d &wo, const Vector3d &wi) const override;
+    Spectrum evalPhaseFunction(const Vector3d &wo, const Vector3d &wi, bool woOutside, bool wiOutside) const;
     //! Sample local phase function
     Vector3d samplePhaseFunction(const Vector3d &wi) const override;
     Vector3d samplePhaseFunction(const Vector3d &wi, bool woOutside, bool *wiOutside) const;
+    //! Compute MIS weight
+    double misWeight(const Vector3d &wo, const Vector3d &wi) const override;
 
 private:
     Spectrum re_, tr_;

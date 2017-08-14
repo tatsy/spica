@@ -104,11 +104,12 @@ void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
                                             arenas[threadID]));
 
             proc++;
-            if (proc % 1000 == 0) {
-                printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
+            if (proc % 1000 == 0 || proc == numPixels) {
+                printf("\r[ %d / %d ] %6.2f %% processed...", i + 1, numSamples, 100.0 * proc / numPixels);
                 fflush(stdout);
             }
         });
+        printf("\n");
 
         camera_->film()->save(i + 1);
 
@@ -119,7 +120,7 @@ void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
         // After loop computations
         loopFinished(scene, params, *initSampler);
     }
-    std::cout << "Finish!!" << std::endl;
+    printf("Finish!!\n");
 }
 
 Spectrum SamplerIntegrator::specularReflect(const Scene& scene,

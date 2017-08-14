@@ -21,7 +21,7 @@ public:
                    const std::shared_ptr<Texture<double>>& vRoughness,
                    const std::string &distribution = "beckmann",
                    const std::shared_ptr<Texture<double>>& bump = nullptr,
-                   bool remapRoughness = true);
+                   bool remapRoughness = false);
     RoughConductor(RenderParams &params);
     void setScatterFuncs(SurfaceInteraction* isect,
                          MemoryArena& arena) const override;

@@ -50,7 +50,7 @@ Envmap::Envmap(RenderParams &params)
     : Envmap{BSphere(params.getPoint3d("worldCenter", Point3d(0.0, 0.0, 0.0), true),
                      params.getDouble("worldRadius", 1.0, true)),
              Image::fromFile(params.getString("filename", true)),
-             params.getTransform("toWorld", true),
+             params.getTransform("toWorld", Transform{}, true),
              params.getDouble("scale", 1.0, true)} {
 }
 

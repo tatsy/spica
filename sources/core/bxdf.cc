@@ -217,17 +217,18 @@ MicrofacetReflection::MicrofacetReflection(const Spectrum& ref,
 }
 
 Spectrum MicrofacetReflection::f(const Vector3d& wo, const Vector3d& wi) const {
-    double cosThetaO = std::abs(vect::cosTheta(wo));
-    double cosThetaI = std::abs(vect::cosTheta(wi));
+    const double cosThetaO = std::abs(vect::cosTheta(wo));
+    const double cosThetaI = std::abs(vect::cosTheta(wi));
     Vector3d wh = wi + wo;
 
+    // Degenerate case
     if (cosThetaI == 0.0 || cosThetaO == 0.0) return Spectrum(0.0);
     if (wh.x() == 0.0 && wh.y() == 0.0 && wh.z() == 0.0) return Spectrum(0.0);
-    wh = wh.normalized();
 
+    wh = wh.normalized();
     Spectrum F = fresnel_->evaluate(vect::dot(wi, wh));
     auto ret = ref_ * distrib_->D(wh) * distrib_->G(wo, wi) * F /
-           (4.0 * cosThetaI * cosThetaO);
+               (4.0 * cosThetaI * cosThetaO);
     return ret;
 }
 
@@ -272,15 +273,11 @@ Spectrum MicrofacetTransmission::f(const Vector3d& wo,
     double cosThetaI = vect::cosTheta(wi);
     if (cosThetaO == 0.0 || cosThetaI == 0.0) return Spectrum(0.0);
 
-    bool entering = cosThetaO > 0.0;
-    double etaI = entering ? etaA_ : etaB_;
-    double etaT = entering ? etaB_ : etaA_;
-    double F = FrDielectric(vect::cosTheta(wo), etaA_, etaB_);
-
+    const double F = FrDielectric(cosThetaO, etaA_, etaB_);
     if (vect::sameHemisphere(wo, wi)) {
         // Reflection
         Vector3d wh = vect::normalize(wo + wi);
-        return re_ * distrib_->D(wh) * distrib_->G(wo, wi) / (4.0 * cosThetaI * cosThetaO);
+        return re_ * F * distrib_->D(wh) * distrib_->G(wo, wi) / (4.0 * cosThetaI * cosThetaO);
     } else {
         // Transmission
         double eta = cosThetaO > 0.0 ? (etaB_ / etaA_) : (etaA_ / etaB_);
@@ -288,7 +285,7 @@ Spectrum MicrofacetTransmission::f(const Vector3d& wo,
         if (wh.z() < 0.0) wh = -wh;
 
         double sqrtDenom = vect::dot(wo, wh) + eta * vect::dot(wi, wh);
-        return tr_ * std::abs(distrib_->D(wh) * distrib_->G(wo, wi) * eta * eta *
+        return tr_ * (1.0 - F) * std::abs(distrib_->D(wh) * distrib_->G(wo, wi) * eta * eta *
                vect::absDot(wi, wh) * vect::absDot(wo, wh) /
                (cosThetaI * cosThetaO * sqrtDenom * sqrtDenom));
     }

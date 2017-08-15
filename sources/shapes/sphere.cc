@@ -100,7 +100,7 @@ bool Sphere::intersect(const Ray& ray, double* tHit,
     Normal3d dndu = Normal3d((F * f - G * e) * invEGF2 * dpdu + (F * e - E * f) * invEGF2 * dpdv);
     Normal3d dndv = Normal3d((F * g - G * f) * invEGF2 * dpdu + (F * f - E * g) * invEGF2 * dpdv);
 
-    *isect = SurfaceInteraction(pWorld, Normal3d(N), Point2d(u, v), -ray.dir(), dpdu, dpdv, dndu, dndv, this);
+    *isect = SurfaceInteraction(pWorld, Point2d(u, v), -ray.dir(), dpdu, dpdv, dndu, dndv, this);
     return true;
 }
 

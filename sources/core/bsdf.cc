@@ -13,9 +13,9 @@ namespace spica {
 
 BSDF::BSDF(const SurfaceInteraction& isect, double eta)
     : eta_{ eta }
-    , normal_{ isect.normal().normalized() }
-    , tangent_{ isect.dpdu().normalized() }
-    , binormal_{ isect.dpdv().normalized() }
+    , normal_{ isect.ns().normalized() }
+    , tangent_{ isect.ts().normalized() }
+    , binormal_{ isect.bs().normalized() }
     , bxdfs_{} {
     std::fill(bxdfs_.begin(), bxdfs_.end(), nullptr);
 }

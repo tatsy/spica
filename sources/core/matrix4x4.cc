@@ -57,7 +57,7 @@ namespace spica {
         int ipiv[4] = { 0, 0, 0, 0 };
 
         double minv[4][4];
-        memcpy(minv, m, sizeof(minv));
+        std::memcpy(minv, m, sizeof(minv));
 
         for (int i = 0; i < 4; i++) {
             int irow = 0, icol = 0;

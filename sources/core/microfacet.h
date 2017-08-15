@@ -19,8 +19,8 @@ public:
     virtual ~MicrofacetDistribution();
     virtual double D(const Vector3d& wh) const = 0;
     virtual double lambda(const Vector3d& w) const = 0;
-    double G1(const Vector3d& w) const;
-    double G(const Vector3d& wo, const Vector3d& wi) const;
+    double G1(const Vector3d& w, const Vector3d &wh) const;
+    double G(const Vector3d& wo, const Vector3d& wi, const Vector3d &wh) const;
 
     //! Sample half-vector wh
     virtual Vector3d sample(const Vector3d &wo, const Point2d& rands) const = 0;
@@ -50,10 +50,6 @@ public:
 private:
     // Private methods
     double lambda(const Vector3d& w) const override;
-    static Vector3d sampleVA(const Vector3d& wi, double alphax, double alphay,
-                             const Point2d& rands);
-    static void sampleSlopes(double cosTheta, const Point2d& rands,
-                             double* slopex, double* slopey);
 };
 
 /**

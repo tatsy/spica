@@ -43,13 +43,13 @@ Vec normalize(const Vec& v) {
 
 template <class Vec>
 double sphericalPhi(const Vec& dir) {
-    double p = atan2(dir.y(), dir.x());
+    double p = std::atan2(dir.y(), dir.x());
     return p < 0.0 ? p + 2.0 * PI : p;
 }
 
 template <class Vec>
 double sphericalTheta(const Vec& dir) {
-    return acos(clamp(dir.z(), -1.0, 1.0));
+    return std::acos(clamp(dir.z(), -1.0, 1.0));
 }
 
 template <class Vec>
@@ -113,10 +113,10 @@ bool sameHemisphere(const Vec& w1, const Vec& w2) {
 
 template <class Vec>
 void coordinateSystem(const Vec& w, Vec* u, Vec* v) {
-    if (std::abs(w.x()) > 0.1) {
-        *u = vect::normalize(vect::cross(Vec(0.0, 1.0, 0.0), w));
+    if (std::abs(w.x()) > std::abs(w.y())) {
+        *u = vect::normalize(Vec(-w.z(), 0, w.x()));
     } else {
-        *u = vect::normalize(vect::cross(Vec(1.0, 0.0, 0.0), w));
+        *u = vect::normalize(Vec(0, w.z(), -w.y()));
     }
     *v = vect::normalize(vect::cross(w, *u));
 }

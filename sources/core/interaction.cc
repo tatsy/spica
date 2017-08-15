@@ -4,6 +4,7 @@
 #include "core/float.h"
 #include "core/ray.h"
 #include "core/vector3d.h"
+#include "core/normal3d.h"
 
 #include "core/light.h"
 #include "core/primitive.h"
@@ -106,19 +107,25 @@ SurfaceInteraction::SurfaceInteraction()
     , bsdf_{} {
 }
 
-SurfaceInteraction::SurfaceInteraction(const Point3d& pos, const Normal3d &n,
+SurfaceInteraction::SurfaceInteraction(const Point3d& pos,
                                        const Point2d& uv,
                                        const Vector3d& wo,
                                        const Vector3d& dpdu, const Vector3d& dpdv,
                                        const Normal3d& dndu, const Normal3d& dndv,
                                        const Shape* shape)
-    : Interaction{ pos, vect::normalize(n), wo }
+    : Interaction{ pos, Normal3d(vect::normalize(vect::cross(dpdu, dpdv))), wo }
     , uv_{ uv }
     , dpdu_{ dpdu }
     , dpdv_{ dpdv }
     , dndu_{ dndu }
     , dndv_{ dndv }
     , shape_{ shape } {
+    // Initialize shading geometry with true geometry
+    shading.n = normal_;
+    shading.dpdu = dpdu;
+    shading.dpdv = dpdv;
+    shading.dndu = dndu;
+    shading.dndv = dndv;
 }
 
 SurfaceInteraction::SurfaceInteraction(const SurfaceInteraction& intr)
@@ -135,10 +142,12 @@ SurfaceInteraction& SurfaceInteraction::operator=(const SurfaceInteraction& intr
     this->dpdu_ = intr.dpdu_;
     this->dpdv_ = intr.dpdv_;
     this->dndu_ = intr.dndu_;
+    this->dndv_ = intr.dndv_;
     this->shape_ = intr.shape_;
     this->primitive_ = intr.primitive_;
     this->bsdf_ = intr.bsdf_;
     this->bssrdf_ = intr.bssrdf_;
+    this->shading = intr.shading;
     return *this;
 }
 
@@ -154,6 +163,15 @@ void SurfaceInteraction::computeDifferentials(const Ray& ray) {
 void SurfaceInteraction::setScatterFuncs(const Ray& ray, MemoryArena& arena) {
     computeDifferentials(ray);
     primitive_->setScatterFuncs(this, arena);
+}
+
+void SurfaceInteraction::setShadingGeometry(const Vector3d &dpdu, const Vector3d &dpdv,
+                                            const Normal3d &dndu, const Normal3d &dndv) {
+    shading.n = Normal3d(vect::normalize(vect::cross(dpdu, dpdv)));
+    shading.dpdu = dpdu;
+    shading.dpdv = dpdv;
+    shading.dndu = dndu;
+    shading.dndv = dndv;
 }
 
 Spectrum SurfaceInteraction::Le(const Vector3d& w) const {

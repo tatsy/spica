@@ -58,6 +58,7 @@ private:
     std::array<Point3d,  3> points_;
     std::array<Normal3d, 3> normals_;
     std::array<Point2d,  3> uvs_;
+    Normal3d faceNormal_;
 
 };  // class Triangle
 

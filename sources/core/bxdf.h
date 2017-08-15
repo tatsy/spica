@@ -177,9 +177,11 @@ public:
                            MicrofacetDistribution* distrib, double etaA,
                            double etaB);
     Spectrum f(const Vector3d& wo, const Vector3d& wi) const override;
+    Spectrum f(const Vector3d &wo, const Vector3d &wi, const Vector3d &wh) const;
     Spectrum sample(const Vector3d& wo, Vector3d* wi, const Point2d& rands,
                     double* pdf, BxDFType* sampledType) const override;
     double pdf(const Vector3d& wo, const Vector3d& wi) const override;
+    double pdf(const Vector3d &wo, const Vector3d &wi, const Vector3d &wh) const;
 
 private:
     // Private fields

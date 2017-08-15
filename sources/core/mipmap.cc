@@ -78,8 +78,6 @@ namespace spica {
         }
     }
 
-
-
     Spectrum MipMap::bilinear(int level, const Point2d& st) const {
         level = clamp(level, 0, levels());
         const double s = st[0] * pyramid_[level].width()  - 0.5;

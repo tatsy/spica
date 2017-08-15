@@ -37,6 +37,7 @@ public:
     bool isIdentity() const;
 
     Transform inverted() const;
+    static Transform mitsubaToPbrt(const Transform &t);
 
     inline const Matrix4x4& getMat() const { return m_; }
     inline const Matrix4x4& getInvMat() const { return mInv_; }

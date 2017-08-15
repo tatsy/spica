@@ -90,7 +90,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
 
         if (ref.isBlack() || pdf == 0.0) break;
 
-        beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+        beta *= ref * vect::absDot(wi, isect.ns()) / pdf;
         specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
         ray = isect.spawnRay(wi);
 

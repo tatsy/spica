@@ -137,7 +137,7 @@ protected:
 
 protected:
     //! Sample wo with a random walk
-    virtual Vector3d sampleWi(const Vector3d &wo) const;
+    virtual Vector3d sampleWi(const Vector3d &wo, Spectrum *energy) const = 0;
     //! Evaluate BSDF with a random wakl
     virtual Spectrum eval(const Vector3d &wo, const Vector3d &wi) const = 0;
     //! Evaluate local phase function
@@ -168,6 +168,8 @@ public:
     double pdf(const Vector3d &wo, const Vector3d &wi) const override;
 
 protected:
+    //! Sample wo with a random walk
+    Vector3d sampleWi(const Vector3d &wo, Spectrum *energy) const override;
     Spectrum eval(const Vector3d &wo, const Vector3d &wi) const override;
     //! Evaluate local phase function
     Spectrum evalPhaseFunction(const Vector3d &wo, const Vector3d &wi) const override;
@@ -196,7 +198,7 @@ public:
 
 protected:
     //! Sample wo with a random walk
-    Vector3d sampleWi(const Vector3d &wo) const override;
+    Vector3d sampleWi(const Vector3d &wo, Spectrum *energy = nullptr) const override;
     //! Evaluate BSDF with a random wakl
     Spectrum eval(const Vector3d &wo, const Vector3d &wi) const override;
     //! Evaluate local phase function

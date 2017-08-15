@@ -55,7 +55,7 @@ Spectrum estimateDirectLight(const Interaction& intr,
             const SurfaceInteraction& isect =
                 static_cast<const SurfaceInteraction&>(intr);
             f = isect.bsdf()->f(isect.wo(), wi, bxdfType) *
-                vect::absDot(wi, isect.normal());
+                vect::absDot(wi, isect.ns());
             bsdfPdf = isect.bsdf()->pdf(isect.wo(), wi, bxdfType);
         } else {
             // Evaluate phase function
@@ -92,7 +92,7 @@ Spectrum estimateDirectLight(const Interaction& intr,
             BxDFType sampledType;
             const auto& isect = static_cast<const SurfaceInteraction&>(intr);
             f = isect.bsdf()->sample(isect.wo(), &wi, randShade, &bsdfPdf, bxdfType, &sampledType);
-            f *= vect::absDot(wi, isect.normal());
+            f *= vect::absDot(wi, isect.ns());
             sampledSpecular = (sampledType & BxDFType::Specular) != BxDFType::None;
         } else {
             // Sample new direction after scattered with participating media

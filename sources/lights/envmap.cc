@@ -16,7 +16,7 @@ namespace spica {
 
 Envmap::Envmap(const BSphere& worldSphere, const Image& texmap, const Transform& lightToWorld,
                double scale, int numSamples)
-    : Light{ LightType::Envmap, lightToWorld, numSamples }
+    : Light{ LightType::Envmap, Transform{lightToWorld.getMat().transposed()}, numSamples }
     , mipmap_{ nullptr }
     , worldCenter_{ worldSphere.center() }
     , worldRadius_{ worldSphere.radius() }
@@ -34,13 +34,13 @@ Envmap::Envmap(const BSphere& worldSphere, const Image& texmap, const Transform&
 
     const double filter = 1.0 / std::max(width, height);
     std::vector<double> gray(width * height);
-    for (int y = 0; y < height; y++) {
-        double v = static_cast<double>(y) / height;
-        double sinTheta = std::sin(PI * (v + 0.5)) / height;
-        for (int x = 0; x < width; x++) {
-            double u = static_cast<double>(x) / width;
-            gray[y * width + x] = mipmap_->lookup(Point2d(u, v), filter).luminance();
-            gray[y * width + x] *= sinTheta;
+    for (int v = 0; v < height; v++) {
+        double vp = static_cast<double>(v + 0.5) / height;
+        double sinTheta = std::sin(PI * (v + 0.5) / height);
+        for (int u = 0; u < width; u++) {
+            double up = static_cast<double>(u + 0.5) / width;
+            gray[v * width + u] = mipmap_->lookup(Point2d(up, vp), filter).luminance();
+            gray[v * width + u] *= sinTheta;
         }
     }
     distrib_ = Distribution2D(gray, width, height);
@@ -48,7 +48,7 @@ Envmap::Envmap(const BSphere& worldSphere, const Image& texmap, const Transform&
 
 Envmap::Envmap(RenderParams &params)
     : Envmap{BSphere(params.getPoint3d("worldCenter", Point3d(0.0, 0.0, 0.0), true),
-                     params.getDouble("worldRadius", 1.0, true)),
+                     params.getDouble("worldRadius", 2.0, true)),
              Image::fromFile(params.getString("filename", true)),
              params.getTransform("toWorld", Transform{}, true),
              params.getDouble("scale", 1.0, true)} {
@@ -65,10 +65,10 @@ Spectrum Envmap::sampleLi(const Interaction& pObj, const Point2d& rands,
 
     const double theta = uv[1] * PI;
     const double phi   = uv[0] * (2.0 * PI);
-    const double cosTheta = cos(theta);
-    const double sinTheta = sin(theta);
-    const double cosPhi   = cos(phi);
-    const double sinPhi   = sin(phi);
+    const double cosTheta = std::cos(theta);
+    const double sinTheta = std::sin(theta);
+    const double cosPhi   = std::cos(phi);
+    const double sinPhi   = std::sin(phi);
     *dir = lightToWorld_.apply(Vector3d(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
     *pdf = sinTheta == 0.0 ? 0.0 : mapPdf / (2.0 * PI * PI * sinTheta);
 

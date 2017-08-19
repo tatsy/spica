@@ -3,8 +3,14 @@
 
 #if (defined(WIN32) || defined(_WIN32) || defined(WINCE) || defined(__CYGWIN__))
 #include <Windows.h>
-#elif defined(__GNUC__) && __GNUC__ >= 4
+#define ModuleHandle HINSTANCE
+#define LoadModule(MODULE_NAME) LoadLibrary(("plugins/" + MODULE_NAME + ".dll").c_str());
+#define GetSymbol(HANDLE, SYMBOL_NAME) GetProcAddress(HANDLE, SYMBOL_NAME)
 #else
+#include <dlfcn.h>
+#define ModuleHandle void*
+#define LoadModule(MODULE_NAME) dlopen(("plugins/" + MODULE_NAME + ".so").c_str(), RTLD_LAZY)
+#define GetSymbol(HANDLE, SYMBOL_NAME) dlsym(HANDLE, SYMBOL_NAME)
 #endif
 
 #include "accelerator.h"
@@ -24,20 +30,21 @@ PluginManager &PluginManager::getInstance() {
 }
 
 void PluginManager::initModule(const std::string &moduleName) {
-    HINSTANCE hModule = LoadLibrary(("plugins/" + moduleName + ".dll").c_str());
+
+    ModuleHandle hModule = LoadModule(moduleName);
     Assertion(hModule != NULL, "Failed to load module: %s", moduleName.c_str());
 
-    ObjectInitializer initializer = (ObjectInitializer)GetProcAddress(hModule, "createInstance");
+    ObjectInitializer initializer = (ObjectInitializer)GetSymbol(hModule, "createInstance");
     Assertion(initializer != NULL,
         "The method \"createInstance\" is not defined for module: %s", moduleName.c_str());
     registerInitializer(moduleName, initializer);
 }
 
 void PluginManager::initAccelerator(const std::string &moduleName) {
-    HINSTANCE hModule = LoadLibrary(("plugins/" + moduleName + ".dll").c_str());
+    ModuleHandle hModule = LoadModule(moduleName);
     Assertion(hModule != NULL, "Failed to load module: %s", moduleName.c_str());
 
-    AcceleratorInitializer initializer = (AcceleratorInitializer)GetProcAddress(hModule, "createInstance");
+    AcceleratorInitializer initializer = (AcceleratorInitializer)GetSymbol(hModule, "createInstance");
     Assertion(initializer != NULL,
         "The method \"createInstance\" is not defined for module: %s", moduleName.c_str());
     registerInitializer(moduleName, initializer);

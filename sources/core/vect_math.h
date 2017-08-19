@@ -8,6 +8,7 @@
 #include <type_traits>
 
 #include "core/core.hpp"
+#include "core/vector3d.h"
 
 namespace spica {
 
@@ -130,7 +131,7 @@ void coordinateSystem(const Vec& w, Vec* u, Vec* v) {
 template <class Vec1, class Vec2>
 Vector3_<typename Vec1::type> reflect(const Vec1& wo, const Vec2& n) {
     using Type = typename Vec1::type;
-    return Vector3_<Type>(- wo + Vector3_<Type>(n) * Type(2) * vect::dot(n, wo));        
+    return Vector3_<Type>(- wo + Vector3_<Type>(n) * Type(2) * vect::dot(n, wo));
 }
 
 /** 
@@ -147,7 +148,7 @@ bool refract(const Vec1& wi, const Vec2& n, double eta, Vec1* wt) {
 
     if (sin2ThetaT >= 1.0) return false;
     double cosThetaT = std::sqrt(1.0 - sin2ThetaT);
-    *wt = eta * (-wi) + (eta * cosThetaI - cosThetaT) * Vector3d(n);
+    *wt = eta * (-wi) + (eta * cosThetaI - cosThetaT) * Vec1(n);
     return true;
 }
 

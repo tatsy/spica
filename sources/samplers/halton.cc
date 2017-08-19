@@ -77,7 +77,7 @@ void shuffle(int* p, int d, Random& rng) {
 
 }  // anonymous namespace
 
-Halton::Halton(int ns, bool isPermute, unsigned int seed)
+Halton::Halton(int ns, bool isPermute, uint32_t seed)
     : nSamples_{ ns }
     , sampleIndex_{ 0 }
     , nUsedSamples_{ 0 }
@@ -108,7 +108,7 @@ Halton::Halton(int ns, bool isPermute, unsigned int seed)
 Halton::Halton(RenderParams &params)
     : Halton{params.getInt("ns", true),
              params.getBool("isPermite", true, true),
-             params.getInt("seed", 0, true)} {
+             (uint32_t)params.getInt("seed", 0, true)} {
 }
     
 Halton::~Halton() {

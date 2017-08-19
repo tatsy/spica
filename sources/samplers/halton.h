@@ -23,7 +23,7 @@ public:
      *  @param[in] seed: If permuted Halton is used, it is a seed for random for the permutation.
      */
     explicit Halton(int ns = 200, bool isPermute = true,
-                    unsigned int seed = 0);
+                    uint32_t seed = 0u);
     explicit Halton(RenderParams &params);
 
     ~Halton();

@@ -22,9 +22,9 @@ int main(int argc, char** argv) {
         {{"i", "input"},
             QApplication::translate("main", "Input XML file defining the rendering scene (Required)"),
             QCoreApplication::translate("main", "input")},
-        {"nthreads",
+        {"threads",
             QApplication::translate("main", "# of threads to use for rendering (default = 4)"),
-            QApplication::translate("main", "nthreads")},
+            QApplication::translate("main", "threads")},
         {{"o", "output"},
             QApplication::translate("main", "Base of output filename (default = (basename of XML)"),
             QApplication::translate("main", "output")},
@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
     printf("Scene: %s\n", sceneFile.c_str());
 
     int nThreads = DEFAULT_NUM_THREADS;
-    if (parser.isSet("nthreads")) {
-        nThreads = parser.value("nthreads").toInt();
+    if (parser.isSet("threads")) {
+        nThreads = parser.value("threads").toInt();
     }
     printf("Threads: %d\n", nThreads);
 
@@ -69,8 +69,12 @@ int main(int argc, char** argv) {
     params.add("outputFile", outfile);
 
     // Generate rendering process
-    SceneParser sceneParser(sceneFile);
-    sceneParser.parse();
+    try {
+        SceneParser sceneParser(sceneFile);
+        sceneParser.parse();
+    } catch (std::exception &e) {
+        fprintf(stderr, "%s\n", e.what());
+    }
 
     // Show GUI if required
     if (enableGui) {

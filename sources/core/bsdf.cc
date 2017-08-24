@@ -46,10 +46,10 @@ Vector3d BSDF::localToWorld(const Vector3d& v) const {
     return v.x() * tangent_ + v.y() * binormal_ + v.z() * Vector3d(normal_);
 }
 
-Spectrum BSDF::f(const Vector3d& wiWorld, const Vector3d& woWorld,
+Spectrum BSDF::f(const Vector3d& woWorld, const Vector3d& wiWorld,
                  BxDFType type) const {
-    Vector3d wi = worldToLocal(wiWorld);
     Vector3d wo = worldToLocal(woWorld);
+    Vector3d wi = worldToLocal(wiWorld);
     bool reflect = vect::dot(wiWorld, normal_) * vect::dot(woWorld, normal_) > 0.0;
     Spectrum ret(0.0);
     for (int i = 0; i < nBxDFs_; i++) {

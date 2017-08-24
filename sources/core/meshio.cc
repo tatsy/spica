@@ -187,6 +187,9 @@ std::vector<ShapeGroup> loadOBJ(const std::string& filename,
         std::vector<Point3d> positions;
         std::vector<Normal3d> normals;
         std::vector<Point2d> texcoords;
+
+        bool hasNormal = true;
+        bool hasTexcoord = true;
         for (const auto &index : s.mesh.indices) {
             Point3d position;
             Normal3d normal;
@@ -202,11 +205,15 @@ std::vector<ShapeGroup> loadOBJ(const std::string& filename,
                 normal = Normal3d(attrib.normals[index.normal_index * 3 + 0],
                                   attrib.normals[index.normal_index * 3 + 1],
                                   attrib.normals[index.normal_index * 3 + 2]);
+            } else {
+                hasNormal = false;
             }
 
             if (index.texcoord_index >= 0) {
                 texcoord = Point2d(attrib.texcoords[index.texcoord_index * 2 + 0],
                                    attrib.texcoords[index.texcoord_index * 2 + 1]);
+            } else {
+                hasTexcoord = false;
             }
 
             positions.push_back(position);
@@ -216,9 +223,17 @@ std::vector<ShapeGroup> loadOBJ(const std::string& filename,
 
         std::vector<std::shared_ptr<Shape>> tris;
         for (int i = 0; i < positions.size(); i += 3) {
-            auto tri = std::make_shared<Triangle>(positions[i + 0], positions[i + 1], positions[i + 2],
-                                                  normals[i + 0], normals[i + 1], normals[i + 2],
-                                                  texcoords[i + 0], texcoords[i + 1], texcoords[i + 2], objectToWorld);
+            std::shared_ptr<Shape> tri;
+            if (hasNormal && hasTexcoord) {
+                tri = std::make_shared<Triangle>(positions[i + 0], positions[i + 1], positions[i + 2],
+                                                 normals[i + 0], normals[i + 1], normals[i + 2],
+                                                 texcoords[i + 0], texcoords[i + 1], texcoords[i + 2], objectToWorld);
+            } else if (hasNormal) {
+                tri = std::make_shared<Triangle>(positions[i + 0], positions[i + 1], positions[i + 2],
+                                                 normals[i + 1], normals[i + 1], normals[i + 2], objectToWorld);            
+            } else {
+                tri = std::make_shared<Triangle>(positions[i + 0], positions[i + 1], positions[i + 2], objectToWorld);
+            }
             tris.push_back(tri);
         }
 

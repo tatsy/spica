@@ -67,8 +67,10 @@ public:
         this->saveCallback_ = std::move(callback);
     }
 
-protected:
-    // Protected methods
+    inline double weight(const Point2d &pixel) const {
+        return filter_->evaluate(pixel);
+    }
+
     virtual void saveImage(const std::string &filename,  const Image &image) const = 0;
 
 private:

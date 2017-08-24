@@ -25,7 +25,7 @@ public:
     void add(BxDF* b);
     int numComponents(BxDFType type = BxDFType::All) const;
     
-    Spectrum f(const Vector3d& wiWorld, const Vector3d& woWorld,
+    Spectrum f(const Vector3d& woWorld, const Vector3d& wiWorld,
                BxDFType type = BxDFType::All) const;
 
     Spectrum sample(const Vector3d& woWorld, Vector3d* wiWorld, const Point2d& rands,

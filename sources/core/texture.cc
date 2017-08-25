@@ -7,22 +7,27 @@
 
 namespace spica {
 
-UVMapping2D::UVMapping2D(double su, double sv, double du, double dv)
+UVMapping2D::UVMapping2D(double su, double sv, double du, double dv, bool invertHorizontal)
     : su_{ su }
     , sv_{ sv }
     , du_{ du }
-    , dv_{ dv } {
+    , dv_{ dv }
+    , invertHorizontal_{invertHorizontal} {
 }
 
 Point2d UVMapping2D::map(const Point3d& p) const {
-    return Point2d(su_ * p[0] + du_, sv_ * p[1] + dv_);
+    const double s = su_ * p[0] + du_;
+    const double t = sv_ * p[1] + dv_;
+    return Point2d(s, invertHorizontal_ ? 1.0 - t : t);
 }
 
 Point2d UVMapping2D::map(const SurfaceInteraction& intr, 
-                            Vector2d* dstdx, Vector2d* dstdy) const {
+                         Vector2d* dstdx, Vector2d* dstdy) const {
     if (dstdx) *dstdx = Vector2d(su_ * intr.dudx(), sv_ * intr.dvdx());
     if (dstdy) *dstdy = Vector2d(su_ * intr.dudy(), sv_ * intr.dvdy());
-    return Point2d(su_ * intr.uv()[0] + du_, sv_ * intr.uv()[1] + dv_);
+    const double s = su_ * intr.uv()[0] + du_;
+    const double t = sv_ * intr.uv()[1] + dv_;
+    return Point2d(s, invertHorizontal_ ? 1.0 - t : t);
 }
 
 PlanarMapping2D::PlanarMapping2D(const Vector3d& vs, const Vector3d& vt,

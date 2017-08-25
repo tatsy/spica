@@ -30,7 +30,8 @@ public:
 class SPICA_EXPORTS UVMapping2D : public TextureMapping2D {
 public:
     explicit UVMapping2D(double su = 1.0, double sv = 1.0,
-                            double du = 0.0, double dv = 0.0);
+                         double du = 0.0, double dv = 0.0,
+                         bool invertHorizontal = true);
 
     Point2d map(const Point3d& p) const override;
     Point2d map(const SurfaceInteraction& intr, Vector2d* dstdx,
@@ -38,6 +39,7 @@ public:
 
 private:
     const double su_, sv_, du_, dv_;
+    const bool invertHorizontal_;
 };
 
 class SPICA_EXPORTS PlanarMapping2D : public TextureMapping2D {

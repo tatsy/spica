@@ -48,16 +48,18 @@ if (${SPICA_BUILD_TESTS})
 #      test_sampler.cc
 #      test_trimesh.cc
 #      test_kdtree.cc
-      test_scene.cc)
+      # test_scene.cc)
 #      test_random.cc
 #      test_renderer_helper.cc
 #      test_path.cc
+)
 
   add_definitions(-DGTEST_LANG_CXX11)
   add_executable(${TEST_NAME} ${SOURCE_FILES})
-  add_dependencies(${TEST_NAME} spica_renderer)
+  message(STATUS ${SPICA_LIBCORE})
+  add_dependencies(${TEST_NAME} ${SPICA_LIBCORE})
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARIES})
-  target_link_libraries(${TEST_NAME} ${SPICA_LIBS})
+  target_link_libraries(${TEST_NAME} ${SPICA_LIBCORE})
 
   if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zi")

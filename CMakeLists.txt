@@ -12,6 +12,13 @@ option(SPICA_BUILD_GUI "Build GUI." OFF)
 option(SPICA_WITH_OPENMP "Build with OpenMP" OFF)
 
 # ------------------------------------------------------------------------------
+# Common build targets
+# ------------------------------------------------------------------------------
+set(SPICA_MAIN "spica")
+set(SPICA_GUI "spica_gui")
+set(SPICA_LIBCORE "spica_core")
+
+# ------------------------------------------------------------------------------
 # Set compiler options
 # ------------------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 14)
@@ -19,7 +26,7 @@ if (NOT WIN32)
   # Linux or Mac OS X
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pthread")
-  if (${SPICA_BUILD_TESTS})
+  if (${LINUX} AND ${SPICA_BUILD_TESTS})
     message(STATUS "[spica] Generate coverage data.")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
   endif()
@@ -82,11 +89,6 @@ set(SPICA_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 # ------------------------------------------------------------------------------
 include_directories("sources")
 link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
-
-# ------------------------------------------------------------------------------
-# Create output directory
-# ------------------------------------------------------------------------------
-file(MAKE_DIRECTORY output)
 
 # ------------------------------------------------------------------------------
 # Import 3rd party libraries

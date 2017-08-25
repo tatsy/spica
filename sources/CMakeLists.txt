@@ -1,8 +1,3 @@
-# Common build targets
-set(SPICA_MAIN "spica")
-set(SPICA_GUI "spica_gui")
-set(SPICA_LIBCORE "spica_core")
-
 # Process subdirectories
 add_subdirectory(core)
 

@@ -9,49 +9,25 @@ using namespace spica;
 // Sphere class test
 // ------------------------------
 
-TEST(SphereTest, InstanceTest) {
-    Sphere sp0;
+TEST(BSphereTest, InstanceTest) {
+    BSphere sp0;
     EXPECT_EQ(0.0, sp0.center().x());
     EXPECT_EQ(0.0, sp0.center().y());
     EXPECT_EQ(0.0, sp0.center().z());
     EXPECT_EQ(0.0, sp0.radius());
 
-    Sphere sp(Point3d(0.0, 0.0, 0.0), 2.0);
+    BSphere sp(Point3d(0.0, 0.0, 0.0), 2.0);
     EXPECT_EQ(0.0, sp.center().x());
     EXPECT_EQ(0.0, sp.center().y());
     EXPECT_EQ(0.0, sp.center().z());
 }
 
 TEST(SphereTest, CopyConstructor) {
-    Sphere sp(Point3d(0.0, 0.0, 0.0), 2.0);
-    Sphere sp0 = sp;
+    BSphere sp(Point3d(0.0, 0.0, 0.0), 2.0);
+    BSphere sp0 = sp;
     EXPECT_EQ(0.0, sp0.center().x());
     EXPECT_EQ(0.0, sp0.center().y());
     EXPECT_EQ(0.0, sp0.center().z());
-}
-
-TEST(SphereTest, IntersectionTest) {
-    Sphere sp(Point3d(0.0, 0.0, 0.0), 2.0);
-    SurfaceInteraction isect;
-    double tHit;
-    EXPECT_TRUE(sp.intersect(
-        Ray(Point3d(10.0, 0.0, 0.0), Vector3d(-1.0, 0.0, 0.0)), &tHit, &isect));
-    EXPECT_EQ(Vector3d(2.0, 0.0, 0.0), isect.pos());
-    EXPECT_EQ(Normal3d(1.0, 0.0, 0.0), isect.normal());
-    EXPECT_EQ(8.0, tHit);
-
-    EXPECT_FALSE(sp.intersect(
-        Ray(Point3d(10.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0)), &tHit, &isect));
-}
-
-TEST(SphereTest, AreaTest) {
-    double rad = 2.0;
-    double area = 4.0 * PI * rad * rad;
-    Sphere sp0(Point3d(0.0, 0.0, 0.0), rad);
-    EXPECT_EQ(area, sp0.area());
-
-    Sphere sp1(Point3d(5.0, 4.0, 3.0), rad);
-    EXPECT_EQ(area, sp1.area());
 }
 
 // ------------------------------
@@ -106,46 +82,6 @@ TEST(TriangleTest, AreaTest) {
                 Point3d(0, 1, 0));
     EXPECT_EQ(0.5, t0.area());
 }
-
-// ------------------------------
-// Disk class test
-// ------------------------------
-
-/*
-TEST(DiskTest, InstanceTest) {
-    Disk disk;
-    EXPECT_EQ_VEC(Point3d(), disk.center());
-    EXPECT_EQ_VEC(Normal3d(), disk.normal());
-    EXPECT_EQ(0.0, disk.radius());
-
-    disk = Disk(Point(1.0, 0.0, 0.0), Normal(0.0, 1.0, 0.0), 1.0);
-    EXPECT_EQ_VEC(Point(1.0, 0.0, 0.0), disk.center());
-    EXPECT_EQ_VEC(Normal(0.0, 1.0, 0.0), disk.normal());
-    EXPECT_EQ(1.0, disk.radius());
-}
-
-TEST(DiskTest, CopyConstructor) {
-    Disk d0(Point(1.0, 0.0, 0.0), Normal(0.0, 1.0, 0.0), 1.0);
-    Disk d1(d0);
-    EXPECT_EQ_VEC(Point(1.0, 0.0, 0.0), d1.center());
-    EXPECT_EQ_VEC(Normal(0.0, 1.0, 0.0), d1.normal());
-    EXPECT_EQ(1.0, d1.radius());
-}
-
-TEST(DiskTest, IntersectionTest) {
-    Disk disk(Point(1.0, 0.0, 0.0), Normal(0.0, 1.0, 0.0), 1.0);
-    Hitpoint hitpoint;
-    EXPECT_TRUE(disk.intersect(Ray(Point(1.0, 1.0, 0.0), Vector3d(0.0, -1.0, 0.0)), &hitpoint));
-    EXPECT_EQ(1.0, hitpoint.distance());
-}
-
-TEST(DiskTest, AreaTest) {
-    double rad = 5.0;
-    double area = PI * rad * rad;
-    Disk disk(Point(0.0, 0.0, 0.0), Normal(0.0, 1.0, 0.0), rad);
-    EXPECT_EQ(area, disk.area());    
-}
-*/
 
 // ------------------------------
 // Bounds3d class test

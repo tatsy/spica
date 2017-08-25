@@ -75,7 +75,7 @@ RUN \
 RUN \
   cd spica && \
   git submodule update --init --recursive && \
-  cmake -D SPICA_BUILD_TESTS=ON . && \
+  cmake -D QT5_ROOT=/opt/qt5 -D SPICA_BUILD_MAIN=ON -D SPICA_BUILD_TESTS=ON . && \
   cmake --build .
 
 #

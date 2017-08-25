@@ -8,7 +8,7 @@ file(GLOB SOURCE_FILES "*.cc" "*.h")
 
 add_executable(${SPICA_MAIN} ${SOURCE_FILES})
 add_dependencies(${SPICA_MAIN} ${SPICA_LIBCORE} ${SPICA_LIBRENDER})
-target_link_libraries(${SPICA_MAIN} ${SPICA_LIBCORE} ${SPICA_LIBRENDER} ${QT_LIBRARIES})
+target_link_libraries(${SPICA_MAIN} ${SPICA_LIBCORE} ${QT_LIBRARIES})
 qt5_use_modules(${SPICA_MAIN} Widgets Xml)
 
 source_group("Source Files" FILES ${SOURCE_FILES})

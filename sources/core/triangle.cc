@@ -62,7 +62,11 @@ Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
     // Compute normals
     const Vector3d e1 = points_[1] - points_[0];
     const Vector3d e2 = points_[2] - points_[0];
-    faceNormal_ = Normal3d(Vector3d::cross(e1, e2).normalized());
+    faceNormal_ = Normal3d(vect::cross(e1, e2));
+    if (faceNormal_.norm() < EPS) {
+        faceNormal_ = (n0 + n1 + n2) / 3.0;
+    }
+    faceNormal_ = vect::normalize(faceNormal_);
 }
 
 Triangle::Triangle(const Triangle& t)

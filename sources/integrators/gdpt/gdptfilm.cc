@@ -28,7 +28,7 @@ GDPTFilm::GDPTFilm(const std::shared_ptr<Film> &film)
 }
 
 void GDPTFilm::save(int i) const {
-    const Image result = solveL2();
+    const Image result = solveL1();
     film_->setImage(result);
     film_->save(i);
 }
@@ -86,19 +86,29 @@ Image GDPTFilm::solveL1() const {
         for (int x = 0; x < width; x++) {
             if (x == 0) {
                 gradX.pixel(x, y) = grads[0](x, y);
+            } else {
+                gradX.pixel(x, y) = (grads[0](x, y) + grads[1](x - 1, y));
             }
 
             if (y == 0) {
-                gradY.pixel(x, y) = grads[3](x, y);
+                gradY.pixel(x, y) = grads[2](x, y);
+            } else {
+                gradY.pixel(x, y) = (grads[2](x, y) + grads[3](x, y - 1));
             }
         }
     }
 
-    // Solve Poisson with Gauss-Seidel
-    static const int maxIter = 50;
-    static const double alpha = 0.2;
+    // Weights
+    std::vector<std::vector<double>> coarseWeights(width, std::vector<double>(height, 1.0));
+    std::vector<std::vector<double>> dxWeights(width, std::vector<double>(height, 1.0));
+    std::vector<std::vector<double>> dyWeights(width, std::vector<double>(height, 1.0));
 
-    const auto clampX = [&](int x) -> int { return std::max(0, std::min(x, width - 1)); };
+    // Solve Poisson with Gauss-Seidel
+    static const int maxIter = 100;
+    static const int updateInterval = 10;
+    double alpha = 0.2;
+
+    const auto clampX = [&](int x) -> int { return std::max(0, std::min(x, width  - 1)); };
     const auto clampY = [&](int y) -> int { return std::max(0, std::min(y, height - 1)); };
 
     Image output = coarse;
@@ -106,13 +116,50 @@ Image GDPTFilm::solveL1() const {
         // Perform Gauss-Seidel step
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                output.pixel(x, y) = (1.0 / (4.0 + alpha * alpha)) * (
-                    alpha * alpha * coarse(x, y) +
-                    output(clampX(x - 1), y) + output(clampX(x + 1), y) + output(x, clampY(y - 1)) + output(x, clampY(y + 1)) +
-                    gradX(x, y) - gradX(clampX(x + 1), y) + gradY(x, y) - gradY(x, clampY(y + 1)));            
+                const double wc = coarseWeights[x][y];
+                const double wx1 = dxWeights[x][y];
+                const double wx2 = dxWeights[clampX(x + 1)][y];
+                const double wy1 = dyWeights[x][y];
+                const double wy2 = dyWeights[x][clampY(y + 1)];
+
+                output.pixel(x, y) = (1.0 / (alpha * alpha * wc + wx1 + wx2 + wy1 + wy2)) * (
+                    alpha * alpha * wc * coarse(x, y) +
+                    wx1 * (output(clampX(x - 1), y) + gradX(x, y)) +
+                    wx2 * (output(clampX(x + 1), y) - gradX(clampX(x + 1), y)) +
+                    wy1 * (output(x, clampY(y - 1)) + gradY(x, y)) +
+                    wy2 * (output(x, clampY(y + 1)) - gradY(x, clampY(y + 1))));
             }
         }
+
+        if (it == maxIter - 1) break;
+
+        // Update weights
+        if ((it + 1) % updateInterval == 0) {
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    coarseWeights[x][y] = 1.0 / std::max(EPS, std::abs((coarse(x, y) - output(x, y)).luminance()));
+                    const Spectrum gx = output(x, y) - output(clampX(x - 1), y);
+                    dxWeights[x][y] = 1.0 / std::max(EPS, std::abs((gradX(x, y) - gx).luminance()));
+                    const Spectrum gy = output(x, y) - output(x, clampY(y - 1));
+                    dyWeights[x][y] = 1.0 / std::max(EPS, std::abs((gradY(x, y) - gy).luminance()));
+                }
+            }    
+        }
     }
+
+    // Save gradient
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            Spectrum c;
+            c = gradX(x, y);
+            gradX.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
+            c = gradY(x, y);
+            gradY.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
+        }
+    }
+    coarse.save("coarse.png");
+    gradX.save("gradX.png");
+    gradY.save("gradY.png");
 
     return std::move(output);
 }

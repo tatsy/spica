@@ -220,6 +220,22 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
             *J = dotY / (dotX + EPS);
         } else if (current.isTransmission()) {
             // Transmission
+            double etaX = current.eta;
+            if (vect::dot(current.normal(), woBase) < 0.0) {
+                etaX = 1.0 / etaX;
+            }
+            double etaY = isect.bsdf()->eta();
+            if (vect::dot(isect.normal(), woOffset) < 0.0) {
+                etaY = 1.0 / etaY;
+            }
+            
+            const Vector3d whBase = current.wh;
+            const Vector3d whOffset = vect::normalize(woOffset + etaY * (*wiOffset));
+            const double dotX = vect::absDot(wiBase, whBase);
+            const double dotY = vect::absDot(*wiOffset, whOffset);
+            const double distX = (etaX * wiBase + woBase).squaredNorm();
+            const double distY = (etaY * (*wiOffset) + woOffset).squaredNorm();
+            *J = (dotY * distX) / (dotX * distY + EPS);
         } else {
             FatalError("The surface vertex has neither reflect or transmit type!");
         }

@@ -56,9 +56,10 @@ struct BVHNode {
  */
 class SPICA_EXPORTS BVHAccel : public Accelerator {
 public:
-    explicit BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims);
+    explicit BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
+                      bool useSIMD = false);
     BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
-              RenderParams &params);
+             RenderParams &params);
     virtual ~BVHAccel();
 
     Bounds3d worldBound() const override;
@@ -67,21 +68,31 @@ public:
     virtual bool intersect(Ray& ray) const override;
     std::vector<Triangle> triangulate() const override;
 
-protected:
+private:
     // Private internal classes
+    union Children;
     struct BucketInfo;
+    struct SIMDBVHNode;
     struct ComparePoint;
     struct CompareToBucket;
 
     // Private methods
+    bool intersectBVH(Ray &ray, SurfaceInteraction *isect) const;
+    bool intersectBVH(Ray &ray) const;
+    bool intersectQBVH(Ray &ray, SurfaceInteraction *isect) const;
+    bool intersectQBVH(Ray &ray) const;
+    
     BVHNode* constructRec(std::vector<BVHPrimitiveInfo>& buildData,
                             int start, int end);
+    void release();
+    void collapse2QBVH(BVHNode* node);
 
     // Private fields
     BVHNode* root_;
-    std::vector<std::unique_ptr<BVHNode> > nodes_;
-
-};  // class BBVHAccel
+    std::vector<std::unique_ptr<BVHNode>> nodes_;
+    std::vector<SIMDBVHNode*> simdNodes_;
+    bool useSIMD_;
+};
 
 SPICA_EXPORT_ACCEL_PLUGIN(BVHAccel, "Standard bounding volume hierarchy");
 

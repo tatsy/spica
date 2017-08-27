@@ -63,6 +63,8 @@ SPICA_EXPORTS Spectrum FrConductor(double cosThetaI, const Spectrum& etaI,
                                    const Spectrum& etaT, const Spectrum& k);
 SPICA_EXPORTS double FrDielectric(double cosThetaI, double etaI, double etaT);
 
+SPICA_EXPORTS double FrDiffuseReflectance(double eta);
+
 }  // namespace spica
 
 #endif  // _SPICA_FRESNEL_H_

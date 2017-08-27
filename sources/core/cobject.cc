@@ -40,6 +40,7 @@ void PluginManager::initModule(const std::string &moduleName) {
     registerInitializer(moduleName, initializer);
 }
 
+
 void PluginManager::initAccelerator(const std::string &moduleName) {
     ModuleHandle hModule = LoadModule(moduleName);
     Assertion(hModule != NULL, "Failed to load module: %s", moduleName.c_str());

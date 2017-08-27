@@ -135,14 +135,13 @@ bool RenderParams::getBool(const std::string &name, bool remove) {
 bool RenderParams::getBool(const std::string &name, bool value, bool remove) {
     const auto it = bools.find(name);
     if (it != bools.cend()) {
-        return it->second;
+        if (remove) {
+            const bool ret = it->second;
+            bools.erase(it);
+            return ret;
+        }
     }
 
-    if (remove) {
-        const bool ret = it->second;
-        bools.erase(it);
-        return ret;
-    }
     return value;
 }
 

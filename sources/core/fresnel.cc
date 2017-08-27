@@ -84,4 +84,14 @@ double FrDielectric(double cosThetaI, double etaI, double etaT) {
     return 0.5 * (Rpara * Rpara + Rperp * Rperp);
 }
 
+double FrDiffuseReflectance(double eta) {
+    if (eta >= 1.0) {
+        return -1.4399 / (eta * eta) + 0.7099 / eta + 0.6681 +
+        0.0636 * eta;
+    } else {
+        return -0.4399f + 0.7099 / eta - 0.3319 / (eta * eta) +
+        0.0636 / (eta * eta * eta);
+    }
+}
+
 }  // namespace spica

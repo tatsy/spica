@@ -46,6 +46,28 @@ struct TraceRecord {
     PathType type = PathType::BasePath;
 };
 
+struct SurfaceEventRecord {
+    SurfaceEventRecord() {}
+    SurfaceEventRecord(const Vector3d &wh_, BxDFType bxdfType_,
+                       double eta_, int sampledLightIndex_ = -1,
+                       const Point2d &randLight_ = Point2d(),
+                       const Point2d &randShade_ = Point2d())
+        : wh{wh_}
+        , bxdfType{bxdfType_}
+        , eta{eta_}
+        , sampledLightIndex{sampledLightIndex_}
+        , randLight{randLight_}
+        , randShade{randShade_} {
+    }
+
+    Vector3d wh;
+    BxDFType bxdfType;
+    double eta;
+    int sampledLightIndex;
+    Point2d randLight;
+    Point2d randShade;
+};
+
 struct Vertex {
     static Vertex createCamera(const Point3d &pos) {
         Vertex v;
@@ -55,15 +77,11 @@ struct Vertex {
     }
 
     static Vertex createSurface(const SurfaceInteraction &intr_,
-                                const Vector3d &wh_,
-                                BxDFType bxdfType_,
-                                double eta_ = 1.0) {
+                                const SurfaceEventRecord &record_) {
         Vertex v;
-        v.intr     = std::make_shared<SurfaceInteraction>(intr_);
-        v.wh       = wh_;
-        v.bxdfType = bxdfType_;
-        v.eta      = eta_;
-        v.type     = VertexType::Surface;
+        v.intr = std::make_shared<SurfaceInteraction>(intr_);
+        v.surfaceRecord = record_;
+        v.type = VertexType::Surface;
         return v;
     }
 
@@ -119,34 +137,32 @@ struct Vertex {
 
     bool isDiffuse() const {
         return type == VertexType::Surface && 
-               (bxdfType & BxDFType::Diffuse) != BxDFType::None;
+               (surfaceRecord.bxdfType & BxDFType::Diffuse) != BxDFType::None;
     }
 
     bool isGlossy() const {
         return type == VertexType::Surface && 
-               (bxdfType & BxDFType::Glossy) != BxDFType::None;
+               (surfaceRecord.bxdfType & BxDFType::Glossy) != BxDFType::None;
     }
 
     bool isSpecular() const {
         return type == VertexType::Surface && 
-               (bxdfType & BxDFType::Specular) != BxDFType::None;
+               (surfaceRecord.bxdfType & BxDFType::Specular) != BxDFType::None;
     }
 
     bool isReflection() const {
         return type == VertexType::Surface && 
-               (bxdfType & BxDFType::Reflection) != BxDFType::None;    
+               (surfaceRecord.bxdfType & BxDFType::Reflection) != BxDFType::None;
     }
 
     bool isTransmission() const {
         return type == VertexType::Surface && 
-               (bxdfType & BxDFType::Transmission) != BxDFType::None;    
+               (surfaceRecord.bxdfType & BxDFType::Transmission) != BxDFType::None;
     }
 
     std::shared_ptr<Interaction> intr;
-    Vector3d wh;
-    BxDFType bxdfType;
-    double eta;
     VertexType type;
+    SurfaceEventRecord surfaceRecord;
 };
 
 bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Vertex &current, const Vertex &next,
@@ -154,11 +170,11 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
 
     const Vector3d woOffset = isect.wo();
     *reconnect = false;
-
+    
     // Compute next direction, reflectance and PDF
     if (current.isSpecular() && isect.bsdf()->hasType(BxDFType::Specular)) {
-        // Specular transmission
-        *f = isect.bsdf()->sample(woOffset, wiOffset, Point2d(), pdf, current.bxdfType);            
+        // Specular reflection / transmission
+        *f = isect.bsdf()->sample(woOffset, wiOffset, Point2d(), pdf, current.surfaceRecord.bxdfType);
         if (f->isBlack()) {
             return false;
         }
@@ -172,7 +188,7 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
     } else if ((current.isDiffuse() && isect.bsdf()->hasType(BxDFType::Diffuse)) ||
                (current.isGlossy() && isect.bsdf()->hasType(BxDFType::Glossy))) {
         // Half-vector copy
-        const Vector3d whBase = current.wh;
+        const Vector3d whBase = current.surfaceRecord.wh;
         if (current.isReflection()) {
             // Reflection
             *wiOffset = vect::reflect(isect.wo(), whBase);
@@ -182,7 +198,7 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
             }
         } else if (current.isTransmission()) {
             // Transmission
-            if (!vect::refract(woOffset, whBase, current.eta, wiOffset)) {
+            if (!vect::refract(woOffset, whBase, current.surfaceRecord.eta, wiOffset)) {
                 return false;                
             }
             // Side check
@@ -213,14 +229,14 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
         // Half-vector copy
         if (current.isReflection()) {
             // Reflection
-            const Vector3d whBase = current.wh;
+            const Vector3d whBase = current.surfaceRecord.wh;
             const Vector3d whOffset = vect::normalize(woOffset + (*wiOffset));
             const double dotX = std::max(0.0, vect::dot(woBase, whBase));
             const double dotY = std::max(0.0, vect::dot(woOffset, whOffset));
             *J = dotY / (dotX + EPS);
         } else if (current.isTransmission()) {
             // Transmission
-            double etaX = current.eta;
+            double etaX = current.surfaceRecord.eta;
             if (vect::dot(current.normal(), woBase) < 0.0) {
                 etaX = 1.0 / etaX;
             }
@@ -229,13 +245,14 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
                 etaY = 1.0 / etaY;
             }
             
-            const Vector3d whBase = current.wh;
+            const Vector3d whBase = current.surfaceRecord.wh;
             const Vector3d whOffset = vect::normalize(woOffset + etaY * (*wiOffset));
             const double dotX = vect::absDot(wiBase, whBase);
             const double dotY = vect::absDot(*wiOffset, whOffset);
             const double distX = (etaX * wiBase + woBase).squaredNorm();
             const double distY = (etaY * (*wiOffset) + woOffset).squaredNorm();
             *J = (dotY * distX) / (dotX * distY + EPS);
+            printf("dot = %f\n", vect::dot(woOffset, whBase));
         } else {
             FatalError("The surface vertex has neither reflect or transmit type!");
         }
@@ -247,7 +264,7 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
                      const std::vector<Vertex> &baseVerts) {
     // Special case
     // The ray directory hits a light, or goes outside the scene.
-    if (baseVerts.size() <= 2) {
+    if (baseVerts.size() <= 2 && baseVerts[baseVerts.size() - 1].isLight()) {
         return TraceRecord(PathType::NotInvertible);
     }
 
@@ -264,7 +281,7 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
     for (bounces = 1; bounces < baseVerts.size(); bounces++) {
         // Target and neighboring vertices
         const Vertex &current = baseVerts[bounces];
-
+        
         // Find next vertex
         SurfaceInteraction isect;
         if (!scene.intersect(ray, &isect)) {
@@ -298,8 +315,17 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
 
         // Next event estimation
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-            Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
-            L += Ld;            
+            if (current.surfaceRecord.sampledLightIndex >= 0) {
+                const int nLights = scene.lights().size();
+                const int lightID = current.surfaceRecord.sampledLightIndex;
+                const auto& light = scene.lights()[lightID];
+                const Point2d &randLight = current.surfaceRecord.randLight;
+                const Point2d &randShade = current.surfaceRecord.randShade;
+                Spectrum Ld = nLights * beta *
+                              estimateDirectLight(isect, randShade, *light, randLight,
+                                                  scene, sampler, arena);
+                L += Ld;
+            }
         }
 
         if (bounces == baseVerts.size() - 1) break;
@@ -394,9 +420,20 @@ TraceRecord pathTrace(const Scene &scene, RenderParams &params, const Ray &r,
         isect.setScatterFuncs(ray, arena);
         Assertion(isect.bsdf() != nullptr, "GDPT does not support volume data!");
 
+        int sampledLightIndex = -1;
+        Point2d randLight, randShade;
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-            Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
-            L += Ld;            
+            const int nLights = static_cast<int>(scene.lights().size());
+            if (nLights != 0) {
+                sampledLightIndex = std::min((int)(sampler.get1D() * nLights), nLights - 1);
+                const auto& light = scene.lights()[sampledLightIndex];
+                randLight = sampler.get2D();
+                randShade = sampler.get2D();
+                Spectrum Ld = nLights * beta *
+                              estimateDirectLight(isect, randShade, *light, randLight,
+                                                  scene, sampler, arena);
+                L += Ld;
+            }
         }
 
         // Process BxDF
@@ -418,6 +455,7 @@ TraceRecord pathTrace(const Scene &scene, RenderParams &params, const Ray &r,
         Vector3d wh;
         double eta = 1.0;
         if ((sampledType & BxDFType::Transmission) != BxDFType::None) {
+            
             eta = isect.bsdf()->eta();
             if (vect::dot(wo, isect.normal()) < 0.0) {
                 // in -> out
@@ -429,7 +467,10 @@ TraceRecord pathTrace(const Scene &scene, RenderParams &params, const Ray &r,
         }
 
         // Add vertex
-        addItem(Vertex::createSurface(isect, wh, sampledType, eta));
+        SurfaceEventRecord record{
+            wh, sampledType, eta, sampledLightIndex, randLight, randShade
+        };
+        addItem(Vertex::createSurface(isect, record));
 
         // Account for BSSRDF
         if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
@@ -445,13 +486,16 @@ TraceRecord pathTrace(const Scene &scene, RenderParams &params, const Ray &r,
 
 }  // Anonymous namespace
 
-GDPTIntegrator::GDPTIntegrator(const std::shared_ptr<Sampler> &sampler)
+GDPTIntegrator::GDPTIntegrator(const std::shared_ptr<Sampler> &sampler,
+                               const std::string &solver)
     : Integrator{}
-    , sampler_{sampler} {
+    , sampler_{sampler}
+    , solver_{solver} {
 }
 
 GDPTIntegrator::GDPTIntegrator(RenderParams &params)
-    : GDPTIntegrator{std::static_pointer_cast<Sampler>(params.getObject("sampler", true))} {
+    : GDPTIntegrator{std::static_pointer_cast<Sampler>(params.getObject("sampler", true)),
+                     params.getString("solver", "L1", true)} {
 }
 
 void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
@@ -475,6 +519,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
     const int numPixels  = width * height;
     const int numSamples = params.getInt("sampleCount");
     
+    Image inversionRatio(width, height);
     auto shiftImages = std::make_unique<Image[]>(4);
     auto misImages = std::make_unique<Image[]>(4);
     for (int k = 0; k < 4; k++) {
@@ -492,6 +537,8 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
         }
 
         std::atomic<int> proc(0);
+        int nInvertedPath = 0;
+        int nSampledPath = 0;
         parallel_for(0, numPixels, [&](int pid) {
             const int threadID = getThreadID();
             const int y = pid / width;
@@ -507,6 +554,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
             film.addPixel(x, y, baseRecord.f, filterWeight);
 
             // Offset path
+            double invRatio = 0.0;
             for (int k = 0; k < 4; k++) {
                 const int nx = x + offsetX[k];
                 const int ny = y + offsetY[k];
@@ -528,6 +576,8 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                     // Eq.(10) of original paper
                     const double misWeight = baseRecord.pdf / (baseRecord.pdf + subRecord.pdf * subRecord.jacobian);
                     G = misWeight * (baseRecord.f - subRecord.f);
+                    nInvertedPath += 1;
+                    invRatio += 0.25;
                 } else if (subRecord.type == PathType::NotInvertible) {
                     // Naively compute gradient with path tracing
                     subRecord = pathTrace(scene, params, subRay, *samplers[threadID], arenas[threadID], nullptr);
@@ -536,6 +586,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                     // Subpath results in "zero contribution"
                     G = baseRecord.f;
                 }
+                nSampledPath += 1;
 
                 // Forward or backward difference
                 if (k == 0 || k == 2) {
@@ -548,6 +599,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 shiftImages[k].pixel(x, y) += subRecord.f;
                 misImages[k].pixel(x, y) += Spectrum(subRecord.jacobian);
             }
+            inversionRatio.pixel(x, y) += Spectrum(invRatio);
 
             proc++;
             if (proc % 1000 == 0 || proc == numPixels) {
@@ -556,18 +608,20 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
             }
         });
         printf("\n");
+        MsgInfo("%d / %d samples inverted!", nInvertedPath, nSampledPath);
 
-        film.save(i + 1);
+        film.save(i + 1, solver_);
 
+        Image temp;
+        char filename[256];
         for (int k = 0; k < 4; k++) {
-            Image temp = misImages[k];
+            temp = misImages[k];
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     temp.pixel(x, y) /= (i + 1);   
                 }
             }
 
-            char filename[256];
             sprintf(filename, "jacobian_%03d.png", k);
             temp.save(filename);
 
@@ -581,6 +635,14 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
             sprintf(filename, "shift_%03d.png", k);
             temp.save(filename);
         }
+        
+        temp = inversionRatio;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                temp.pixel(x, y) /= (i + 1);
+            }
+        }
+        temp.save("inversion.png");
 
         for (int t = 0; t < numThreads; t++) {
             arenas[t].reset();

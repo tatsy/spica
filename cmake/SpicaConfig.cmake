@@ -108,6 +108,7 @@ macro(add_spica_plugin _plugin_name)
   # Link setting
   set(_plugin_core_libraries "${SPICA_PREFIX}_core")
   target_link_libraries(${_plugin_name} ${_plugin_core_libraries})
+  target_link_libraries(${_plugin_name} ${_plugin_LINK_LIBRARIES})
 
   # Folder setting
   set(_plugin_FOLDER "plugins")

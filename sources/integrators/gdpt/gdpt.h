@@ -15,7 +15,8 @@ namespace spica {
 
 class SPICA_EXPORTS GDPTIntegrator : public Integrator {
 public:
-    GDPTIntegrator(const std::shared_ptr<Sampler> &sampler);
+    GDPTIntegrator(const std::shared_ptr<Sampler> &sampler,
+                   const std::string &solver = "L1");
     GDPTIntegrator(RenderParams &params);
 
     void render(const std::shared_ptr<const Camera> &camera,
@@ -23,6 +24,7 @@ public:
                 RenderParams &params) override;
 
     std::shared_ptr<Sampler> sampler_;
+    std::string solver_;
 };
 
 SPICA_EXPORT_PLUGIN(GDPTIntegrator, "Gradient domain path tracing");

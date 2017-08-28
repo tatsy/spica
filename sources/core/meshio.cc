@@ -173,9 +173,9 @@ std::vector<ShapeGroup> loadOBJ(const std::string& filename,
     std::vector<tinyobj::material_t> materials;
     std::string errors;
     bool success = tinyobj::LoadObj(&attrib, &shapes, &materials, &errors, filename.c_str());
-    if (!errors.empty()) {
-        Warning(errors.c_str());
-    }
+//    if (!errors.empty()) {
+//        Warning(errors.c_str());
+//    }
     
     if (!success) {
         FatalError("Failed to open OBJ file \"%s\" !!", filename.c_str());    

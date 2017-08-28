@@ -147,7 +147,7 @@ void SceneParser::storeToParam(QDomNode &node) {
     const std::string nodeName = node.nodeName().toStdString();
     if (nodeName == "#comment") return;
 
-    printf("Parsing: %s\n", nodeName.c_str());
+    //printf("Parsing: %s\n", nodeName.c_str());
 
     const auto &attrs = node.attributes();
 
@@ -185,7 +185,6 @@ void SceneParser::storeToParam(QDomNode &node) {
         Vector3d v(attrs.namedItem("value").nodeValue().toStdString());
         Spectrum value(v.x(), v.y(), v.z());
         if (name != "") {
-            printf("name = %s\n", name.c_str());
             params_.add(name, value);
         }
     } else if (nodeName == "transform") {

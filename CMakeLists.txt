@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 project(spica)
 
 include(cmake/SpicaConfig.cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 # ------------------------------------------------------------------------------
 # Build options
@@ -10,6 +11,8 @@ option(SPICA_BUILD_MAIN "Build spica executable." OFF)
 option(SPICA_BUILD_TESTS "Build unit tests." OFF)
 option(SPICA_BUILD_GUI "Build GUI." OFF)
 option(SPICA_WITH_OPENMP "Build with OpenMP" OFF)
+option(WITH_SSE "Build with SSE (used in QBVH)" OFF)
+option(WITH_FFTW "Build with FFTW (used in GDPT)" OFF)
 
 # ------------------------------------------------------------------------------
 # Common build targets
@@ -32,9 +35,20 @@ if (NOT WIN32)
   endif()
 endif()
 
+if (WITH_SSE)
+  if (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:sse")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
+  endif()
+endif()
+
 # ------------------------------------------------------------------------------
-# Add Qt dependency if needed
+# Dependencies
 # ------------------------------------------------------------------------------
+
+set(SPICA_DEPENDENCY_INCLUDE_DIRS "")
+set(SPICA_DEPENDENCY_LIBRARIES "")
 
 if (${SPICA_BUILD_MAIN} OR ${SPICA_BUILD_GUI})
   set(QT5_ROOT "QT5_ROOT" CACHE PATH "QT5_ROOT")
@@ -46,6 +60,15 @@ if (${SPICA_BUILD_MAIN} OR ${SPICA_BUILD_GUI})
   find_package(Qt5OpenGL REQUIRED)
   find_package(Qt5Xml REQUIRED)
   find_package(OpenGL REQUIRED)
+
+  set(SPICA_DEPENDENCY_LIBRARIES ${SPICA_DEPENDENCY_INCLUDE_DIRS} ${QT_LIBRARIES} ${OPENGL_LIBRARIES})
+endif()
+
+if (WITH_FFTW)
+  find_package(FFTW REQUIRED)
+  add_definitions(-DSPICA_WITH_FFTW)
+  set(SPICA_DEPENDENCY_INCLUDE_DIRS ${SPICA_DEPENDENCY_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS})
+  set(SPICA_DEPENDENCY_LIBRARIES ${SPICA_DEPENDENCY_LIBRARIES} ${FFTW_LIBRARIES})
 endif()
 
 # ------------------------------------------------------------------------------

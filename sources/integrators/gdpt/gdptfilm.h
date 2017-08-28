@@ -18,7 +18,7 @@ class GDPTFilm {
 public:
     GDPTFilm(const std::shared_ptr<Film> &film);
 
-    void save(int i) const;
+    void save(int i, const std::string &solver) const;
     void addPixel(int x, int y, const Spectrum &color, double weight);
     void addGradient(int x, int y, int index, const Spectrum &grad, double weight);
     double evalFilter(const Point2d &pixel) const;
@@ -28,6 +28,7 @@ private:
     Image evalGrad(int index) const;
     Image solveL1() const;
     Image solveL2() const;
+    Image solveFourier() const;
 
     std::shared_ptr<Film> film_;
 

@@ -63,6 +63,8 @@ void SceneParser::parse() {
     Scene scene(accelerator, lights_);
 
     setNumThreads(params_.getInt("numUserThreads"));
+    printf("Threads: %d\n", numSystemThreads());
+
     integrator->render(camera_, scene, params_);
 }
 

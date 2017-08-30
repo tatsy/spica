@@ -173,5 +173,9 @@ int getThreadID() {
 }
 
 void setNumThreads(uint32_t n) {
-    numUserThreads = std::min(n, std::thread::hardware_concurrency()); 
+    if (n == 0) {
+        numUserThreads = std::thread::hardware_concurrency();
+    } else {
+        numUserThreads = std::min(n, std::thread::hardware_concurrency()); 
+    }
 }

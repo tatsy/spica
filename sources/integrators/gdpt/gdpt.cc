@@ -48,11 +48,12 @@ struct TraceRecord {
 
 struct SurfaceEventRecord {
     SurfaceEventRecord() {}
-    SurfaceEventRecord(const Vector3d &wh_, BxDFType bxdfType_,
+    SurfaceEventRecord(const Vector3d &wh_, const Vector3d &whLocal_, BxDFType bxdfType_,
                        double eta_, int sampledLightIndex_ = -1,
                        const Point2d &randLight_ = Point2d(),
                        const Point2d &randShade_ = Point2d())
         : wh{wh_}
+        , whLocal{whLocal_}
         , bxdfType{bxdfType_}
         , eta{eta_}
         , sampledLightIndex{sampledLightIndex_}
@@ -61,6 +62,7 @@ struct SurfaceEventRecord {
     }
 
     Vector3d wh;
+    Vector3d whLocal;
     BxDFType bxdfType;
     double eta;
     int sampledLightIndex;
@@ -166,16 +168,29 @@ struct Vertex {
 };
 
 bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Vertex &current, const Vertex &next,
-                   Vector3d *wiOffset, double *pdf, Spectrum *f, double *J, bool *reconnect) {
-
+                   Vector3d *wiOffset, double *pdf, Spectrum *f, double *J, bool *reconnect, bool *specularBounce) {
     const Vector3d woOffset = isect.wo();
     *reconnect = false;
     
     // Compute next direction, reflectance and PDF
     if (current.isSpecular() && isect.bsdf()->hasType(BxDFType::Specular)) {
         // Specular reflection / transmission
-        *f = isect.bsdf()->sample(woOffset, wiOffset, Point2d(), pdf, current.surfaceRecord.bxdfType);
-        if (f->isBlack()) {
+        if (current.isReflection()) {
+            // Reflection
+            *wiOffset = vect::reflect(woOffset, isect.ns());
+        } else if (current.isTransmission()) {
+            // Transmission
+            bool entering = vect::dot(woOffset, isect.ns()) > 0.0;
+            double eta = entering ? 1.0 / isect.bsdf()->eta() : isect.bsdf()->eta();
+            if (!vect::refract(woOffset, vect::faceforward(isect.ns(), woOffset), eta, wiOffset)) {
+                return false;
+            }
+        }
+
+        *f = isect.bsdf()->f(woOffset, *wiOffset);
+        *pdf = isect.bsdf()->pdf(woOffset, *wiOffset);
+        *specularBounce = true;
+        if (f->isBlack() || (*pdf) == 0.0) {
             return false;
         }
     } else if ((current.isDiffuse() && isect.bsdf()->hasType(BxDFType::Diffuse)) &&
@@ -188,17 +203,20 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
     } else if ((current.isDiffuse() && isect.bsdf()->hasType(BxDFType::Diffuse)) ||
                (current.isGlossy() && isect.bsdf()->hasType(BxDFType::Glossy))) {
         // Half-vector copy
-        const Vector3d whBase = current.surfaceRecord.wh;
+        const Vector3d whLocalBase = current.surfaceRecord.whLocal;
+        const Vector3d whOffset = vect::normalize(whLocalBase.x() * isect.dpdu() +
+                                                  whLocalBase.y() * isect.dpdv() +
+                                                  whLocalBase.z() * Vector3d(isect.normal()));
         if (current.isReflection()) {
             // Reflection
-            *wiOffset = vect::reflect(isect.wo(), whBase);
+            *wiOffset = vect::reflect(isect.wo(), whOffset);
             // Side check
             if (vect::dot(*wiOffset, isect.normal()) * vect::dot(woOffset, isect.normal()) < 0.0) {
                 return false;
             }
         } else if (current.isTransmission()) {
             // Transmission
-            if (!vect::refract(woOffset, whBase, current.surfaceRecord.eta, wiOffset)) {
+            if (!vect::refract(woOffset, whOffset, current.surfaceRecord.eta, wiOffset)) {
                 return false;                
             }
             // Side check
@@ -219,12 +237,16 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
     if (*reconnect) {
         // Reconnect
         Normal3d nx = current.intr->normal();
-        Normal3d ny = isect.normal();
+        Normal3d ny = isect.ns();
         double cosThetaX = std::max(0.0, vect::dot(nx, wiBase));
         double cosThetaY = std::max(0.0, vect::dot(ny, *wiOffset));
         double distX = (next.pos() - current.pos()).squaredNorm();
         double distY = (next.pos() - isect.pos()).squaredNorm();
-        *J = (cosThetaY * distX) / (cosThetaX * distY + EPS);    
+        if (cosThetaX * distY == 0.0) {
+            *J = 0.0;
+        } else {
+            *J = (cosThetaY * distX) / (cosThetaX * distY);
+        }
     } else {
         // Half-vector copy
         if (current.isReflection()) {
@@ -233,7 +255,11 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
             const Vector3d whOffset = vect::normalize(woOffset + (*wiOffset));
             const double dotX = std::max(0.0, vect::dot(woBase, whBase));
             const double dotY = std::max(0.0, vect::dot(woOffset, whOffset));
-            *J = dotY / (dotX + EPS);
+            if (dotX == 0.0) {
+                *J = 0.0;
+            } else {
+                *J = dotY / dotX;
+            }
         } else if (current.isTransmission()) {
             // Transmission
             double etaX = current.surfaceRecord.eta;
@@ -251,8 +277,11 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
             const double dotY = vect::absDot(*wiOffset, whOffset);
             const double distX = (etaX * wiBase + woBase).squaredNorm();
             const double distY = (etaY * (*wiOffset) + woOffset).squaredNorm();
-            *J = (dotY * distX) / (dotX * distY + EPS);
-            printf("dot = %f\n", vect::dot(woOffset, whBase));
+            if (dotX * distY == 0.0) {
+                *J = 0.0;
+            } else {
+                *J = (dotY * distX) / (dotX * distY);
+            }
         } else {
             FatalError("The surface vertex has neither reflect or transmit type!");
         }
@@ -263,7 +292,6 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
 TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sampler &sampler, MemoryArena &arena,
                      const std::vector<Vertex> &baseVerts) {
     // Special case
-    // The ray directory hits a light, or goes outside the scene.
     if (baseVerts.size() <= 2 && baseVerts[baseVerts.size() - 1].isLight()) {
         return TraceRecord(PathType::NotInvertible);
     }
@@ -275,6 +303,7 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
     double jacobian = 1.0;
     Ray ray(r);
     bool reconnect = false;
+    bool specularBounce = false;
 
     // Process interactions
     int bounces;
@@ -284,16 +313,15 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
         
         // Find next vertex
         SurfaceInteraction isect;
-        if (!scene.intersect(ray, &isect)) {
+        bool isIntersect = scene.intersect(ray, &isect);
+        if (!isIntersect) {
             return TraceRecord(PathType::NotInvertible);
         }
 
         // If previous and current vertices are reconnected,
         // confirm whether next base and offset vertices are the same.
         if (reconnect) {
-            double dist1 = (isect.pos() - ray.org()).norm();
-            double dist2 = (current.pos() - baseVerts[bounces - 1].pos()).norm();
-            if (std::abs(dist1 - dist2) > 1.0e-6) {
+            if ((isect.pos() - current.pos()).norm() > 1.0e-6) {
                 // Occlusion occur
                 return TraceRecord(PathType::NonSymmetric);
             }
@@ -301,13 +329,28 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
         }
 
         // Check light endpoint
-        if (current.isLight()) {
-            Spectrum Le = current.Le(scene, ray);
-            if (Le.isBlack()) {
-                return TraceRecord(PathType::NonSymmetric);
+        if (specularBounce || bounces == 1) {
+            Spectrum Le(0.0);
+            if (isIntersect) {
+                // Area light
+                Le = isect.Le(-ray.dir());
+            } else {
+                // Not area light (e.g. envmap)
+                for (const auto &light : scene.lights()) {
+                    Le += light->Le(ray);
+                }
             }
-            L += beta * Le;
-            break;
+
+            if (!Le.isBlack()) {
+                if (current.isLight()) {
+                    L += beta * Le;
+                    break;
+                } 
+            }
+        }
+        
+        if (current.isLight()) {
+            return TraceRecord(PathType::NotInvertible);
         }
 
         isect.setScatterFuncs(ray, arena);
@@ -318,6 +361,7 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
             if (current.surfaceRecord.sampledLightIndex >= 0) {
                 const int nLights = scene.lights().size();
                 const int lightID = current.surfaceRecord.sampledLightIndex;
+                Assertion(lightID < nLights, "Light ID is invalid: %d > %d", lightID, nLights);
                 const auto& light = scene.lights()[lightID];
                 const Point2d &randLight = current.surfaceRecord.randLight;
                 const Point2d &randShade = current.surfaceRecord.randShade;
@@ -336,14 +380,15 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
         Vector3d wiSub;
         double J = 1.0, pdf = 0.0;
         Spectrum f(0.0);
-        bool foundNext = nextDirection(isect, prev, current, next, &wiSub, &pdf, &f, &J, &reconnect);
-        if (!foundNext || f.isBlack() || pdf == 0.0) {
+        specularBounce = false;
+        bool foundNext = nextDirection(isect, prev, current, next, &wiSub, &pdf, &f, &J, &reconnect, &specularBounce);
+        if (!foundNext || f.isBlack() || pdf == 0.0 || J == 0.0) {
             return TraceRecord(PathType::NotInvertible);
         }
 
         // Update information
-        beta *= f * vect::absDot(wiSub, isect.ns()) * J / pdf;
-        totalPDF *= pdf;
+        beta *= f * vect::absDot(wiSub, isect.ns()) / pdf;
+        totalPDF *= pdf * J;
         jacobian *= J;
         ray = isect.spawnRay(wiSub);
     }
@@ -465,10 +510,12 @@ TraceRecord pathTrace(const Scene &scene, RenderParams &params, const Ray &r,
         } else {
             wh = vect::normalize(wi + wo);            
         }
+        Vector3d whLocal = Vector3d(wh.dot(isect.dpdu()), wh.dot(isect.dpdv()), wh.dot(Vector3d(isect.normal()))).normalized();
+
 
         // Add vertex
         SurfaceEventRecord record{
-            wh, sampledType, eta, sampledLightIndex, randLight, randShade
+            wh, whLocal, sampledType, eta, sampledLightIndex, randLight, randShade
         };
         addItem(Vertex::createSurface(isect, record));
 
@@ -574,7 +621,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 if (subRecord.type == PathType::Invertible) {
                     // Compute gradient with MIS
                     // Eq.(10) of original paper
-                    const double misWeight = baseRecord.pdf / (baseRecord.pdf + subRecord.pdf * subRecord.jacobian);
+                    const double misWeight = baseRecord.pdf / (baseRecord.pdf + subRecord.pdf);
                     G = misWeight * (baseRecord.f - subRecord.f);
                     nInvertedPath += 1;
                     invRatio += 0.25;

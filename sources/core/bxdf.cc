@@ -16,6 +16,7 @@ namespace {
 inline double absCosTheta(const Vector3d& w) { return std::abs(w.z()); }
 
 static thread_local Random random;
+static const double deltaEps = 1.0e-4;
 
 }  // anonymous namespace
 
@@ -83,6 +84,9 @@ SpecularReflection::SpecularReflection(const Spectrum& ref, Fresnel* fresnel)
 }
 
 Spectrum SpecularReflection::f(const Vector3d& wo, const Vector3d& wi) const {
+    if (vect::dot(Vector3d(-wo.x(), -wo.y(), wo.z()), wi) > 1.0 - deltaEps) {
+        return ref_ / std::abs(vect::cosTheta(wi));
+    }
     return Spectrum(0.0);    
 }
 
@@ -97,12 +101,15 @@ Spectrum SpecularReflection::sample(const Vector3d& wo, Vector3d* wi,
 }
 
 double SpecularReflection::pdf(const Vector3d& wo, const Vector3d& wi) const {
-    return 0.0;   
+    if (vect::dot(Vector3d(-wo.x(), -wo.y(), wo.z()), wi) > 1.0 - deltaEps) {
+        return 1.0;
+    }
+    return 0.0;
 }
 
 
 // -----------------------------------------------------------------------------
-// SpecularReflection
+// SpecularTransmission
 // -----------------------------------------------------------------------------
 
 SpecularTransmission::SpecularTransmission(const Spectrum& tr, double etaA,
@@ -162,6 +169,25 @@ FresnelSpecular::FresnelSpecular(const Spectrum& ref, const Spectrum& tr,
 }
 
 Spectrum FresnelSpecular::f(const Vector3d& wo, const Vector3d& wi) const {
+    const double F = FrDielectric(vect::cosTheta(wo), etaA_, etaB_);
+    if (vect::sameHemisphere(wo, wi)) {
+        if (vect::dot(Vector3d(-wo.x(), -wo.y(), wo.z()), wi) > 1.0 - deltaEps) {
+            return ref_ * F / std::abs(vect::cosTheta(wi));
+        }
+    } else {
+        bool entering = vect::cosTheta(wo) > 0.0;
+        double etaI = entering ? etaA_ : etaB_;
+        double etaT = entering ? etaB_ : etaA_;
+
+        Vector3d wt;
+        if (!vect::refract(wo, Vector3d(vect::faceforward(Normal3d(0.0, 0.0, 1.0), wo)), etaI / etaT, &wt)) {
+            return Spectrum(0.0);
+        }
+
+        if (vect::dot(wi, wt) > 1.0 - deltaEps) {
+            return (1.0 - F) * tr_ / std::abs(vect::cosTheta(wi));
+        }
+    }
     return Spectrum(0.0);
 }
 
@@ -199,6 +225,25 @@ Spectrum FresnelSpecular::sample(const Vector3d& wo, Vector3d* wi,
 }
 
 double FresnelSpecular::pdf(const Vector3d& wo, const Vector3d& wi) const {
+    const double F = FrDielectric(vect::cosTheta(wo), etaA_, etaB_);
+    if (vect::sameHemisphere(wo, wi)) {
+        if (vect::dot(Vector3d(-wo.x(), -wo.y(), wo.z()), wi) > 1.0 - deltaEps) {
+            return F;
+        }
+    } else {
+        bool entering = vect::cosTheta(wo) > 0.0;
+        double etaI = entering ? etaA_ : etaB_;
+        double etaT = entering ? etaB_ : etaA_;
+
+        Vector3d wt;
+        if (!vect::refract(wo, Vector3d(vect::faceforward(Normal3d(0.0, 0.0, 1.0), wo)), etaI / etaT, &wt)) {
+            return 0.0;
+        }
+
+        if (vect::dot(wi, wt) > 1.0 - deltaEps) {
+            return (1.0 - F);
+        }
+    }
     return 0.0;
 }
 

@@ -1,15 +1,20 @@
 include(FindPackageHandleStandardArgs)
 
+set(FFTW_ROOT_DIR "FFTW_ROOT_DIR" CACHE PATH "")
+
 if (WIN32)
   find_path(FFTW_INCLUDE_DIR
             NAMES fftw3.h
             PATHS
+            ${FFTW_ROOT_DIR}
             ${FFTW_ROOT_DIR}/include)
 
   find_library(FFTW_LIBRARY
-               NAMES fftw3.lib
+               NAMES fftw3.lib libfftw3.lib libfftw3-3.lib
                PATHS
-               ${HALIDE_ROOT_DIR}/Release)
+               ${FFTW_ROOT_DIR}
+               ${FFTW_ROOT_DIR}/lib
+               ${FFTW_ROOT_DIR}/lib/Release)
 else()
   find_path(FFTW_INCLUDE_DIR
             NAMES fftw3.h
@@ -35,8 +40,7 @@ find_package_handle_standard_args(
 if (FFTW_FOUND)
   set(FFTW_INCLUDE_DIRS ${FFTW_INCLUDE_DIR})
   set(FFTW_LIBRARIES ${FFTW_LIBRARY})
-else()
-  set(FFTW_ROOT_DIR "HALIDE_ROOT_DIR" CACHE PATH "")
+  unset(FFTW_ROOT_DIR)
 endif()
 
 mark_as_advanced(FFTW_INCLUDE_DIR FFTW_LIBRARY)

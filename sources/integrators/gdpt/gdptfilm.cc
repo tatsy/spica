@@ -385,6 +385,21 @@ Image GDPTFilm::solveFourier() const {
                 output.pixel(x, y) = Spectrum(r, g, b);                
             }
         }
+
+        // Save gradient
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Spectrum c;
+                c = gradX(x, y);
+                gradX.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
+                c = gradY(x, y);
+                gradY.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
+            }
+        }
+        coarse.save("coarse.png");
+        gradX.save("gradX.png");
+        gradY.save("gradY.png");
+
         return std::move(output);
     }
     #endif

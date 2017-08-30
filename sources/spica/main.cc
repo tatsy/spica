@@ -5,10 +5,13 @@
 
 #include <iostream>
 
-#include "sceneparser.h"
+#include "core/renderparams.h"
 using namespace spica;
 
-static constexpr int DEFAULT_NUM_THREADS = 4;
+#include "killtimer.h"
+#include "renderworker.h"
+
+static constexpr int DEFAULT_NUM_THREADS = 0;
 
 int main(int argc, char** argv) {
     QApplication app(argc, argv);
@@ -23,7 +26,7 @@ int main(int argc, char** argv) {
             QApplication::translate("main", "Input XML file defining the rendering scene (Required)"),
             QCoreApplication::translate("main", "input")},
         {"threads",
-            QApplication::translate("main", "# of threads to use for rendering (default = 4)"),
+            QApplication::translate("main", "# of threads to use for rendering (default = ALL)"),
             QApplication::translate("main", "threads")},
         {{"o", "output"},
             QApplication::translate("main", "Base of output filename (default = (basename of XML)"),
@@ -47,7 +50,6 @@ int main(int argc, char** argv) {
     if (parser.isSet("threads")) {
         nThreads = parser.value("threads").toInt();
     }
-    printf("Threads: %d\n", nThreads);
 
     std::string outfile = "";
     if (parser.isSet("output")) {
@@ -68,18 +70,11 @@ int main(int argc, char** argv) {
     params.add("numUserThreads", nThreads);
     params.add("outputFile", outfile);
 
-    // Generate rendering process
-    try {
-        SceneParser sceneParser(sceneFile);
-        sceneParser.parse();
-    } catch (std::exception &e) {
-        fprintf(stderr, "%s\n", e.what());
-    }
+    KillTimer timer(0, 4, 30);
+    timer.start();
 
-    // Show GUI if required
-    if (enableGui) {
-    
-    }
+    RenderWorker worker(sceneFile);
+    worker.start();
 
-    return 0;
+    return app.exec();
 }

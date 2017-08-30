@@ -37,7 +37,7 @@ endif()
 
 if (WITH_SSE)
   if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:sse")
+    add_definitions("/arch:SSE")
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
   endif()

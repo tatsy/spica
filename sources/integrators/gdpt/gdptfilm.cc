@@ -158,6 +158,7 @@ Image GDPTFilm::solveL1() const {
     }
 
     // Save gradient
+    #ifdef GDPT_TAKE_LOG
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             Spectrum c;
@@ -170,6 +171,7 @@ Image GDPTFilm::solveL1() const {
     coarse.save("coarse.png");
     gradX.save("gradX.png");
     gradY.save("gradY.png");
+    #endif
 
     return std::move(output);
 }
@@ -228,6 +230,7 @@ Image GDPTFilm::solveL2() const {
     }
 
     // Save gradient
+    #ifdef GDPT_TAKE_LOG
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             Spectrum c;
@@ -240,6 +243,7 @@ Image GDPTFilm::solveL2() const {
     coarse.save("coarse.png");
     gradX.save("gradX.png");
     gradY.save("gradY.png");
+    #endif
 
     return std::move(output);
 }
@@ -387,6 +391,7 @@ Image GDPTFilm::solveFourier() const {
         }
 
         // Save gradient
+        #ifdef GDPT_TAKE_LOG
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Spectrum c;
@@ -399,6 +404,7 @@ Image GDPTFilm::solveFourier() const {
         coarse.save("coarse.png");
         gradX.save("gradX.png");
         gradY.save("gradY.png");
+        #endif
 
         return std::move(output);
     }

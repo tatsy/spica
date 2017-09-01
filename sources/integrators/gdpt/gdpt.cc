@@ -643,8 +643,10 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 }
         
                 // Debug
+                #ifdef GDPT_TAKE_LOG
                 shiftImages[k].pixel(x, y) += subRecord.f;
                 misImages[k].pixel(x, y) += Spectrum(subRecord.jacobian);
+                #endif
             }
             inversionRatio.pixel(x, y) += Spectrum(invRatio);
 
@@ -659,6 +661,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
 
         film.save(i + 1, solver_);
 
+        #ifdef GDPT_TAKE_LOG
         Image temp;
         char filename[256];
         for (int k = 0; k < 4; k++) {
@@ -690,6 +693,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
             }
         }
         temp.save("inversion.png");
+        #endif
 
         for (int t = 0; t < numThreads; t++) {
             arenas[t].reset();

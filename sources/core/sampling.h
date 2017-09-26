@@ -64,10 +64,10 @@ SPICA_EXPORTS Vector3d sampleCosineHemisphere(const Point2d& rands);
 SPICA_EXPORTS inline double   cosineHemispherePdf(double cosTheta) { return cosTheta * INV_PI; }
 SPICA_EXPORTS void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const Point2d& rands);
 
-//SPICA_EXPORTS
-//void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
-//                       double minDist, std::vector<Interaction>* points);
-//
+SPICA_EXPORTS
+void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
+                       double minDist, std::vector<Interaction>* points);
+
 //SPICA_EXPORTS
 //void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
 //                       double minDist, std::vector<SurfaceInteraction>* points);

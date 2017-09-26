@@ -34,6 +34,10 @@ namespace spica {
             this->x_ = x;
             this->y_ = y;
             this->z_ = z;
+        } else if (sscanf(str.c_str(), "%lf", &x) == 1) {
+            this->x_ = x;
+            this->y_ = x;
+            this->z_ = x;
         } else {
             FatalError("Cannot parse string \"%s\" for Vector3d", str.c_str());
         }

@@ -5,13 +5,12 @@
 #ifndef _SPICA_SUBSURFACE_INTEGRATOR_H_
 #define _SPICA_SUBSURFACE_INTEGRATOR_H_
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
-#include "../core/bounds3d.h"
-#include "../core/interaction.h"
+#include "core/common.h"
+#include "core/bounds3d.h"
+#include "core/interaction.h"
 
-#include "integrator.h"
-#include "photon_map.h"
+#include "core/integrator.h"
+#include "../photon_map.h"
 
 namespace spica {
 
@@ -30,13 +29,13 @@ public:
     void samplePoints(const Scene& scene, const Point3d& pCamera);
 
     void buildOctree(const Scene& scene,
-                     const RenderParams& params,
+                     RenderParams& params,
                      Sampler& sampler);
 
 private:
     // Private methods
     Spectrum Li(const Scene& scene,
-                const RenderParams& params,
+                RenderParams& params,
                 const Ray& ray,
                 Sampler& sampler,
                 MemoryArena& arena,
@@ -57,21 +56,23 @@ private:
 class SPICA_EXPORTS HierarchicalIntegrator : public SamplerIntegrator {
 public:
     // Public methods
-    HierarchicalIntegrator(const std::shared_ptr<const Camera>& camera,
-                           const std::shared_ptr<Sampler>& smapler,
+    HierarchicalIntegrator(const std::shared_ptr<Sampler>& smapler,
                            double maxError = 0.05);
+
+    HierarchicalIntegrator(RenderParams &params);
+
     ~HierarchicalIntegrator();
 
     void initialize(const Scene& scene,
-                    const RenderParams& params,
+                    RenderParams& params,
                     Sampler& sampler) override;
 
     void loopStarted(const Scene& scene,
-                     const RenderParams& params,
+                     RenderParams& params,
                      Sampler& sampler) override;
 
     Spectrum Li(const Scene& scene,
-                const RenderParams& params,
+                RenderParams& params,
                 const Ray& ray,
                 Sampler& sampler,
                 MemoryArena& arena,
@@ -79,8 +80,11 @@ public:
 
 private:
     std::unique_ptr<Hierarchy> hi_;
+    double maxError_;
 
 };  // class HierarchicalIntegrator
+
+SPICA_EXPORT_PLUGIN(HierarchicalIntegrator, "BSSRDF hierarchical integration.");
 
 }  // namespace spica
 

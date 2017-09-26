@@ -5,23 +5,22 @@
 #include <ctime>
 #include <fstream>
 
-#include "../core/memory.h"
-#include "../core/parallel.h"
-#include "../core/interaction.h"
-#include "../core/sampling.h"
-#include "../core/interaction.h"
-#include "../core/renderparams.h"
+#include "core/memory.h"
+#include "core/parallel.h"
+#include "core/interaction.h"
+#include "core/sampling.h"
+#include "core/interaction.h"
+#include "core/renderparams.h"
 
-#include "../scenes/scene.h"
-#include "../camera/camera.h"
-#include "../random/sampler.h"
+#include "core/scene.h"
+#include "core/camera.h"
+#include "core/sampler.h"
 
-#include "../bxdf/bxdf.h"
-#include "../bxdf/bsdf.h"
-#include "../bxdf/bssrdf.h"
-#include "../bxdf/phase.h"
-
-#include "mis.h"
+#include "core/bxdf.h"
+#include "core/bsdf.h"
+#include "core/bssrdf.h"
+#include "core/phase.h"
+#include "core/mis.h"
 
 namespace spica {
 
@@ -76,23 +75,24 @@ void PhotonMap::clear() {
 }
 
 void PhotonMap::construct(const Scene& scene,
-                          const RenderParams& params) {
+                          RenderParams& params,
+                          Sampler &sampler) {
 
     std::cout << "Shooting photons..." << std::endl;
 
     // Compute light power distribution
-    Distribution1D lightDistrib = mis::calcLightPowerDistrib(scene);
+    Distribution1D lightDistrib = calcLightPowerDistrib(scene);
 
     // Random number generator
     const int nThreads = numSystemThreads();
     std::vector<std::unique_ptr<Sampler>> samplers(nThreads);
     for (int i = 0; i < nThreads; i++) {
-        samplers[i] = std::make_unique<Random>((unsigned int)time(0) + i);
+        samplers[i] = sampler.clone((unsigned int)time(0) + i);
     }
     std::vector<MemoryArena> arenas(nThreads);
 
     // Distribute tasks
-    const int castPhotons = params.get<int>("CAST_PHOTONS");
+    const int castPhotons = params.getInt("castPhotons", 1000000);
     std::vector<std::vector<Photon>> photons(nThreads);
 
     // Shooting photons
@@ -245,7 +245,7 @@ void PhotonMap::knnFind(const Photon& photon, std::vector<Photon>* photons,
 }
 
 void PhotonMap::tracePhoton(const Scene& scene,
-                            const RenderParams& params,
+                            RenderParams& params,
                             const Ray& r,
                             const Spectrum& b,
                             Sampler& sampler,
@@ -254,7 +254,7 @@ void PhotonMap::tracePhoton(const Scene& scene,
     Ray ray(r);
     Spectrum beta(b);
     SurfaceInteraction isect;
-    const int maxBounces = params.get<int>("MAX_BOUNCES");
+    const int maxBounces = params.getInt("maxDepth");
     for (int bounces = 0; bounces < maxBounces; bounces++) {
         bool isIntersect = scene.intersect(ray, &isect);
         

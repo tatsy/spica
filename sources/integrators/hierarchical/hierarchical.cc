@@ -5,22 +5,22 @@
 #include <fstream>
 #include <typeinfo>
 
-#include "../core/common.h"
-#include "../core/memory.h"
-#include "../core/parallel.h"
-#include "../core/sampling.h"
-#include "../core/timer.h"
-#include "../core/renderparams.h"
-#include "../math/vect_math.h"
-#include "../scenes/scene.h"
-#include "../camera/camera.h"
-#include "../shape/visibility_tester.h"
-#include "../bxdf/bsdf.h"
-#include "../bxdf/bssrdf.h"
-#include "../material/material.h"
-#include "../random/sampler.h"
-
-#include "mis.h"
+#include "core/common.h"
+#include "core/memory.h"
+#include "core/parallel.h"
+#include "core/sampling.h"
+#include "core/timer.h"
+#include "core/renderparams.h"
+#include "core/vect_math.h"
+#include "core/scene.h"
+#include "core/camera.h"
+#include "core/visibility_tester.h"
+#include "core/bsdf.h"
+#include "core/bssrdf.h"
+#include "core/material.h"
+#include "core/sampler.h"
+#include "core/sampling.h"
+#include "core/mis.h"
 
 namespace spica {
 
@@ -204,18 +204,18 @@ Hierarchy::~Hierarchy() {
 }
 
 Spectrum Hierarchy::Li(const Scene& scene,
-                               const RenderParams& params,
-                               const Ray& r,
-                               Sampler& sampler,
-                               MemoryArena& arena,
-                               int depth) const {
+                      RenderParams& params,
+                      const Ray& r,
+                      Sampler& sampler,
+                      MemoryArena& arena,
+                      int depth) const {
     Ray ray(r);
     Spectrum L(0.0);
     Spectrum beta(1.0);
     bool specularBounce = false;
-    const int maxBounces      = params.get<int>("MAX_BOUNCES");
-    const int gatherPhotons   = params.get<int>("GATHER_PHOTONS");
-    const double gatherRadius = params.get<double>("GATHER_RADIUS");
+    const int maxBounces      = params.getInt("maxDepth");
+    const int gatherPhotons   = params.getInt("gatherPhotons", 32);
+    const double gatherRadius = params.getDouble("gatherRadius", 1.0);
     for (int bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
@@ -242,7 +242,7 @@ Spectrum Hierarchy::Li(const Scene& scene,
 
         Spectrum Ld(0.0);
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-            Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+            Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
         }
 
         // Process BxDF
@@ -297,10 +297,10 @@ void Hierarchy::samplePoints(const Scene& scene, const Point3d& pCamera) {
     MsgInfo("%zu points sampled with PDS.", points_.size());
 }
 
-void Hierarchy::buildOctree(const Scene& scene, const RenderParams& params,
+void Hierarchy::buildOctree(const Scene& scene, RenderParams& params,
                             Sampler& sampler) {
     // Build photon map
-    photonmap_->construct(scene, params);
+    photonmap_->construct(scene, params, sampler);
 
     // Compute irradiance on each sampled point
     const int numPoints = static_cast<int>(points_.size());
@@ -365,17 +365,22 @@ void Hierarchy::buildOctree(const Scene& scene, const RenderParams& params,
 }
 
 HierarchicalIntegrator::HierarchicalIntegrator(
-    const std::shared_ptr<const Camera>& camera,
     const std::shared_ptr<Sampler>& sampler,
     double maxError)
-    : SamplerIntegrator{ camera, sampler } {
+    : SamplerIntegrator{ sampler }
+    , maxError_{maxError} {
+}
+
+HierarchicalIntegrator::HierarchicalIntegrator(RenderParams &params)
+    : HierarchicalIntegrator{std::static_pointer_cast<Sampler>(params.getObject("sampler")),
+                             params.getDouble("maxError", 0.005, true)} {
 }
 
 HierarchicalIntegrator::~HierarchicalIntegrator() {
 }
 
 Spectrum HierarchicalIntegrator::Li(const Scene& scene,
-                                    const RenderParams& params,
+                                    RenderParams& params,
                                     const Ray& r,
                                     Sampler& sampler,
                                     MemoryArena& arena,
@@ -400,7 +405,7 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
             }
         }
 
-        if (!isIntersect || bounces >= params.get<int>("MAX_BOUNCES")) break;
+        if (!isIntersect || bounces >= params.getInt("maxDepth")) break;
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
@@ -410,7 +415,7 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
         }
 
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-            Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+            Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
             L += Ld;
         }
 
@@ -445,17 +450,16 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
 }
 
 void HierarchicalIntegrator::initialize(const Scene& scene,
-                                        const RenderParams& params,
+                                        RenderParams& params,
                                         Sampler& sampler) {
     // Compute dA and copy maxError
-    double maxError = params.get<double>("HIERARCHICAL_MAX_ERROR");
     Bounds3d bounds = scene.worldBound();
-    double radius = (bounds.posMax() - bounds.posMin()).norm() * 0.0001;
-    hi_ = std::make_unique<Hierarchy>(radius, maxError);
+    double radius = (bounds.posMax() - bounds.posMin()).norm() * 0.01;
+    hi_ = std::make_unique<Hierarchy>(radius, maxError_);
 }
 
 void HierarchicalIntegrator::loopStarted(const Scene& scene,
-                                         const RenderParams& params,
+                                         RenderParams& params,
                                          Sampler& sampler) {
     // Sample points with dart throwing
     Point3d pCamera = camera_->cameraToWorld().apply(Point3d(0.0, 0.0, 0.0));

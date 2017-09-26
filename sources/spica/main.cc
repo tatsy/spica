@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     params.add("numUserThreads", nThreads);
     params.add("outputFile", outfile);
 
-    KillTimer timer(0, 10, 0);
+    KillTimer timer(0, 4, 30);
     timer.start();
 
     RenderWorker worker(sceneFile);

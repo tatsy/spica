@@ -5,18 +5,17 @@
 #ifndef _SPICA_PHOTON_MAP_H_
 #define _SPICA_PHOTON_MAP_H_
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "core/common.h"
 
-#include "../core/spectrum.h"
-#include "../core/kdtree.h"
-#include "../core/uncopyable.h"
-#include "../core/stack.h"
+#include "core/spectrum.h"
+#include "core/kdtree.h"
+#include "core/uncopyable.h"
+#include "core/stack.h"
 
-#include "../math/vector3d.h"
-#include "../core/point3d.h"
-#include "../core/normal3d.h"
-#include "../random/random.h"
+#include "core/vector3d.h"
+#include "core/point3d.h"
+#include "core/normal3d.h"
+#include "core/random.h"
 
 namespace spica {
 
@@ -61,7 +60,8 @@ public:
 
     void clear();
     virtual void construct(const Scene& scene,
-                           const RenderParams& params);
+                           RenderParams& params,
+                           Sampler &sampler);
 
     /**
      * Evaluate radiance at the point and to the direction.
@@ -78,7 +78,7 @@ protected:
                     int gatherPhotons, double gatherRadius) const;
 
     void tracePhoton(const Scene& scene,
-                     const RenderParams& params,
+                     RenderParams& params,
                      const Ray& r,
                      const Spectrum& b,
                      Sampler& sampler,

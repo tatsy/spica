@@ -250,6 +250,8 @@ void SceneParser::storeToParam(QDomNode &node) {
             return;
         }
 
+        Assertion(type != "", "Type parameter is not specified for \"%s\"", nodeName.c_str());
+
         plugins_.initModule(type);
         auto value = std::shared_ptr<CObject>(plugins_.createObject(type, params_));
 

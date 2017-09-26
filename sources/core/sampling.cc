@@ -10,8 +10,8 @@
 #include "core/point2d.h"
 #include "core/interaction.h"
 
-//#include "../material/material.h"
-//#include "../scenes/scene.h"
+#include "core/scene.h"
+#include "core/material.h"
 //#include "../core/camera.h"
 
 namespace spica {
@@ -189,7 +189,6 @@ void sampleUniformHemisphere(const Normal3d& normal, Vector3d* direction, const 
     *direction = (u * cos(t) * z2s + v * sin(t) * z2s + w * sqrt(1.0 - z2)).normalized();        
 }
 
-/*
 void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
                        double minDist, std::vector<Interaction>* points) {
     std::vector<Triangle> tris;
@@ -271,6 +270,7 @@ void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
     }
 }
 
+/*
 void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
                        double minDist, std::vector<SurfaceInteraction>* points) {
     // Initialize utility variables in this method

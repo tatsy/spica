@@ -249,7 +249,7 @@ Image GDPTFilm::solveL2() const {
 }
 
 Image GDPTFilm::solveFourier() const {
-    #if not defined(SPICA_WITH_FFTW)
+    #ifndef SPICA_WITH_FFTW
     FatalError("Method \"solveFourier\" requires FFTW library!");
     #else
     {

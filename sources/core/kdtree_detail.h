@@ -4,8 +4,8 @@
 #include <cmath>
 #include <algorithm>
 
-#include "common.h"
-#include "../math/vector3d.h"
+#include "core/common.h"
+#include "core/vector3d.h"
 
 namespace spica {
 

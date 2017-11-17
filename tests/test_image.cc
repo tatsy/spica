@@ -4,6 +4,9 @@ using namespace spica;
 
 #include <string>
 
+#include "filesystem/path.h"
+namespace fs = filesystem;
+
 namespace {
 
     auto sampler = std::make_unique<Random>((unsigned int)time(0));
@@ -26,7 +29,7 @@ protected:
     ~ImageTest() {}
 
     void SetUp() {
-        path::createDirectory(kTempDirectory);
+        fs::path(kTempDirectory).make_absolute();
     }
 
     void randomImage(Image* rand) {
@@ -103,8 +106,15 @@ TEST_F(ImageTest, Move) {
 
 TEST_F(ImageTest, InvalidPathToLoad) {
     Image image;
-    ASSERT_DEATH(image.load("dammy_path.bmp"), "");
-    ASSERT_DEATH(image.load("image.jpg"), "");
+    try {
+        image.load("dammy_path.bmp");
+        FAIL();
+    } catch (const RuntimeException &e) {}
+
+    try {
+        image.load("image.jpg");
+        FAIL();
+    } catch (const RuntimeException &e) {}
 }
 
 TEST_F(ImageTest, Resize) {

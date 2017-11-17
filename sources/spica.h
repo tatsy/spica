@@ -7,7 +7,7 @@
 
 #include "core/common.h"
 #include "core/parallel.h"
-#include "core/path.h"
+#include "core/exception.h"
 #include "core/timer.h"
 #include "core/memory.h"
 #include "core/sampling.h"

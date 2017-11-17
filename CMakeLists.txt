@@ -24,10 +24,10 @@ set(SPICA_LIBCORE "spica_core")
 # ------------------------------------------------------------------------------
 # Set compiler options
 # ------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 if (NOT WIN32)
   # Linux or Mac OS X
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pthread")
   if (${LINUX} AND ${SPICA_BUILD_TESTS})
     message(STATUS "[spica] Generate coverage data.")

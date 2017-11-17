@@ -2,3 +2,6 @@
 	path = docs/html
 	url = https://github.com/tatsy/spica.git
 	branch = gh-pages
+[submodule "3rdparty/filesystem"]
+	path = 3rdparty/filesystem
+	url = https://github.com/wjakob/filesystem.git

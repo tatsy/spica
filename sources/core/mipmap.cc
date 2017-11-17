@@ -49,8 +49,8 @@ namespace spica {
 
         pyramid_[0] = image;
         for (int i = 1; i < nLevels; i++) {
-            int sRes = std::max(1u, pyramid_[i - 1].width() / 2);
-            int tRes = std::max(1u, pyramid_[i - 1].height() / 2);
+            int sRes = std::max(1, pyramid_[i - 1].width() / 2);
+            int tRes = std::max(1, pyramid_[i - 1].height() / 2);
             pyramid_[i].resize(sRes, tRes);
             for (int y = 0; y < tRes; y++) {
                 for (int x = 0; x < sRes; x++) {

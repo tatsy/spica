@@ -1,7 +1,6 @@
 #define SPICA_API_EXPORT
 #include "film.h"
 
-#include "core/path.h"
 #include "core/tmo.h"
 
 namespace spica {
@@ -13,8 +12,7 @@ Film::Film(const Point2i& resolution,
     : resolution_{ resolution }
     , filter_{ filter }
     , filename_{ filename }
-    , image_{ (unsigned int)resolution.x(),
-              (unsigned int)resolution.y() }
+    , image_{ resolution.x(), resolution.y() }
     , weights_{}
     , saveCallback_{ callback } {
     image_.fill(RGBSpectrum(0.0, 0.0, 0.0));

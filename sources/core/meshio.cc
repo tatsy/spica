@@ -5,12 +5,14 @@
 #include <fstream>
 #include <sstream>
 
+#include "filesystem/path.h"
+namespace fs = filesystem;
+
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
 #include "core/common.h"
 #include "core/triplet.h"
-#include "core/path.h"
 #include "core/triangle.h"
 #include "core/vector2d.h"
 #include "core/point3d.h"
@@ -120,8 +122,10 @@ std::vector<ShapeGroup> loadPLY(const std::string& filename,
                 ss >> name;
                 if (name == "TextureFile") {
                     ss >> val;
-                    std::string dir = path::getDirectory(filename);
-                    std::string imgfile = dir + val;
+                    fs::path path(filename);
+                    fs::path fileName(val);
+                    std::string dir = path.parent_path().str();
+                    std::string imgfile = (path.parent_path() / fileName).str();
                     // trimesh->setTexture(Image::fromFile(imgfile));
                 }
             } else {

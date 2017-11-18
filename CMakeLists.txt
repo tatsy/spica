@@ -82,7 +82,7 @@ endif()
 # Special settings for MacOSX
 # ------------------------------------------------------------------------------
 if (APPLE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "10.11" FORCE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "10.13" FORCE)
 endif()
 
 # ------------------------------------------------------------------------------

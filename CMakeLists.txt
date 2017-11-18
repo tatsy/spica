@@ -24,10 +24,10 @@ set(SPICA_LIBCORE "spica_core")
 # ------------------------------------------------------------------------------
 # Set compiler options
 # ------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 if (NOT WIN32)
   # Linux or Mac OS X
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pthread")
   if (${LINUX} AND ${SPICA_BUILD_TESTS})
     message(STATUS "[spica] Generate coverage data.")
@@ -52,9 +52,6 @@ set(SPICA_DEPENDENCY_LIBRARIES "")
 
 if (${SPICA_BUILD_MAIN} OR ${SPICA_BUILD_GUI})
   set(QT5_ROOT "QT5_ROOT" CACHE PATH "QT5_ROOT")
-  if (NOT EXISTS "${QT5_ROOT}/lib/cmake")
-    message(FATAL_ERROR "[ERROR] Qt5 not found!!")
-  endif()
   set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${QT5_ROOT})
   find_package(Qt5Widgets REQUIRED)
   find_package(Qt5OpenGL REQUIRED)

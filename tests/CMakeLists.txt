@@ -5,6 +5,9 @@ if (${SPICA_BUILD_TESTS})
   include_directories(${SPICA_ROOT_DIR}/sources)
   link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
+  configure_file(${CMAKE_CURRENT_LIST_DIR}/test_params.h.in
+                 ${CMAKE_CURRENT_LIST_DIR}/test_params.h @ONLY)
+
   if(WIN32)
     set(GTEST_ROOT "GTEST_ROOT" CACHE PATH "GTEST_ROOT")
     if (NOT EXISTS "${GTEST_ROOT}/include/gtest/gtest.h")
@@ -31,6 +34,7 @@ if (${SPICA_BUILD_TESTS})
   set(TEST_NAME spica_tests)
   set(SOURCE_FILES
       all_tests.cc
+      test_params.h
 #      test_stack.cc
       test_geometry.cc
       test_point3d.cc
@@ -56,7 +60,6 @@ if (${SPICA_BUILD_TESTS})
 
   add_definitions(-DGTEST_LANG_CXX11)
   add_executable(${TEST_NAME} ${SOURCE_FILES})
-  message(STATUS ${SPICA_LIBCORE})
   add_dependencies(${TEST_NAME} ${SPICA_LIBCORE})
   target_link_libraries(${TEST_NAME} ${GTEST_LIBRARIES})
   target_link_libraries(${TEST_NAME} ${SPICA_LIBCORE})

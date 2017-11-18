@@ -11,7 +11,6 @@
 #include "core/timer.h"
 #include "core/memory.h"
 #include "core/sampling.h"
-#include "core/spica_dirs.h"
 #include "core/point2d.h"
 #include "core/point3d.h"
 #include "core/bounds2d.h"

@@ -46,22 +46,6 @@ RUN pip install gcovr
 RUN apt-get -qq install cppcheck cccc doxygen
 
 #
-## Install Boost
-#
-RUN wget -q https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz
-RUN tar -zxf boost_1_64_0.tar.gz
-RUN \
-  cd boost_1_64_0 && \
-  ./bootstrap.sh --with-libraries=system,filesystem && \
-  ./b2 --libdir=/usr/lib/x86_64-linux-gnu/ --includedir=/usr/include/ -d0 -j2 install
-
-#
-## Install freeglue and glew
-#
-RUN apt-get -qq install freeglut3-dev libglew-dev
-RUN apt-get -qq install libxmu-dev libxi-dev
-
-#
 ## Build spica
 #
 RUN git clone --depth 10 -b $BRANCH_NAME https://github.com/tatsy/spica.git

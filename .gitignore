@@ -1,10 +1,8 @@
 # Common ignore files
-build
-tmp
-output
-data/tmp
+build/*
+testdata/tmp
 .cccc
-spica_dirs.h
+test_params.h
 
 scenes/*
 !scenes/README.md

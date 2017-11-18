@@ -2,8 +2,8 @@
 #pragma once
 #endif
 
-#ifndef _KILL_TIMER_H_
-#define _KILL_TIMER_H_
+#ifndef KILL_TIMER_H
+#define KILL_TIMER_H
 
 #include <memory>
 
@@ -26,4 +26,4 @@ private:
     uint64_t expire;
 };
 
-#endif  _KILL_TIMER_H_
+#endif  // KILL_TIMER_H

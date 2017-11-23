@@ -9,6 +9,9 @@
 
 namespace spica {
 
+/** Independent random sampling with Mersenne Twister.
+ *  @ingroup random_module
+ */
 class SPICA_EXPORTS Independent : public Sampler {
 public:
     explicit Independent(uint32_t seed);

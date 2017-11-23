@@ -1,9 +1,11 @@
 import os
 import sys
 import requests
+import zipfile
 import tarfile
 
 scene_list = {
+    'cbox' : 'https://www.mitsuba-renderer.org/scenes/cbox.zip',
     'cbox_gloss' : 'https://www.dropbox.com/s/g60176ihutoa44k/cbox_gloss.tar.gz?dl=1',
     'rt4' : 'https://www.dropbox.com/s/s41pt3togx4zuk5/rt4.tar.gz?dl=1'
 }
@@ -48,11 +50,24 @@ def download(url):
 
 def unarchive(filename):
     _, ext = os.path.splitext(filename)
-    if ext == '.gz' or ext == '.tar':
-        tar = tarfile.open(filename)
-        tar.extractall()
-        tar.close()
-        print('File is unarchived!!')
+    try:
+        if ext == '.gz' or ext == '.tar':
+            tar = tarfile.open(filename)
+            tar.extractall()
+            tar.close()
+        elif ext == '.zip':
+            zip_file = zipfile.ZipFile(filename)
+            zip_file.extractall()
+            zip_file.close()
+        else:
+            raise Exception('Unknown extension: %s' % ext)
+
+    except e:
+        raise e
+
+
+    print('File is unarchived!!')
+
 
 def process(url):
     filename = download(url)

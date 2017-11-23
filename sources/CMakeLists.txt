@@ -28,11 +28,13 @@ add_subdirectory(textures)
 # process_subdirectory(medium)
 # process_subdirectory(texture)
 
-# Build viewer
-if (SPICA_BUILD_GUI)
-  add_subdirectory(spicagui)
-endif()
-
+# ------------------------------------------------------------------------------
+# CUI/GUI environments
+# ------------------------------------------------------------------------------
 if (SPICA_BUILD_MAIN)
   add_subdirectory(spica)
+endif()
+
+if (SPICA_BUILD_GUI)
+  add_subdirectory(spicagui)
 endif()

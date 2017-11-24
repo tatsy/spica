@@ -160,14 +160,14 @@ int RenderParams::getInt(const std::string &name, bool remove) {
 int RenderParams::getInt(const std::string &name, int value, bool remove) {
     const auto it = ints.find(name);
     if (it != ints.cend()) {
+        if (remove) {
+            const int ret = it->second;
+            ints.erase(it);
+            return ret;
+        }
         return it->second;
     }
 
-    if (remove) {
-        const int ret = it->second;
-        ints.erase(it);
-        return ret;
-    }
     return value;
 }
 

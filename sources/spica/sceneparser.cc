@@ -189,6 +189,22 @@ void SceneParser::storeToParam(QDomNode &node) {
         if (name != "") {
             params_.add(name, value);
         }
+    } else if (nodeName == "spectrum") {
+        QString str = attrs.namedItem("value").nodeValue();
+        QStringList items = str.split(",");
+        std::vector<double> nm;
+        std::vector<double> specs;
+        Q_FOREACH(const QString &it, items) {
+            QStringList temp = it.split(":");
+            if (temp.length() >= 2) {
+                nm.push_back(temp[0].toDouble());
+                specs.push_back(temp[1].toDouble());
+            }
+        }
+        Spectrum value(nm, specs);
+        if (name != "") {
+            params_.add(name, value);
+        }
     } else if (nodeName == "transform") {
         Transform value = parseTransform(node);
         if (name != "") {

@@ -122,7 +122,7 @@ LowDiscrepancySampler::LowDiscrepancySampler(int samplesPerPixel, int nSampledDi
 }
 
 LowDiscrepancySampler::LowDiscrepancySampler(RenderParams &params)
-        : LowDiscrepancySampler{params.getInt("sampleCount", 32, true),
+        : LowDiscrepancySampler{params.getInt("sampleCount", 32),
                                 params.getInt("dimensions", 2, true)} {
 }
 

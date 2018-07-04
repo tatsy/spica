@@ -24,21 +24,21 @@ inline double bitsToDouble(uint64_t b) {
     return v;
 }
 
-AtomicDouble::AtomicDouble(double v) {
-    bits = doubleToBits(v);
+AtomicDouble::AtomicDouble(double v)
+    : bits(doubleToBits(v)) {
 }
 
 AtomicDouble::operator double() const {
-    return bitsToDouble(bits);   
+    return bitsToDouble(bits.load());
 }
 
 double AtomicDouble::operator=(double v) {
-    bits = doubleToBits(v);
+    bits.store(doubleToBits(v));
     return v;
 }
 
 void AtomicDouble::add(double v) {
-    uint64_t oldBits = bits;
+    uint64_t oldBits = bits.load();
     uint64_t newBits;
     do {
         newBits = doubleToBits(bitsToDouble(oldBits) + v);

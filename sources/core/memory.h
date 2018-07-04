@@ -12,6 +12,8 @@
 
 namespace spica {
 
+class alignas(128) MemoryArena;
+
 /**
  * Memory management class.
  * @details
@@ -21,7 +23,7 @@ namespace spica {
  * In addition, this class does not have explicit memory deleter.
  * This deallocates the memory space when the lifetime is finished.
  */
-class SPICA_EXPORTS alignas(128) MemoryArena : Uncopyable {
+class SPICA_EXPORTS MemoryArena : Uncopyable {
 public:
     MemoryArena(size_t blockSize = 262144);
     MemoryArena(MemoryArena&& arena) noexcept;

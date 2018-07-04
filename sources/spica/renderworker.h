@@ -5,17 +5,14 @@
 #ifndef _RENDER_WORKER_H_
 #define _RENDER_WORKER_H_
 
-#include <QtCore/qthread.h>
+#include <string>
 
-class RenderWorker : public QThread {
-    Q_OBJECT
-
+class RenderWorker {
 public:
     RenderWorker(const std::string &sceneFile);
     virtual ~RenderWorker();
 
-public slots:
-    void process();
+    void start();
 
 private:
     std::string sceneFile_;

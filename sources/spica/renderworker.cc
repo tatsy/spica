@@ -1,19 +1,22 @@
 #include "renderworker.h"
 
+#include <thread>
+
 #include "sceneparser.h"
 using namespace spica;
 
 RenderWorker::RenderWorker(const std::string &sceneFile)
-    : QThread()
-    , sceneFile_(sceneFile) {
-    connect(this, SIGNAL(started()), this, SLOT(process()));
+    : sceneFile_(sceneFile) {
 }
 
 RenderWorker::~RenderWorker() {
 }
 
-void RenderWorker::process() {
+void RenderWorker::start() {
     printf("Process started!\n");
     SceneParser parser(sceneFile_);
-    parser.parse();
+
+    std::thread([&]() {
+        parser.parse();
+    });
 }

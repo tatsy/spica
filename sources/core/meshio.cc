@@ -5,8 +5,8 @@
 #include <fstream>
 #include <sstream>
 
-#include "filesystem/path.h"
-namespace fs = filesystem;
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
@@ -124,8 +124,8 @@ std::vector<ShapeGroup> loadPLY(const std::string& filename,
                     ss >> val;
                     fs::path path(filename);
                     fs::path fileName(val);
-                    std::string dir = path.parent_path().str();
-                    std::string imgfile = (path.parent_path() / fileName).str();
+                    std::string dir = path.parent_path().string();
+                    std::string imgfile = (path.parent_path() / fileName).string();
                     // trimesh->setTexture(Image::fromFile(imgfile));
                 }
             } else {

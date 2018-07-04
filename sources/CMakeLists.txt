@@ -3,6 +3,16 @@
 # ------------------------------------------------------------------------------
 include_directories(${SPICA_DEPENDENCY_INCLUDE_DIRS})
 
+set(SUBMODULE_DIR "${CMAKE_CURRENT_LIST_DIR}/submodules")
+file(GLOB CHILDREN "${SUBMODULE_DIR}/*")
+foreach(F ${CHILDREN})
+    if(IS_DIRECTORY ${F})
+        include_directories(${F})
+    endif()
+endforeach()
+
+file(GLOB SUBMODULE_SOURCE_FILES "${SUBMODULE_DIR}/**/*.cpp" "${SUBMODULE_DIR}/**/*.h")
+
 # ------------------------------------------------------------------------------
 # Process subdirectories
 # ------------------------------------------------------------------------------
@@ -23,18 +33,9 @@ add_subdirectory(bsdfs)
 add_subdirectory(subsurface)
 add_subdirectory(textures)
 
-# process_subdirectory(image)
-# process_subdirectory(filter)
-# process_subdirectory(medium)
-# process_subdirectory(texture)
-
 # ------------------------------------------------------------------------------
 # CUI/GUI environments
 # ------------------------------------------------------------------------------
 if (SPICA_BUILD_MAIN)
-  add_subdirectory(spica)
-endif()
-
-if (SPICA_BUILD_GUI)
-  add_subdirectory(spicagui)
+    add_subdirectory(spica)
 endif()

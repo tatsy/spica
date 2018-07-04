@@ -8,17 +8,17 @@
 #include <vector>
 #include <algorithm>
 
-#include "filesystem/path.h"
-namespace fs = filesystem;
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 #include "core/common.h"
 #include "core/exception.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <stb_image.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include <stb_image_write.h>
 
 namespace spica {
 
@@ -408,9 +408,9 @@ void Image::saveHdr(const std::string& filename) const {
     ofs.write(buffer, strlen(buffer));
 
     std::vector<unsigned char> pixbuf;
-    for (unsigned int i = 0; i < height_; i++) {
+    for (int i = 0; i < height_; i++) {
         std::vector<HDRPixel> line;
-        for (unsigned int j = 0; j < width_; j++) {
+        for (int j = 0; j < width_; j++) {
             RGBSpectrum color = this->operator()(j, i);
             line.push_back(HDRPixel(color));
         }

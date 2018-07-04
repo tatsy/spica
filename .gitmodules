@@ -2,6 +2,12 @@
 	path = docs/html
 	url = https://github.com/tatsy/spica.git
 	branch = gh-pages
-[submodule "3rdparty/filesystem"]
-	path = 3rdparty/filesystem
-	url = https://github.com/wjakob/filesystem.git
+[submodule "sources/submodules/tinyobjloader"]
+	path = sources/submodules/tinyobjloader
+	url = https://github.com/syoyo/tinyobjloader.git
+[submodule "sources/submodules/tinyxml2"]
+	path = sources/submodules/tinyxml2
+	url = https://github.com/leethomason/tinyxml2
+[submodule "sources/submodules/stb"]
+	path = sources/submodules/stb
+	url = https://github.com/nothings/stb

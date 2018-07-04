@@ -5,24 +5,17 @@
 #ifndef KILL_TIMER_H
 #define KILL_TIMER_H
 
-#include <memory>
+#include <cstdint>
 
-#include <QtCore/qtimer.h>
-#include <QtCore/qthread.h>
-#include <QtCore/qelapsedtimer.h>
-
-class KillTimer : public QThread {
-    Q_OBJECT
-
+class KillTimer {
 public:
-    KillTimer(QObject *parent = nullptr);
-    KillTimer(int hour, int minute, int second, QObject *parent = nullptr);
+    KillTimer();
+    KillTimer(int hour, int minute, int second);
 
-    void run() override;
+    void start();
     void setExpire(int hour, int minute, int second);
 
 private:
-    QElapsedTimer timer;
     uint64_t expire;
 };
 

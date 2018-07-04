@@ -5,17 +5,18 @@
 #ifndef _SPICA_PARALLEL_H_
 #define _SPICA_PARALLEL_H_
 
+#include <iostream>
 #include <atomic>
 #include <functional>
 
-#include "common.h"
+#include "core/common.h"
 
 namespace spica {
 
 class SPICA_EXPORTS AtomicDouble {
 public:
     explicit AtomicDouble(double v = 0.0);
-    operator double() const;
+    explicit operator double() const;
     double operator=(double v);
     void add(double v);
 

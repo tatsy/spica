@@ -1,10 +1,9 @@
-#include <QtWidgets/qapplication.h>
-#include <QtCore/qcommandlineparser.h>
-#include <QtCore/qfileinfo.h>
-#include <QtCore/qdir.h>
-
 #include <iostream>
+#include <string>
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
+#include "core/argparse.h"
 #include "core/renderparams.h"
 using namespace spica;
 
@@ -13,57 +12,39 @@ using namespace spica;
 
 static constexpr int DEFAULT_NUM_THREADS = 0;
 
-int main(int argc, char** argv) {
-    QApplication app(argc, argv);
-    QApplication::setApplicationName("spica runtime");
+std::string remove_extension(const std::string &path) {
+    size_t p = path.find_last_of(".");
+    return path.substr(0, p);
+}
 
-    // Prepare for parsing command line arguments.
-    QCommandLineParser parser;
-    parser.setApplicationDescription("The spica renderer runtime.");
-    parser.addHelpOption();
-    parser.addOptions({
-        {{"i", "input"},
-            QApplication::translate("main", "Input XML file defining the rendering scene (Required)"),
-            QCoreApplication::translate("main", "input")},
-        {"threads",
-            QApplication::translate("main", "# of threads to use for rendering (default = ALL)"),
-            QApplication::translate("main", "threads")},
-        {{"o", "output"},
-            QApplication::translate("main", "Base of output filename (default = (basename of XML)"),
-            QApplication::translate("main", "output")},
-        {"gui",
-            QApplication::translate("main", "Show GUI if this options is set (default = OFF)")}
-    });
-    parser.process(app);
+int main(int argc, char** argv) {
+    ArgumentParser parser;
+    try {
+        parser.addArgument("-i", "--input", "", true);
+        parser.addArgument("-t", "--threads", "4");
+        parser.addArgument("-o", "--output", "");
+        if (!parser.parse(argc, argv)) {
+            std::cout << parser.helpText() << std::endl;
+        }
+    } catch (std::runtime_error &e) {
+        std::cout << e.what() << std::endl;
+        return 1;
+    }
 
     // Store option values to variables
-    std::string sceneFile = "";
-    if (parser.isSet("input")) {
-        sceneFile = parser.value("input").toStdString();
-    } else {
-        std::cout << parser.helpText().toStdString() << std::endl;
-        return -1;
-    }
+    std::string sceneFile = parser.getString("input");
     printf("Scene: %s\n", sceneFile.c_str());
 
-    int nThreads = DEFAULT_NUM_THREADS;
-    if (parser.isSet("threads")) {
-        nThreads = parser.value("threads").toInt();
-    }
+    int nThreads = parser.getInt("threads");
+    printf("#threads: %d\n", nThreads);
 
     std::string outfile = "";
-    if (parser.isSet("output")) {
-        outfile = parser.value("output").toStdString();
+    if (parser.getString("output") != "") {
+        outfile = parser.getString("output");
     } else {
-        QFileInfo fileinfo(sceneFile.c_str());
-        outfile = fileinfo.absoluteFilePath().split(".", QString::SkipEmptyParts).at(0).toStdString();    
+        fs::path path(sceneFile.c_str());
+        outfile = remove_extension(fs::absolute(path).string());
     }
-
-    bool enableGui = false;
-    if (parser.isSet("gui")) {
-        enableGui = true;
-    }
-    printf("GUI: %s\n", enableGui ? "ON" : "OFF");
 
     // Set parameters
     RenderParams &params = RenderParams::getInstance();
@@ -75,6 +56,4 @@ int main(int argc, char** argv) {
 
     RenderWorker worker(sceneFile);
     worker.start();
-
-    return app.exec();
 }

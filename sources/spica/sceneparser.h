@@ -6,7 +6,7 @@
 #define _SPICA_SCENE_PARSER_
 
 #include <string>
-#include <QtXml/qdom.h>
+#include <tinyxml2.h>
 
 #include "core/cobject.h"
 #include "core/renderparams.h"
@@ -23,13 +23,13 @@ public:
 
 
 private:
-    void parseChildren(QDomNode &node);
-    Transform parseTransform(QDomNode &node);
+    void parseChildren(tinyxml2::XMLNode &node);
+    Transform parseTransform(tinyxml2::XMLNode &node);
     std::shared_ptr<Primitive> createPrimitive(const std::shared_ptr<Shape> &shape,
                                                const Transform &transform,
                                                const std::shared_ptr<Material> &material);
 
-    void storeToParam(QDomNode &node);
+    void storeToParam(tinyxml2::XMLNode &node);
 
     std::string xmlFile_;
     PluginManager &plugins_;

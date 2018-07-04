@@ -3,11 +3,6 @@
 #include <memory>
 #include <stdexcept>
 
-#include <QtCore/qfile.h>
-#include <QtCore/qdir.h>
-#include <QtCore/qfileinfo.h>
-#include <QtXml/qdom.h>
-
 #include "core/cobject.h"
 #include "core/parallel.h"
 #include "core/camera.h"

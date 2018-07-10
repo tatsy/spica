@@ -3,9 +3,9 @@ link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 file(GLOB SOURCE_FILES "*.cc" "*.h")
 
-add_executable(${SPICA_MAIN} ${SOURCE_FILES})
+add_executable(${SPICA_MAIN} ${SOURCE_FILES} ${SUBMODULE_SOURCE_FILES})
 add_dependencies(${SPICA_MAIN} ${SPICA_LIBCORE} ${SPICA_LIBRENDER})
-target_link_libraries(${SPICA_MAIN} ${SPICA_LIBCORE} ${QT_LIBRARIES})
+target_link_libraries(${SPICA_MAIN} ${SPICA_LIBCORE})
 
 source_group("Source Files" FILES ${SOURCE_FILES} ${SUBMODULE_SOURCE_FILES})
 

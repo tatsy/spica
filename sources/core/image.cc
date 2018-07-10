@@ -183,7 +183,7 @@ void Image::swap(Image &image) {
 
 void Image::load(const std::string& filename) {
     fs::path path(filename);
-    const std::string ext = path.extension();
+    const std::string ext = path.extension().string();
 
     if (ext == "bmp") {
         loadBmp(filename);
@@ -198,7 +198,7 @@ void Image::load(const std::string& filename) {
 
 void Image::save(const std::string& filename) const {
     fs::path path(filename);
-    const std::string ext = path.extension();
+    const std::string ext = path.extension().string();
 
     if (ext == "bmp") {
         saveBmp(filename);

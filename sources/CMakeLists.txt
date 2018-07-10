@@ -12,6 +12,8 @@ foreach(F ${CHILDREN})
 endforeach()
 
 file(GLOB SUBMODULE_SOURCE_FILES "${SUBMODULE_DIR}/**/*.cpp" "${SUBMODULE_DIR}/**/*.h")
+list(FILTER SUBMODULE_SOURCE_FILES EXCLUDE REGEX ".*xmltest.cpp$")
+message(STATUS ${SUBMODULE_SOURCE_FILES})
 
 # ------------------------------------------------------------------------------
 # Process subdirectories

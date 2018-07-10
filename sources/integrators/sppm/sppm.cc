@@ -113,7 +113,7 @@ void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
                 double r2new = pixel.r2 * nnew / (pixel.n + pixel.m);
                 Spectrum phi;
                 for (int ch = 0; ch < Spectrum::channels; ch++) {
-                    phi.ref(ch) = pixel.phi[ch];
+                    phi.ref(ch) = (double)pixel.phi[ch];
                 }
                 pixel.tau = (pixel.tau + pixel.vp.beta * phi) * 
                             (r2new / pixel.r2);

@@ -12,7 +12,7 @@ before_install:
   - if [ $TRAVIS_BRANCH = "master" ]; then sudo apt-get -qq install doxygen; fi
 
   # Install gcc/g++ v7
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+  - sudo add-apt-repository -yy ppa:ubuntu-toolchain-r/test
   - sudo apt update
   - sudo apt install -qq gcc-7 g++-7
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7

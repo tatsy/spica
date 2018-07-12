@@ -30,7 +30,6 @@ PluginManager &PluginManager::getInstance() {
 }
 
 void PluginManager::initModule(const std::string &moduleName) {
-
     ModuleHandle hModule = LoadModule(moduleName);
     Assertion(hModule != NULL, "Failed to load module: %s", moduleName.c_str());
 
@@ -39,7 +38,6 @@ void PluginManager::initModule(const std::string &moduleName) {
         "The method \"createInstance\" is not defined for module: %s", moduleName.c_str());
     registerInitializer(moduleName, initializer);
 }
-
 
 void PluginManager::initAccelerator(const std::string &moduleName) {
     ModuleHandle hModule = LoadModule(moduleName);

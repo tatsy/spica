@@ -141,7 +141,6 @@ bool RenderParams::getBool(const std::string &name, bool value, bool remove) {
             return ret;
         }
     }
-
     return value;
 }
 
@@ -387,7 +386,6 @@ std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, bool 
         return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(d));
     }
 
-    //Warning("Texture not found: name = \"%s\"", name.c_str());
     return nullptr;
 }
 

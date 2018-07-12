@@ -17,15 +17,12 @@ namespace spica {
 class SceneParser {
 public:
     SceneParser();
-
     SceneParser(const std::string &file);
 
     void parse();
 
-
 private:
     void parseChildren(const tinyxml2::XMLElement *node);
-
     Transform parseTransform(const tinyxml2::XMLElement *node);
 
     std::shared_ptr<Primitive> createPrimitive(const std::shared_ptr<Shape> &shape,

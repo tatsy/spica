@@ -48,7 +48,7 @@ void sampleTrowbridgeReitz11(double cosTheta,
         U = 2.0 * (0.5 - rands[1]);
     }
 
-    double z = (U * (U * (U * 0.27385 - 0.73369) + 0.46341)) / 
+    double z = (U * (U * (U * 0.27385 - 0.73369) + 0.46341)) /
                (U * (U * (U * 0.093073 + 0.309420) - 1.0) + 0.597999);
     *slopey = S * z * std::sqrt(1.0 + (*slopex) * (*slopex));
     Assertion(!std::isinf(*slopey), "slopey is infinity.");
@@ -58,9 +58,9 @@ void sampleTrowbridgeReitz11(double cosTheta,
 static Vector3d sampleTrowbridgeReitz(const Vector3d& wi,
                                double alphax, double alphay,
                                const Point2d& rands) {
-    Vector3d wiStretched = 
+    Vector3d wiStretched =
         Vector3d(alphax * wi.x(), alphay * wi.y(), wi.z()).normalized();
-    
+
     double slopex, slopey;
     sampleTrowbridgeReitz11(vect::cosTheta(wiStretched), rands, &slopex, &slopey);
 
@@ -142,7 +142,7 @@ static Vector3d beckmannSample(const Vector3d &wi, double alphax, double alphay,
     // 2. Simulate P22_{wi}(x_slope, y_slope, 1, 1)
     double slopex, slopey;
     beckmannSample11(vect::cosTheta(wiStretched), U1, U2, &slopex, &slopey);
- 
+
     // 3. Rotate
     const double tmp = vect::cosPhi(wiStretched) * slopex - vect::sinPhi(wiStretched) * slopey;
     slopey = vect::sinPhi(wiStretched) * slopex + vect::cosPhi(wiStretched) * slopey;
@@ -181,7 +181,7 @@ double MicrofacetDistribution::G(const Vector3d& wo, const Vector3d& wi, const V
     // Note that another form G1(wi) * G1(wo) is used in Mitsuba.
     if (wi.z() * vect::dot(wi, wh) <= 0.0) return 0.0;
     if (wo.z() * vect::dot(wo, wh) <= 0.0) return 0.0;
-    return 1.0 / (1.0 + lambda(wo) + lambda(wi));    
+    return 1.0 / (1.0 + lambda(wo) + lambda(wi));
 }
 
 double MicrofacetDistribution::pdf(const Vector3d& wo, const Vector3d& wh) const {
@@ -230,7 +230,7 @@ Vector3d TrowbridgeReitzDistribution::sample(const Vector3d& wo,
             double cosPhi = std::cos(phi);
             double alphax2 = alphax_ * alphax_;
             double alphay2 = alphay_ * alphay_;
-            double alpha2 = 
+            double alpha2 =
                 1.0 / (cosPhi * cosPhi / alphax2 + sinPhi * sinPhi / alphay2);
             double tanTheta2 = alpha2 * rands[0] / (1.0 - rands[0]);
             cosTheta = 1.0 / std::sqrt(1.0 + tanTheta2);
@@ -258,7 +258,7 @@ double TrowbridgeReitzDistribution::lambda(const Vector3d& w) const {
     double absTanTheta = std::abs(vect::tanTheta(w));
     if (std::isinf(absTanTheta)) return 0.0;
 
-    double alpha = std::sqrt(vect::cos2Phi(w) * alphax_ * alphax_ + 
+    double alpha = std::sqrt(vect::cos2Phi(w) * alphax_ * alphax_ +
                              vect::sin2Phi(w) * alphay_ * alphay_);
     double aInv = alpha * absTanTheta;
     double aSign = aInv >= 0.0 ? 1.0 : -1.0;
@@ -349,7 +349,7 @@ double BeckmannDistribution::lambda(const Vector3d &w) const {
     const double a = 1.0 / (alpha * absTanTheta);
     if (a >= 1.6) return 0.0;
 
-    // Below is an approximation of following equation in [0, 1.6] 
+    // Below is an approximation of following equation in [0, 1.6]
     // (erf(a) - 1) / 2 + (1 / (2 * a * sqrt(pi)) * exp(-a * a)
     return (1.0 - 1.259 * a + 0.396 * a * a) / (3.535 * a + 2.181 * a * a);
 }

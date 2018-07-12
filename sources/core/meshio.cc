@@ -180,7 +180,7 @@ std::vector<ShapeGroup> loadOBJ(const std::string& filename,
 //    if (!errors.empty()) {
 //        Warning(errors.c_str());
 //    }
-    
+
     if (!success) {
         FatalError("Failed to open OBJ file \"%s\" !!", filename.c_str());    
     }

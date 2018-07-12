@@ -128,7 +128,7 @@ RoughPlastic::RoughPlastic(RenderParams &params)
 void RoughPlastic::setScatterFuncs(SurfaceInteraction* isect,
                                       MemoryArena& arena) const {
     if (bumpMap_) bump(isect, bumpMap_);
-    
+
     const Spectrum kd = Kd_->evaluate(*isect);
     const Spectrum ks = Ks_->evaluate(*isect);
     const double eta = index_->evaluate(*isect);

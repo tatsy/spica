@@ -68,10 +68,6 @@ SPICA_EXPORTS
 void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
                        double minDist, std::vector<Interaction>* points);
 
-//SPICA_EXPORTS
-//void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
-//                       double minDist, std::vector<SurfaceInteraction>* points);
-
 }  // namespace spica
 
 #endif  // SPICA_SAMPLING_H_

@@ -3,4 +3,3 @@ macro(add_accelerator)
 endmacro()
 
 add_accelerator(bvh    bvh.cc bvh.h)
-#add_accelerator(kdtree kdtree.cc kdtree.h)

@@ -111,7 +111,7 @@ Plastic::Plastic(RenderParams &params)
 void Plastic::setScatterFuncs(SurfaceInteraction* isect,
                               MemoryArena& arena) const {
     if (bumpMap_) bump(isect, bumpMap_);
-    
+
     const Spectrum kd = Kd_->evaluate(*isect);
     const Spectrum ks = Ks_->evaluate(*isect);
     const double eta = eta_->evaluate(*isect);

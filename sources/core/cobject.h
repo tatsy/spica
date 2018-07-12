@@ -34,7 +34,7 @@ public:
     void initModule(const std::string &moduleName);
     void initAccelerator(const std::string &moduleName);
     CObject *createObject(const std::string &name, RenderParams &params) const;
-    Accelerator *createAccelerator(const std::string &name, 
+    Accelerator *createAccelerator(const std::string &name,
                                    const std::vector<std::shared_ptr<Primitive>> &primitives,
                                    RenderParams &params) const;
 
@@ -73,7 +73,5 @@ private:
             return descr; \
         } \
     }
-
-
 
 #endif  // _SPICA_COBJECT_H_

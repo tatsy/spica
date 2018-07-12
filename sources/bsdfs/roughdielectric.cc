@@ -59,10 +59,10 @@ void RoughDielectric::setScatterFuncs(SurfaceInteraction* isect,
         // Non-specular reflection
         if (remapRoughness_) {
             if (distribution_ == "beckmann") {
-                uRough = BeckmannDistribution::roughnessToAlpha(uRough);   
-                vRough = BeckmannDistribution::roughnessToAlpha(vRough);            
+                uRough = BeckmannDistribution::roughnessToAlpha(uRough);
+                vRough = BeckmannDistribution::roughnessToAlpha(vRough);
             } else if (distribution_ == "ggx") {
-                uRough = TrowbridgeReitzDistribution::roughnessToAlpha(uRough);   
+                uRough = TrowbridgeReitzDistribution::roughnessToAlpha(uRough);
                 vRough = TrowbridgeReitzDistribution::roughnessToAlpha(vRough);
             }
         }

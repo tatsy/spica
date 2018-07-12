@@ -18,22 +18,22 @@
 
 namespace spica {
 
-/** Random sampler class.
- *  @ingroup random_module
- */
-class SPICA_EXPORTS Sampler : public CObject, Uncopyable {
-public:
-    virtual ~Sampler() {}
+    /** Random sampler class.
+     *  @ingroup random_module
+     */
+    class SPICA_EXPORTS Sampler : public CObject, Uncopyable {
+    public:
+        virtual ~Sampler() {}
 
-    virtual double  get1D() = 0;
-    virtual Point2d get2D() {
-        return Point2d{ get1D(), get1D() };
-    }
+        virtual double  get1D() = 0;
+        virtual Point2d get2D() {
+            return Point2d{ get1D(), get1D() };   
+        }
 
-    virtual bool startNextSample() { return true; }
+        virtual bool startNextSample() { return true; }
 
-    virtual std::unique_ptr<Sampler> clone(unsigned int seed = 0) const = 0;
-};
+        virtual std::unique_ptr<Sampler> clone(unsigned int seed = 0) const = 0;
+    };
 
 }  // namespace spica
 

@@ -5,10 +5,10 @@ compiler:
 
 before_install:
   # Install required packages
-  - sudo apt-get -qq update
-  - sudo apt-get -qq upgrade
-  - sudo apt-get -qq install build-essentials software-properties-common cmake
-  - sudo apt-get -qq install byobu curl wget git htop man unzip vim wget subversion
+  - sudo apt -qq update
+  # - sudo apt -qq upgrade
+  - sudo apt -qq install build-essentials software-properties-common cmake
+  - sudo apt -qq install byobu curl wget git htop man unzip vim wget subversion
   - if [ $TRAVIS_BRANCH = "master" ]; then sudo apt-get -qq install doxygen; fi
 
   # Install gcc/g++ v7
@@ -18,6 +18,8 @@ before_install:
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
   - gcc --version
   - g++ --version
+  - export CC=gcc
+  - export CXX=g++
 
   # Install GoogleTest
   - git clone --depth=1 -b release-1.7.0 https://github.com/google/googletest.git

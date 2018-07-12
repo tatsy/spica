@@ -7,13 +7,13 @@ before_install:
   # Install required packages
   - sudo apt -qq update
   # - sudo apt -qq upgrade
-  - sudo apt -qq install build-essential software-properties-common cmake
+  - sudo apt -qq install build-essential software-properties-common cmake lcov
   - sudo apt -qq install byobu curl wget git htop man unzip vim wget subversion
   - if [ $TRAVIS_BRANCH = "master" ]; then sudo apt-get -qq install doxygen; fi
 
   # Install gcc/g++ v7
   - sudo add-apt-repository -yy ppa:ubuntu-toolchain-r/test
-  - sudo apt update
+  - sudo apt -qq update
   - sudo apt install -qq gcc-7 g++-7
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
   - gcc --version
@@ -26,23 +26,18 @@ before_install:
   - mkdir googletest/build && cd googletest/build
   - cmake -D CMAKE_BUILD_TYPE=Release .. && make -j4
   - sudo make install
+  - cd ../../
 
   # Install Gcovr
   - sudo apt-get -qq install python-pip ruby
-  - pip install gcovr
-  - gem install coveralls-lcov
+  - sudo pip install gcovr
+  - sudo gem install coveralls-lcov
 
 install:
   # Build
   - mkdir build && cd build
-  - cmake -D CMAKE_BUILD_TYPE=Release -D SPICA_BUILD_MAIN=ON -D SPICA_BUILD_TESTS=ON -WITH_SSE=ON ..
+  - cmake -D CMAKE_BUILD_TYPE=Release -D SPICA_BUILD_MAIN=ON -D SPICA_BUILD_TESTS=ON -D WITH_SSE=ON ..
   - cmake --build .
-
-  # Dynamically generate Dockerfile
-  - sed -i -e "s/@C_COMPILER@/$CC/;s/@CXX_COMPILER@/$CXX/;s/@BRANCH_NAME@/$TRAVIS_BRANCH/;s/@PULL_REQUEST@/$TRAVIS_PULL_REQUEST/" Dockerfile
-
-  # Build Dockerfile
-  - docker build --tag=spica-env .
 
 before_script:
   - lcov --directory . --zerocounters
@@ -53,9 +48,8 @@ script:
 
 after_success:
   ## Collect coverage data
-  - if [ $CXX = "g++"     ]; then docker exec spica-env lcov --directory . --capture --output-file coverage.info; fi
-  - if [ $CXX = "clang++" ]; then docker exec spica-env lcov --directory . --capture --output-file coverage.info; fi
-  - lcov --remove coverage.info '3rdparty/*' 'sources/renderer/*' 'sources/viewer/*' 'tests/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
+  - lcov --directory . --capture --output-file coverage.info
+  - lcov --remove coverage.info 'tests/*' '/usr/*' 'CMakeFiles/*' --output-file coverage.info
   - lcov --list coverage.info
   - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
@@ -76,7 +70,7 @@ deploy:
     - packages/releases-$TRAVIS_TAG.zip
   on:
     tags: true
-    condition: $CXX=clang++
+    condition: $CXX=g++
 
 branches:
   only:

@@ -5,7 +5,7 @@ file(GLOB SOURCE_FILES "*.cc" "*.h")
 
 add_executable(${SPICA_MAIN} ${SOURCE_FILES} ${SUBMODULE_SOURCE_FILES})
 add_dependencies(${SPICA_MAIN} ${SPICA_LIBCORE} ${SPICA_LIBRENDER})
-target_link_libraries(${SPICA_MAIN} ${SPICA_LIBCORE})
+target_link_libraries(${SPICA_MAIN} ${SPICA_LIBCORE} ${CMAKE_FS_LIBS} ${CMAKE_DL_LIBS})
 
 source_group("Source Files" FILES ${SOURCE_FILES} ${SUBMODULE_SOURCE_FILES})
 

@@ -44,7 +44,7 @@ if (${SPICA_BUILD_TESTS})
     target_link_libraries(${TEST_NAME} ${SPICA_LIBCORE})
 
     if (LINUX)
-        target_link_libraries(${TEST_NAME} ${CMAKE_DL_LIBS})
+        target_link_libraries(${TEST_NAME} ${CMAKE_FS_LIBS} ${CMAKE_DL_LIBS})
     endif()
 
     if (MSVC)

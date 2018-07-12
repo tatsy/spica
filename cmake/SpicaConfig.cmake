@@ -77,7 +77,7 @@ macro(add_spica_corelib _corelib_name)
   endif()
 
   if (_corelib_LINK_LIBRARIES)
-    target_link_libraries(${_corelib_name} ${_corelib_LINK_LIBRARIES})
+    target_link_libraries(${_corelib_name} ${_corelib_LINK_LIBRARIES} ${CMAKE_FS_LIBS} ${CMAKE_DL_LIBS})
     add_dependencies(${_corelib_name} ${_corelib_LINK_LIBRARIES})
   endif()
 
@@ -107,8 +107,8 @@ macro(add_spica_plugin _plugin_name)
 
   # Link setting
   set(_plugin_core_libraries "${SPICA_PREFIX}_core")
-  target_link_libraries(${_plugin_name} ${_plugin_core_libraries})
-  target_link_libraries(${_plugin_name} ${_plugin_LINK_LIBRARIES})
+  target_link_libraries(${_plugin_name} ${_plugin_core_libraries} ${CMAKE_FS_LIBS} ${CMAKE_DL_LIBS})
+  target_link_libraries(${_plugin_name} ${_plugin_LINK_LIBRARIES} ${CMAKE_FS_LIBS} ${CMAKE_DL_LIBS})
 
   # Folder setting
   set(_plugin_FOLDER "plugins")

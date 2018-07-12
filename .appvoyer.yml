@@ -1,0 +1,18 @@
+image: Visual Studio 2017
+
+platform:
+  - x86
+  - x64
+
+configuration:
+  - Debug
+  - Release
+
+install:
+  - mkdir build
+  - cd build
+
+build_script:
+  - if %platform%==x86 set generator=Visual Studio 15 2017
+  - if %platform%==x64 set generator=Visual Studio 15 2017 Win64
+  - cmake -G "%generator%" -D CMAKE_BUILD_TYPE=%configuration% -D SPICA_BUILD_MAIN -D WITH_SSE=ON ..

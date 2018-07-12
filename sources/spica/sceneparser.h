@@ -17,19 +17,22 @@ namespace spica {
 class SceneParser {
 public:
     SceneParser();
+
     SceneParser(const std::string &file);
-    
+
     void parse();
 
 
 private:
-    void parseChildren(tinyxml2::XMLNode &node);
-    Transform parseTransform(tinyxml2::XMLNode &node);
+    void parseChildren(const tinyxml2::XMLElement *node);
+
+    Transform parseTransform(const tinyxml2::XMLElement *node);
+
     std::shared_ptr<Primitive> createPrimitive(const std::shared_ptr<Shape> &shape,
                                                const Transform &transform,
                                                const std::shared_ptr<Material> &material);
 
-    void storeToParam(tinyxml2::XMLNode &node);
+    void storeToParam(const tinyxml2::XMLElement *node);
 
     std::string xmlFile_;
     PluginManager &plugins_;
@@ -41,6 +44,6 @@ private:
     bool waitAreaLight_ = false;
 };
 
-}  // namespace spica
+}
 
 #endif  // _SPICA_SCENE_PARSER_

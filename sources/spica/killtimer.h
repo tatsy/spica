@@ -6,6 +6,7 @@
 #define KILL_TIMER_H
 
 #include <cstdint>
+#include <thread>
 
 class KillTimer {
 public:
@@ -16,7 +17,8 @@ public:
     void setExpire(int hour, int minute, int second);
 
 private:
-    uint64_t expire;
+    uint64_t expire_;
+    std::thread thread_;
 };
 
 #endif  // KILL_TIMER_H

@@ -6,16 +6,26 @@
 #define _RENDER_WORKER_H_
 
 #include <string>
+#include <thread>
 
+#include "sceneparser.h"
+
+namespace spica {
+
+//! Render workder
 class RenderWorker {
 public:
     RenderWorker(const std::string &sceneFile);
+
     virtual ~RenderWorker();
 
     void start();
 
 private:
-    std::string sceneFile_;
+    SceneParser parser_;
+    std::thread thread_;
 };
+
+}  // namespace spica
 
 #endif  // _RENDER_WORKER_H_

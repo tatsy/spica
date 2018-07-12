@@ -6,6 +6,7 @@
 #include <cstring>
 #include <fstream>
 #include <vector>
+#include <string>
 #include <algorithm>
 
 #include <experimental/filesystem>
@@ -198,13 +199,14 @@ void Image::load(const std::string& filename) {
 
 void Image::save(const std::string& filename) const {
     fs::path path(filename);
-    const std::string ext = path.extension().string();
+    std::string ext = path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-    if (ext == "bmp") {
+    if (ext == ".bmp") {
         saveBmp(filename);
-    } else if (ext == "hdr") {
+    } else if (ext == ".hdr") {
         saveHdr(filename);
-    } else if (ext == "png") {
+    } else if (ext == ".png") {
         savePng(filename);
     } else {
         throw RuntimeException("Unknown file extension: %s", ext.c_str());

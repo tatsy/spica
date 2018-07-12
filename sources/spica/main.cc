@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
         outfile = parser.getString("output");
     } else {
         fs::path path(sceneFile.c_str());
-        outfile = remove_extension(fs::absolute(path).string());
+        outfile = remove_extension(fs::canonical(fs::absolute(path)).string());
     }
 
     // Set parameters
@@ -51,8 +51,8 @@ int main(int argc, char** argv) {
     params.add("numUserThreads", nThreads);
     params.add("outputFile", outfile);
 
-    KillTimer timer(0, 4, 30);
-    timer.start();
+//    KillTimer timer(0, 4, 30);
+//    timer.start();
 
     RenderWorker worker(sceneFile);
     worker.start();

@@ -4,9 +4,9 @@
 using namespace spica;
 
 #include <string>
+#include <experimental/filesystem>
 
-#include "filesystem/path.h"
-namespace fs = filesystem;
+namespace fs = std::experimental::filesystem;
 
 namespace {
 

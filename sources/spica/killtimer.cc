@@ -23,6 +23,7 @@ void killer(uint64_t expire) {
 }  // anonymous namespace
 
 KillTimer::KillTimer() {
+    thread_.join();
 }
 
 KillTimer::KillTimer(int hour, int minute, int second) {
@@ -30,9 +31,9 @@ KillTimer::KillTimer(int hour, int minute, int second) {
 }
 
 void KillTimer::setExpire(int hour, int minute, int second) {
-    expire = (uint64_t)((hour * 60 + minute) * 60 + second) * 1000;
+    expire_ = (uint64_t)((hour * 60 + minute) * 60 + second) * 1000;
 }
 
 void KillTimer::start() {
-    std::thread th(killer, expire);
+    thread_ = std::thread(killer, expire_);
 }

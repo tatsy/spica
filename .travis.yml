@@ -54,7 +54,7 @@ after_success:
   - coveralls-lcov --repo-token RiYcPJSCbPZoogMd1PE10696EAqG8sl5q coverage.info
 
 before_deploy:
-  - pip install sphinx breathe sphinx_rtd_theme
+  - sudo pip install sphinx breathe sphinx_rtd_theme
   - "cd docs; /bin/bash deploy.sh; cd -"
   - mkdir packages
   - tar czvf packages/releases-$TRAVIS_TAG.tar.gz $(ls -I packages)

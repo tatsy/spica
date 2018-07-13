@@ -321,9 +321,8 @@ void SceneParser::storeToParam(const XMLElement *elem) {
 
             if (id != "") {
                 params_.add(id, value);
-            } else {
-                params_.add(nodeName, value);
             }
+            params_.add(nodeName, value);
         }
 
         if (nodeName == "sensor") {

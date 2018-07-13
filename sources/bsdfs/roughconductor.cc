@@ -57,16 +57,21 @@ void RoughConductor::setScatterFuncs(SurfaceInteraction* isect,
     const Spectrum k = k_->evaluate(*isect);
     Fresnel* fresnel = arena.allocate<FresnelConductor>(Spectrum(1.0), eta, k);
 
-    MicrofacetDistribution* distrib = nullptr;
-    if (distribution_ == "beckmann") {
-        distrib = arena.allocate<BeckmannDistribution>(uRough, vRough);
-    } else if (distribution_ == "ggx") {
-        distrib = arena.allocate<TrowbridgeReitzDistribution>(uRough, vRough);
+    bool isSpecular = uRough == 0 && vRough == 0;
+    if (isSpecular) {
+        isect->bsdf()->add(arena.allocate<SpecularReflection>(Spectrum(1.0), fresnel));
     } else {
-        FatalError("Unknown micforacet distribution type: %s", distribution_.c_str());
-    }
+        MicrofacetDistribution *distrib = nullptr;
+        if (distribution_ == "beckmann") {
+            distrib = arena.allocate<BeckmannDistribution>(uRough, vRough);
+        } else if (distribution_ == "ggx") {
+            distrib = arena.allocate<TrowbridgeReitzDistribution>(uRough, vRough);
+        } else {
+            FatalError("Unknown micforacet distribution type: %s", distribution_.c_str());
+        }
 
-    isect->bsdf()->add(arena.allocate<MicrofacetReflection>(Spectrum(1.0), distrib, fresnel));
+        isect->bsdf()->add(arena.allocate<MicrofacetReflection>(Spectrum(1.0), distrib, fresnel));
+    }
 }
 
 }  // namespace spica

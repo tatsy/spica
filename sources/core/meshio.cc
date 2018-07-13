@@ -233,7 +233,7 @@ std::vector<ShapeGroup> loadOBJ(const std::string& filename,
                                                  texcoords[i + 0], texcoords[i + 1], texcoords[i + 2], objectToWorld);
             } else if (hasNormal) {
                 tri = std::make_shared<Triangle>(positions[i + 0], positions[i + 1], positions[i + 2],
-                                                 normals[i + 1], normals[i + 1], normals[i + 2], objectToWorld);            
+                                                 normals[i + 0], normals[i + 1], normals[i + 2], objectToWorld);
             } else {
                 tri = std::make_shared<Triangle>(positions[i + 0], positions[i + 1], positions[i + 2], objectToWorld);
             }

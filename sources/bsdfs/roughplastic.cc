@@ -132,7 +132,7 @@ void RoughPlastic::setScatterFuncs(SurfaceInteraction* isect,
     const Spectrum kd = Kd_->evaluate(*isect);
     const Spectrum ks = Ks_->evaluate(*isect);
     const double eta = index_->evaluate(*isect).gray();
-    double rough = roughness_->evaluate(*isect).gray();
+    double rough = std::max(0.001, roughness_->evaluate(*isect).gray());
     
     isect->setBSDF(arena.allocate<BSDF>(*isect));
     if (!ks.isBlack()) {

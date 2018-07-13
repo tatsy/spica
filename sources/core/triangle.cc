@@ -38,13 +38,17 @@ Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
                objectToWorld.apply(p1),
                objectToWorld.apply(p2) }
     , normals_{ Normal3d(objectToWorld.apply(Vector3d(n0))).normalized(),
-                Normal3d(objectToWorld.apply(Vector3d(n1))).normalized(), 
+                Normal3d(objectToWorld.apply(Vector3d(n1))).normalized(),
                 Normal3d(objectToWorld.apply(Vector3d(n2))).normalized() }
     , uvs_{} {
     // Compute normals
     const Vector3d e1 = points_[1] - points_[0];
     const Vector3d e2 = points_[2] - points_[0];
-    faceNormal_ = Normal3d(Vector3d::cross(e1, e2).normalized());
+    faceNormal_ = Normal3d(vect::cross(e1, e2));
+    if (faceNormal_.norm() < EPS) {
+        faceNormal_ = (normals_[0] + normals_[1] + normals_[2]) / 3.0;
+    }
+    faceNormal_ = vect::normalize(faceNormal_);
 }
 
 Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
@@ -56,7 +60,7 @@ Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
                objectToWorld.apply(p1),
                objectToWorld.apply(p2) }
     , normals_{ Normal3d(objectToWorld.apply(Vector3d(n0))).normalized(),
-                Normal3d(objectToWorld.apply(Vector3d(n1))).normalized(), 
+                Normal3d(objectToWorld.apply(Vector3d(n1))).normalized(),
                 Normal3d(objectToWorld.apply(Vector3d(n2))).normalized() }
     , uvs_{ uv0, uv1, uv2 } {
     // Compute normals
@@ -64,7 +68,7 @@ Triangle::Triangle(const Point3d& p0, const Point3d& p1, const Point3d& p2,
     const Vector3d e2 = points_[2] - points_[0];
     faceNormal_ = Normal3d(vect::cross(e1, e2));
     if (faceNormal_.norm() < EPS) {
-        faceNormal_ = (n0 + n1 + n2) / 3.0;
+        faceNormal_ = (normals_[0] + normals_[1] + normals_[2]) / 3.0;
     }
     faceNormal_ = vect::normalize(faceNormal_);
 }
@@ -113,7 +117,6 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
     if (*tHit <= EPS || *tHit > ray.maxDist()) return false;
 
     Point3d  pos = ray.org() + (*tHit) * ray.dir();
-    Normal3d nrm = (1.0 - u - v) * normals_[0] + u * normals_[1] + v * normals_[2];
     Point2d  uv  = (1.0 - u - v) * uvs_[0] + u * uvs_[1] + v * uvs_[2];
 
     const Point2d duv01 = uvs_[1] - uvs_[0];
@@ -136,7 +139,7 @@ bool Triangle::intersect(const Ray& ray, double* tHit,
 
     // Compute shading geometry
     Normal3d ns = vect::normalize((1.0 - u - v) * normals_[0] + u * normals_[1] + v * normals_[2]);
-    if (vect::dot(ns, faceNormal_) < 1.0 - EPS) {
+    if (std::abs(vect::dot(ns, faceNormal_)) < 1.0 - EPS) {
         Normal3d ss = vect::normalize(vect::cross(ns, faceNormal_));
         Normal3d ts = vect::normalize(vect::cross(ns, ss));
 

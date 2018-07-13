@@ -3,16 +3,16 @@
 
 #include <typeinfo>
 
-#include "random_queue.h"
-#include "hash_grid.h"
+#include "core/random_queue.h"
+#include "core/hash_grid.h"
 
-#include "memory.h"
-#include "point2d.h"
-#include "interaction.h"
+#include "core/memory.h"
+#include "core/point2d.h"
+#include "core/interaction.h"
 
-#include "../material/material.h"
-#include "../scenes/scene.h"
-#include "../camera/camera.h"
+#include "core/scene.h"
+#include "core/material.h"
+//#include "../core/camera.h"
 
 namespace spica {
 
@@ -270,6 +270,7 @@ void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
     }
 }
 
+/*
 void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
                        double minDist, std::vector<SurfaceInteraction>* points) {
     // Initialize utility variables in this method
@@ -342,5 +343,6 @@ void samplePoissonDisk(const Scene& scene, const Point3d& pCamera,
         }
     }
 }
+*/
 
 }  // namespace spica

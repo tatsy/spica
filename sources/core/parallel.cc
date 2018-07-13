@@ -8,6 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 
+static int numUserThreads = std::thread::hardware_concurrency();
+
 namespace spica {
 
 inline uint64_t doubleToBits(double v) {
@@ -22,21 +24,21 @@ inline double bitsToDouble(uint64_t b) {
     return v;
 }
 
-AtomicDouble::AtomicDouble(double v) {
-    bits = doubleToBits(v);
+AtomicDouble::AtomicDouble(double v)
+    : bits(doubleToBits(v)) {
 }
 
 AtomicDouble::operator double() const {
-    return bitsToDouble(bits);   
+    return bitsToDouble(bits.load());
 }
 
 double AtomicDouble::operator=(double v) {
-    bits = doubleToBits(v);
+    bits.store(doubleToBits(v));
     return v;
 }
 
 void AtomicDouble::add(double v) {
-    uint64_t oldBits = bits;
+    uint64_t oldBits = bits.load();
     uint64_t newBits;
     do {
         newBits = doubleToBits(bitsToDouble(oldBits) + v);
@@ -163,9 +165,17 @@ void parallel_for(int start, int end, const std::function<void(int)>& func,
 }
 
 int numSystemThreads() {
-    return std::max(1u, std::thread::hardware_concurrency());
+    return std::max(1, numUserThreads);
 }
 
 int getThreadID() {
     return threadID;
+}
+
+void setNumThreads(uint32_t n) {
+    if (n == 0) {
+        numUserThreads = std::thread::hardware_concurrency();
+    } else {
+        numUserThreads = std::min(n, std::thread::hardware_concurrency()); 
+    }
 }

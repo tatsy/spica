@@ -12,6 +12,8 @@
 
 namespace spica {
 
+class alignas(128) MemoryArena;
+
 /**
  * Memory management class.
  * @details

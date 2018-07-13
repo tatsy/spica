@@ -7,15 +7,16 @@
 
 #include <memory>
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
+#include "core/core.hpp"
+#include "core/common.h"
+#include "core/spectrum.h"
+#include "core/point2d.h"
+#include "core/point3d.h"
+#include "core/normal3d.h"
+#include "core/vector3d.h"
 
-#include "../core/spectrum.h"
-#include "../core/point2d.h"
-#include "../core/point3d.h"
-#include "../core/normal3d.h"
-#include "../math/vector3d.h"
-#include "../medium/medium.h"
+#include "core/render.hpp"
+#include "core/medium.h"
 
 namespace spica {
 
@@ -36,8 +37,8 @@ public:
     virtual Ray spawnRayTo(const Interaction& intr) const;
 
     inline virtual bool isSurfaceInteraction() const { return false; }
-    inline const Point3d&    pos()    const { return pos_; }
-    inline const Normal3d&   normal() const { return normal_; }
+    inline const Point3d&  pos()    const { return pos_; }
+    inline const Normal3d& normal() const { return normal_; }
     inline const Vector3d& wo()     const { return wo_; }
     inline void setMediumInterface(const MediumInterface& mediumInterface) {
         mediumInterface_ = mediumInterface;
@@ -67,7 +68,8 @@ private:
 class SPICA_EXPORTS SurfaceInteraction : public Interaction {
 public:
     SurfaceInteraction();
-    SurfaceInteraction(const Point3d& p, const Point2d& uv, const Vector3d& wo,
+    SurfaceInteraction(const Point3d& p,
+                       const Point2d& uv, const Vector3d& wo,
                        const Vector3d& dpdu, const Vector3d& dpdv,
                        const Normal3d& dndu, const Normal3d& dndv,
                        const Shape* shape);
@@ -78,14 +80,19 @@ public:
 
     void computeDifferentials(const Ray& ray);
     void setScatterFuncs(const Ray& ray, MemoryArena& arena);
+    void setShadingGeometry(const Vector3d &dpdu, const Vector3d &dpdv,
+                            const Normal3d &dndu, const Normal3d &dndv);
     Spectrum Le(const Vector3d& w) const;
-
+    
     inline bool isSurfaceInteraction() const override { return true; }
     inline const Point2d& uv() const { return uv_; }
     inline const Vector3d& dpdu() const { return dpdu_; }
     inline const Vector3d& dpdv() const { return dpdv_; }
     inline const Normal3d& dndu() const { return dndu_; }
     inline const Normal3d& dndv() const { return dndv_; }
+    inline const Normal3d& ns() const { return shading.n; }
+    inline const Vector3d& ts() const { return shading.dpdu; }
+    inline const Vector3d& bs() const { return shading.dpdv; }
     inline double dudx() const { return dudx_; }
     inline double dudy() const { return dudy_; }
     inline double dvdx() const { return dvdx_; }
@@ -103,6 +110,12 @@ private:
     Vector3d dpdu_, dpdv_;
     Normal3d dndu_, dndv_;
     Vector3d dpdx_, dpdy_;
+    struct {
+        Normal3d n;
+        Vector3d dpdu, dpdv;
+        Normal3d dndu, dndv;
+    } shading;
+
     double dudx_ = 0.0, dudy_ = 0.0, dvdx_ = 0.0, dvdy_ = 0.0;
     const Shape* shape_ = nullptr;
     const Primitive* primitive_ = nullptr;

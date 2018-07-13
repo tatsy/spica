@@ -1,13 +1,13 @@
 #define SPICA_API_EXPORT
 #include "interaction.h"
 
-#include "../core/float.h"
-#include "../core/ray.h"
-#include "../core/primitive.h"
-#include "../math/vector3d.h"
-#include "../bxdf/bsdf.h"
-#include "../bxdf/fresnel.h"
-#include "../light/area_light.h"
+#include "core/float.h"
+#include "core/ray.h"
+#include "core/vector3d.h"
+#include "core/normal3d.h"
+
+#include "core/light.h"
+#include "core/primitive.h"
 
 namespace spica {
 
@@ -76,20 +76,20 @@ Interaction& Interaction::operator=(const Interaction& intr) {
 
 Ray Interaction::spawnRay(const Vector3d& wi) const {
     Point3d origin = offsetRayOrigin(pos_, normal_, wi);
-    return Ray(origin, wi, INFTY, getMedium(wi));
+    return Ray(origin, wi, INFTY); 
 }
 
 Ray Interaction::spawnRayTo(const Point3d& p) const {
     Vector3d d = p - pos_;
     Point3d origin = offsetRayOrigin(pos_, normal_, d);
-    return Ray(origin, d, d.norm(), getMedium(d));
+    return Ray(origin, d, d.norm());
 }
 
 Ray Interaction::spawnRayTo(const Interaction& intr) const {
     Point3d origin = offsetRayOrigin(pos_, normal_, intr.pos_ - pos_);
     Point3d target = offsetRayOrigin(intr.pos_, intr.normal_, origin - intr.pos_);
     Vector3d d = target - origin;
-    return Ray(origin, d, d.norm(), getMedium(d));
+    return Ray(origin, d, d.norm());
 }
 
 
@@ -107,7 +107,8 @@ SurfaceInteraction::SurfaceInteraction()
     , bsdf_{} {
 }
 
-SurfaceInteraction::SurfaceInteraction(const Point3d& pos, const Point2d& uv,
+SurfaceInteraction::SurfaceInteraction(const Point3d& pos,
+                                       const Point2d& uv,
                                        const Vector3d& wo,
                                        const Vector3d& dpdu, const Vector3d& dpdv,
                                        const Normal3d& dndu, const Normal3d& dndv,
@@ -119,6 +120,12 @@ SurfaceInteraction::SurfaceInteraction(const Point3d& pos, const Point2d& uv,
     , dndu_{ dndu }
     , dndv_{ dndv }
     , shape_{ shape } {
+    // Initialize shading geometry with true geometry
+    shading.n = normal_;
+    shading.dpdu = dpdu;
+    shading.dpdv = dpdv;
+    shading.dndu = dndu;
+    shading.dndv = dndv;
 }
 
 SurfaceInteraction::SurfaceInteraction(const SurfaceInteraction& intr)
@@ -135,10 +142,12 @@ SurfaceInteraction& SurfaceInteraction::operator=(const SurfaceInteraction& intr
     this->dpdu_ = intr.dpdu_;
     this->dpdv_ = intr.dpdv_;
     this->dndu_ = intr.dndu_;
+    this->dndv_ = intr.dndv_;
     this->shape_ = intr.shape_;
     this->primitive_ = intr.primitive_;
     this->bsdf_ = intr.bsdf_;
     this->bssrdf_ = intr.bssrdf_;
+    this->shading = intr.shading;
     return *this;
 }
 
@@ -156,11 +165,19 @@ void SurfaceInteraction::setScatterFuncs(const Ray& ray, MemoryArena& arena) {
     primitive_->setScatterFuncs(this, arena);
 }
 
-Spectrum SurfaceInteraction::Le(const Vector3d& w) const {
-    const AreaLight* area = primitive_->areaLight();
-    return area ? area->L(*this, w) : Spectrum(0.0);
+void SurfaceInteraction::setShadingGeometry(const Vector3d &dpdu, const Vector3d &dpdv,
+                                            const Normal3d &dndu, const Normal3d &dndv) {
+    shading.n = Normal3d(vect::normalize(vect::cross(dpdu, dpdv)));
+    shading.dpdu = dpdu;
+    shading.dpdv = dpdv;
+    shading.dndu = dndu;
+    shading.dndv = dndv;
 }
 
+Spectrum SurfaceInteraction::Le(const Vector3d& w) const {
+    const Light* area = primitive_->light();
+    return area ? area->L(*this, w) : Spectrum(0.0);
+}
 
 // -----------------------------------------------------------------------------
 // SurfaceInteraction method definitions

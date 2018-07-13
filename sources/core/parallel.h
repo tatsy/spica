@@ -5,17 +5,18 @@
 #ifndef _SPICA_PARALLEL_H_
 #define _SPICA_PARALLEL_H_
 
+#include <iostream>
 #include <atomic>
 #include <functional>
 
-#include "common.h"
+#include "core/common.h"
 
 namespace spica {
 
-class AtomicDouble {
+class SPICA_EXPORTS AtomicDouble {
 public:
     explicit AtomicDouble(double v = 0.0);
-    operator double() const;
+    explicit operator double() const;
     double operator=(double v);
     void add(double v);
 
@@ -35,5 +36,6 @@ SPICA_EXPORTS void parallel_for(int start, int end, const std::function<void(int
 
 SPICA_EXPORTS int numSystemThreads();
 SPICA_EXPORTS int getThreadID();
+SPICA_EXPORTS void setNumThreads(uint32_t n);
 
 #endif  // _SPICA_PARALLEL_H_

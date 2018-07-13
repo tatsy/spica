@@ -1,0 +1,22 @@
+#ifdef _MSC_VER
+#pragma once
+#endif
+
+#ifndef SPICA_TEST_PARAMS_H
+#define SPICA_TEST_PARAMS_H
+
+#include <string>
+
+// ----------------------------------------------------------------------------
+// Parameter constants
+// ----------------------------------------------------------------------------
+
+namespace spica {
+
+static const std::string ROOT_DIRECTORY   = "@CMAKE_SOURCE_DIR@/";
+static const std::string DATA_DIRECTORY   = ROOT_DIRECTORY + "testdata/";
+static const std::string TEMP_DIRECTORY   = ROOT_DIRECTORY + "testdata/tmp/";
+
+}  // namespace spica
+
+#endif  // _SPICA_DIRS_H

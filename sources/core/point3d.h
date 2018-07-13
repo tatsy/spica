@@ -9,7 +9,7 @@
 #include <type_traits>
 
 #include "common.h"
-#include "../math/vector3d.h"
+#include "core/vector3d.h"
 
 namespace spica {
 

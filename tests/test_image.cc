@@ -1,16 +1,20 @@
 #include "gtest/gtest.h"
 #include "spica.h"
+#include "test_params.h"
 using namespace spica;
 
 #include <string>
+#include <experimental/filesystem>
+
+namespace fs = std::experimental::filesystem;
 
 namespace {
 
-    auto sampler = std::make_unique<Random>((unsigned int)time(0));
-    const std::string filepath = kTempDirectory + "test_image.bmp";
-    const std::string hdrpath  = kTempDirectory + "test_hdr.hdr";
+auto sampler = std::make_unique<Random>((unsigned int)time(0));
+const std::string filepath = TEMP_DIRECTORY + "test_image.bmp";
+const std::string hdrpath  = TEMP_DIRECTORY + "test_hdr.hdr";
 
-}  // anonymous namespace
+}  // Anonymous namespace
 
 class ImageTest : public ::testing::Test {
 protected:
@@ -26,7 +30,7 @@ protected:
     ~ImageTest() {}
 
     void SetUp() {
-        path::createDirectory(kTempDirectory);
+        fs::create_directory(fs::path(TEMP_DIRECTORY));
     }
 
     void randomImage(Image* rand) {
@@ -103,8 +107,15 @@ TEST_F(ImageTest, Move) {
 
 TEST_F(ImageTest, InvalidPathToLoad) {
     Image image;
-    ASSERT_DEATH(image.load("dammy_path.bmp"), "");
-    ASSERT_DEATH(image.load("image.jpg"), "");
+    try {
+        image.load("dammy_path.bmp");
+        FAIL();
+    } catch (const RuntimeException &e) {}
+
+    try {
+        image.load("image.jpg");
+        FAIL();
+    } catch (const RuntimeException &e) {}
 }
 
 TEST_F(ImageTest, Resize) {
@@ -164,41 +175,41 @@ TEST_F(ImageTest, SaveAndLoad) {
 
 TEST_F(ImageTest, Bilateral) {
     Image image;
-    image.load(kDataDirectory + "lamp.png");
+    image.load(DATA_DIRECTORY + "lamp.png");
 
     Image result;
     double sigma_s = std::max(image.width(), image.height()) * 0.02;
     EXPECT_NO_FATAL_FAILURE(birateral(image, &result, sigma_s, 0.4));
 
-    result.save(kTempDirectory + "birateral.png");
+    result.save(TEMP_DIRECTORY + "birateral.png");
 }
 
 TEST_F(ImageTest, ReinhardTmo) {
     Image image;
-    image.load(kDataDirectory + "memorial.hdr");
+    image.load(DATA_DIRECTORY + "memorial.hdr");
 
     ReinhardTmo tmo;
     EXPECT_NO_FATAL_FAILURE(image = tmo.apply(image));
     EXPECT_NO_FATAL_FAILURE(image = GammaTmo(2.2).apply(image));
-    image.save(kTempDirectory + "reinhard.png");
+    image.save(TEMP_DIRECTORY + "reinhard.png");
 }
 
 TEST_F(ImageTest, DragoTmo) {
     Image image;
-    image.load(kDataDirectory + "memorial.hdr");
+    image.load(DATA_DIRECTORY + "memorial.hdr");
 
     DragoTmo tmo;
     EXPECT_NO_FATAL_FAILURE(image = tmo.apply(image));
     EXPECT_NO_FATAL_FAILURE(image = GammaTmo(2.2).apply(image));
-    image.save(kTempDirectory + "drago.png");
+    image.save(TEMP_DIRECTORY + "drago.png");
 }
 
 TEST_F(ImageTest, DurandTmo) {
     Image image;
-    image.load(kDataDirectory + "memorial.hdr");
+    image.load(DATA_DIRECTORY + "memorial.hdr");
 
     DurandTMO tmo;
     EXPECT_NO_FATAL_FAILURE(image = tmo.apply(image));
     EXPECT_NO_FATAL_FAILURE(image = GammaTmo(2.2).apply(image));
-    image.save(kTempDirectory + "durand.png");
+    image.save(TEMP_DIRECTORY + "durand.png");
 }

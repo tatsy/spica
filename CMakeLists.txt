@@ -1,89 +1,90 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.6.0 FATAL_ERROR)
 project(spica)
+
+include(cmake/SpicaConfig.cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 # ------------------------------------------------------------------------------
 # Build options
 # ------------------------------------------------------------------------------
+option(SPICA_BUILD_MAIN "Build spica executable." OFF)
 option(SPICA_BUILD_TESTS "Build unit tests." OFF)
-option(SPICA_BUILD_GUI "Build GUI." OFF)
+option(WITH_SSE "Build with SSE (used in QBVH)" OFF)
+option(WITH_FFTW "Build with FFTW (used in GDPT)" OFF)
+
+# ------------------------------------------------------------------------------
+# Common build targets
+# ------------------------------------------------------------------------------
+set(SPICA_MAIN "spica")
+set(SPICA_LIBCORE "spica_core")
 
 # ------------------------------------------------------------------------------
 # Set compiler options
 # ------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (NOT WIN32)
-  # Linux or Mac OS X
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -pthread")
-  if (${SPICA_BUILD_TESTS})
-    message(STATUS "[spica] Generate coverage data.")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
-  endif()
+    # Linux or Mac OS X
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -pthread")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++fs")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -lstdc++fs")
+    set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -lstdc++fs")
+    set(CMAKE_FS_LIBS "stdc++fs")
+
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2")
+
+    message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+    if (${LINUX} AND ${SPICA_BUILD_TESTS})
+        message(STATUS "[spica] Generate coverage data.")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fprofile-arcs -ftest-coverage")
+    endif()
+endif()
+
+if (WITH_SSE)
+    if (MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
+    endif()
 endif()
 
 # ------------------------------------------------------------------------------
-# Find OpenMP
+# Dependencies
 # ------------------------------------------------------------------------------
-set(SPICA_USE_OPENMP OFF CACHE BOOL OFF)
-if (SPICA_USE_OPENMP)
-  find_package(OpenMP)
-  if (OPENMP_FOUND)
-    message(STATUS "OpenMP Supported!!")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-  endif()
-endif()
 
-# ------------------------------------------------------------------------------
-# Whether use static libraries or not
-# ------------------------------------------------------------------------------
-set(SPICA_USE_STATIC_LIBS OFF CACHE BOOL OFF)
+set(SPICA_DEPENDENCY_INCLUDE_DIRS "")
+set(SPICA_DEPENDENCY_LIBRARIES "")
 
-# ------------------------------------------------------------------------------
-# Set library prefices and suffices
-# ------------------------------------------------------------------------------
-if (WIN32)
-  set(LIB_PREFIX "")
-  set(LIB_SUFFIX ".lib")
-elseif(APPLE)
-  if (SPICA_USE_STATIC_LIBS)
-    set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".a")
-  else()
-    set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".dylib")
-  endif()
-else()
-  if (SPICA_USE_STATIC_LIBS)
-    set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".a")
-  else()
-    set(LIB_PREFIX "lib")
-    set(LIB_SUFFIX ".so")
-  endif()
+find_package(OpenGL REQUIRED)
+
+if (WITH_FFTW)
+    find_package(FFTW REQUIRED)
+    add_definitions(-DSPICA_WITH_FFTW)
+    set(SPICA_DEPENDENCY_INCLUDE_DIRS ${SPICA_DEPENDENCY_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS})
+    set(SPICA_DEPENDENCY_LIBRARIES ${SPICA_DEPENDENCY_LIBRARIES} ${FFTW_LIBRARIES})
 endif()
 
 # ------------------------------------------------------------------------------
 # Special settings for MSVC
 # ------------------------------------------------------------------------------
 if (MSVC)
-  # Use solution folders
-  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-  # Disable comparatively unimportant warning
-  add_definitions("/D_CRT_SECURE_NO_WARNINGS /W3 /wd4251")
+    # Use solution folders
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+    # Disable comparatively unimportant warning
+    add_definitions("/D_CRT_SECURE_NO_WARNINGS /W3 /wd4251")
 endif()
 
 # ------------------------------------------------------------------------------
 # Special settings for MacOSX
 # ------------------------------------------------------------------------------
 if (APPLE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "10.11" FORCE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "10.13" FORCE)
 endif()
 
 # ------------------------------------------------------------------------------
 # Set output path
 # ------------------------------------------------------------------------------
-set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/build)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -97,31 +98,10 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/lib)
 set(SPICA_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 # ------------------------------------------------------------------------------
-# Create output directory
+# Set spica's include/library directories
 # ------------------------------------------------------------------------------
-file(MAKE_DIRECTORY output)
-
-# ------------------------------------------------------------------------------
-# Import 3rd party libraries
-# ------------------------------------------------------------------------------
-add_subdirectory(3rdparty)
-include_directories(${THIRD_PARTY_INCLUDE_DIRS})
-
-# ------------------------------------------------------------------------------
-# Import Boost libraries
-# ------------------------------------------------------------------------------
-if (MSVC)
-  set(BOOST_ROOT ${BOOST_ROOT} CACHE PATH "BOOST-NOT_FOUND")
-  if (NOT EXISTS "${BOOST_ROOT}/boost")
-	  message(FATAL_ERROR "[ERROR] Boost not found!!")
-  else()
-    message(STATUS "Boost: ${BOOST_ROOT}")
-    set(BOOST_LIBRARYDIR "${BOOST_ROOT}/lib")
-    set(Boost_USE_STATIC_LIBS FALSE CACHE BOOL FALSE)
-  endif()
-endif()
-find_package(Boost REQUIRED system filesystem)
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories("sources")
+link_directories(${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 
 # ------------------------------------------------------------------------------
 # Include subdirectories

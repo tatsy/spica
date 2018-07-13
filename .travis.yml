@@ -70,7 +70,6 @@ deploy:
     - packages/releases-$TRAVIS_TAG.zip
   on:
     tags: true
-    condition: $CXX=g++
 
 branches:
   only:

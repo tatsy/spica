@@ -18,7 +18,7 @@ git config --global user.email "travis@travis-ci.org"
 doxygen doxyfile
 make html
 rm -rf html/*
-cp --recursive build/html/* html
+cp -R build/html/* html
 
 #
 ## Deploy GitHub pages

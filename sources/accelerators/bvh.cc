@@ -415,11 +415,7 @@ bool BVHAccel::intersectQBVH(Ray& ray, SurfaceInteraction* isect) const {
     alignas(16) float dirxs[4] = { dirx, dirx, dirx, dirx };
     alignas(16) float dirys[4] = { diry, diry, diry, diry };
     alignas(16) float dirzs[4] = { dirz, dirz, dirz, dirz };
-    
-    __m128 dir_x = _mm_load_ps(dirxs);
-    __m128 dir_y = _mm_load_ps(dirys);
-    __m128 dir_z = _mm_load_ps(dirzs);
-    
+
     simdOrig[0] = _mm_load_ps(orgxs);
     simdOrig[1] = _mm_load_ps(orgys);
     simdOrig[2] = _mm_load_ps(orgzs);
@@ -503,11 +499,7 @@ bool BVHAccel::intersectQBVH(Ray& ray) const {
     alignas(16) float dirxs[4] = { dirx, dirx, dirx, dirx };
     alignas(16) float dirys[4] = { diry, diry, diry, diry };
     alignas(16) float dirzs[4] = { dirz, dirz, dirz, dirz };
-    
-    __m128 dir_x = _mm_load_ps(dirxs);
-    __m128 dir_y = _mm_load_ps(dirys);
-    __m128 dir_z = _mm_load_ps(dirzs);
-    
+
     simdOrig[0] = _mm_load_ps(orgxs);
     simdOrig[1] = _mm_load_ps(orgys);
     simdOrig[2] = _mm_load_ps(orgzs);

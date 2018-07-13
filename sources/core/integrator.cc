@@ -151,10 +151,10 @@ Spectrum SamplerIntegrator::specularTransmit(const Scene& scene,
                                              Sampler& sampler,
                                              MemoryArena& arena,
                                              int depth) const {
-    Vector3d wi, wo = isect.wo();
+    Vector3d wi;
     double pdf;
-    const Point3d& pos = isect.pos();
-    const Normal3d& nrm = isect.normal();
+    const Vector3d &wo = isect.wo();
+    const Normal3d &nrm = isect.normal();
     BxDFType type = BxDFType::Transmission | BxDFType::Specular;
     Spectrum f = isect.bsdf()->sample(wo, &wi, sampler.get2D(), &pdf, type);
     if (pdf > 0.0 && !f.isBlack() && vect::absDot(wi, nrm) != 0.0) {

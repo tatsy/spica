@@ -92,15 +92,18 @@ void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
         std::atomic<int> proc(0);
         parallel_for(0, numPixels, [&](int pid) {
             const int threadID = getThreadID();
+            const auto &sampler = samplers[threadID];
+            sampler->startPixel();
+
             const int y = pid / width;
             const int x = pid % width;
-            const Point2d randFilm = samplers[threadID]->get2D();
-            const Point2d randLens = samplers[threadID]->get2D();
+            const Point2d randFilm = sampler->get2D();
+            const Point2d randLens = sampler->get2D();
             const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
 
             const Point2i pixel(width - x - 1, y);
             camera_->film()->addPixel(pixel, randFilm,
-                                        Li(scene, params, ray, *samplers[threadID],
+                                        Li(scene, params, ray, *sampler,
                                             arenas[threadID]));
 
             proc++;

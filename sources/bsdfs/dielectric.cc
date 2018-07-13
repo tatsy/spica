@@ -12,8 +12,8 @@ namespace spica {
 
 Dielectric::Dielectric(const std::shared_ptr<Texture<Spectrum>>& Kr,
                        const std::shared_ptr<Texture<Spectrum>>& Kt,
-                       const std::shared_ptr<Texture<double>>& index,
-                       const std::shared_ptr<Texture<double>>& bumpMap)
+                       const std::shared_ptr<Texture<Spectrum>>& index,
+                       const std::shared_ptr<Texture<Spectrum>>& bumpMap)
     : Kr_{ Kr }
     , Kt_{ Kt }
     , index_{ index }
@@ -23,15 +23,15 @@ Dielectric::Dielectric(const std::shared_ptr<Texture<Spectrum>>& Kr,
 Dielectric::Dielectric(RenderParams &params)
     : Dielectric{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance")),
                  std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularTransmittance")),
-                 std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR", 1.333)),
-                 std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
+                 std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("intIOR", Spectrum(1.333))),
+                 std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("bumpMap"))} {
 }
 
 void Dielectric::setScatterFuncs(SurfaceInteraction* isect,
                                     MemoryArena& arena) const {
     if (bumpMap_) bump(isect, bumpMap_);
 
-    double eta = index_->evaluate(*isect);
+    double eta = index_->evaluate(*isect).gray();
     Spectrum re = Spectrum::clamp(Kr_->evaluate(*isect));
     Spectrum tr = Spectrum::clamp(Kt_->evaluate(*isect));
 

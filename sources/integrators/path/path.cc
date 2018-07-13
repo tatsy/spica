@@ -116,7 +116,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
 
         // Russian roulette
         if (bounces > 3) {
-            double continueProbability = std::min(0.95, beta.luminance());
+            double continueProbability = std::min(0.95, beta.gray());
             if (sampler.get1D() > continueProbability) break;
             beta /= continueProbability;
         }

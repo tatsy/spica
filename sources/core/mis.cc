@@ -145,7 +145,7 @@ Distribution1D calcLightPowerDistrib(const Scene& scene) {
 
     std::vector<double> powers;
     for (const auto& light : scene.lights()) {
-        powers.push_back(light->power().luminance());
+        powers.push_back(light->power().gray());
     }
     return Distribution1D(powers);
 }

@@ -9,6 +9,7 @@
 
 #include "core/common.h"
 #include "core/core.hpp"
+#include "core/spectrum.h"
 #include "core/cobject.h"
 
 namespace spica {
@@ -17,7 +18,7 @@ class SPICA_EXPORTS SurfaceMaterial : public CObject {
 public:
     virtual ~SurfaceMaterial();
     virtual void setScatterFuncs(SurfaceInteraction* intr, MemoryArena& arena) const = 0;
-    static void bump(SurfaceInteraction* intr, const std::shared_ptr<Texture<double> > &bumpmap);
+    static void bump(SurfaceInteraction* intr, const std::shared_ptr<Texture<Spectrum>> &bumpmap);
 };
 
 class SPICA_EXPORTS SubsurfaceMaterial : public CObject {

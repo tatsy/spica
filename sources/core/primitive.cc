@@ -55,8 +55,7 @@ bool GeometricPrimitive::intersect(Ray& ray, SurfaceInteraction* isect) const {
     if (mediumInterface_ && mediumInterface_->isMediumTransition()) {
         isect->setMediumInterface(*mediumInterface_);
     } else {
-        // TODO: Should be reverted?
-        //isect->setMediumInterface(MediumInterface(ray.medium()));
+        isect->setMediumInterface(MediumInterface(ray.medium()));
     }
 
     return true;

@@ -155,7 +155,7 @@ void PhotonMap::construct(const Scene& scene,
 Spectrum PhotonMap::evaluateL(const SurfaceInteraction& po,
                               int gatherPhotons, double gatherRadius) const {
     // Find k-nearest neightbors
-    Photon query(po.pos(), Spectrum(), po.wo(), po.normal());
+    Photon query(po.pos(), Spectrum(), po.wo(), po.ns());
     std::vector<Photon> photons;
     knnFind(query, &photons, gatherPhotons, gatherRadius);
 
@@ -168,7 +168,7 @@ Spectrum PhotonMap::evaluateL(const SurfaceInteraction& po,
     for (int i = 0; i < numPhotons; i++) {
         const Vector3d diff = query.pos() - photons[i].pos();
         const double dist = diff.norm();
-        const double dt   = vect::dot(po.normal(), diff) / dist;
+        const double dt   = vect::dot(po.ns(), diff) / dist;
         if (std::abs(dt) < gatherRadius * gatherRadius * 0.01) {
             validPhotons.push_back(photons[i]);
             distances.push_back(dist);
@@ -271,7 +271,7 @@ void PhotonMap::tracePhoton(const Scene& scene,
         } else {
             if (!isIntersect) break;
 
-            photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
+            photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.ns());
 
             isect.setScatterFuncs(ray, arena);
             if (!isect.bsdf()) {
@@ -289,9 +289,9 @@ void PhotonMap::tracePhoton(const Scene& scene,
 
             if (pdf == 0.0 || ref.isBlack()) break;
 
-            Spectrum bnew = beta * ref * vect::absDot(wi, isect.normal()) / pdf;
+            Spectrum bnew = beta * ref * vect::absDot(wi, isect.ns()) / pdf;
 
-            double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
+            double continueProb = std::min(1.0, bnew.gray() / beta.gray());
             if (sampler.get1D() > continueProb) break;
             beta = bnew / continueProb;
             ray = isect.spawnRay(wi);
@@ -310,7 +310,7 @@ void PhotonMap::tracePhoton(const Scene& scene,
                 Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                                BxDFType::All, &sampledType);
                 if (f.isBlack() || pdf == 0.0) break;
-                beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+                beta *= f * vect::absDot(wi, pi.ns()) / pdf;
 
                 ray = pi.spawnRay(wi);
             }

@@ -27,7 +27,7 @@ std::vector<std::string> split(const std::string &str, const std::string &delim)
     int cur = 0;
     std::vector<std::string> ret;
     while ((cur = str.find_first_of(delim.c_str(), prev)) != std::string::npos) {
-        ret.push_back(str.substr(prev, cur));
+        ret.push_back(str.substr(prev, cur - prev));
         prev = cur + delim.size();
     }
     ret.push_back(str.substr(prev));
@@ -167,7 +167,8 @@ Transform SceneParser::parseTransform(const XMLElement *parent) {
 
 std::shared_ptr<Primitive> SceneParser::createPrimitive(const std::shared_ptr<Shape> &shape,
                                                         const Transform &transform,
-                                                        const std::shared_ptr<Material> &material) {
+                                                        const std::shared_ptr<Material> &material,
+                                                        const std::shared_ptr<Medium> &medium) {
     std::shared_ptr<Light> light = nullptr;
     if (waitAreaLight_) {
         params_.add("shape", std::static_pointer_cast<CObject>(shape));
@@ -177,7 +178,13 @@ std::shared_ptr<Primitive> SceneParser::createPrimitive(const std::shared_ptr<Sh
         lights_.push_back(light);
     }
 
-    return std::make_shared<GeometricPrimitive>(shape, material, light);
+    std::shared_ptr<MediumInterface> mi = nullptr;
+    if (medium) {
+        mediums_.push_back(medium);
+        mi = std::make_shared<MediumInterface>(medium.get(), nullptr);
+    }
+
+    return std::make_shared<GeometricPrimitive>(shape, material, light, mi);
 }
 
 void SceneParser::storeToParam(const XMLElement *elem) {
@@ -216,13 +223,13 @@ void SceneParser::storeToParam(const XMLElement *elem) {
             params_.add(name, value);
         }
     } else if (nodeName == "rgb") {
-        Vector3d v(elem->Attribute("value"));
+        Vector3d v(getAttribute(elem, "value"));
         Spectrum value(v.x(), v.y(), v.z());
         if (name != "") {
             params_.add(name, value);
         }
     } else if (nodeName == "spectrum") {
-        std::string str = elem->Attribute("value");
+        std::string str = getAttribute(elem, "value");
         auto items = split(str, ",");
         std::vector<double> nm;
         std::vector<double> specs;
@@ -239,6 +246,7 @@ void SceneParser::storeToParam(const XMLElement *elem) {
         }
     } else if (nodeName == "transform") {
         Transform value = parseTransform(elem);
+
         if (name != "") {
             params_.add(name, value);
         }
@@ -248,6 +256,7 @@ void SceneParser::storeToParam(const XMLElement *elem) {
         auto surface = std::static_pointer_cast<SurfaceMaterial>(params_.getObject("bsdf", nullptr, true));
         auto subsurface = std::static_pointer_cast<SubsurfaceMaterial>(params_.getObject("subsurface", nullptr, true));
         auto material = std::make_shared<Material>(surface, subsurface);
+        auto medium = std::static_pointer_cast<Medium>(params_.getObject("medium", nullptr, true));
         auto transform = params_.getTransform("toWorld", Transform(), true);
 
         if (type == "obj") {
@@ -255,7 +264,7 @@ void SceneParser::storeToParam(const XMLElement *elem) {
             std::vector<ShapeGroup> groups = meshio::loadOBJ(filename, transform);
             for (const auto &g : groups) {
                 for (const auto &s : g.shapes()) {
-                    primitives_.push_back(createPrimitive(s, transform, material));
+                    primitives_.push_back(createPrimitive(s, transform, material, medium));
                 }
             }
         } else if (type == "ply") {
@@ -263,14 +272,14 @@ void SceneParser::storeToParam(const XMLElement *elem) {
             std::vector<ShapeGroup> groups = meshio::loadPLY(filename, transform);
             for (const auto &g : groups) {
                 for (const auto &s : g.shapes()) {
-                    primitives_.push_back(createPrimitive(s, transform, material));
+                    primitives_.push_back(createPrimitive(s, transform, material, medium));
                 }
             }
         } else {
             plugins_.initModule(type);
             auto value = std::shared_ptr<CObject>(plugins_.createObject(type, params_));
             auto s = std::static_pointer_cast<Shape>(value);
-            primitives_.push_back(createPrimitive(s, transform, material));
+            primitives_.push_back(createPrimitive(s, transform, material, medium));
         }
 
         waitAreaLight_ = false;

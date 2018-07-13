@@ -25,7 +25,7 @@ public:
         , Ks_{Ks}
         , etaA_{etaA}
         , etaB_{etaB} {
-        specularSamplingWeight_ = Ks_.luminance() / (Kd_.luminance() + Ks_.luminance());
+        specularSamplingWeight_ = Ks_.gray() / (Kd_.gray() + Ks_.gray());
     }
     
     
@@ -92,8 +92,8 @@ private:
 
 Plastic::Plastic(const std::shared_ptr<Texture<Spectrum>>& Kd,
                  const std::shared_ptr<Texture<Spectrum>>& Ks,
-                 const std::shared_ptr<Texture<double>> &eta,
-                 const std::shared_ptr<Texture<double>>& bumpMap)
+                 const std::shared_ptr<Texture<Spectrum>> &eta,
+                 const std::shared_ptr<Texture<Spectrum>>& bumpMap)
     : SurfaceMaterial{}
     , Kd_{ Kd }
     , Ks_{ Ks }
@@ -104,8 +104,8 @@ Plastic::Plastic(const std::shared_ptr<Texture<Spectrum>>& Kd,
 Plastic::Plastic(RenderParams &params)
     : Plastic{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("diffuseReflectance")),
               std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance")),
-              std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR")),
-              std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
+              std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("intIOR", Spectrum(1.5))),
+              std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("bumpMap"))} {
 }
 
 void Plastic::setScatterFuncs(SurfaceInteraction* isect,
@@ -114,7 +114,7 @@ void Plastic::setScatterFuncs(SurfaceInteraction* isect,
 
     const Spectrum kd = Kd_->evaluate(*isect);
     const Spectrum ks = Ks_->evaluate(*isect);
-    const double eta = eta_->evaluate(*isect);
+    const double eta = eta_->evaluate(*isect).gray();
 
     isect->setBSDF(arena.allocate<BSDF>(*isect));
     isect->bsdf()->add(arena.allocate<PlasticBRDF>(kd, ks, 1.0, eta));

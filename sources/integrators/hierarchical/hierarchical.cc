@@ -149,7 +149,7 @@ private:
         int    nChildren = 0;
         for (int i = 0; i < 8; i++) {
             if (node->children[i] != nullptr) {
-                const double weight = node->children[i]->pt.E.luminance();
+                const double weight = node->children[i]->pt.E.gray();
                 node->pt.pos  += weight * node->children[i]->pt.pos;
                 node->pt.area += node->children[i]->pt.area;
                 node->pt.E    += node->children[i]->pt.E;
@@ -275,7 +275,7 @@ Spectrum Hierarchy::Li(const Scene& scene,
 
         // Russian roulette
         if (bounces > 3) {
-            double continueProbability = std::min(0.95, beta.luminance());
+            double continueProbability = std::min(0.95, beta.gray());
             if (sampler.get1D() > continueProbability) break;
             beta /= continueProbability;
         }
@@ -441,7 +441,7 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
 
         // Russian roulette
         if (bounces > 3) {
-            double continueProbability = std::min(0.95, beta.luminance());
+            double continueProbability = std::min(0.95, beta.gray());
             if (sampler.get1D() > continueProbability) break;
             beta /= continueProbability;
         }

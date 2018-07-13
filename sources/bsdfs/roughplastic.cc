@@ -29,7 +29,7 @@ public:
         , distrib_{ distrib }
         , etaA_{ etaA }
         , etaB_{ etaB } {
-        specularSamplingWeight_ = Ks_.luminance() / (Kd_.luminance() + Ks_.luminance());
+        specularSamplingWeight_ = Ks_.gray() / (Kd_.gray() + Ks_.gray());
     }
 
     Spectrum f(const Vector3d& wo,
@@ -101,10 +101,10 @@ private:
 
 RoughPlastic::RoughPlastic(const std::shared_ptr<Texture<Spectrum>>& Kd,
                            const std::shared_ptr<Texture<Spectrum>>& Ks,
-                           const std::shared_ptr<Texture<double>> &index,
-                           const std::shared_ptr<Texture<double>>& roughness,
+                           const std::shared_ptr<Texture<Spectrum>> &index,
+                           const std::shared_ptr<Texture<Spectrum>> &roughness,
                            const std::string &distribution,
-                           const std::shared_ptr<Texture<double>>& bumpMap,
+                           const std::shared_ptr<Texture<Spectrum>>& bumpMap,
                            bool remapRoughness)
     : SurfaceMaterial{}
     , Kd_{ Kd }
@@ -119,10 +119,10 @@ RoughPlastic::RoughPlastic(const std::shared_ptr<Texture<Spectrum>>& Kd,
 RoughPlastic::RoughPlastic(RenderParams &params)
     : RoughPlastic{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("diffuseReflectance")),
                    std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance")),
-                   std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR", 1.3333)),
-                   std::static_pointer_cast<Texture<double>>(params.getTexture("alpha", 0.1)),
+                   std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("intIOR", Spectrum(1.5))),
+                   std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("alpha", Spectrum(0.1))),
                    params.getString("distribution", "beckmann", true),
-                   std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
+                   std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("bumpMap"))} {
 }
 
 void RoughPlastic::setScatterFuncs(SurfaceInteraction* isect,
@@ -131,8 +131,8 @@ void RoughPlastic::setScatterFuncs(SurfaceInteraction* isect,
 
     const Spectrum kd = Kd_->evaluate(*isect);
     const Spectrum ks = Ks_->evaluate(*isect);
-    const double eta = index_->evaluate(*isect);
-    double rough = roughness_->evaluate(*isect);
+    const double eta = index_->evaluate(*isect).gray();
+    double rough = roughness_->evaluate(*isect).gray();
     
     isect->setBSDF(arena.allocate<BSDF>(*isect));
     if (!ks.isBlack()) {

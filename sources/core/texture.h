@@ -23,8 +23,8 @@ public:
 
     virtual Point2d map(const Point3d& p) const = 0;
     virtual Point2d map(const SurfaceInteraction& intr,
-                        Vector2d* dstdx = nullptr,
-                        Vector2d* dstdy = nullptr) const = 0;
+                        Vector2d *dstdx = nullptr,
+                        Vector2d *dstdy = nullptr) const = 0;
 };
 
 class SPICA_EXPORTS UVMapping2D : public TextureMapping2D {
@@ -34,8 +34,9 @@ public:
                          bool invertHorizontal = true);
 
     Point2d map(const Point3d& p) const override;
-    Point2d map(const SurfaceInteraction& intr, Vector2d* dstdx,
-                Vector2d* dstdy) const override;
+    Point2d map(const SurfaceInteraction &intr,
+                Vector2d *dstdx = nullptr,
+                Vector2d *dstdy = nullptr) const override;
 
 private:
     const double su_, sv_, du_, dv_;
@@ -61,7 +62,7 @@ private:
  * Texture interface.
  */
 template <class T>
-class Texture : public CObject {
+class SPICA_EXPORTS Texture : public CObject {
 public:
     virtual T evaluate(const SurfaceInteraction& intr) const = 0;
     virtual ~Texture() {}

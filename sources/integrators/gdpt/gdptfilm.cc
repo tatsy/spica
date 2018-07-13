@@ -147,11 +147,11 @@ Image GDPTFilm::solveL1() const {
         if ((it + 1) % updateInterval == 0) {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    coarseWeights[x][y] = 1.0 / std::max(EPS, std::abs((coarse(x, y) - output(x, y)).luminance()));
+                    coarseWeights[x][y] = 1.0 / std::max(EPS, std::abs((coarse(x, y) - output(x, y)).gray()));
                     const Spectrum gx = output(x, y) - output(clampX(x - 1), y);
-                    dxWeights[x][y] = 1.0 / std::max(EPS, std::abs((gradX(x, y) - gx).luminance()));
+                    dxWeights[x][y] = 1.0 / std::max(EPS, std::abs((gradX(x, y) - gx).gray()));
                     const Spectrum gy = output(x, y) - output(x, clampY(y - 1));
-                    dyWeights[x][y] = 1.0 / std::max(EPS, std::abs((gradY(x, y) - gy).luminance()));
+                    dyWeights[x][y] = 1.0 / std::max(EPS, std::abs((gradY(x, y) - gy).gray()));
                 }
             }    
         }

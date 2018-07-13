@@ -8,20 +8,20 @@ namespace spica {
 BitmapTexture::BitmapTexture(const Image& image,
                              const std::shared_ptr<TextureMapping2D>& texmap,
                              ImageWrap wrap)
-: mipmap_{ std::make_unique<MipMap>(image, wrap) }
-, texmap_{ texmap } {
+    : mipmap_{ std::make_unique<MipMap>(image, wrap) }
+    , texmap_{ texmap } {
 }
 
 BitmapTexture::BitmapTexture(RenderParams &params)
     : BitmapTexture{Image::fromFile(params.getString("filename", true)),
-                    std::make_shared<UVMapping2D>(),
+                    std::static_pointer_cast<TextureMapping2D>(std::make_shared<UVMapping2D>()),
                     ImageWrap::Repeat} {
 }
     
 
 Spectrum BitmapTexture::evaluate(const SurfaceInteraction& intr) const {
     Vector2d dstdx, dstdy;
-    Point2d st = texmap_->map(intr);
+    Point2d st = texmap_->map(intr, &dstdx, &dstdy);
     return mipmap_->lookup(st);
 }
     

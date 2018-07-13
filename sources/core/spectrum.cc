@@ -674,7 +674,7 @@ double RGBSpectrum::squaredNorm() const {
     return this->dot(*this);
 }
 
-double RGBSpectrum::luminance() const {
+double RGBSpectrum::gray() const {
     return 0.2126 * r_ + 0.7152 * g_ + 0.0722 * b_;
 }
     

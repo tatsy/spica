@@ -22,7 +22,7 @@ Point2d UVMapping2D::map(const Point3d& p) const {
 }
 
 Point2d UVMapping2D::map(const SurfaceInteraction& intr, 
-                         Vector2d* dstdx, Vector2d* dstdy) const {
+                         Vector2d *dstdx, Vector2d *dstdy) const {
     if (dstdx) *dstdx = Vector2d(su_ * intr.dudx(), sv_ * intr.dvdx());
     if (dstdy) *dstdy = Vector2d(su_ * intr.dudy(), sv_ * intr.dvdy());
     const double s = su_ * intr.uv()[0] + du_;

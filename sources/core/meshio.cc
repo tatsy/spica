@@ -19,7 +19,6 @@ namespace fs = std::experimental::filesystem;
 #include "core/image.h"
 #include "core/mipmap.h"
 #include "core/texture.h"
-#include "core/imagemap.h"
 
 namespace spica {
 
@@ -241,19 +240,9 @@ std::vector<ShapeGroup> loadOBJ(const std::string& filename,
             tris.push_back(tri);
         }
 
-        std::shared_ptr<ImageTexture>    mapKd   = nullptr;
+        //TODO: Load textures and other material data from .mtl file
+        std::shared_ptr<Texture<Spectrum>> mapKd = nullptr;
         std::shared_ptr<Texture<double>> bumpMap = nullptr;
-        //if (!materials.empty()) {
-        //    if (!materials[i].diffuse_texname.empty()) {
-        //        Image image = Image::fromFile(materials[i].diffuse_texname);
-        //        auto uvMap = std::shared_ptr<UVMapping2D>();
-        //        mapKd = std::make_shared<ImageTexture>(image, uvMap, ImageWrap::Black);
-        //    }
-
-        //    if (!materials[i].bump_texname.empty()) {
-        //        Image image = Image::fromFile(materials[i].bump_texname);
-        //    }
-        //}
         groups.emplace_back(tris, mapKd, bumpMap);
     }
 

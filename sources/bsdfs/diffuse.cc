@@ -10,14 +10,14 @@
 namespace spica {
 
 Diffuse::Diffuse(const std::shared_ptr<Texture<Spectrum>>& Kd,
-                 const std::shared_ptr<Texture<double>>& bumpMap)
+                 const std::shared_ptr<Texture<Spectrum>>& bumpMap)
     : Kd_{ Kd }
     , bumpMap_{ bumpMap } {
 }
 
 Diffuse::Diffuse(RenderParams &params)
     : Diffuse{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("reflectance", true)),
-              std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap", true))} {
+              std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("bumpMap", true))} {
 }
 
 void Diffuse::setScatterFuncs(SurfaceInteraction* intr,

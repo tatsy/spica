@@ -19,8 +19,8 @@ public:
     // Public methods
     Dielectric(const std::shared_ptr<Texture<Spectrum>>& Kr,
                const std::shared_ptr<Texture<Spectrum>>& Kt,
-               const std::shared_ptr<Texture<double>>& index,
-               const std::shared_ptr<Texture<double>>& bumpMap = nullptr);
+               const std::shared_ptr<Texture<Spectrum>>& index,
+               const std::shared_ptr<Texture<Spectrum>>& bumpMap = nullptr);
 
     explicit Dielectric(RenderParams &params);
 
@@ -30,8 +30,8 @@ public:
 private:
     // Private fields
     std::shared_ptr<Texture<Spectrum>> Kr_, Kt_;
-    std::shared_ptr<Texture<double>> index_;
-    std::shared_ptr<Texture<double>> bumpMap_;
+    std::shared_ptr<Texture<Spectrum>> index_;
+    std::shared_ptr<Texture<Spectrum>> bumpMap_;
 };
 
 SPICA_EXPORT_PLUGIN(Dielectric, "Dielectic surface");

@@ -15,8 +15,8 @@ namespace spica {
 
 class SPICA_EXPORTS Diffuse : public SurfaceMaterial {
 public:
-    Diffuse(const std::shared_ptr<Texture<Spectrum> >& Kd,
-            const std::shared_ptr<Texture<double> >& bumpMap = nullptr);
+    Diffuse(const std::shared_ptr<Texture<Spectrum>>& Kd,
+            const std::shared_ptr<Texture<Spectrum>>& bumpMap = nullptr);
     Diffuse(RenderParams &params);
 
     void setScatterFuncs(SurfaceInteraction* intr,
@@ -24,7 +24,7 @@ public:
 
 private:
     std::shared_ptr<Texture<Spectrum>> Kd_;
-    std::shared_ptr<Texture<double>> bumpMap_;
+    std::shared_ptr<Texture<Spectrum>> bumpMap_;
 };
 
 SPICA_EXPORT_PLUGIN(Diffuse, "Lambertian diffuse surface");

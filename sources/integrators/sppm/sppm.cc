@@ -359,9 +359,9 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
 
             if (pdf == 0.0 || ref.isBlack()) break;
 
-            Spectrum bnew = beta * ref * vect::absDot(wi, isect.normal()) / pdf;
+            Spectrum bnew = beta * ref * vect::absDot(wi, isect.ns()) / pdf;
 
-            double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
+            double continueProb = std::min(1.0, bnew.gray() / beta.gray());
             if (sampler.get1D() > continueProb) break;
             beta = bnew / continueProb;
             ray = isect.spawnRay(wi);
@@ -378,7 +378,7 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
                 Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                                BxDFType::All, &sampledType);
                 if (f.isBlack() || pdf == 0.0) break;
-                beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+                beta *= f * vect::absDot(wi, pi.ns()) / pdf;
 
                 ray = pi.spawnRay(wi);
             }
@@ -457,10 +457,10 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
 
                 if (pdf == 0.0 || ref.isBlack()) break;
 
-                beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+                beta *= ref * vect::absDot(wi, isect.ns()) / pdf;
                 specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
-                if (beta.luminance() < 0.25) {
-                    double continueProb = std::min(1.0 , beta.luminance());
+                if (beta.gray() < 0.25) {
+                    double continueProb = std::min(1.0 , beta.gray());
                     if (sampler.get1D() > continueProb) break;
                     beta /= continueProb;
                 }           
@@ -480,7 +480,7 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
                     Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(),
                         &pdf, BxDFType::All, &sampledType);
                     if (f.isBlack() || pdf == 0.0) break;
-                    beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+                    beta *= f * vect::absDot(wi, pi.ns()) / pdf;
 
                     specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
                     ray = pi.spawnRay(wi);

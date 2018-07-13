@@ -51,7 +51,7 @@ public:
 
     inline const Medium* getMedium() const {
         Assertion(mediumInterface_.inside() == mediumInterface_.outside(),
-                  "Only inside the primitive should be fiiled with participating media");
+                  "Only inside the primitive should be filled with participating media");
         return mediumInterface_.inside();
     }
 

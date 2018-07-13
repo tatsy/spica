@@ -6,7 +6,7 @@ namespace spica {
 SurfaceMaterial::~SurfaceMaterial() {
 }
 
-void SurfaceMaterial::bump(SurfaceInteraction *intr, const std::shared_ptr<Texture<double>> &bumpMap) {
+void SurfaceMaterial::bump(SurfaceInteraction *intr, const std::shared_ptr<Texture<Spectrum>> &bumpMap) {
 }
 
 SubsurfaceMaterial::~SubsurfaceMaterial() {

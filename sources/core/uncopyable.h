@@ -5,7 +5,7 @@
 #ifndef _SPICA_UNCOPYABLE_H_
 #define _SPICA_UNCOPYABLE_H_
 
-#include "../core/common.h"
+#include "core/common.h"
 
 namespace spica {
 
@@ -14,10 +14,9 @@ namespace spica {
  */
 class SPICA_EXPORTS Uncopyable {
 public:
-    Uncopyable() {}
-    ~Uncopyable() {}
+    Uncopyable() = default;
+    virtual ~Uncopyable() = default;
 
-private:
     Uncopyable(const Uncopyable&) = delete;
     Uncopyable& operator=(const Uncopyable&) = delete;
 };

@@ -17,10 +17,10 @@ class SPICA_EXPORTS RoughPlastic : public SurfaceMaterial {
 public:
     RoughPlastic(const std::shared_ptr<Texture<Spectrum>> &Kd,
                  const std::shared_ptr<Texture<Spectrum>> &Ks,
-                 const std::shared_ptr<Texture<double>> &roughness = nullptr,
-                 const std::shared_ptr<Texture<double>> &index = std::make_shared<ConstantTexture<double>>(1.5),
+                 const std::shared_ptr<Texture<Spectrum>> &roughness,
+                 const std::shared_ptr<Texture<Spectrum>> &index,
                  const std::string &distribution = "beckmann",
-                 const std::shared_ptr<Texture<double>> &bumpMap = nullptr,
+                 const std::shared_ptr<Texture<Spectrum>> &bumpMap = nullptr,
                  bool remapRoughness = false);
 
     RoughPlastic(RenderParams &params);
@@ -30,7 +30,7 @@ public:
 
 private:
     std::shared_ptr<Texture<Spectrum>> Kd_, Ks_;
-    std::shared_ptr<Texture<double>> roughness_, index_, bumpMap_;
+    std::shared_ptr<Texture<Spectrum>> roughness_, index_, bumpMap_;
     std::string distribution_;
     bool remapRoughness_;
 };

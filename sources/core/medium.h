@@ -9,15 +9,15 @@
 
 #include "core/core.hpp"
 #include "core/common.h"
+#include "core/cobject.h"
 #include "core/spectrum.h"
 
 #include "core/render.hpp"
 
 namespace spica {
 
-class SPICA_EXPORTS Medium {
+class SPICA_EXPORTS Medium : public CObject {
 public:
-    virtual ~Medium() {}
     virtual Spectrum Tr(const Ray& ray, Sampler& sampler) const = 0;
     virtual Spectrum sample(const Ray& ray, Sampler& sampler,
                             MemoryArena& arena, MediumInteraction* mi) const = 0;
@@ -30,13 +30,13 @@ public:
         , outside_{ nullptr } {
     }
 
-    explicit MediumInterface(const Medium* medium)
+    explicit MediumInterface(const Medium *medium)
         : inside_{ medium }
         , outside_{ medium } {
     }
 
-    MediumInterface(const Medium* inside,
-                    const Medium* outside)
+    MediumInterface(const Medium *inside,
+                    const Medium *outside)
         : inside_{ inside }
         , outside_{ outside } {
     }
@@ -47,8 +47,8 @@ public:
     inline const Medium* outside() const { return outside_; }
 
 private:
-    const Medium* inside_;
-    const Medium* outside_;
+    const Medium *inside_;
+    const Medium *outside_;
 
 };  // class MediumInterface
 

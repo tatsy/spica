@@ -66,7 +66,7 @@ TEST_P(SpectrumTestWithParam, Assignment) {
     const double lum = c.red()   * 0.2126 +
                        c.green() * 0.7152 +
                        c.blue()  * 0.0722;
-    EXPECT_DOUBLE_EQ(lum, c.luminance());
+    EXPECT_DOUBLE_EQ(lum, c.gray());
 }
 
 TEST_P(SpectrumTestWithParam, PlusOperator) {

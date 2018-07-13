@@ -17,10 +17,10 @@ class SPICA_EXPORTS RoughConductor : public SurfaceMaterial {
 public:
     RoughConductor(const std::shared_ptr<Texture<Spectrum>>& eta,
                    const std::shared_ptr<Texture<Spectrum>>& k,
-                   const std::shared_ptr<Texture<double>>& uRoughness,
-                   const std::shared_ptr<Texture<double>>& vRoughness,
+                   const std::shared_ptr<Texture<Spectrum>>& uRoughness,
+                   const std::shared_ptr<Texture<Spectrum>>& vRoughness,
                    const std::string &distribution = "beckmann",
-                   const std::shared_ptr<Texture<double>>& bump = nullptr,
+                   const std::shared_ptr<Texture<Spectrum>>& bump = nullptr,
                    bool remapRoughness = false);
     RoughConductor(RenderParams &params);
     void setScatterFuncs(SurfaceInteraction* isect,
@@ -29,9 +29,9 @@ public:
 private:
     std::shared_ptr<Texture<Spectrum>> eta_;
     std::shared_ptr<Texture<Spectrum>> k_;
-    std::shared_ptr<Texture<double>> uRoughness_, vRoughness_;
+    std::shared_ptr<Texture<Spectrum>> uRoughness_, vRoughness_;
     std::string distribution_;
-    std::shared_ptr<Texture<double>> bumpMap_;
+    std::shared_ptr<Texture<Spectrum>> bumpMap_;
     bool remapRoughness_;
 };
 

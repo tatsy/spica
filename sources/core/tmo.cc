@@ -19,7 +19,7 @@ namespace spica {
             double ret = 0.0;
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    ret += log(image(x, y).luminance() + EPS);                    
+                    ret += log(image(x, y).gray() + EPS);
                 }
             }
 
@@ -33,7 +33,7 @@ namespace spica {
             double ret = 0.0;
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    ret = std::max(ret, image(x, y).luminance());
+                    ret = std::max(ret, image(x, y).gray());
                 }
             }
 
@@ -89,7 +89,7 @@ namespace spica {
         Image ret(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                const double L = image(x, y).luminance();
+                const double L = image(x, y).gray();
                 const double Lscaled = (_alpha * L) / Lwa;
                 const double Ld = (Lscaled * (1.0 + Lscaled / Lwhite2)) / (1.0 + Lscaled);
 
@@ -109,7 +109,7 @@ namespace spica {
         int cnt = 0;
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                Ls[cnt++] = image(x, y).luminance();            
+                Ls[cnt++] = image(x, y).gray();            
             }
         }
 
@@ -147,7 +147,7 @@ namespace spica {
         Image ret(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                const double L = image(x, y).luminance();
+                const double L = image(x, y).gray();
                 const double L_wa = L / Lwa;
                 const double Ld = c2 * log1p(L_wa) / log(2.0 + 8.0 * pow(L_wa / Lmax_wa, c1));
             
@@ -176,7 +176,7 @@ namespace spica {
         Image tmp(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                const double l = image(x, y).luminance();
+                const double l = image(x, y).gray();
                 L.pixel(x, y) = RGBSpectrum(l, l, l);
                 tmp.pixel(x, y) = image(x, y) / (l + EPS);
             }
@@ -191,12 +191,12 @@ namespace spica {
         Image logDetail(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                const double l = log10(Lbase(x, y).luminance() + EPS);
+                const double l = log10(Lbase(x, y).gray() + EPS);
                 maxLogBase = std::max(maxLogBase, l);
                 minLogBase = std::min(minLogBase, l);
                 logBase.pixel(x, y) = RGBSpectrum(l, l, l);
 
-                const double d = log10(Ldetail(x, y).luminance() + EPS);
+                const double d = log10(Ldetail(x, y).gray() + EPS);
                 logDetail.pixel(x, y) = RGBSpectrum(d, d, d);
             }
         }
@@ -207,7 +207,7 @@ namespace spica {
         Image ret(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                const double logCompressed = logBase(x, y).luminance() * compressionFactor + logDetail(x, y).luminance() - logAbsolute;
+                const double logCompressed = logBase(x, y).gray() * compressionFactor + logDetail(x, y).gray() - logAbsolute;
                 const RGBSpectrum compressed = tmp(x, y) * pow(10.0, logCompressed);
                 ret.pixel(x, y) = Spectrum::clamp(compressed, RGBSpectrum(0.0, 0.0, 0.0), RGBSpectrum(1.0, 1.0, 1.0));                
             }
@@ -223,7 +223,7 @@ namespace spica {
         Image logL(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                const double l = log10(L(x, y).luminance() + 1.0e-6);
+                const double l = log10(L(x, y).gray() + 1.0e-6);
                 logL.pixel(x, y) = RGBSpectrum(l, l, l);
             }
         }
@@ -236,7 +236,7 @@ namespace spica {
         Ldetail->resize(width, height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                const double l = std::max(0.0, pow(10.0, filL(x, y).luminance()) - 1.0e-6);
+                const double l = std::max(0.0, pow(10.0, filL(x, y).gray()) - 1.0e-6);
                 Lbase->pixel(x, y) = RGBSpectrum(l, l, l);
                 Ldetail->pixel(x, y) = L(x, y) / (l + EPS);
             }

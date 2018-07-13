@@ -39,7 +39,7 @@ Envmap::Envmap(const BSphere& worldSphere, const Image& texmap, const Transform&
         double sinTheta = std::sin(PI * (v + 0.5) / height);
         for (int u = 0; u < width; u++) {
             double up = static_cast<double>(u + 0.5) / width;
-            gray[v * width + u] = mipmap_->lookup(Point2d(up, vp), filter).luminance();
+            gray[v * width + u] = mipmap_->lookup(Point2d(up, vp), filter).gray();
             gray[v * width + u] *= sinTheta;
         }
     }

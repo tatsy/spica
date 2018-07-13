@@ -9,7 +9,3 @@ add_bsdf(dielectric      dielectric.cc dielectric.h)
 add_bsdf(roughdielectric roughdielectric.cc roughdielectric.h)
 add_bsdf(plastic         plastic.cc plastic.h)
 add_bsdf(roughplastic    roughplastic.cc roughplastic.h)
-add_bsdf(msconductor     microsurface/msconductor.cc microsurface/msconductor.h
-                         microsurface/microsurface.cc microsurface/microsurface.h)
-add_bsdf(msdielectric    microsurface/msdielectric.cc microsurface/msdielectric.h
-                         microsurface/microsurface.cc microsurface/microsurface.h)

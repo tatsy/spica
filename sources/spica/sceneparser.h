@@ -27,7 +27,8 @@ private:
 
     std::shared_ptr<Primitive> createPrimitive(const std::shared_ptr<Shape> &shape,
                                                const Transform &transform,
-                                               const std::shared_ptr<Material> &material);
+                                               const std::shared_ptr<Material> &material,
+                                               const std::shared_ptr<Medium> &medium);
 
     void storeToParam(const tinyxml2::XMLElement *node);
 
@@ -38,6 +39,7 @@ private:
     std::shared_ptr<Camera> camera_ = nullptr;
     std::vector<std::shared_ptr<Primitive>> primitives_;
     std::vector<std::shared_ptr<Light>> lights_;
+    std::vector<std::shared_ptr<Medium>> mediums_;
     bool waitAreaLight_ = false;
 };
 

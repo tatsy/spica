@@ -397,44 +397,11 @@ std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, bool 
         if (remove) {
             doubles.erase(dit);
         }
-        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(d));
+        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<Spectrum>>(Spectrum(d)));
     }
 
     return nullptr;
 }
-
-std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, double value, bool remove) {
-    const auto it = objects.find(name);
-    if (it != objects.cend()) {
-        if (remove) {
-            const auto ret = it->second;
-            objects.erase(it);
-            return ret;
-        }
-        return it->second;
-    }
-
-    const auto sit = spectrums.find(name);
-    if (sit != spectrums.cend()) {
-        Spectrum s = sit->second;
-        if (remove) {
-            spectrums.erase(sit);
-        }
-        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<Spectrum>>(s));
-    }
-
-    const auto dit = doubles.find(name);
-    if (dit != doubles.cend()) {
-        double d = dit->second;
-        if (remove) {
-            doubles.erase(dit);
-        }
-        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(d));
-    }
-
-    return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(value));;
-}
-
 
 std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, const Spectrum &value, bool remove) {
     const auto it = objects.find(name);
@@ -462,7 +429,7 @@ std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, const
         if (remove) {
             doubles.erase(dit);
         }
-        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(d));
+        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<Spectrum>>(Spectrum(d)));
     }
 
     return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<Spectrum>>(value));;

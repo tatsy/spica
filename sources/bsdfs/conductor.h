@@ -18,7 +18,7 @@ public:
     // Public methods
     Conductor(const std::shared_ptr<Texture<Spectrum>> & eta,
               const std::shared_ptr<Texture<Spectrum>> &k,
-              const std::shared_ptr<Texture<double>> &bump = nullptr);
+              const std::shared_ptr<Texture<Spectrum>> &bump = nullptr);
 
     Conductor(RenderParams &params);
 
@@ -29,7 +29,7 @@ private:
     // Private fields
     std::shared_ptr<Texture<Spectrum>> eta_;
     std::shared_ptr<Texture<Spectrum>> k_;
-    std::shared_ptr<Texture<double>> bumpMap_;
+    std::shared_ptr<Texture<Spectrum>> bumpMap_;
 };
 
 SPICA_EXPORT_PLUGIN(Conductor, "Conductor surface");

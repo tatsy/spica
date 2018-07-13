@@ -13,7 +13,7 @@ namespace spica {
 
 Conductor::Conductor(const std::shared_ptr<Texture<Spectrum>>& eta,
                      const std::shared_ptr<Texture<Spectrum>> &k,
-                     const std::shared_ptr<Texture<double>>& bump)
+                     const std::shared_ptr<Texture<Spectrum>>& bump)
     : eta_{eta}
     , k_{k}
     , bumpMap_{ bump } {
@@ -22,7 +22,7 @@ Conductor::Conductor(const std::shared_ptr<Texture<Spectrum>>& eta,
 Conductor::Conductor(RenderParams &params)
     : Conductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("eta")),
                 std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("k")),
-                std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
+                std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("bumpMap"))} {
 }
 
 void Conductor::setScatterFuncs(SurfaceInteraction* isect,

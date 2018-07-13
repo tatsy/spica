@@ -12,10 +12,10 @@ namespace spica {
 
 RoughConductor::RoughConductor(const std::shared_ptr<Texture<Spectrum>>& eta,
                                const std::shared_ptr<Texture<Spectrum>>& k,
-                               const std::shared_ptr<Texture<double>>& uRoughness,
-                               const std::shared_ptr<Texture<double>>& vRoughness,
+                               const std::shared_ptr<Texture<Spectrum>>& uRoughness,
+                               const std::shared_ptr<Texture<Spectrum>>& vRoughness,
                                const std::string &distribution, 
-                               const std::shared_ptr<Texture<double>>& bump,
+                               const std::shared_ptr<Texture<Spectrum>>& bump,
                                bool remapRoughness) 
     : eta_{ eta }
     , k_{ k }
@@ -29,10 +29,10 @@ RoughConductor::RoughConductor(const std::shared_ptr<Texture<Spectrum>>& eta,
 RoughConductor::RoughConductor(RenderParams &params)
     : RoughConductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("eta", true)),
                      std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("k", true)),
-                     std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
-                     std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
+                     std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("alpha", Spectrum(0.1))),
+                     std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("alpha", Spectrum(0.1))),
                      params.getString("distribution", "beckmann", true),
-                     std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap", true))} {
+                     std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("bumpMap", true))} {
 }
     
 void RoughConductor::setScatterFuncs(SurfaceInteraction* isect,
@@ -41,8 +41,8 @@ void RoughConductor::setScatterFuncs(SurfaceInteraction* isect,
 
     isect->setBSDF(arena.allocate<BSDF>(*isect));
 
-    double uRough = uRoughness_->evaluate(*isect);
-    double vRough = vRoughness_->evaluate(*isect);
+    double uRough = uRoughness_->evaluate(*isect).gray();
+    double vRough = vRoughness_->evaluate(*isect).gray();
     if (remapRoughness_) {
         if (distribution_ == "beckmann") {
             uRough = BeckmannDistribution::roughnessToAlpha(uRough);    

@@ -19,11 +19,11 @@ public:
     // Public methods
     RoughDielectric(const std::shared_ptr<Texture<Spectrum>>& Kr,
                     const std::shared_ptr<Texture<Spectrum>>& Kt,
-                    const std::shared_ptr<Texture<double>>& uRoughness,
-                    const std::shared_ptr<Texture<double>>& vRoughness,
-                    const std::shared_ptr<Texture<double>>& index,
+                    const std::shared_ptr<Texture<Spectrum>>& uRoughness,
+                    const std::shared_ptr<Texture<Spectrum>>& vRoughness,
+                    const std::shared_ptr<Texture<Spectrum>>& index,
                     const std::string &distribution = "beckmann",
-                    const std::shared_ptr<Texture<double>>& bumpMap = nullptr,
+                    const std::shared_ptr<Texture<Spectrum>>& bumpMap = nullptr,
                     bool remapRoughness = false);
 
     explicit RoughDielectric(RenderParams &params);
@@ -34,10 +34,10 @@ public:
 private:
     // Private fields
     std::shared_ptr<Texture<Spectrum>> Kr_, Kt_;
-    std::shared_ptr<Texture<double>> uRoughness_, vRoughness_;
-    std::shared_ptr<Texture<double>> index_;
+    std::shared_ptr<Texture<Spectrum>> uRoughness_, vRoughness_;
+    std::shared_ptr<Texture<Spectrum>> index_;
     std::string distribution_;
-    std::shared_ptr<Texture<double>> bumpMap_;
+    std::shared_ptr<Texture<Spectrum>> bumpMap_;
     bool remapRoughness_;
 };
 

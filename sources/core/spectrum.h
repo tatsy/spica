@@ -86,7 +86,7 @@ namespace spica {
         double dot(const RGBSpectrum& RGBSpectrum) const;
         double norm() const;
         double squaredNorm() const;
-        double luminance() const;
+        double gray() const;
 
         /** Red component. */
         inline double red()   const { return r_; }

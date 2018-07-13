@@ -64,7 +64,7 @@ deploy:
   skip_cleanup: true
   provider: releases
   api_key:
-    secure: WR9ks1pmxzB6QBS+8lJNxGpZIhaBzgK4luAQm4zeTGOFCZp12GoLZ9lTo1OOb+omwrjFx43/n/NqwFPNVR6ugWdo9Iu3U+kqsl2Ygk+97dJNg1gYDmvKr7UkTHU/O+1f6QP6aQkJT/HWaD7m4bKeNVc+WWy8B2e2FPpMfhsH+GA=
+    secure: dR/19nZXBFiOxKl6iKqZcI2yjHYpoITGEvjtXJNCRtVm0vPqY/rCocQI8ZB2sBJ7osdP/Sc1nrNiN4EZ7cTi8D6q20xImus2Ox0V3fZycof4fropLLVklfQY71j+g/8MMJ6bRG0WUXj9rnDHRIxjW68fMn73dS0dfZYlsOALCBs=
   file:
     - packages/releases-$TRAVIS_TAG.tar.gz
     - packages/releases-$TRAVIS_TAG.zip

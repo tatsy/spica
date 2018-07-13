@@ -151,6 +151,12 @@ bool LowDiscrepancySampler::startNextSample() {
     return ++currentSampleIndex_ < samplesPerPixel_;
 }
 
+void LowDiscrepancySampler::startPixel() {
+    currentSample1DDim_ = 0;
+    currentSample2DDim_ = 0;
+    currentSampleIndex_ = 0;
+}
+
 std::unique_ptr<Sampler> LowDiscrepancySampler::clone(uint32_t seed) const {
     return std::make_unique<LowDiscrepancySampler>(samplesPerPixel_, nSampledDimensions_, seed);
 }

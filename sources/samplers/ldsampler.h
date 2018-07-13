@@ -27,6 +27,7 @@ public:
     Point2d get2D() override;
 
     bool startNextSample() override;
+    void startPixel() override;
     std::unique_ptr<Sampler> clone(uint32_t seed = 0) const override;
 
 private:

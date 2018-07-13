@@ -213,11 +213,17 @@ void SPPMIntegrator::traceRays(const Scene& scene,
     const int tasksThread = (numPixels + nThreads - 1) / nThreads;
     parallel_for(0, numPixels, [&](int pid) {
         const int threadID = getThreadID();
+
+        const auto &sampler = samplers[threadID];
+        sampler->startPixel();
+
         const int px  = pid % width;
         const int py  = pid / width;
-        const Point2d randFilm = samplers[threadID]->get2D();
-        const Point2d randLens = samplers[threadID]->get2D();
+        const Point2d randFilm = sampler->get2D();
+        const Point2d randLens = sampler->get2D();
         const Ray ray = camera_->spawnRay(Point2i(px, py), randFilm, randLens);
+
+
         pathTrace(scene, params, ray, *samplers[threadID],
                     arenas[threadID], &hpoints[pid]);
 
@@ -251,6 +257,7 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
     parallel_for(0, numPhotons, [&](int p) {
         const int threadID = getThreadID();
         const std::unique_ptr<Sampler>& sampler = samplers[threadID];
+        sampler->startPixel();
 
         // Sample light source
         double lightPdf;

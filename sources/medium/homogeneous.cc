@@ -1,21 +1,29 @@
 #define SPICA_API_EXPORT
 #include "homogeneous.h"
 
-#include "../core/memory.h"
-#include "../core/ray.h"
-#include "../core/interaction.h"
-#include "../scenes/scene.h"
-#include "../random/sampler.h"
-#include "../bxdf/phase.h"
+#include "core/memory.h"
+#include "core/ray.h"
+#include "core/interaction.h"
+#include "core/scene.h"
+#include "core/sampler.h"
+#include "core/phase.h"
 
 namespace spica {
 
 HomogeneousMedium::HomogeneousMedium(const Spectrum& sigmaAbsorb,
-                                     const Spectrum& sigmaScatter, double g)
-    : sigmaAbsorb_{ sigmaAbsorb }
-    , sigmaScatter_{ sigmaScatter }
+                                     const Spectrum& sigmaScatter,
+                                     double scale, double g)
+    : sigmaAbsorb_{ sigmaAbsorb * scale }
+    , sigmaScatter_{ sigmaScatter * scale }
     , sigmaExt_{ sigmaAbsorb_ + sigmaScatter_ }
     , g_{ g } {
+}
+
+HomogeneousMedium::HomogeneousMedium(RenderParams &params)
+    : HomogeneousMedium{ params.getSpectrum("sigmaA", true),
+                         params.getSpectrum("sigmaS", true),
+                         params.getDouble("scale", 1.0, true),
+                         params.getDouble("g", 0.0, true) } {
 }
 
 Spectrum HomogeneousMedium::Tr(const Ray& ray, Sampler& smapler) const {

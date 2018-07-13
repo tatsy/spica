@@ -212,7 +212,7 @@ std::string RenderParams::getString(const std::string &name, const std::string &
     const auto it = strings.find(name);
     if (it != strings.cend()) {
         if (remove) {
-            const std::string ret = it->second;
+            const std::string &ret = it->second;
             strings.erase(it);
             return ret;
         }
@@ -227,7 +227,7 @@ Point2d RenderParams::getPoint2d(const std::string &name, bool remove) {
     Assertion(it != point2ds.cend(), "Point2d not found: name = %s", name.c_str());
 
     if (remove) {
-        const auto ret = it->second;
+        const Point2d &ret = it->second;
         point2ds.erase(it);
         return ret;
     }
@@ -239,7 +239,7 @@ Vector2d RenderParams::getVector2d(const std::string &name, bool remove) {
     Assertion(it != vector2ds.cend(), "Vector2d not found: name = %s", name.c_str());
 
     if (remove) {
-        const auto ret = it->second;
+        const Vector2d &ret = it->second;
         vector2ds.erase(it);
         return ret;
     }
@@ -251,7 +251,7 @@ Bounds2d RenderParams::getBounds2d(const std::string &name, bool remove) {
     Assertion(it != bounds2ds.cend(), "Bounds2d not found: name = %s", name.c_str());
 
     if (remove) {
-        const auto ret = it->second;
+        const Bounds2d &ret = it->second;
         bounds2ds.erase(it);
         return ret;
     }
@@ -263,7 +263,7 @@ Point3d RenderParams::getPoint3d(const std::string &name, bool remove) {
     Assertion(it != point3ds.cend(), "Point3d not found: name = %s", name.c_str());
 
     if (remove) {
-        const auto ret = it->second;
+        const Point3d &ret = it->second;
         point3ds.erase(it);
         return ret;
     }
@@ -274,7 +274,7 @@ Point3d RenderParams::getPoint3d(const std::string &name, const Point3d &value, 
     const auto it = point3ds.find(name);
     if (it != point3ds.cend()) {
         if (remove) {
-            const auto ret = it->second;
+            const Point3d &ret = it->second;
             point3ds.erase(it);
             return ret;
         }
@@ -288,7 +288,7 @@ Vector3d RenderParams::getVector3d(const std::string &name, bool remove) {
     Assertion(it != vector3ds.cend(), "Vector3d not found: name = %s", name.c_str());
 
     if (remove) {
-        const auto ret = it->second;
+        const Vector3d &ret = it->second;
         vector3ds.erase(it);
         return ret;
     }
@@ -300,7 +300,7 @@ Bounds3d RenderParams::getBounds3d(const std::string &name, bool remove) {
     Assertion(it != bounds3ds.cend(), "Bounds3d not found: name = %s", name.c_str());
 
     if (remove) {
-        const auto ret = it->second;
+        const Bounds3d &ret = it->second;
         bounds3ds.erase(it);
         return ret;
     }
@@ -312,7 +312,7 @@ Normal3d RenderParams::getNormal3d(const std::string &name, bool remove) {
     Assertion(it != normals.cend(), "Normal not found: name = %s", name.c_str());
 
     if (remove) {
-        const auto ret = it->second;
+        const Normal3d &ret = it->second;
         normals.erase(it);
         return ret;
     }
@@ -324,11 +324,25 @@ Spectrum RenderParams::getSpectrum(const std::string &name, bool remove) {
     Assertion(it != spectrums.cend(), "Spectrum not found: name = %s", name.c_str());
 
     if (remove) {
-        const auto ret = it->second;
+        const Spectrum &ret = it->second;
         spectrums.erase(it);
         return ret;
     }
     return it->second;
+}
+
+Spectrum RenderParams::getSpectrum(const std::string &name, const Spectrum &value, bool remove) {
+    const auto it = spectrums.find(name);
+    if (it != spectrums.cend()) {
+        if (remove) {
+            const Spectrum &ret = it->second;
+            spectrums.erase(it);
+            return ret;
+        }
+        return it->second;
+    }
+
+    return value;
 }
 
 Transform RenderParams::getTransform(const std::string &name, bool remove) {
@@ -387,6 +401,71 @@ std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, bool 
     }
 
     return nullptr;
+}
+
+std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, double value, bool remove) {
+    const auto it = objects.find(name);
+    if (it != objects.cend()) {
+        if (remove) {
+            const auto ret = it->second;
+            objects.erase(it);
+            return ret;
+        }
+        return it->second;
+    }
+
+    const auto sit = spectrums.find(name);
+    if (sit != spectrums.cend()) {
+        Spectrum s = sit->second;
+        if (remove) {
+            spectrums.erase(sit);
+        }
+        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<Spectrum>>(s));
+    }
+
+    const auto dit = doubles.find(name);
+    if (dit != doubles.cend()) {
+        double d = dit->second;
+        if (remove) {
+            doubles.erase(dit);
+        }
+        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(d));
+    }
+
+    return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(value));;
+}
+
+
+std::shared_ptr<CObject> RenderParams::getTexture(const std::string &name, const Spectrum &value, bool remove) {
+    const auto it = objects.find(name);
+    if (it != objects.cend()) {
+        if (remove) {
+            const auto ret = it->second;
+            objects.erase(it);
+            return ret;
+        }
+        return it->second;
+    }
+
+    const auto sit = spectrums.find(name);
+    if (sit != spectrums.cend()) {
+        Spectrum s = sit->second;
+        if (remove) {
+            spectrums.erase(sit);
+        }
+        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<Spectrum>>(s));
+    }
+
+    const auto dit = doubles.find(name);
+    if (dit != doubles.cend()) {
+        double d = dit->second;
+        if (remove) {
+            doubles.erase(dit);
+        }
+        return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<double>>(d));
+    }
+
+    return std::static_pointer_cast<CObject>(std::make_shared<ConstantTexture<Spectrum>>(value));;
 }
 
 std::shared_ptr<CObject> RenderParams::getObject(const std::string &name, bool remove) {

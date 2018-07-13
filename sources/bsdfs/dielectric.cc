@@ -23,7 +23,7 @@ Dielectric::Dielectric(const std::shared_ptr<Texture<Spectrum>>& Kr,
 Dielectric::Dielectric(RenderParams &params)
     : Dielectric{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance")),
                  std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularTransmittance")),
-                 std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR")),
+                 std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR", 1.333)),
                  std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
 }
 

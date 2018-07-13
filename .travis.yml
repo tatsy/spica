@@ -37,7 +37,7 @@ install:
   # Build
   - mkdir build && cd build
   - cmake -D CMAKE_BUILD_TYPE=Release -D SPICA_BUILD_MAIN=ON -D SPICA_BUILD_TESTS=ON -D WITH_SSE=ON ..
-  - cmake --build .
+  - make -j4
 
 before_script:
   - lcov --directory . --zerocounters

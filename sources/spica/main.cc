@@ -33,11 +33,7 @@ int main(int argc, char** argv) {
 
     // Store option values to variables
     std::string sceneFile = parser.getString("input");
-    printf("Scene: %s\n", sceneFile.c_str());
-
     int nThreads = parser.getInt("threads");
-    printf("#threads: %d\n", nThreads);
-
     std::string outfile = "";
     if (parser.getString("output") != "") {
         outfile = parser.getString("output");

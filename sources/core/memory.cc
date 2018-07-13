@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "memory.h"
 
+#include <cstdlib>
 #include <algorithm>
 
 namespace spica {

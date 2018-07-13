@@ -119,8 +119,8 @@ RoughPlastic::RoughPlastic(const std::shared_ptr<Texture<Spectrum>>& Kd,
 RoughPlastic::RoughPlastic(RenderParams &params)
     : RoughPlastic{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("diffuseReflectance")),
                    std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance")),
-                   std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR")),
-                   std::static_pointer_cast<Texture<double>>(params.getTexture("alpha")),
+                   std::static_pointer_cast<Texture<double>>(params.getTexture("intIOR", 1.3333)),
+                   std::static_pointer_cast<Texture<double>>(params.getTexture("alpha", 0.1)),
                    params.getString("distribution", "beckmann", true),
                    std::static_pointer_cast<Texture<double>>(params.getTexture("bumpMap"))} {
 }

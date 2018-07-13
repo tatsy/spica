@@ -43,6 +43,14 @@ double str2double(const std::string &str) {
 	return ret;
 }
 
+const char* getAttribute(const XMLElement *elem, const char *name) {
+    const char *value = elem->Attribute(name);
+    if (!value) {
+        Warning("Element \"%s\" does not have attribute \"%s\"", elem->Name(), name);
+    }
+    return value;
+}
+
 }  // Anonymous namespace
 
 
@@ -58,7 +66,7 @@ SceneParser::SceneParser()
 
 SceneParser::SceneParser(const std::string &xmlFile)
     : SceneParser{} {
-    this->xmlFile_ = xmlFile;
+    this->xmlFile_ = fs::canonical(fs::absolute(fs::path(xmlFile.c_str()))).string();
 }
 
 void SceneParser::parse() {
@@ -86,9 +94,14 @@ void SceneParser::parse() {
     auto accelerator = std::shared_ptr<Accelerator>(plugins_.createAccelerator(accelType, primitives_, params_));
     Scene scene(accelerator, lights_);
 
+    // #thread
     setNumThreads(params_.getInt("numUserThreads"));
-    printf("Threads: %d\n", numSystemThreads());
 
+    // Print info
+    MsgInfo("   Scene: %s", xmlFile_.c_str());
+    MsgInfo("#threads: %d", numSystemThreads());
+
+    // Rendering
     integrator->render(camera_, scene, params_);
 }
 
@@ -111,7 +124,7 @@ Transform SceneParser::parseTransform(const XMLElement *parent) {
     while (elem) {
         Transform sub;
         if (std::strcmp(elem->Name(), "matrix") == 0) {
-            const std::string values = std::string(elem->Attribute("value"));
+            const std::string values = std::string(getAttribute(elem, "value"));
             auto valueList = split(values, " ");
             Assertion(valueList.size() == 16, "# of matrix values is not 16!");
 
@@ -123,25 +136,25 @@ Transform SceneParser::parseTransform(const XMLElement *parent) {
             }
             sub = Transform(m);
         } else if (std::strcmp(elem->Name(), "scale") == 0) {
-            const double x = str2double(elem->Attribute("x"));
-            const double y = str2double(elem->Attribute("y"));
-            const double z = str2double(elem->Attribute("z"));
+            const double x = str2double(getAttribute(elem, "x"));
+            const double y = str2double(getAttribute(elem, "y"));
+            const double z = str2double(getAttribute(elem, "z"));
             sub = Transform::scale(x, y, z);
         } else if (std::strcmp(elem->Name(), "rotate") == 0) {
-            const double x = str2double(elem->Attribute("x"));
-            const double y = str2double(elem->Attribute("y"));
-            const double z = str2double(elem->Attribute("z"));
-            const double angle = str2double(elem->Attribute("angle"));
+            const double x = str2double(getAttribute(elem, "x"));
+            const double y = str2double(getAttribute(elem, "y"));
+            const double z = str2double(getAttribute(elem, "z"));
+            const double angle = str2double(getAttribute(elem, "angle"));
             sub = Transform::rotate(angle, Vector3d(x, y, z));
         } else if (std::strcmp(elem->Name(), "translate") == 0) {
-            const double x = str2double(elem->Attribute("x"));
-            const double y = str2double(elem->Attribute("y"));
-            const double z = str2double(elem->Attribute("z"));
+            const double x = str2double(getAttribute(elem, "x"));
+            const double y = str2double(getAttribute(elem, "y"));
+            const double z = str2double(getAttribute(elem, "z"));
             sub = Transform::translate(Vector3d(x, y, z));
         } else if (std::strcmp(elem->Name(), "lookAt") == 0) {
-            const Vector3d origin = Vector3d(elem->Attribute("origin"));
-            const Vector3d target = Vector3d(elem->Attribute("target"));
-            const Vector3d up = Vector3d(elem->Attribute("up"));
+            const Vector3d origin = Vector3d(getAttribute(elem, "origin"));
+            const Vector3d target = Vector3d(getAttribute(elem, "target"));
+            const Vector3d up = Vector3d(getAttribute(elem, "up"));
             sub = Transform::lookAt(Point3d(origin), Point3d(target), up);
         }
         trans = sub * trans;

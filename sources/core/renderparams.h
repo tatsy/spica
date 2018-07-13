@@ -55,9 +55,12 @@ public:
     Bounds3d getBounds3d(const std::string &name, bool remove = false);
     Normal3d getNormal3d(const std::string &name, bool remove = false);
     Spectrum getSpectrum(const std::string &name, bool remove = false);
+    Spectrum getSpectrum(const std::string &name, const Spectrum &value, bool remove = false);
     Transform getTransform(const std::string &name, bool remove = false);
     Transform getTransform(const std::string &name, const Transform &value, bool remove = false);
     std::shared_ptr<CObject> getTexture(const std::string &name, bool remove = false);
+    std::shared_ptr<CObject> getTexture(const std::string &name, double value, bool remove = false);
+    std::shared_ptr<CObject> getTexture(const std::string &name, const Spectrum &value, bool remove = false);
     std::shared_ptr<CObject> getObject(const std::string &name, bool remove = false);
     std::shared_ptr<CObject> getObject(const std::string &name, const std::shared_ptr<CObject> &value, bool remove = false);
 

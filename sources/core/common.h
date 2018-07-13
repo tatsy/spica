@@ -29,12 +29,15 @@
 #       define SPICA_EXPORTS
 #       define SPICA_IMPORTS __declspec(dllimport)
 #   endif
+#   define MEM_ALIGN(n) alignas(n)
 #elif defined(__GNUC__) && __GNUC__ >= 4
-#   define SPICA_EXPORTS //__attribute__((visibility ("default")))
-#   define SPICA_IMPORTS //__attribute__((visibility ("hidden")))
+#   define SPICA_EXPORTS __attribute__((visibility ("default")))
+#   define SPICA_IMPORTS __attribute__((visibility ("hidden")))
+#   define MEM_ALIGN(n) __attribute__((aligned(n)))
 #else
 #   define SPICA_EXPORTS
 #   define SPICA_IMPORTS
+#   define MEM_ALIGN(n) alignas(n)
 #endif
 
 #if (defined(WIN32) || defined(_WIN32) || defined(WINCE) || defined(__CYGWIN__))
@@ -91,12 +94,12 @@ do { \
 do { \
     std::cout << "[INFO] "; \
     fprintf(stdout, __VA_ARGS__); \
-    std::cerr << std::endl; \
+    std::cout << std::endl; \
 } while (false);
 #define Warning(...) \
 do { \
     std::cerr << "[WARNING] "; \
-    fprintf(stdout, __VA_ARGS__); \
+    fprintf(stderr, __VA_ARGS__); \
     std::cerr << std::endl; \
 } while (false);
 #else

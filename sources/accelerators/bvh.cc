@@ -407,14 +407,6 @@ bool BVHAccel::intersectQBVH(Ray& ray, SurfaceInteraction* isect) const {
     alignas(16) float idirxs[4] = { idirx, idirx, idirx, idirx };
     alignas(16) float idirys[4] = { idiry, idiry, idiry, idiry };
     alignas(16) float idirzs[4] = { idirz, idirz, idirz, idirz };
-    
-    float dirx = ray.dir().x();
-    float diry = ray.dir().y();
-    float dirz = ray.dir().z();
-    
-    alignas(16) float dirxs[4] = { dirx, dirx, dirx, dirx };
-    alignas(16) float dirys[4] = { diry, diry, diry, diry };
-    alignas(16) float dirzs[4] = { dirz, dirz, dirz, dirz };
 
     simdOrig[0] = _mm_load_ps(orgxs);
     simdOrig[1] = _mm_load_ps(orgys);
@@ -491,14 +483,6 @@ bool BVHAccel::intersectQBVH(Ray& ray) const {
     alignas(16) float idirxs[4] = { idirx, idirx, idirx, idirx };
     alignas(16) float idirys[4] = { idiry, idiry, idiry, idiry };
     alignas(16) float idirzs[4] = { idirz, idirz, idirz, idirz };
-    
-    float dirx = ray.dir().x();
-    float diry = ray.dir().y();
-    float dirz = ray.dir().z();
-    
-    alignas(16) float dirxs[4] = { dirx, dirx, dirx, dirx };
-    alignas(16) float dirys[4] = { diry, diry, diry, diry };
-    alignas(16) float dirzs[4] = { dirz, dirz, dirz, dirz };
 
     simdOrig[0] = _mm_load_ps(orgxs);
     simdOrig[1] = _mm_load_ps(orgys);

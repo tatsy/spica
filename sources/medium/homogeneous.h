@@ -5,17 +5,19 @@
 #ifndef _SPICA_HOMOGENEOUS_H_
 #define _SPICA_HOMOGENEOUS_H_
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
-
-#include "medium.h"
+#include "core/common.h"
+#include "core/cobject.h"
+#include "core/medium.h"
 
 namespace spica {
 
 class SPICA_EXPORTS HomogeneousMedium : public Medium {
 public:
     HomogeneousMedium(const Spectrum& sigmaAbsorb,
-                      const Spectrum& sigmaScatter, double g);
+                      const Spectrum& sigmaScatter,
+                      double scale, double g);
+
+    explicit HomogeneousMedium(RenderParams &params);
 
     Spectrum Tr(const Ray& ray, Sampler& sampler) const override;
     Spectrum sample(const Ray& ray, Sampler& sampler, MemoryArena& arena,
@@ -25,6 +27,8 @@ private:
     const Spectrum sigmaAbsorb_, sigmaScatter_, sigmaExt_;
     const double g_;
 };
+
+SPICA_EXPORT_PLUGIN(HomogeneousMedium, "Homogeneous medium");
 
 }  // namespace spica
 

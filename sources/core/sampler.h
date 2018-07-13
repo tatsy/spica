@@ -31,6 +31,7 @@ namespace spica {
         }
 
         virtual bool startNextSample() { return true; }
+        virtual void startPixel() { }
 
         virtual std::unique_ptr<Sampler> clone(unsigned int seed = 0) const = 0;
     };

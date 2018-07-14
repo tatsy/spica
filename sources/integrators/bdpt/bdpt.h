@@ -5,10 +5,9 @@
 #ifndef _SPICA_BDPT_INTEGRATOR_H_
 #define _SPICA_BDPT_INTEGRATOR_H_
 
-#include "../core/common.h"
-#include "../core/forward_decl.h"
-
-#include "integrator.h"
+#include "core/common.h"
+#include "core/renderparams.h"
+#include "core/integrator.h"
 
 namespace spica {
     
@@ -18,16 +17,19 @@ namespace spica {
 class SPICA_EXPORTS BDPTIntegrator : public Integrator {
 public:
     // Public methods
-    BDPTIntegrator(const std::shared_ptr<const Camera>& camera,
-                   const std::shared_ptr<Sampler>& sampler);
+    explicit BDPTIntegrator(const std::shared_ptr<Sampler>& sampler);
+    explicit BDPTIntegrator(RenderParams &params);
     ~BDPTIntegrator();
 
-    void render(const Scene& scene,
-                const RenderParams& params) override;
+    void render(const std::shared_ptr<const Camera>& camera,
+                const Scene& scene,
+                RenderParams& params) override;
 
 private:
     std::shared_ptr<Sampler> sampler_ = nullptr;
 };
+
+SPICA_EXPORT_PLUGIN(BDPTIntegrator, "Bidirectional path tracing integrator");
 
 }  // namespace spica
 

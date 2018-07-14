@@ -100,8 +100,7 @@ Spectrum Envmap::sampleLe(const Point2d& rand1, const Point2d& rand2,
     double sinTheta = std::sin(theta);
     double sinPhi   = std::sin(phi);
     double cosPhi   = std::cos(phi);
-    Vector3d d =
-        -lightToWorld_.apply(Vector3d(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
+    Vector3d d = -lightToWorld_.apply(Vector3d(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta));
     *nLight = Normal3d(d);
 
     Vector3d v1, v2;

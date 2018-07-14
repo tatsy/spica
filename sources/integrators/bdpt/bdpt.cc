@@ -3,29 +3,23 @@
 
 #include <mutex>
 
-#include "../core/ray.h"
-#include "../core/interaction.h"
-#include "../core/sampling.h"
-#include "../core/memory.h"
-#include "../core/parallel.h"
-#include "../core/renderparams.h"
-
-#include "../image/film.h"
-#include "../scenes/scene.h"
-
-#include "../light/spica_light.h"
-
-#include "../camera/spica_camera.h"
-
-#include "../bxdf/bxdf.h"
-#include "../bxdf/phase.h"
-#include "../bxdf/bsdf.h"
-
-#include "../medium/medium.h"
-
-#include "../random/sampler.h"
-
-#include "mis.h"
+#include "core/ray.h"
+#include "core/interaction.h"
+#include "core/sampling.h"
+#include "core/memory.h"
+#include "core/parallel.h"
+#include "core/renderparams.h"
+#include "core/film.h"
+#include "core/scene.h"
+#include "core/light.h"
+#include "core/camera.h"
+#include "core/bxdf.h"
+#include "core/phase.h"
+#include "core/bsdf.h"
+#include "core/medium.h"
+#include "core/sampler.h"
+#include "core/mis.h"
+#include "core/visibility_tester.h"
 
 namespace spica {
 
@@ -170,8 +164,8 @@ struct Vertex {
             }
             return ret;
         } else {
-            const AreaLight* l = si()->primitive()->areaLight();
-            Assertion(l != nullptr, "Area light not detected");
+            const Light *l = si()->primitive()->light();
+            Assertion(l != nullptr && l->isArea(), "Area light not detected");
             return l->L(*si(), w);
         }
     }
@@ -234,7 +228,7 @@ struct Vertex {
 
     bool isLight() const {
         return type == VertexType::Light ||
-               (type == VertexType::Surface && si()->primitive()->areaLight());
+               (type == VertexType::Surface && si()->primitive()->light()->isArea());
     }
 
     bool isDeltaLight() const {
@@ -307,7 +301,7 @@ struct Vertex {
         } else {
             Assertion(isLight(), "Here, vertex type should be light");
             const Light* light = type == VertexType::Light ? ei()->light
-                                                           : si()->primitive()->areaLight();
+                                                           : si()->primitive()->light();
             Assertion(light != nullptr, "Light is null");
 
             double pdfPos, pdfDir;
@@ -332,7 +326,7 @@ struct Vertex {
             Assertion(isLight(), "This object should not be light.");
            
             const Light* light = type == VertexType::Light ? ei()->light
-                                                           : si()->primitive()->areaLight();
+                                                           : si()->primitive()->light();
             Assertion(light != nullptr, "Light is nullptr");
 
             for (int i = 0; i < scene.lights().size(); i++) {
@@ -701,17 +695,21 @@ Spectrum connectBDPT(const Scene& scene,
     return L;    
 }
 
-BDPTIntegrator::BDPTIntegrator(const std::shared_ptr<const Camera>& camera,
-                               const std::shared_ptr<Sampler>& sampler)
-    : Integrator{ camera }
+BDPTIntegrator::BDPTIntegrator(const std::shared_ptr<Sampler>& sampler)
+    : Integrator{ }
     , sampler_{ sampler } {
+}
+
+BDPTIntegrator::BDPTIntegrator(spica::RenderParams &params)
+    : BDPTIntegrator{ std::static_pointer_cast<Sampler>(params.getObject("sampler")) } {
 }
 
 BDPTIntegrator::~BDPTIntegrator() {
 }
 
-void BDPTIntegrator::render(const Scene& scene,
-                       const RenderParams& params) {
+void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
+                            const Scene& scene,
+                            RenderParams& params) {
     // Initialization
     const int width = camera_->film()->resolution().x();
     const int height = camera_->film()->resolution().y();
@@ -720,11 +718,11 @@ void BDPTIntegrator::render(const Scene& scene,
     auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
     auto arenas   = std::vector<MemoryArena>(numThreads);
 
-    Distribution1D lightDist = mis::calcLightPowerDistrib(scene);
+    Distribution1D lightDist = calcLightPowerDistrib(scene);
 
     const int numPixels = width * height;
-    const int numSamples = params.get<int>("NUM_SAMPLES");
-    const int maxBounces = params.get<int>("MAX_BOUNCES");
+    const int numSamples = params.getInt("sampleCount");
+    const int maxBounces = params.getInt("maxDepth");
     for (int i = 0; i < numSamples; i++) {
         // Prepare samplers
         if (i % numThreads == 0) {

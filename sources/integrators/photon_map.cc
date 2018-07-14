@@ -287,7 +287,7 @@ void PhotonMap::tracePhoton(const Scene& scene,
             Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
                                        BxDFType::All, &sampledType);
 
-            if (pdf == 0.0 || ref.isBlack()) break;
+            if (pdf < EPS || ref.isBlack()) break;
 
             Spectrum bnew = beta * ref * vect::absDot(wi, isect.ns()) / pdf;
 

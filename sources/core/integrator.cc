@@ -103,8 +103,7 @@ void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
 
             const Point2i pixel(width - x - 1, y);
             camera_->film()->addPixel(pixel, randFilm,
-                                        Li(scene, params, ray, *sampler,
-                                            arenas[threadID]));
+                                      Li(scene, params, ray, *sampler, arenas[threadID]));
 
             proc++;
             if (proc % 1000 == 0 || proc == numPixels) {

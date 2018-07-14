@@ -115,6 +115,7 @@ namespace spica {
         virtual Light* clone() const = 0;
 
         inline virtual bool isDelta() const { return false; }
+        inline bool isArea() const { return type_ == LightType::Area; }
 
     protected:
         const LightType type_;

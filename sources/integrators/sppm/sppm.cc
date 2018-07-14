@@ -224,8 +224,8 @@ void SPPMIntegrator::traceRays(const Scene& scene,
         const Ray ray = camera_->spawnRay(Point2i(px, py), randFilm, randLens);
 
 
-        pathTrace(scene, params, ray, *samplers[threadID],
-                    arenas[threadID], &hpoints[pid]);
+        pathTrace(scene, params, ray, *sampler,
+                  arenas[threadID], &hpoints[pid]);
 
         proc++;
         if (proc % width == 0) {
@@ -371,7 +371,7 @@ void SPPMIntegrator::tracePhotonsSub(const Scene& scene,
                 SurfaceInteraction pi;
                 Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
                     sampler.get2D(), arena, &pi, &pdf);
-            
+
                 if (S.isBlack() || pdf == 0.0) break;
                 beta *= S / pdf;
 
@@ -435,11 +435,11 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
             if (bounces == 0 || specularBounce) {
                 pixel->Ld += beta * isect.Le(wo);
             }
-            pixel->Ld += 
+            pixel->Ld +=
                 beta * uniformSampleOneLight(isect, scene, arena, sampler);
 
             bool isDiffuse = bsdf.numComponents(
-                BxDFType::Diffuse | BxDFType::Reflection | BxDFType::Transmission) > 0;       
+                BxDFType::Diffuse | BxDFType::Reflection | BxDFType::Transmission) > 0;
             bool isGlossy  = bsdf.numComponents(
                 BxDFType::Glossy | BxDFType::Reflection | BxDFType::Transmission) > 0;
 

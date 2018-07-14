@@ -20,7 +20,6 @@
 #include "core/bxdf.h"
 #include "core/bssrdf.h"
 
-#include "core/camera.h"
 #include "core/scene.h"
 
 #include "core/integrator.h"

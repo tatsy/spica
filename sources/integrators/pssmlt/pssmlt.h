@@ -5,7 +5,9 @@
 #ifndef _SPICA_PSSMLT_H_
 #define _SPICA_PSSMLT_H_
 
-#include "integrator.h"
+#include "core/common.h"
+#include "core/cobject.h"
+#include "core/integrator.h"
 
 namespace spica {
 
@@ -16,24 +18,28 @@ namespace spica {
 class PSSMLTIntegrator : public Integrator {
 public:
     // Public methods
-    explicit PSSMLTIntegrator(const std::shared_ptr<const Camera>& camera);
+    PSSMLTIntegrator();
+    explicit PSSMLTIntegrator(RenderParams &params);
     virtual ~PSSMLTIntegrator();
-    virtual void render(const Scene& scene, const RenderParams& params) override;
+    virtual void render(const std::shared_ptr<const Camera>& camera, const Scene& scene, RenderParams& params) override;
 
 private:
     class PathSample;
-    PathSample generateSample(const Scene& scene,
-                              const RenderParams& params,
+    PathSample generateSample(const std::shared_ptr<const Camera> &camera,
+                              const Scene& scene,
+                              RenderParams& params,
                               Sampler& sampler,
                               MemoryArena& arena) const;
 
     Spectrum Li(const Scene& scene,
-                const RenderParams& params,
+                RenderParams& params,
                 const Ray& r,
                 Sampler& sampler,
                 MemoryArena& arena,
                 int depth = 0) const;
 };
+
+SPICA_EXPORT_PLUGIN(PSSMLTIntegrator, "Primary sampling space metroplis light transport");
 
 }  // namespace spica
 

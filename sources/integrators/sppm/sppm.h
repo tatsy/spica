@@ -34,11 +34,12 @@ private:
     struct SPPMPixel;
 
     // 1st pass: Trace rays from camera
-    void traceRays(const Scene& scene,
-                    RenderParams& params,
-                    const std::vector<std::unique_ptr<Sampler>>& samplers,
-                    std::vector<MemoryArena>& arenas,
-                    std::vector<SPPMPixel>& hpoints) const;
+    void traceRays(const std::shared_ptr<const Camera> &camera,
+                   const Scene& scene,
+                   RenderParams& params,
+                   const std::vector<std::unique_ptr<Sampler>>& samplers,
+                   std::vector<MemoryArena>& arenas,
+                   std::vector<SPPMPixel>& hpoints) const;
 
     // 2nd pass: Trace photons from lights
     void tracePhotons(const Scene& scene,

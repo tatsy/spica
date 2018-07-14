@@ -552,9 +552,9 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
     Integrator::render(camera, scene, params);
     auto initSampler = sampler_->clone((unsigned int)time(0));
     
-    const int width = camera_->film()->resolution().x();
-    const int height = camera_->film()->resolution().y();
-    GDPTFilm film(camera_->film());
+    const int width = camera->film()->resolution().x();
+    const int height = camera->film()->resolution().y();
+    GDPTFilm film(camera->film());
 
     const int numThreads = numSystemThreads();
     auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
@@ -593,7 +593,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const Point2d randFilm = samplers[threadID]->get2D();
             const Point2d randLens = samplers[threadID]->get2D();
             const double filterWeight = film.evalFilter(randFilm);
-            const Ray ray = camera_->spawnRay(Point2i(width - x - 1, y), randFilm, randLens);
+            const Ray ray = camera->spawnRay(Point2i(width - x - 1, y), randFilm, randLens);
 
             // Base path
             std::vector<Vertex> baseVerts;
@@ -610,7 +610,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 }
 
                 // Shift mapping
-                const Ray subRay = camera_->spawnRay(Point2i(width - nx - 1, ny), randFilm, randLens);
+                const Ray subRay = camera->spawnRay(Point2i(width - nx - 1, ny), randFilm, randLens);
                 TraceRecord subRecord(PathType::NotInvertible);
                 if (!baseVerts.empty()) {
                     subRecord = shiftMap(scene, params, subRay, *samplers[threadID], arenas[threadID], baseVerts);

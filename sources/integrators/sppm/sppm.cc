@@ -67,9 +67,9 @@ SPPMIntegrator::~SPPMIntegrator() {
 void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
                             const Scene& scene,
                             RenderParams& params) {
-    Integrator::render(camera, scene, params);
-    const int width  = camera_->film()->resolution().x();
-    const int height = camera_->film()->resolution().y();
+    // Size parameters
+    const int width  = camera->film()->resolution().x();
+    const int height = camera->film()->resolution().y();
     const int numPoints = width * height;
 
     // Initialize hitpoints
@@ -99,7 +99,7 @@ void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
         std::cout << "--- Iteration No." << (t + 1) << " ---" << std::endl;
 
         // 1st pass: Trace rays from camera
-        traceRays(scene, params, samplers, arenas, pixels);
+        traceRays(camera, scene, params, samplers, arenas, pixels);
 
         // 2nd pass: Trace photons from light source
         tracePhotons(scene, params, samplers, arenas,
@@ -146,8 +146,8 @@ void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
                 image.pixel(width - x - 1, y) = L;
             }
         }
-        camera_->film()->setImage(image);
-        camera_->film()->save(t + 1);
+        camera->film()->setImage(image);
+        camera->film()->save(t + 1);
     }
 }
 
@@ -196,13 +196,14 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
     }
 }
 
-void SPPMIntegrator::traceRays(const Scene& scene,
+void SPPMIntegrator::traceRays(const std::shared_ptr<const Camera> &camera,
+                               const Scene& scene,
                                RenderParams& params,
                                const std::vector<std::unique_ptr<Sampler>>& samplers,
                                std::vector<MemoryArena>& arenas,
                                std::vector<SPPMPixel>& hpoints) const {
-    const int width  = camera_->film()->resolution().x();
-    const int height = camera_->film()->resolution().y();
+    const int width  = camera->film()->resolution().x();
+    const int height = camera->film()->resolution().y();
     const int numPixels = static_cast<int>(hpoints.size());
     const int nThreads = numSystemThreads();
 
@@ -221,7 +222,7 @@ void SPPMIntegrator::traceRays(const Scene& scene,
         const int py  = pid / width;
         const Point2d randFilm = sampler->get2D();
         const Point2d randLens = sampler->get2D();
-        const Ray ray = camera_->spawnRay(Point2i(px, py), randFilm, randLens);
+        const Ray ray = camera->spawnRay(Point2i(px, py), randFilm, randLens);
 
 
         pathTrace(scene, params, ray, *sampler,

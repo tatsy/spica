@@ -63,11 +63,13 @@ public:
 
     ~HierarchicalIntegrator();
 
-    void initialize(const Scene& scene,
+    void initialize(const std::shared_ptr<const Camera> &camera,
+                    const Scene& scene,
                     RenderParams& params,
                     Sampler& sampler) override;
 
-    void loopStarted(const Scene& scene,
+    void loopStarted(const std::shared_ptr<const Camera> &camera,
+                     const Scene& scene,
                      RenderParams& params,
                      Sampler& sampler) override;
 

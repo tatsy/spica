@@ -30,7 +30,8 @@ enum class VertexType : int {
 double densityIBL(const Scene& scene, const Distribution1D& lightDist,
                   const Vector3d& w) {
     double pdf = 0.0;
-    for (int i = 0; i < scene.lights().size(); i++) {
+    const int nLights = (int)scene.lights().size();
+    for (int i = 0; i < nLights; i++) {
         const auto& light = scene.lights()[i];
         if (light->type() == LightType::Envmap) {
             pdf += light->pdfLi(Interaction(), -w) * lightDist(i);
@@ -227,8 +228,7 @@ struct Vertex {
     }
 
     bool isLight() const {
-        return type == VertexType::Light ||
-               (type == VertexType::Surface && si()->primitive()->light()->isArea());
+        return type == VertexType::Light ||  (type == VertexType::Surface && si()->primitive()->light());
     }
 
     bool isDeltaLight() const {
@@ -329,7 +329,8 @@ struct Vertex {
                                                            : si()->primitive()->light();
             Assertion(light != nullptr, "Light is nullptr");
 
-            for (int i = 0; i < scene.lights().size(); i++) {
+            const int nLights = static_cast<int>(scene.lights().size());
+            for (int i = 0; i < nLights; i++) {
                 if (scene.lights()[i].get() == light) {
                     pdfChoise = lightDist.pdfDiscrete(i);
                     break;
@@ -711,8 +712,8 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
                             const Scene& scene,
                             RenderParams& params) {
     // Initialization
-    const int width = camera_->film()->resolution().x();
-    const int height = camera_->film()->resolution().y();
+    const int width = camera->film()->resolution().x();
+    const int height = camera->film()->resolution().y();
 
     const int numThreads = numSystemThreads();
     auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
@@ -736,16 +737,20 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
         std::atomic<int> proc(0);
         parallel_for(0, numPixels, [&](int pid) {
             const int threadID = getThreadID();
+            const auto &sampler = samplers[threadID];
+            sampler->startPixel();
+
             const int y = pid / width;
             const int x = pid % width;
-            const Point2d randFilm = samplers[threadID]->get2D();
+            const Point2d randFilm = sampler->get2D();
 
             auto cameraPath = std::make_unique<Vertex[]>(maxBounces + 2);
             auto lightPath  = std::make_unique<Vertex[]>(maxBounces + 1);
-            const int nCamera = calcCameraSubpath(scene, *samplers[threadID], arenas[threadID],
-                              maxBounces + 2, *camera_, Point2i(x, y), randFilm,
+
+            const int nCamera = calcCameraSubpath(scene, *sampler, arenas[threadID],
+                              maxBounces + 2, *camera, Point2i(x, y), randFilm,
                               cameraPath.get());
-            const int nLight = calcLightSubpath(scene, *samplers[threadID], arenas[threadID],
+            const int nLight = calcLightSubpath(scene, *sampler, arenas[threadID],
                              maxBounces + 1, lightDist, lightPath.get());
 
             Spectrum L(0.0);
@@ -758,28 +763,28 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
                     double misWeight = 0.0;
 
                     Spectrum Lpath = connectBDPT(scene, lightPath.get(), cameraPath.get(),
-                        lid, cid, lightDist, *camera_, *samplers[threadID],
+                        lid, cid, lightDist, *camera, *sampler,
                         &pFilm, &misWeight);
                     if (cid == 1 && !Lpath.isBlack()) {
                         pFilm = Point2d(width - pFilm.x(), pFilm.y());
                         mtx.lock();
-                        camera_->film()->addPixel(pFilm, Lpath);
+                        camera->film()->addPixel(pFilm, Lpath);
                         mtx.unlock();
                     } else {
                         L += Lpath;
                     }
                 }
             }
-            camera_->film()->addPixel(Point2i(width - x - 1, y), randFilm, L);
+            camera->film()->addPixel(Point2i(width - x - 1, y), randFilm, L);
 
             proc++;
             if (proc % 1000 == 0) {
-                printf("%6.2f %% processed...\r", 100.0 * proc / numPixels);
+                printf("\r[ %d / %d ] %6.2f %% processed...", i + 1, numSamples, 100.0 * proc / numPixels);
                 fflush(stdout);
             }
         });
 
-        camera_->film()->saveMLT(1.0 / (i + 1), i + 1);
+        camera->film()->saveMLT(1.0 / (i + 1), i + 1);
 
         for (int t = 0; t < numThreads; t++) {
             arenas[t].reset();

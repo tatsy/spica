@@ -29,7 +29,6 @@ Integrator::~Integrator() {
 void Integrator::render(const std::shared_ptr<const Camera> &camera,
                         const Scene &scene,
                         RenderParams &params) {
-    this->camera_ = camera;
 }
 
 // -----------------------------------------------------------------------------
@@ -44,31 +43,16 @@ SamplerIntegrator::SamplerIntegrator(const std::shared_ptr<Sampler>& sampler)
 SamplerIntegrator::~SamplerIntegrator() {
 }
 
-void SamplerIntegrator::initialize(const Scene& scene,
-                                   RenderParams& parmas,
-                                   Sampler& sampler) {
-}
-
-void SamplerIntegrator::loopStarted(const Scene& scene,
-                                    RenderParams& parmas,
-                                    Sampler& sampler) {
-}
-
-void SamplerIntegrator::loopFinished(const Scene& scene,
-                                     RenderParams& parmas,
-                                     Sampler& sampler) {
-}
-
 void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
                                const Scene& scene,
                                RenderParams& params) {
     // Initialization
     Integrator::render(camera, scene, params);
     auto initSampler = sampler_->clone((unsigned int)time(0));
-    initialize(scene, params, *initSampler);
+    initialize(camera, scene, params, *initSampler);
 
-    const int width = camera_->film()->resolution().x();
-    const int height = camera_->film()->resolution().y();
+    const int width = camera->film()->resolution().x();
+    const int height = camera->film()->resolution().y();
 
     const int numThreads = numSystemThreads();
     auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
@@ -79,7 +63,7 @@ void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
     const int numSamples = params.getInt("sampleCount");
     for (int i = 0; i < numSamples; i++) {
         // Before loop computations
-        loopStarted(scene, params, *initSampler);
+        loopStarted(camera, scene, params, *initSampler);
 
         // Prepare samplers
         if (i % numThreads == 0) {
@@ -99,10 +83,10 @@ void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const int x = pid % width;
             const Point2d randFilm = sampler->get2D();
             const Point2d randLens = sampler->get2D();
-            const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
+            const Ray ray = camera->spawnRay(Point2i(x, y), randFilm, randLens);
 
             const Point2i pixel(width - x - 1, y);
-            camera_->film()->addPixel(pixel, randFilm,
+            camera->film()->addPixel(pixel, randFilm,
                                       Li(scene, params, ray, *sampler, arenas[threadID]));
 
             proc++;
@@ -113,14 +97,14 @@ void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
         });
         printf("\n");
 
-        camera_->film()->save(i + 1);
+        camera->film()->save(i + 1);
 
         for (int t = 0; t < numThreads; t++) {
             arenas[t].reset();
         }
 
         // After loop computations
-        loopFinished(scene, params, *initSampler);
+        loopFinished(camera, scene, params, *initSampler);
     }
     printf("Finish!!\n");
 }

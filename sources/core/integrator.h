@@ -34,9 +34,6 @@ public:
     virtual void render(const std::shared_ptr<const Camera>& camera,
                         const Scene& scene,
                         RenderParams& params);
-
-protected:
-    std::shared_ptr<const Camera> camera_;
 };
 
 /**
@@ -54,17 +51,20 @@ public:
                         const Scene& scene,
                         RenderParams& params) override;
 
-    virtual void initialize(const Scene& scene,
+    virtual void initialize(const std::shared_ptr<const Camera> &camera,
+                            const Scene& scene,
                             RenderParams& params,
-                            Sampler& sampler);
+                            Sampler& sampler) {}
 
-    virtual void loopStarted(const Scene& scene,
+    virtual void loopStarted(const std::shared_ptr<const Camera> &camera,
+                             const Scene& scene,
                              RenderParams& params,
-                             Sampler& sampler);
+                             Sampler& sampler) {}
 
-    virtual void loopFinished(const Scene& scene,
+    virtual void loopFinished(const std::shared_ptr<const Camera> &camera,
+                              const Scene& scene,
                               RenderParams& params,
-                              Sampler& sampler);
+                              Sampler& sampler) {}
 
     virtual Spectrum Li(const Scene& scene,
                         RenderParams& params,

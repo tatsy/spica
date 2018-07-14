@@ -449,7 +449,8 @@ Spectrum HierarchicalIntegrator::Li(const Scene& scene,
     return L;
 }
 
-void HierarchicalIntegrator::initialize(const Scene& scene,
+void HierarchicalIntegrator::initialize(const std::shared_ptr<const Camera> &camera,
+                                        const Scene& scene,
                                         RenderParams& params,
                                         Sampler& sampler) {
     // Compute dA and copy maxError
@@ -458,11 +459,12 @@ void HierarchicalIntegrator::initialize(const Scene& scene,
     hi_ = std::make_unique<Hierarchy>(radius, maxError_);
 }
 
-void HierarchicalIntegrator::loopStarted(const Scene& scene,
+void HierarchicalIntegrator::loopStarted(const std::shared_ptr<const Camera> &camera,
+                                         const Scene& scene,
                                          RenderParams& params,
                                          Sampler& sampler) {
     // Sample points with dart throwing
-    Point3d pCamera = camera_->cameraToWorld().apply(Point3d(0.0, 0.0, 0.0));
+    Point3d pCamera = camera->cameraToWorld().apply(Point3d(0.0, 0.0, 0.0));
     hi_->samplePoints(scene, pCamera);
 
     // Compute irradiance at sample points

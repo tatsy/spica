@@ -4,22 +4,18 @@
 #include <atomic>
 #include <mutex>
 
-#include "mis.h"
-
-#include "../core/memory.h"
-#include "../core/parallel.h"
-#include "../core/renderparams.h"
-#include "../core/interaction.h"
-
-#include "../scenes/scene.h"
-#include "../camera/spica_camera.h"
-#include "../image/film.h"
-
-#include "../random/sampler.h"
-#include "../random/random.h"
-
-#include "../bxdf/bsdf.h"
-#include "../bxdf/bssrdf.h"
+#include "core/memory.h"
+#include "core/parallel.h"
+#include "core/renderparams.h"
+#include "core/interaction.h"
+#include "core/scene.h"
+#include "core/camera.h"
+#include "core/film.h"
+#include "core/sampler.h"
+#include "core/random.h"
+#include "core/bsdf.h"
+#include "core/bssrdf.h"
+#include "core/mis.h"
 
 namespace spica {
 
@@ -103,7 +99,7 @@ private:
  */
 class PSSSampler : public Sampler {
 public:
-    PSSSampler(const std::shared_ptr<Sampler>& rand, double pLarge)
+    PSSSampler(const std::shared_ptr<Random>& rand, double pLarge)
         : rand_{ rand }
         , pLarge_{ pLarge } {
         static const int size = 128;
@@ -159,8 +155,8 @@ public:
         return true;
     }
 
-    std::unique_ptr<Sampler> clone(unsigned int seed = 0) const override {
-        return std::make_unique<PSSSampler>(rand_->clone(seed), pLarge_);
+    std::unique_ptr<Sampler> clone(uint32_t seed = 0) const override {
+        return std::make_unique<PSSSampler>(std::make_shared<Random>(seed), pLarge_);
     }
 
     void accept() {
@@ -189,88 +185,89 @@ private:
     int largeStepTime_ = 0;
     int currentCoordIndex_ = 0;
     
-    std::shared_ptr<Sampler> rand_;
+    std::shared_ptr<Random> rand_;
     double pLarge_;
     
     std::vector<Sample> currentSamples_;
     std::vector<Sample> previousSamples_;
 };
 
-PSSMLTIntegrator::PSSMLTIntegrator(const std::shared_ptr<const Camera>& camera)
-    : Integrator{ camera } {
+PSSMLTIntegrator::PSSMLTIntegrator()
+    : Integrator{ } {
+}
+
+PSSMLTIntegrator::PSSMLTIntegrator(spica::RenderParams &params)
+    : PSSMLTIntegrator{ } {
 }
 
 PSSMLTIntegrator::~PSSMLTIntegrator() {
 }
 
-void PSSMLTIntegrator::render(const Scene& scene, const RenderParams& params) {
+void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const Scene& scene, RenderParams& params) {
     // Take parameters.
-    const int width  = camera_->film()->resolution().x();
-    const int height = camera_->film()->resolution().y();
-    const double pLarge  = params.get<double>("PSSMLT_P_LARGE", 0.5);
-    const int    nMutate = params.get<int>("MLT_NUM_MUTATE", 100000);
-    const int    nTrial  = params.get<int>("NUM_SAMPLES");
-    const int    initialTrials = params.get<int>("MLT_NUM_INIT_TRIALS", 2000);
-    
-    // Pure random generator.
-    auto rand = std::make_shared<Random>(0);
+    const int width  = camera->film()->resolution().x();
+    const int height = camera->film()->resolution().y();
+    const double pLarge  = params.getDouble("pLarge", 0.3);
+    const int sampleCount = params.getInt("sampleCount");
+    const int nBootstrap = params.getInt("luminanceSamples", 100000);
+    const int nMutate = width * height;
 
     // Start rendering.
-    const double scrnArea = camera_->film()->resolution().x() * camera_->film()->resolution().y();
+    const double scrnArea = camera->film()->resolution().x() * camera->film()->resolution().y();
 
     const int nThreads = numSystemThreads();
-    const int nLoop = (nTrial + nThreads - 1) / nThreads;
+    const int nLoop = (sampleCount + nThreads - 1) / nThreads;
     
     int progress = 0;
     for (int loop = 0; loop < nLoop; loop++) {
         std::mutex mtx;
-        const int nTasks = std::min(nThreads, nTrial - nThreads * loop);
-        std::atomic<long long> nAccept(0ll);
-        std::atomic<long long> nTotal(0ll);
+        std::atomic<int64_t> nAccept(0);
+        std::atomic<int64_t> nTotal(0);
         parallel_for (0, nThreads, [&](int t) {
             MemoryArena arena;
         
             // Generate initial paths (burn-in step).
             PathSample currentSample;
             std::shared_ptr<PSSSampler> psSampler = nullptr;
+            std::shared_ptr<Random> randomSampler = std::make_shared<Random>((uint32_t)time(0));
             double sumI = 0.0;
             while (sumI == 0.0) {
-                psSampler = std::make_shared<PSSSampler>(rand->clone((unsigned int)time(0)), pLarge);
-                for (int i = 0; i < initialTrials; i++) {
+                psSampler = std::make_shared<PSSSampler>(randomSampler, pLarge);
+                for (int i = 0; i < nBootstrap; i++) {
                     psSampler->startNextSample();
-                    currentSample = generateSample(scene, params, *psSampler, arena);
-                    sumI += currentSample.Li().luminance();
+                    currentSample = generateSample(camera, scene, params, *psSampler, arena);
+                    sumI += currentSample.Li().gray();
                 }
             }
 
             // Mutation.
             const int M = nMutate;
-            const double b = sumI / initialTrials;
+            const double b = sumI / nBootstrap;
             for (int i = 0; i < nMutate; i++) {
                 psSampler->startNextSample();
-                PathSample nextSample = generateSample(scene, params, *psSampler, arena);
+                PathSample nextSample = generateSample(camera, scene, params, *psSampler, arena);
 
                 double acceptRatio = currentSample.Li().isBlack() ? 1.0
-                                                                  : nextSample.Li().luminance() / currentSample.Li().luminance();
+                                                                  : nextSample.Li().gray() / currentSample.Li().gray();
                 acceptRatio = std::min(1.0, acceptRatio);
 
                 // Update image.
                 mtx.lock();
                 {
                     double currentWeight = (1.0 - acceptRatio) /
-                                           ((currentSample.Li().luminance() / b + psSampler->pLarge()) * M);
+                                           ((currentSample.Li().gray() / b + psSampler->pLarge()) * M);
                     double nextWeight    = (acceptRatio + psSampler->largeStep()) /
-                                           ((nextSample.Li().luminance() / b + psSampler->pLarge()) * M);
+                                           ((nextSample.Li().gray() / b + psSampler->pLarge()) * M);
 
                     Point2d curPixel(width - currentSample.pixel().x(), currentSample.pixel().y());
                     Point2d nextPixel(width - nextSample.pixel().x(), nextSample.pixel().y());
-                    camera_->film()->addPixel(curPixel, currentWeight * currentSample.Li());
-                    camera_->film()->addPixel(nextPixel, nextWeight * nextSample.Li());
+                    camera->film()->addPixel(curPixel, currentWeight * currentSample.Li());
+                    camera->film()->addPixel(nextPixel, nextWeight * nextSample.Li());
                 }
                 mtx.unlock();
 
                 // Update sample.
-                if (rand->get1D() < acceptRatio) {
+                if (randomSampler->get1D() < acceptRatio) {
                     nAccept++;              
                     currentSample = nextSample;
                     psSampler->accept();
@@ -292,22 +289,22 @@ void PSSMLTIntegrator::render(const Scene& scene, const RenderParams& params) {
 
         // Report accept / reject ratio.
         const double ratio = 100.0 * nAccept / nTotal;
-        printf("[ %5.2f %% ] ", ratio);
-        std::cout << nAccept << " / " << nTotal << std::endl;
+        MsgInfo("Accept ratio = %5.2f %% (%lld / %lld)", ratio, nAccept.load(), nTotal.load());
         fflush(stdout);
 
         // Save image.
-        progress += nTasks;
-        camera_->film()->saveMLT(scrnArea / progress, progress);
+        progress += nThreads;
+        camera->film()->saveMLT(scrnArea / progress, progress);
     }
 }
 
-PSSMLTIntegrator::PathSample PSSMLTIntegrator::generateSample(const Scene& scene,
-                                                              const RenderParams& params,
+PSSMLTIntegrator::PathSample PSSMLTIntegrator::generateSample(const std::shared_ptr<const Camera> &camera,
+                                                              const Scene& scene,
+                                                              RenderParams& params,
                                                               Sampler& sampler,
                                                               MemoryArena& arena) const {
-    const int width  = camera_->film()->resolution().x();
-    const int height = camera_->film()->resolution().y();
+    const int width  = camera->film()->resolution().x();
+    const int height = camera->film()->resolution().y();
 
     const double fx = std::min(sampler.get1D() * width, (double)(width - EPS));
     const double fy = std::min(sampler.get1D() * height, (double)(height - EPS));
@@ -315,14 +312,14 @@ PSSMLTIntegrator::PathSample PSSMLTIntegrator::generateSample(const Scene& scene
     const int y = std::min((int)fy, height - 1);
     const Point2d randLens = sampler.get2D();
     const Point2d randFilm(fx - x, fy - y);
-    const Ray ray = camera_->spawnRay(Point2i(x, y), randFilm, randLens);
+    const Ray ray = camera->spawnRay(Point2i(x, y), randFilm, randLens);
 
     Spectrum L = Li(scene, params, ray, sampler, arena);
     return PathSample(Point2d(fx, fy), L);
 }
 
 Spectrum PSSMLTIntegrator::Li(const Scene& scene,
-                              const RenderParams& params,
+                              RenderParams& params,
                               const Ray& r,
                               Sampler& sampler,
                               MemoryArena& arena,
@@ -332,8 +329,8 @@ Spectrum PSSMLTIntegrator::Li(const Scene& scene,
     Spectrum beta(1.0);
     bool specularBounce = false;
     
-    const int maxBounces = params.get<int>("MAX_BOUNCES");
-    for (int bounces = 0; bounces < maxBounces; bounces++) {
+    const int maxDepth = params.getInt("maxDepth");
+    for (int bounces = 0; bounces < maxDepth; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
 
@@ -348,7 +345,7 @@ Spectrum PSSMLTIntegrator::Li(const Scene& scene,
             }
         }
 
-        if (!isIntersect || bounces >= maxBounces) break;
+        if (!isIntersect || bounces >= maxDepth) break;
 
         isect.setScatterFuncs(ray, arena);
         if (!isect.bsdf()) {
@@ -358,7 +355,7 @@ Spectrum PSSMLTIntegrator::Li(const Scene& scene,
         }
 
         if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-            Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+            Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
             L += Ld;
         }
 
@@ -385,7 +382,7 @@ Spectrum PSSMLTIntegrator::Li(const Scene& scene,
             if (S.isBlack() || pdf == 0.0) break;
             beta *= S / pdf;
 
-            L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+            L += beta * uniformSampleOneLight(pi, scene, arena, sampler);
 
             Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                            BxDFType::All, &sampledType);
@@ -398,7 +395,7 @@ Spectrum PSSMLTIntegrator::Li(const Scene& scene,
 
         // Russian roulette
         if (bounces > 3) {
-            double continueProbability = std::min(0.95, beta.luminance());
+            double continueProbability = std::min(0.95, beta.gray());
             if (sampler.get1D() > continueProbability) break;
             beta /= continueProbability;
         }

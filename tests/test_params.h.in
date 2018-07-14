@@ -14,8 +14,8 @@
 namespace spica {
 
 static const std::string ROOT_DIRECTORY   = "@CMAKE_SOURCE_DIR@/";
-static const std::string DATA_DIRECTORY   = ROOT_DIRECTORY + "testdata/";
-static const std::string TEMP_DIRECTORY   = ROOT_DIRECTORY + "testdata/tmp/";
+static const std::string DATA_DIRECTORY   = ROOT_DIRECTORY + "tests/data/";
+static const std::string TEMP_DIRECTORY   = ROOT_DIRECTORY + "tests/data/tmp/";
 
 }  // namespace spica
 

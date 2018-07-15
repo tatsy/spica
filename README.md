@@ -32,32 +32,32 @@ $ make install
 
 ## Results
 
-#### Cornell Box
+#### Cornell box
 
-<img src="./results/cbox_1000.png" width="512" />
+<img src="./results/cbox_1000.png" width="50%" />
 
-Simple path tracing, 1000 spp.
+Simple path tracing (1000 spp)
 The scene courtesy of Mitsuba renderer (W. Jakob 2010).
 
-#### Cornell Box (Subsurface Scattering)
+#### Cornell box (Subsurface Scattering)
 
-<img src="./results/cbox_sss_5000.png" width="512" />
+<img src="./results/cbox_sss_5000.png" width="50%" />
 
-Simple path tracing, 5000 spp.
+Simple path tracing (5000 spp)
 The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
 
-#### Multiple Importance Sampling
+#### Multiple importance sampling
 
-<img src="./results/mi_1000.png" width="512" />
+<img src="./results/mi_1000.png" width="50%" />
 
-Direct lighting only, 1000 spp.
+Direct lighting only (1000 spp)
 The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
 
-#### Cornell Box (Glossy Surfaces)
+#### Cornell box (with glossy surfaces)
 
-<img src="./results/cbox2_256.png" width="512"/>
+<img src="./results/cbox2_256.jpg" width="50%"/>
 
-Bidirectional path tracing, 1000 spp.
+Bidirectional path tracing (256 spp)
 
 
 

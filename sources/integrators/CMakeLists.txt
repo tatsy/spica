@@ -10,6 +10,8 @@ add_integrator(gdpt gdpt/gdpt.cc gdpt/gdpt.h gdpt/gdptfilm.cc gdpt/gdptfilm.h
                LINK_LIBRARIES ${SPICA_DEPENDENCY_LIBRARIES})
 
 add_integrator(pssmlt pssmlt/pssmlt.cc pssmlt/pssmlt.h)
+add_integrator(photonmapper photonmapper/photonmapper.cc photonmapper/photonmapper.h
+               photon_map.cc photon_map.h)
 add_integrator(sppm sppm/sppm.cc sppm/sppm.h)
 
 add_integrator(directlighting directlighting/directlighting.cc directlighting/directlighting.h)

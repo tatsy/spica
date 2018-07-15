@@ -1,2 +1,0 @@
-spica documentation
-===

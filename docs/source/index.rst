@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to spica's documentation!
-=================================
+Overview
+********
 
 The project **spica** is for a cross-platform physically based rendering engine.
 This program employs a plug-in system and is easy-to-build for the user convenience!

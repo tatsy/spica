@@ -19,8 +19,9 @@ rm -rf html/*
 
 doxygen doxyfile
 make html
-mv build/html/* html
-mv reference html/reference
+rsync -ravz build/html/* html
+rsync -ravz build/html/.* html
+rsync -ravz reference html/reference
 
 #
 ## Deploy GitHub pages

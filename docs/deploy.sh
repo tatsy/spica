@@ -19,8 +19,8 @@ rm -rf html/*
 
 doxygen doxyfile
 make html
-mv build/html html
-mv classref html/reference
+mv build/html/* html
+mv reference html/reference
 
 #
 ## Deploy GitHub pages

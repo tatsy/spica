@@ -21,7 +21,7 @@ doxygen doxyfile
 make html
 rsync -ravz build/html/* html
 rsync -ravz build/html/.* html
-rsync -ravz reference html/reference
+rsync -ravz reference/* html/reference
 
 #
 ## Deploy GitHub pages

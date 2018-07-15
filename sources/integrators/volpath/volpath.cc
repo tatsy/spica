@@ -1,37 +1,41 @@
 #define SPICA_API_EXPORT
 #include "volpath.h"
 
-#include "../core/ray.h"
-#include "../core/interaction.h"
-#include "../core/renderparams.h"
+#include "core/ray.h"
+#include "core/interaction.h"
+#include "core/renderparams.h"
 
-#include "../scenes/scene.h"
+#include "core/scene.h"
 
-#include "../bxdf/bsdf.h"
-#include "../bxdf/bxdf.h"
-#include "../bxdf/bssrdf.h"
-#include "../bxdf/phase.h"
-
-#include "../random/sampler.h"
-
-#include "mis.h"
+#include "core/bsdf.h"
+#include "core/bxdf.h"
+#include "core/bssrdf.h"
+#include "core/phase.h"
+#include "core/sampler.h"
+#include "core/mis.h"
 
 namespace spica {
 
-VolPathIntegrator::VolPathIntegrator(const std::shared_ptr<const Camera>& camera,
-                                     const std::shared_ptr<Sampler>& sampler)
-    : PathIntegrator{ camera, sampler } {
+VolPathIntegrator::VolPathIntegrator(const std::shared_ptr<Sampler>& sampler)
+    : SamplerIntegrator{ sampler } {
+}
+
+VolPathIntegrator::VolPathIntegrator(spica::RenderParams &params)
+    : VolPathIntegrator{ std::static_pointer_cast<Sampler>(params.getObject("sampler")) } {
 }
 
 Spectrum VolPathIntegrator::Li(const Scene& scene,
-                               const RenderParams& params,
-                               const Ray& r, Sampler& sampler,
-                               MemoryArena& arena, int depth) const {
+                               RenderParams& params,
+                               const Ray& r,
+                               Sampler& sampler,
+                               MemoryArena& arena,
+                               int depth) const {
     Ray ray(r);
     Spectrum L(0.0);
     Spectrum beta(1.0);
     bool specularBounce = false;
-    const int maxBounces = params.get<int>("MAX_BOUNCES");
+    const int maxBounces = params.getInt("maxDepth");
+
     for (int bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
@@ -42,7 +46,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
         if (beta.isBlack()) break;
 
         if (mi.isValid()) {
-            L += beta * mis::uniformSampleOneLight(mi, scene, arena, sampler, true);
+            L += beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
 
             if (bounces >= maxBounces) break;
 
@@ -72,7 +76,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
             }
 
             if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-                Spectrum Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+                Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
                 L += Ld;
             }
 
@@ -99,7 +103,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
                 if (S.isBlack() || pdf == 0.0) break;
                 beta *= S / pdf;
 
-                L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+                L += beta * uniformSampleOneLight(pi, scene, arena, sampler);
 
                 Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                                BxDFType::All, &sampledType);
@@ -113,7 +117,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
 
         // Russian roulette
         if (bounces > 3) {
-            double continueProbability = std::min(0.95, beta.luminance());
+            double continueProbability = std::min(0.95, beta.gray());
             if (sampler.get1D() > continueProbability) break;
             beta /= continueProbability;
         }

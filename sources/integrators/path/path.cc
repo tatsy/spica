@@ -40,11 +40,11 @@ PathIntegrator::~PathIntegrator() {
 }
 
 Spectrum PathIntegrator::Li(const Scene& scene,
-                          RenderParams& params,
-                          const Ray& r,
-                          Sampler& sampler,
-                          MemoryArena& arena,
-                          int depth) const {
+                            RenderParams& params,
+                            const Ray& r,
+                            Sampler& sampler,
+                            MemoryArena& arena,
+                            int depth) const {
     Ray ray(r);
     Spectrum L(0.0);
     Spectrum beta(1.0);

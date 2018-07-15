@@ -19,7 +19,10 @@ Material::Material(const std::shared_ptr<SurfaceMaterial> &bsdf,
 }
 
 void Material::setScatterFuncs(SurfaceInteraction *intr, MemoryArena &arena) const {
-    bsdf_->setScatterFuncs(intr, arena);
+    if (bsdf_) {
+        bsdf_->setScatterFuncs(intr, arena);
+    }
+
     if (subsurface_) {
         subsurface_->setScatterFuncs(intr, arena);
     }

@@ -87,12 +87,12 @@ void PhotonMap::construct(const Scene& scene,
     const int nThreads = numSystemThreads();
     std::vector<std::unique_ptr<Sampler>> samplers(nThreads);
     for (int i = 0; i < nThreads; i++) {
-        samplers[i] = sampler.clone((unsigned int)time(0) + i);
+        samplers[i] = sampler.clone((uint32_t)time(0) + i);
     }
     std::vector<MemoryArena> arenas(nThreads);
 
     // Distribute tasks
-    const int castPhotons = params.getInt("castPhotons", 1000000);
+    const int castPhotons = params.getInt("globalPhotons", 500000);
     std::vector<std::vector<Photon>> photons(nThreads);
 
     // Shooting photons

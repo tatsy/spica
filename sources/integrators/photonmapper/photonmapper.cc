@@ -25,7 +25,7 @@ PhotonMapperIntegrator::PhotonMapperIntegrator(const std::shared_ptr<Sampler>& s
     , alpha_{ alpha } {
 }
 
-PhotonMapperIntegrator::PhotonMapperIntegrator(spica::RenderParams &params)
+PhotonMapperIntegrator::PhotonMapperIntegrator(RenderParams &params)
     : PhotonMapperIntegrator{ std::static_pointer_cast<Sampler>(params.getObject("sampler")),
                               params.getDouble("lookupRadiusRatio", 0.8) } {
 }

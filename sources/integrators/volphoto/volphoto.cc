@@ -8,22 +8,21 @@
 #include <algorithm>
 #include <mutex>
 
-#include "../core/parallel.h"
-#include "../core/memory.h"
-#include "../core/kdtree.h"
-#include "../core/interaction.h"
-#include "../core/sampling.h"
-#include "../core/renderparams.h"
-#include "../scenes/scene.h"
+#include "core/parallel.h"
+#include "core/memory.h"
+#include "core/kdtree.h"
+#include "core/interaction.h"
+#include "core/sampling.h"
+#include "core/renderparams.h"
+#include "core/scene.h"
 
-#include "../integrator/photon_map.h"
+#include "core/bsdf.h"
+#include "core/bxdf.h"
+#include "core/bssrdf.h"
+#include "core/phase.h"
+#include "core/mis.h"
 
-#include "../bxdf/bsdf.h"
-#include "../bxdf/bxdf.h"
-#include "../bxdf/bssrdf.h"
-#include "../bxdf/phase.h"
-
-#include "mis.h"
+#include "integrators/photon_map.h"
 
 namespace spica {
 
@@ -41,22 +40,23 @@ public:
     }
 
     void construct(const Scene& scene,
-                   const RenderParams& params) {
+                   RenderParams& params,
+                   Sampler &sampler) {
         std::cout << "Shooting photons..." << std::endl;
 
         // Compute light power distribution
-        Distribution1D lightDistrib = mis::calcLightPowerDistrib(scene);
+        Distribution1D lightDistrib = calcLightPowerDistrib(scene);
 
         // Random number generator
         const int nThreads = numSystemThreads();
         std::vector<std::unique_ptr<Sampler>> samplers(nThreads);
         for (int i = 0; i < nThreads; i++) {
-            samplers[i] = std::make_unique<Random>((unsigned int)time(0) + i);
+            samplers[i] = sampler.clone((uint32_t)time(0) + i);
         }
         std::vector<MemoryArena> arenas(nThreads);
 
         // Distribute tasks
-        const int castPhotons = params.get<int>("CAST_PHOTONS");
+        const int castPhotons = params.getInt("globalPhotons", 500000);
         std::vector<std::vector<Photon>> photons(nThreads);
 
         // Shooting photons
@@ -122,7 +122,7 @@ public:
     Spectrum evaluateL(const SurfaceInteraction& po,
                       int gatherPhotons, double gatherRadius) const {
         // Find k-nearest neightbors
-        Photon query(po.pos(), Spectrum(), po.wo(), po.normal());
+        Photon query(po.pos(), Spectrum(), po.wo(), po.ns());
         std::vector<Photon> photons;
         knnFind(query, &photons, gatherPhotons, gatherRadius);
 
@@ -214,7 +214,7 @@ private:
     }
 
     void tracePhoton(const Scene& scene,
-                     const RenderParams& params,
+                     RenderParams& params,
                      const Ray& r,
                      const Spectrum& b,
                      Sampler& sampler,
@@ -223,7 +223,8 @@ private:
         Ray ray(r);
         Spectrum beta(b);
         SurfaceInteraction isect;
-        const int maxBounces = params.get<int>("MAX_BOUNCES");
+        const int maxBounces = params.getInt("maxDepth");
+
         for (int bounces = 0; bounces < maxBounces; bounces++) {
             bool isIntersect = scene.intersect(ray, &isect);
         
@@ -235,12 +236,12 @@ private:
 
             if (mi.isValid()) {
                 photons->emplace_back(mi.pos(), beta, -ray.dir(), Normal3d());
-                
+
                 Vector3d wo = -ray.dir();
                 Vector3d wi;
 
                 bnew = bnew * mi.phase()->sample(wo, &wi, sampler.get2D());
-                double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
+                double continueProb = std::min(1.0, bnew.gray() / beta.gray());
                 if (sampler.get1D() > continueProb) break;
                 beta = bnew / continueProb;
 
@@ -268,7 +269,7 @@ private:
 
                 Spectrum bnew = beta * ref * vect::absDot(wi, isect.normal()) / pdf;
 
-                double continueProb = std::min(1.0, bnew.luminance() / beta.luminance());
+                double continueProb = std::min(1.0, bnew.gray() / beta.gray());
                 if (sampler.get1D() > continueProb) break;
                 beta = bnew / continueProb;
                 ray = isect.spawnRay(wi);
@@ -296,59 +297,62 @@ private:
     }
 
 private:
-    KdTree<Photon> kdtree_;
+    KdTree<Photon> kdtreeSurface_;
+    KdTree<Photon> kdtreeVolume_;
 };
 
-VolPhotoIntegrator::VolPhotoIntegrator(
-    const std::shared_ptr<const Camera>& camera,
-    const std::shared_ptr<Sampler>& sampler,
-    double alpha)
-    : SamplerIntegrator{ camera, sampler }
+VolPhotoIntegrator::VolPhotoIntegrator(const std::shared_ptr<Sampler>& sampler, double alpha)
+    : SamplerIntegrator{ sampler }
     , photonmap_{}
     , globalRadius_{}
     , alpha_{ alpha } {
     photonmap_ = std::make_unique<VPhotonMap>();
 }
 
-VolPhotoIntegrator::~VolPhotoIntegrator() {
+VolPhotoIntegrator::VolPhotoIntegrator(RenderParams &params)
+        : VolPhotoIntegrator{ std::static_pointer_cast<Sampler>(params.getObject("sampler")),
+                              params.getDouble("lookupRadiusRatio", 0.8) } {
 }
 
-void VolPhotoIntegrator::initialize(const Scene& scene,
-                                   const RenderParams& params,
-                                   Sampler& sampler) {
+void VolPhotoIntegrator::initialize(const std::shared_ptr<const Camera> &camera,
+                                    const Scene& scene,
+                                    RenderParams& params,
+                                    Sampler& sampler) {
     // Compute global radius
     Bounds3d bounds = scene.worldBound();
     globalRadius_ = (bounds.posMax() - bounds.posMin()).norm() * 0.5;
 }
 
-void VolPhotoIntegrator::loopStarted(const Scene& scene,
-                                      const RenderParams& params,
-                                      Sampler& sampler) {
+void VolPhotoIntegrator::loopStarted(const std::shared_ptr<const Camera> &camera,
+                                     const Scene& scene,
+                                     RenderParams& params,
+                                     Sampler& sampler) {
     // Construct photon map
-    photonmap_->construct(scene, params);
+    photonmap_->construct(scene, params, sampler);
 }
 
-void VolPhotoIntegrator::loopFinished(const Scene& scene,
-                                     const RenderParams& params,
-                                     Sampler& sampler) {
+void VolPhotoIntegrator::loopFinished(const std::shared_ptr<const Camera> &camera,
+                                      const Scene& scene,
+                                      RenderParams& params,
+                                      Sampler& sampler) {
     // Scale global radius
     globalRadius_ *= alpha_;   
 }
 
 
 Spectrum VolPhotoIntegrator::Li(const Scene& scene,
-                               const RenderParams& params,
-                               const Ray& r,
-                               Sampler& sampler,
-                               MemoryArena& arena,
-                               int depth) const {
+                                RenderParams& params,
+                                const Ray& r,
+                                Sampler& sampler,
+                                MemoryArena& arena,
+                                int depth) const {
     Ray ray(r);
     Spectrum L(0.0);
     Spectrum beta(1.0);
     bool specularBounce = false;
-    const int maxBounces      = params.get<int>("MAX_BOUNCES");
-    const int gatherPhotons   = params.get<int>("GATHER_PHOTONS");
-    const double gatherRadius = params.get<double>("GATHER_RADIUS");
+    const int maxBounces      = params.getInt("maxDepth", 8);
+    const int gatherPhotons   = params.getInt("lookupSize", 32);
+    const double gatherRadius = params.getDouble("globalLookupRadius", 8.0);
     
     std::mutex mtx;
     for (int bounces = 0; ; bounces++) {
@@ -359,19 +363,19 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
         MediumInteraction mi;
         if (ray.medium()) {
             Spectrum Ld(0.0);
-            for (;;) {
-                beta *= ray.medium()->sample(ray, sampler, arena, &mi);
-                if (beta.isBlack()) break;
-                if (!mi.isValid()) break;
+            beta *= ray.medium()->sample(ray, sampler, arena, &mi);
+            if (beta.isBlack()) break;
+            if (mi.isValid()) {
 
-                Ld += beta * photonmap_->evaluateL(mi, gatherPhotons, gatherRadius);
-                ray = Ray(mi.pos(), ray.dir(), INFTY, ray.medium());
-                if (scene.intersect(ray, &isect)) {
-                    break;
-                }
+                L += beta * photonmap_->evaluateL(mi, gatherPhotons, gatherRadius);
+                break;
+//                ray = Ray(mi.pos(), ray.dir(), INFTY, ray.medium());
+//                if (scene.intersect(ray, &isect)) {
+//                    break;
+//                }
             }
-            L += Ld;
-            break;
+//            L += Ld;
+//            break;
         } else {
             // Sample Le which contributes without any loss
             if (bounces == 0 || specularBounce) {
@@ -395,7 +399,7 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
 
             Spectrum Ld(0.0);
             if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-                Ld = beta * mis::uniformSampleOneLight(isect, scene, arena, sampler);
+                Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
             }
 
             // Process BxDF
@@ -430,7 +434,7 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
                 if (S.isBlack() || pdf == 0.0) break;
                 beta *= S / pdf;
 
-                L += beta * mis::uniformSampleOneLight(pi, scene, arena, sampler);
+                L += beta * uniformSampleOneLight(pi, scene, arena, sampler);
 
                 Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                                BxDFType::All, &sampledType);
@@ -444,7 +448,7 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
 
         // Russian roulette
         if (bounces > 3) {
-            double continueProbability = std::min(0.95, beta.luminance());
+            double continueProbability = std::min(0.95, beta.gray());
             if (sampler.get1D() > continueProbability) break;
             beta /= continueProbability;
         }

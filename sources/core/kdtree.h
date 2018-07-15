@@ -14,12 +14,13 @@ namespace spica {
 
     struct KnnQuery {
         KnnSearchType type;
-        double epsilon;
         int k;
-        KnnQuery(int type_, double epsilon_, int k_)
+        double epsilon;
+
+        KnnQuery(int type_, int k_, double epsilon_)
             : type(static_cast<KnnSearchType>(type_))
-            , epsilon(epsilon_)
             , k(k_)
+            , epsilon(epsilon_)
         {
         }
     };

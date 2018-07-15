@@ -12,7 +12,7 @@ Bidirectional path tracing (256 spp) - [Download](https://www.dropbox.com/s/red7
 
 ### RT4 scene
 
-This is a scene for [Ray tracing camp](https://sites.google.com/site/raytracingcamp4/), which is a Japanese domestic event for ray tracing lovers.
+This is a scene for [Ray tracing camp](https://sites.google.com/site/raytracingcamp4/), which is a Japanese domestic event for ray tracing fans.
 
 <img src="../results/rt4scene_1000.jpg" width="90%"/>
 

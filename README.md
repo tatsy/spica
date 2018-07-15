@@ -32,6 +32,8 @@ $ make install
 
 ## Results
 
+You can find other results also in the [scenes](https://github.com/tatsy/spica/blob/master/scenes/README.md) folder.
+
 #### Cornell box
 
 <img src="./results/cbox_1000.png" width="50%" />
@@ -44,14 +46,14 @@ The scene courtesy of Mitsuba renderer (W. Jakob 2010).
 <img src="./results/cbox_sss_5000.png" width="50%" />
 
 Simple path tracing (5000 spp)
-The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
+The scene courtesy of Mitsuba renderer (W. Jakob 2010).
 
 #### Multiple importance sampling
 
 <img src="./results/mi_1000.png" width="50%" />
 
 Direct lighting only (1000 spp)
-The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
+The scene courtesy of Mitsuba renderer (W. Jakob 2010).
 
 #### Cornell box (with glossy surfaces)
 
@@ -59,11 +61,9 @@ The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
 
 Bidirectional path tracing (256 spp)
 
-
-
 ## Acknowledgment
 
-This renderer is largely inspired by PBRT v3 by M. Pharr, G. Humphreys and W. Jakob. The author would like to sincerely appreciate the authors for allowing the open access to their source codes.
+This renderer is largely inspired by PBRT v3 of M. Pharr, G. Humphreys and W. Jakob. The author would sincerely like to appreciate the authors for allowing the open access to their source codes.
 
 The author sincerely would also like to thank for HDR images provided by sIBL Archive [http://www.hdrlabs.com/sibl/archive.html](http://www.hdrlabs.com/sibl/archive.html). These images are licensed under the Creative Commons Attribution-Noncommercial-Share Alike 3.0 License.
 

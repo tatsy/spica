@@ -1,5 +1,6 @@
 # Common ignore files
 build/*
+docs/build/*
 tests/data/tmp
 .cccc
 test_params.h

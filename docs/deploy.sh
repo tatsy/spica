@@ -15,10 +15,12 @@ git config --global user.email "travis@travis-ci.org"
 #
 ## Run Doxygen and Sphinx docs
 #
+rm -rf html/*
+
 doxygen doxyfile
 make html
-rm -rf html/*
-cp -R build/html/* html
+mv build/html html
+mv classref html/reference
 
 #
 ## Deploy GitHub pages

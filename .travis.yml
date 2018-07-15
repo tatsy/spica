@@ -55,7 +55,7 @@ after_success:
 
 before_deploy:
   - sudo pip install sphinx breathe sphinx_rtd_theme
-  - "cd docs; /bin/bash deploy.sh; cd -"
+  - "cd ../docs; /bin/bash deploy.sh; cd -"
   - mkdir packages
   - tar czvf packages/releases-$TRAVIS_TAG.tar.gz $(ls -I packages)
   - zip -q packages/releases-$TRAVIS_TAG.zip -r $(ls -I packages)

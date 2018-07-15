@@ -9,9 +9,9 @@ from collections import OrderedDict
 
 scene_list = OrderedDict([
     ('cbox', 'https://www.mitsuba-renderer.org/scenes/cbox.zip'),
-    ('cbox_gloss', 'https://www.dropbox.com/s/g60176ihutoa44k/cbox_gloss.tar.gz?dl=1'),
-    ('rt4', 'https://www.dropbox.com/s/s41pt3togx4zuk5/rt4.tar.gz?dl=1'),
-    ('rt5', 'https://www.dropbox.com/s/21zaqm0080xj3gv/rt5.tar.gz?dl=1'),
+    ('cbox2', 'https://www.dropbox.com/s/red71zuqknwwvyn/cbox2.tar.gz?dl=1'),
+    ('rt4scene', 'https://www.dropbox.com/s/vanvnry96vbfm66/rt4scene.tar.gz?dl=1'),
+    ('rt5scene', 'https://www.dropbox.com/s/7ph570vovgy3at8/rt5scene.tar.gz?dl=1'),
 ])
 
 def get_file_from_url(url):

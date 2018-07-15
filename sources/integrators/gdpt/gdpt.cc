@@ -588,16 +588,19 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
         int nSampledPath = 0;
         parallel_for(0, numPixels, [&](int pid) {
             const int threadID = getThreadID();
+            const auto &sampler = samplers[threadID];
+            sampler->startPixel();
+
             const int y = pid / width;
             const int x = pid % width;
-            const Point2d randFilm = samplers[threadID]->get2D();
-            const Point2d randLens = samplers[threadID]->get2D();
+            const Point2d randFilm = sampler->get2D();
+            const Point2d randLens = sampler->get2D();
             const double filterWeight = film.evalFilter(randFilm);
             const Ray ray = camera->spawnRay(Point2i(width - x - 1, y), randFilm, randLens);
 
             // Base path
             std::vector<Vertex> baseVerts;
-            TraceRecord baseRecord = pathTrace(scene, params, ray, *samplers[threadID], arenas[threadID], &baseVerts);
+            TraceRecord baseRecord = pathTrace(scene, params, ray, *sampler, arenas[threadID], &baseVerts);
             film.addPixel(x, y, baseRecord.f, filterWeight);
 
             // Offset path
@@ -613,7 +616,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 const Ray subRay = camera->spawnRay(Point2i(width - nx - 1, ny), randFilm, randLens);
                 TraceRecord subRecord(PathType::NotInvertible);
                 if (!baseVerts.empty()) {
-                    subRecord = shiftMap(scene, params, subRay, *samplers[threadID], arenas[threadID], baseVerts);
+                    subRecord = shiftMap(scene, params, subRay, *sampler, arenas[threadID], baseVerts);
                 }
 
                 // Compute contribution
@@ -627,7 +630,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                     invRatio += 0.25;
                 } else if (subRecord.type == PathType::NotInvertible) {
                     // Naively compute gradient with path tracing
-                    subRecord = pathTrace(scene, params, subRay, *samplers[threadID], arenas[threadID], nullptr);
+                    subRecord = pathTrace(scene, params, subRay, *sampler, arenas[threadID], nullptr);
                     G = 0.5 * (baseRecord.f - subRecord.f);                
                 } else if (subRecord.type == PathType::NonSymmetric) {
                     // Subpath results in "zero contribution"

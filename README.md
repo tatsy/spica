@@ -55,7 +55,7 @@ The scene is courtesy of Mitsuba renderer (W. Jakob 2010).
 
 #### Cornell Box (Glossy Surfaces)
 
-<img src="./results/cbox_gloss_1000.png" width="512"/>
+<img src="./results/cbox2_256.png" width="512"/>
 
 Bidirectional path tracing, 1000 spp.
 

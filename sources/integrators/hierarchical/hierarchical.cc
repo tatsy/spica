@@ -197,7 +197,7 @@ private:
 Hierarchy::Hierarchy(double radius, double maxError)
     : radius_{ radius }
     , octree_{ std::make_unique<Octree>(maxError) }
-    , photonmap_{ std::make_unique<PhotonMap>() } {
+    , photonmap_{ std::make_unique<PhotonMap>(PhotonMapType::Global) } {
 }
 
 Hierarchy::~Hierarchy() {
@@ -300,7 +300,7 @@ void Hierarchy::samplePoints(const Scene& scene, const Point3d& pCamera) {
 void Hierarchy::buildOctree(const Scene& scene, RenderParams& params,
                             Sampler& sampler) {
     // Build photon map
-    photonmap_->construct(scene, params, sampler);
+    photonmap_->construct(scene, params, sampler, params.getInt("lookupSize"));
 
     // Compute irradiance on each sampled point
     const int numPoints = static_cast<int>(points_.size());

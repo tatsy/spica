@@ -48,7 +48,9 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
         if (mi.isValid()) {
             if (bounces >= maxBounces) break;
 
-            L += beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
+            Spectrum Ld = beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
+            //std::cout << Ld << std::endl;
+            L += Ld;
 
             Vector3d wo = -ray.dir();
             Vector3d wi;
@@ -76,7 +78,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
             }
 
             if (isect.bsdf()->numComponents(BxDFType::All & (~BxDFType::Specular)) > 0) {
-                Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler);
+                Spectrum Ld = beta * uniformSampleOneLight(isect, scene, arena, sampler, true);
                 L += Ld;
             }
 
@@ -90,7 +92,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
 
             if (ref.isBlack() || pdf == 0.0) break;
 
-            beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+            beta *= ref * vect::absDot(wi, isect.ns()) / pdf;
             specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
             ray = isect.spawnRay(wi);
 
@@ -108,7 +110,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
                 Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                                BxDFType::All, &sampledType);
                 if (f.isBlack() || pdf == 0.0) break;
-                beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+                beta *= f * vect::absDot(wi, pi.ns()) / pdf;
 
                 specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
                 ray = pi.spawnRay(wi);

@@ -190,7 +190,7 @@ Spectrum PhotonMap::evaluateL(const SurfaceInteraction& po,
     // Cone filter
     const int numValidPhotons = static_cast<int>(validPhotons.size());
     const double k = 1.1;
-    Spectrum totalFlux = Spectrum(0.0, 0.0, 0.0);
+    Spectrum totalFlux = Spectrum(0.0);
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
         const Spectrum v = validPhotons[i].beta() * po.bsdf()->f(po.wo(), validPhotons[i].wi());
@@ -231,10 +231,10 @@ Spectrum PhotonMap::evaluateL(const MediumInteraction& mi,
     // Cone filter
     const int numValidPhotons = static_cast<int>(validPhotons.size());
     const double k = 1.1;
-    Spectrum totalFlux = Spectrum(0.0, 0.0, 0.0);
+    Spectrum totalFlux = Spectrum(0.0);
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
-        const Spectrum v = validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi()) / (4.0 * PI);
+        const Spectrum v = validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi()) * (4.0 * PI);
         totalFlux += w * v;
     }
     totalFlux /= (1.0 - 3.0 / (4.0 * k));
@@ -243,6 +243,7 @@ Spectrum PhotonMap::evaluateL(const MediumInteraction& mi,
     if (maxdist > EPS) {
         ret = Spectrum(totalFlux / ((4.0 / 3.0) * PI * maxdist * maxdist * maxdist));
     }
+  
     return ret;
 }
 
@@ -281,15 +282,17 @@ void PhotonMap::tracePhoton(const Scene& scene,
             Spectrum bnew = beta * mi.phase()->sample(wo, &wi, sampler.get2D());
 
             if (type_ == PhotonMapType::Volumetric) {
-                photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
+                photons->emplace_back(mi.pos(), beta, -ray.dir(), Normal3d(0.0, 0.0, 0.0));
 
-                double continueProb = std::min(1.0, bnew.gray() / beta.gray());
+                const double continueProb = std::min(1.0, bnew.gray() / beta.gray());
                 if (sampler.get1D() > continueProb) break;
 
                 bnew = bnew / continueProb;
             }
 
             ray = mi.spawnRay(wi);
+            beta = bnew;
+
         } else {
             if (!isIntersect || bounces >= maxBounces) break;
 
@@ -329,7 +332,7 @@ void PhotonMap::tracePhoton(const Scene& scene,
             }
 
             if (storeFlag) {
-                double continueProb = std::min(1.0, bnew.gray() / beta.gray());
+                const double continueProb = std::min(1.0, bnew.gray() / beta.gray());
                 if (sampler.get1D() > continueProb) break;
 
                 bnew = bnew / continueProb;

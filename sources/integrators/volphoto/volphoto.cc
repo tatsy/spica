@@ -98,9 +98,14 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
         if (mi.isValid()) {
             if (bounces >= maxBounces) break;
 
+            Vector3d wo = -ray.dir();
+            Vector3d wi;
+            Spectrum bnew = beta * mi.phase()->sample(wo, &wi, sampler.get2D());
+
             L += beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
             L += beta * volumetricMap_->evaluateL(mi, gatherPhotons, params.getDouble("volumetricLookupRadius"));
             break;
+
         } else {
             // Sample Le which contributes without any loss
             if (bounces == 0 || specularBounce) {
@@ -137,18 +142,21 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
 
             if (ref.isBlack() || pdf == 0.0) break;
 
+            Spectrum bnew = beta * ref * vect::absDot(wi, isect.ns()) / pdf;
+
             if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
                 (sampledType & BxDFType::Reflection) != BxDFType::None) {
                 L += beta * globalMap_->evaluateL(isect, gatherPhotons, params.getDouble("globalLookupRadius"));
                 L += beta * causticsMap_->evaluateL(isect, gatherPhotons, params.getDouble("causticsLookupRadius"));
                 break;
+
             } else {
                 L += Ld;
             }
 
-            beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
-            specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
             ray = isect.spawnRay(wi);
+            beta = bnew;
+            specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
 
             // Account for BSSRDF
             if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {

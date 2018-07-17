@@ -29,7 +29,7 @@ Spectrum uniformSampleOneLight(const Interaction& intr, const Scene& scene,
     const Point2d randLight = sampler.get2D();
     const Point2d randShade = sampler.get2D();
     return nLights * estimateDirectLight(intr, randShade, *light, randLight,
-                                         scene, sampler, arena);
+                                         scene, sampler, arena, handleMedia);
 }
 
 Spectrum estimateDirectLight(const Interaction& intr,
@@ -38,8 +38,8 @@ Spectrum estimateDirectLight(const Interaction& intr,
                              const Point2d& randLight,
                              const Scene& scene, Sampler& sampler,
                              MemoryArena& arena,
-                             bool specular,
-                             bool handleMedia) {
+                             bool handleMedia,
+                             bool specular) {
     BxDFType bxdfType = specular ? BxDFType::All : (BxDFType::All & (~BxDFType::Specular));
 
     Spectrum Ld(0.0);
@@ -69,6 +69,7 @@ Spectrum estimateDirectLight(const Interaction& intr,
         if (!f.isBlack()) {
             if (handleMedia) {
                 Li *= vis.transmittance(scene, sampler);
+                //std::cout << "Li: " << Li << std::endl;
             } else if (!vis.unoccluded(scene)) {
                 Li = Spectrum(0.0);
             }
@@ -96,8 +97,7 @@ Spectrum estimateDirectLight(const Interaction& intr,
             sampledSpecular = (sampledType & BxDFType::Specular) != BxDFType::None;
         } else {
             // Sample new direction after scattered with participating media
-            const MediumInteraction& mi = 
-                static_cast<const MediumInteraction&>(intr);
+            const MediumInteraction& mi = static_cast<const MediumInteraction&>(intr);
             double p = mi.phase()->sample(mi.wo(), &wi, randShade);
             f = Spectrum(p);
             bsdfPdf = p;

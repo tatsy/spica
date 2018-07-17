@@ -25,8 +25,8 @@ SPICA_EXPORTS Spectrum estimateDirectLight(const Interaction& intr,
                                            const Point2d& randLight,
                                            const Scene& scene, Sampler& sampler,
                                            MemoryArena& arena,
-                                           bool specular = false,
-                                           bool handleMedia = false);
+                                           bool handleMedia = false,
+                                           bool specular = false);
 
 SPICA_EXPORTS double powerHeuristic(int nf, double fPdf, int ng, double gPdf);
 

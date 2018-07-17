@@ -13,6 +13,9 @@ def animate(filename, ax, tm_method):
     _, ext = os.path.splitext(filename)
     img = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
 
+    if img is None:
+        return
+
     if ext == '.hdr':
         if tm_method == 'reinhard':
             tmo = cv2.createTonemapReinhard()

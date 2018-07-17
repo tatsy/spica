@@ -35,12 +35,12 @@ std::vector<std::string> split(const std::string &str, const std::string &delim)
 }
 
 double str2double(const std::string &str) {
-	char *ep;
-	double ret = strtod(str.c_str(), &ep);
-	if (strlen(ep) != 0) {
-		Warning("Following part could not be parsed as double: %s\n", ep);
-	}
-	return ret;
+    char *ep;
+    double ret = strtod(str.c_str(), &ep);
+    if (strlen(ep) != 0) {
+        Warning("Following part could not be parsed as double: %s\n", ep);
+    }
+    return ret;
 }
 
 const char* getAttribute(const XMLElement *elem, const char *name) {

@@ -3,6 +3,7 @@
 
 #include "core/primitive.h"
 #include "core/interaction.h"
+#include "core/material.h"
 #include "core/scene.h"
 
 namespace spica {
@@ -29,7 +30,7 @@ Spectrum VisibilityTester::transmittance(const Scene& scene, Sampler& sampler, M
     for (;;) {
         SurfaceInteraction isect;
         bool hitSurface = scene.intersect(ray, &isect);
-        if (hitSurface && isect.primitive()->material() != nullptr) {
+        if (hitSurface && isect.primitive()->material()->surface()) {
             return Spectrum(0.0);
         }
 

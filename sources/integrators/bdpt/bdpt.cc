@@ -34,9 +34,6 @@ BDPTIntegrator::BDPTIntegrator(spica::RenderParams &params)
     : BDPTIntegrator{ std::static_pointer_cast<Sampler>(params.getObject("sampler")) } {
 }
 
-BDPTIntegrator::~BDPTIntegrator() {
-}
-
 void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
                             const Scene& scene,
                             RenderParams& params) {

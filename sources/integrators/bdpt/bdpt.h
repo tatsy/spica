@@ -19,7 +19,6 @@ public:
     // Public methods
     explicit BDPTIntegrator(const std::shared_ptr<Sampler>& sampler);
     explicit BDPTIntegrator(RenderParams &params);
-    ~BDPTIntegrator();
 
     void render(const std::shared_ptr<const Camera>& camera,
                 const Scene& scene,

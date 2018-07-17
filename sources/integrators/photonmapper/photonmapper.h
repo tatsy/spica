@@ -46,7 +46,7 @@ private:
     // Private fields
     PhotonMap globalMap_;
     PhotonMap causticsMap_;
-    double globalRadius_;
+    double lookupRadiusScale_ = 1.0;
     const double alpha_;
 };
 

@@ -22,7 +22,6 @@ PhotonMapperIntegrator::PhotonMapperIntegrator(const std::shared_ptr<Sampler>& s
     : SamplerIntegrator{ sampler }
     , globalMap_{ PhotonMapType::Global }
     , causticsMap_{ PhotonMapType::Caustics }
-    , globalRadius_{}
     , alpha_{ alpha } {
 }
 
@@ -37,7 +36,7 @@ void PhotonMapperIntegrator::initialize(const std::shared_ptr<const Camera> &cam
                                         Sampler& sampler) {
     // Compute global radius
     const Bounds3d bounds = scene.worldBound();
-    globalRadius_ = (bounds.posMax() - bounds.posMin()).norm() * 0.5;
+    lookupRadiusScale_ = (bounds.posMax() - bounds.posMin()).norm() * 0.5;
 }
 
 void PhotonMapperIntegrator::loopStarted(const std::shared_ptr<const Camera> &camera,
@@ -54,7 +53,7 @@ void PhotonMapperIntegrator::loopFinished(const std::shared_ptr<const Camera> &c
                                           RenderParams& params,
                                           Sampler& sampler) {
     // Scale global radius
-    globalRadius_ *= alpha_;
+    lookupRadiusScale_ *= alpha_;
 }
 
 
@@ -126,8 +125,10 @@ Spectrum PhotonMapperIntegrator::Li(const Scene& scene,
 
             if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
                 (sampledType & BxDFType::Reflection) != BxDFType::None) {
-                L += beta * globalMap_.evaluateL(isect, gatherPhotons, params.getDouble("globalLookupRadius", 8.0));
-                L += beta * causticsMap_.evaluateL(isect, gatherPhotons, params.getDouble("causticsLookupRadius", 4.0));
+                const double globalLookupRadius = params.getDouble("globalLookupRadius", 0.125) * lookupRadiusScale_;
+                L += beta * globalMap_.evaluateL(isect, gatherPhotons, globalLookupRadius);
+                const double causticsLookupRadius = params.getDouble("causticsLookupRadius", 0.125) * lookupRadiusScale_;
+                L += beta * causticsMap_.evaluateL(isect, gatherPhotons, causticsLookupRadius);
                 break;
             } else {
                 L += Ld;

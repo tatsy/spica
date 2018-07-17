@@ -31,7 +31,6 @@ VolPhotoIntegrator::VolPhotoIntegrator(const std::shared_ptr<Sampler>& sampler, 
     , globalMap_{}
     , causticsMap_{}
     , volumetricMap_{}
-    , globalRadius_{}
     , alpha_{ alpha } {
     globalMap_ = std::make_unique<PhotonMap>(PhotonMapType::Global);
     causticsMap_ = std::make_unique<PhotonMap>(PhotonMapType::Caustics);
@@ -49,7 +48,7 @@ void VolPhotoIntegrator::initialize(const std::shared_ptr<const Camera> &camera,
                                     Sampler& sampler) {
     // Compute global radius
     Bounds3d bounds = scene.worldBound();
-    globalRadius_ = (bounds.posMax() - bounds.posMin()).norm() * 0.5;
+    lookupRadiusScale_ = (bounds.posMax() - bounds.posMin()).norm() * 0.5;
 }
 
 void VolPhotoIntegrator::loopStarted(const std::shared_ptr<const Camera> &camera,
@@ -67,7 +66,7 @@ void VolPhotoIntegrator::loopFinished(const std::shared_ptr<const Camera> &camer
                                       RenderParams& params,
                                       Sampler& sampler) {
     // Scale global radius
-    globalRadius_ *= alpha_;   
+    lookupRadiusScale_ *= alpha_;   
 }
 
 
@@ -99,7 +98,8 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
             if (bounces >= maxBounces) break;
 
             L += beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
-            L += beta * volumetricMap_->evaluateL(mi, gatherPhotons, params.getDouble("volumetricLookupRadius"));
+            const double volumetricLookupRadius = params.getDouble("volumetricLookupRadius", 0.125) * lookupRadiusScale_;
+            L += beta * volumetricMap_->evaluateL(mi, gatherPhotons, volumetricLookupRadius);
             break;
 
         } else {
@@ -142,8 +142,10 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
 
             if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
                 (sampledType & BxDFType::Reflection) != BxDFType::None) {
-                L += beta * globalMap_->evaluateL(isect, gatherPhotons, params.getDouble("globalLookupRadius"));
-                L += beta * causticsMap_->evaluateL(isect, gatherPhotons, params.getDouble("causticsLookupRadius"));
+                const double globalLookupRadius = params.getDouble("globalLookupRadius", 0.125) * lookupRadiusScale_;
+                L += beta * globalMap_->evaluateL(isect, gatherPhotons, globalLookupRadius);
+                const double causticsLookupRadius = params.getDouble("causticsLookupRadius", 0.125) * lookupRadiusScale_;
+                L += beta * causticsMap_->evaluateL(isect, gatherPhotons, causticsLookupRadius);
                 break;
 
             } else {

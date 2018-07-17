@@ -48,7 +48,7 @@ private:
     std::unique_ptr<PhotonMap> globalMap_;
     std::unique_ptr<PhotonMap> causticsMap_;
     std::unique_ptr<PhotonMap> volumetricMap_;
-    double globalRadius_;
+    double lookupRadiusScale_ = 1.0;
     const double alpha_;
 };
 

@@ -23,7 +23,7 @@ public:
                           const Point2d& rands) const = 0;
 };
 
-class HenyeyGreenstein : public PhaseFunction {
+class SPICA_EXPORTS HenyeyGreenstein : public PhaseFunction {
 public:
     explicit HenyeyGreenstein(double g);
     double p(const Vector3d& wo, const Vector3d& wi) const;

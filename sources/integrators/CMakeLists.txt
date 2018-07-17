@@ -17,4 +17,4 @@ add_integrator(volphoto volphoto/volphoto.cc volphoto/volphoto.h
                photon_map.cc photon_map.h)
 
 add_integrator(directlighting directlighting/directlighting.cc directlighting/directlighting.h)
-add_integrator(hierarchical hierarchical/hierarchical.cc hierarchical/hierarchical.h photon_map.cc photon_map.h)
+#add_integrator(hierarchical hierarchical/hierarchical.cc hierarchical/hierarchical.h photon_map.cc photon_map.h)

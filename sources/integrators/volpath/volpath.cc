@@ -46,9 +46,9 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
         if (beta.isBlack()) break;
 
         if (mi.isValid()) {
-            L += beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
-
             if (bounces >= maxBounces) break;
+
+            L += beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
 
             Vector3d wo = -ray.dir();
             Vector3d wi;

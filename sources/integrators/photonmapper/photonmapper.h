@@ -44,7 +44,8 @@ public:
 
 private:
     // Private fields
-    PhotonMap photonmap_;
+    PhotonMap globalMap_;
+    PhotonMap causticsMap_;
     double globalRadius_;
     const double alpha_;
 };

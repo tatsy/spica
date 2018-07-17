@@ -9,6 +9,7 @@
 
 #include "core/common.h"
 #include "core/integrator.h"
+#include "integrators/photon_map.h"
 
 namespace spica {
 
@@ -44,10 +45,10 @@ public:
 
 private:
     // Private fields
-    class VPhotonMap;
-    
-    std::unique_ptr<VPhotonMap> photonmap_;
-    double    globalRadius_;
+    std::unique_ptr<PhotonMap> globalMap_;
+    std::unique_ptr<PhotonMap> causticsMap_;
+    std::unique_ptr<PhotonMap> volumetricMap_;
+    double globalRadius_;
     const double alpha_;
 };
 

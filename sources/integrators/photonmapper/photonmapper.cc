@@ -20,7 +20,8 @@ namespace spica {
 
 PhotonMapperIntegrator::PhotonMapperIntegrator(const std::shared_ptr<Sampler>& sampler, double alpha)
     : SamplerIntegrator{ sampler }
-    , photonmap_{}
+    , globalMap_{ PhotonMapType::Global }
+    , causticsMap_{ PhotonMapType::Caustics }
     , globalRadius_{}
     , alpha_{ alpha } {
 }
@@ -44,7 +45,8 @@ void PhotonMapperIntegrator::loopStarted(const std::shared_ptr<const Camera> &ca
                                          RenderParams& params,
                                          Sampler& sampler) {
     // Construct photon map
-    photonmap_.construct(scene, params, sampler);
+    globalMap_.construct(scene, params, sampler, params.getInt("globalPhotons", 250000));
+    causticsMap_.construct(scene, params, sampler, params.getInt("causticsPhotons", 250000));
 }
 
 void PhotonMapperIntegrator::loopFinished(const std::shared_ptr<const Camera> &camera,
@@ -68,7 +70,6 @@ Spectrum PhotonMapperIntegrator::Li(const Scene& scene,
     bool specularBounce = false;
     const int maxBounces      = params.getInt("maxDepth", 8);
     const int gatherPhotons   = params.getInt("lookupSize", 32);
-    const double gatherRadius = params.getDouble("globalLookupRadius", 8.0);
     for (int bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
@@ -125,8 +126,8 @@ Spectrum PhotonMapperIntegrator::Li(const Scene& scene,
 
             if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
                 (sampledType & BxDFType::Reflection) != BxDFType::None) {
-                L += beta * photonmap_.evaluateL(isect, gatherPhotons, 
-                                                 gatherRadius);
+                L += beta * globalMap_.evaluateL(isect, gatherPhotons, params.getDouble("globalLookupRadius", 8.0));
+                L += beta * causticsMap_.evaluateL(isect, gatherPhotons, params.getDouble("causticsLookupRadius", 4.0));
                 break;
             } else {
                 L += Ld;

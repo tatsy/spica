@@ -24,6 +24,17 @@
 
 namespace spica {
 
+namespace {
+
+std::string typeString(PhotonMapType type) {
+    if (type == PhotonMapType::Global) return "global";
+    if (type == PhotonMapType::Caustics) return "caustics";
+    if (type == PhotonMapType::Volumetric) return "volumetric";
+    return "invalid";
+}
+
+}  // Anonymous namespace
+
 Photon::Photon()
     : pos_{}
     , beta_{}
@@ -63,22 +74,24 @@ double Photon::distance(const Photon& p1, const Photon& p2) {
     return (p1.pos_ - p2.pos_).norm();
 }
 
-PhotonMap::PhotonMap()
-    : _kdtree{} {
+PhotonMap::PhotonMap(PhotonMapType type)
+    : type_{ type }
+    , kdtree_{ } {
 }
 
 PhotonMap::~PhotonMap() {
 }
 
 void PhotonMap::clear() {
-    _kdtree.release();
+    kdtree_.release();
 }
 
 void PhotonMap::construct(const Scene& scene,
                           RenderParams& params,
-                          Sampler &sampler) {
+                          Sampler &sampler,
+                          int photonCount) {
 
-    std::cout << "Shooting photons..." << std::endl;
+    MsgInfo("Shooting photons: %s", typeString(type_).c_str());
 
     // Compute light power distribution
     Distribution1D lightDistrib = calcLightPowerDistrib(scene);
@@ -92,12 +105,11 @@ void PhotonMap::construct(const Scene& scene,
     std::vector<MemoryArena> arenas(nThreads);
 
     // Distribute tasks
-    const int castPhotons = params.getInt("globalPhotons", 500000);
     std::vector<std::vector<Photon>> photons(nThreads);
 
     // Shooting photons
     std::atomic<int> proc(0);
-    parallel_for(0, castPhotons, [&](int i) {
+    parallel_for(0, photonCount, [&](int i) {
         const int threadID = getThreadID();
         const std::unique_ptr<Sampler>& sampler = samplers[threadID];
         sampler->startNextSample();
@@ -117,7 +129,7 @@ void PhotonMap::construct(const Scene& scene,
 
         if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
             Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
-                            (lightPdf * pdfPos * pdfDir * castPhotons);
+                            (lightPdf * pdfPos * pdfDir * photonCount);
             if (!beta.isBlack()) {
                 tracePhoton(scene, params, photonRay, beta, *sampler,
                             arenas[threadID], &photons[threadID]);
@@ -126,8 +138,7 @@ void PhotonMap::construct(const Scene& scene,
 
         proc++;
         if (proc % 1000 == 0) {
-            printf("%6.2f %% processed...\r", 
-                   100.0 * proc / castPhotons);
+            printf("%6.2f %% processed...\r", 100.0 * proc / photonCount);
         }
     });
     printf("\n");
@@ -147,7 +158,7 @@ void PhotonMap::construct(const Scene& scene,
         photonsAll.insert(photonsAll.end(), 
                           photons[i].begin(), photons[i].end());
     }
-    _kdtree.construct(photonsAll);
+    kdtree_.construct(photonsAll);
 
     printf("OK\n");
 }
@@ -182,16 +193,16 @@ Spectrum PhotonMap::evaluateL(const SurfaceInteraction& po,
     Spectrum totalFlux = Spectrum(0.0, 0.0, 0.0);
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
-        const Spectrum v =
-            validPhotons[i].beta() * po.bsdf()->f(po.wo(), validPhotons[i].wi());
+        const Spectrum v = validPhotons[i].beta() * po.bsdf()->f(po.wo(), validPhotons[i].wi());
         totalFlux += w * v;
     }
     totalFlux /= (1.0 - 2.0 / (3.0 * k));
 
+    Spectrum ret(0.0);
     if (maxdist > EPS) {
-        return Spectrum(totalFlux / (PI * maxdist * maxdist));
+        ret = Spectrum(totalFlux / (PI * maxdist * maxdist));
     }
-    return Spectrum(0.0, 0.0, 0.0);
+    return ret;
 }
 
 Spectrum PhotonMap::evaluateL(const MediumInteraction& mi,
@@ -208,14 +219,12 @@ Spectrum PhotonMap::evaluateL(const MediumInteraction& mi,
     std::vector<double> distances;
     double maxdist = 0.0;
     for (int i = 0; i < numPhotons; i++) {
-        if (photons[i].normal().norm() < EPS) {
-            const Vector3d diff = query.pos() - photons[i].pos();
-            const double dist = diff.norm();
-    
-            validPhotons.push_back(photons[i]);
-            distances.push_back(dist);
-            maxdist = std::max(maxdist, dist);
-        }
+        const Vector3d diff = query.pos() - photons[i].pos();
+        const double dist = diff.norm();
+
+        validPhotons.push_back(photons[i]);
+        distances.push_back(dist);
+        maxdist = std::max(maxdist, dist);
     }
     if (validPhotons.empty()) return Spectrum(0.0);
 
@@ -225,23 +234,23 @@ Spectrum PhotonMap::evaluateL(const MediumInteraction& mi,
     Spectrum totalFlux = Spectrum(0.0, 0.0, 0.0);
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
-        const Spectrum v =
-            validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi()) / (4.0 * PI);
+        const Spectrum v = validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi()) / (4.0 * PI);
         totalFlux += w * v;
     }
     totalFlux /= (1.0 - 3.0 / (4.0 * k));
 
+    Spectrum ret(0.0);
     if (maxdist > EPS) {
-        return Spectrum(totalFlux / ((4.0 / 3.0) * PI * maxdist * maxdist * maxdist));
+        ret = Spectrum(totalFlux / ((4.0 / 3.0) * PI * maxdist * maxdist * maxdist));
     }
-    return Spectrum(0.0, 0.0, 0.0);
+    return ret;
 }
 
 void PhotonMap::knnFind(const Photon& photon, std::vector<Photon>* photons,
                         const int gatherPhotons,
                         const double gatherRadius) const {
     KnnQuery query(K_NEAREST | EPSILON_BALL, gatherPhotons, gatherRadius);
-    _kdtree.knnSearch(photon, query, photons);
+    kdtree_.knnSearch(photon, query, photons);
 }
 
 void PhotonMap::tracePhoton(const Scene& scene,
@@ -254,8 +263,9 @@ void PhotonMap::tracePhoton(const Scene& scene,
     Ray ray(r);
     Spectrum beta(b);
     SurfaceInteraction isect;
+    bool specularBounce = false;
     const int maxBounces = params.getInt("maxDepth");
-    for (int bounces = 0; bounces < maxBounces; bounces++) {
+    for (int bounces = 0; ; bounces++) {
         bool isIntersect = scene.intersect(ray, &isect);
         
         // Sample participating media
@@ -264,14 +274,24 @@ void PhotonMap::tracePhoton(const Scene& scene,
         if (beta.isBlack()) break;
 
         if (mi.isValid()) {
+            if (bounces >= maxBounces) break;
+
             Vector3d wo = -ray.dir();
             Vector3d wi;
-            beta *= mi.phase()->sample(wo, &wi, sampler.get2D());
+            Spectrum bnew = beta * mi.phase()->sample(wo, &wi, sampler.get2D());
+
+            if (type_ == PhotonMapType::Volumetric) {
+                photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
+
+                double continueProb = std::min(1.0, bnew.gray() / beta.gray());
+                if (sampler.get1D() > continueProb) break;
+
+                bnew = bnew / continueProb;
+            }
+
             ray = mi.spawnRay(wi);
         } else {
-            if (!isIntersect) break;
-
-            photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.ns());
+            if (!isIntersect || bounces >= maxBounces) break;
 
             isect.setScatterFuncs(ray, arena);
             if (!isect.bsdf()) {
@@ -290,11 +310,34 @@ void PhotonMap::tracePhoton(const Scene& scene,
             if (pdf < EPS || ref.isBlack()) break;
 
             Spectrum bnew = beta * ref * vect::absDot(wi, isect.ns()) / pdf;
+            bool newSpecularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
 
-            double continueProb = std::min(1.0, bnew.gray() / beta.gray());
-            if (sampler.get1D() > continueProb) break;
-            beta = bnew / continueProb;
+            // A boolean "storeFlag" is true when each of conditions to store photons is satisfied.
+            bool storeFlag = false;
+            if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
+                (sampledType & BxDFType::Reflection) != BxDFType::None) {
+                // Diffuse or glossy reflection
+                if (!specularBounce && type_ == PhotonMapType::Global) {
+                    photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
+                    storeFlag = true;
+                }
+
+                if (specularBounce && type_ == PhotonMapType::Caustics) {
+                    photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
+                    storeFlag = true;
+                }
+            }
+
+            if (storeFlag) {
+                double continueProb = std::min(1.0, bnew.gray() / beta.gray());
+                if (sampler.get1D() > continueProb) break;
+
+                bnew = bnew / continueProb;
+            }
+
             ray = isect.spawnRay(wi);
+            beta = bnew;
+            specularBounce = newSpecularBounce;
 
             // Account for BSSRDF
             if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {

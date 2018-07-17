@@ -130,7 +130,7 @@ namespace spica {
         const double dist = distance(node->point, point);
         if (dist < query.epsilon) {
             results->push(OrderedType(dist, node->point));
-            if ((query.type & K_NEAREST) != 0 && results->size() > query.k) {
+            if ((query.type & K_NEAREST) != 0 && (int)results->size() > query.k) {
                 results->pop();
 
                 query.epsilon = distance(results->top().t, point);

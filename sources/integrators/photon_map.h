@@ -19,6 +19,12 @@
 
 namespace spica {
 
+enum class PhotonMapType {
+    Global = 0x01,
+    Caustics = 0x02,
+    Volumetric = 0x04,
+};
+
 // ------------------------------------------------------------------------
 // Photon
 // ------------------------------------------------------------------------
@@ -55,13 +61,15 @@ private:
 class SPICA_EXPORTS PhotonMap : public Uncopyable {
 public:
     // Public methods
-    PhotonMap();
+    explicit PhotonMap(PhotonMapType type);
     virtual ~PhotonMap();
 
     void clear();
+
     virtual void construct(const Scene& scene,
                            RenderParams& params,
-                           Sampler &sampler);
+                           Sampler &sampler,
+                           int photonCount);
 
     /**
      * Evaluate radiance at the point and to the direction.
@@ -75,7 +83,7 @@ public:
 protected:
     // Protected methods
     void knnFind(const Photon& photon, std::vector<Photon>* photons, 
-                    int gatherPhotons, double gatherRadius) const;
+                 int gatherPhotons, double gatherRadius) const;
 
     void tracePhoton(const Scene& scene,
                      RenderParams& params,
@@ -83,10 +91,11 @@ protected:
                      const Spectrum& b,
                      Sampler& sampler,
                      MemoryArena& arena,
-                     std::vector<Photon>* photons);
+                     std::vector<Photon> *photons);
     
     // Protected fields
-    KdTree<Photon> _kdtree;    
+    PhotonMapType type_;
+    KdTree<Photon> kdtree_;
 };
 
 }  // namespace spica

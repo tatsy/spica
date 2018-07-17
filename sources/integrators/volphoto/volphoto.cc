@@ -26,287 +26,16 @@
 
 namespace spica {
 
-class VolPhotoIntegrator::VPhotonMap {
-public:
-    VPhotonMap()
-        : kdtree_{} {
-    }
-
-    ~VPhotonMap() {
-    }
-
-    void clear() {
-        kdtree_.release();
-    }
-
-    void construct(const Scene& scene,
-                   RenderParams& params,
-                   Sampler &sampler) {
-        std::cout << "Shooting photons..." << std::endl;
-
-        // Compute light power distribution
-        Distribution1D lightDistrib = calcLightPowerDistrib(scene);
-
-        // Random number generator
-        const int nThreads = numSystemThreads();
-        std::vector<std::unique_ptr<Sampler>> samplers(nThreads);
-        for (int i = 0; i < nThreads; i++) {
-            samplers[i] = sampler.clone((uint32_t)time(0) + i);
-        }
-        std::vector<MemoryArena> arenas(nThreads);
-
-        // Distribute tasks
-        const int castPhotons = params.getInt("globalPhotons", 500000);
-        std::vector<std::vector<Photon>> photons(nThreads);
-
-        // Shooting photons
-        std::atomic<int> proc(0);
-        parallel_for(0, castPhotons, [&](int i) {
-            const int threadID = getThreadID();
-            const std::unique_ptr<Sampler>& sampler = samplers[threadID];
-            sampler->startNextSample();
-
-            // Sample light source
-            double lightPdf;
-            int lightID = lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf);
-            const std::shared_ptr<Light>& light = scene.lights()[lightID];
-
-            Point2d rand0 = sampler->get2D();
-            Point2d rand1 = sampler->get2D();
-            Ray photonRay;
-            Normal3d nLight;
-            double pdfPos, pdfDir;
-            Spectrum Le = light->sampleLe(rand0, rand1, &photonRay,
-                                          &nLight, &pdfPos, &pdfDir);
-
-            if (pdfPos != 0.0 && pdfDir != 0.0 && !Le.isBlack()) {
-                Spectrum beta = (vect::absDot(nLight, photonRay.dir()) * Le) /
-                                (lightPdf * pdfPos * pdfDir * castPhotons);
-                if (!beta.isBlack()) {
-                    tracePhoton(scene, params, photonRay, beta, *sampler,
-                                arenas[threadID], &photons[threadID]);
-                }
-            }
-
-            proc++;
-            if (proc % 1000 == 0) {
-                printf("%6.2f %% processed...\r", 
-                       100.0 * proc / castPhotons);
-            }
-        });
-        printf("\n");
-
-        int numStored = 0;
-        for (int i = 0; i < nThreads; i++) {
-            numStored += photons[i].size();
-        }
-        printf("[INFO] %d photons stored.\n", numStored);
-
-        // Contruct tree structure
-        printf("Constructing photon map -> ");
-        
-        clear();
-        std::vector<Photon> photonsAll;
-        for (int i = 0; i < nThreads; i++) {
-            photonsAll.insert(photonsAll.end(), 
-                              photons[i].begin(), photons[i].end());
-        }
-        kdtree_.construct(photonsAll);
-
-        printf("OK\n");
-    }
-
-    /**
-     * Evaluate radiance at the point and to the direction.
-     */
-    Spectrum evaluateL(const SurfaceInteraction& po,
-                      int gatherPhotons, double gatherRadius) const {
-        // Find k-nearest neightbors
-        Photon query(po.pos(), Spectrum(), po.wo(), po.ns());
-        std::vector<Photon> photons;
-        knnFind(query, &photons, gatherPhotons, gatherRadius);
-
-        const int numPhotons = static_cast<int>(photons.size());
-
-        // Extract valid photons using the normals
-        std::vector<Photon> validPhotons;
-        std::vector<double> distances;
-        double maxdist = 0.0;
-        for (int i = 0; i < numPhotons; i++) {
-            const Vector3d diff = query.pos() - photons[i].pos();
-            const double dist = diff.norm();
-            const double dt   = vect::dot(po.normal(), diff) / dist;
-            if (po.normal().norm() > EPS &&
-                std::abs(dt) < gatherRadius * gatherRadius * 0.01) {
-                validPhotons.push_back(photons[i]);
-                distances.push_back(dist);
-                maxdist = std::max(maxdist, dist);
-            }
-        }
-
-        // Cone filter
-        const int numValidPhotons = static_cast<int>(validPhotons.size());
-        const double k = 1.1;
-        Spectrum totalFlux = Spectrum(0.0, 0.0, 0.0);
-        for (int i = 0; i < numValidPhotons; i++) {
-            const double w = 1.0 - (distances[i] / (k * maxdist));
-            const Spectrum v =
-                validPhotons[i].beta() * po.bsdf()->f(po.wo(), validPhotons[i].wi());
-            totalFlux += w * v;
-        }
-        totalFlux /= (1.0 - 2.0 / (3.0 * k));
-
-        if (maxdist > EPS) {
-            return Spectrum(totalFlux / (PI * maxdist * maxdist));
-        }
-        return Spectrum(0.0, 0.0, 0.0);    
-    
-    }
-
-    Spectrum evaluateL(const MediumInteraction& mi,
-                       int gatherPhotons, double gatherRadius) const {
-        // Find k-nearest neightbors
-        Photon query(mi.pos(), Spectrum(), mi.wo(), mi.normal());
-        std::vector<Photon> photons;
-        knnFind(query, &photons, gatherPhotons, gatherRadius);
-
-        const int numPhotons = static_cast<int>(photons.size());
-
-        // Extract valid photons using the normals
-        std::vector<Photon> validPhotons;
-        std::vector<double> distances;
-        double maxdist = 0.0;
-        for (int i = 0; i < numPhotons; i++) {
-            if (photons[i].normal().norm() < EPS) {
-                const Vector3d diff = query.pos() - photons[i].pos();
-                const double dist = diff.norm();
-    
-                validPhotons.push_back(photons[i]);
-                distances.push_back(dist);
-                maxdist = std::max(maxdist, dist);
-            }
-        }
-        if (validPhotons.empty()) return Spectrum(0.0);
-
-        // Cone filter
-        const int numValidPhotons = static_cast<int>(validPhotons.size());
-        const double k = 1.1;
-        Spectrum totalFlux = Spectrum(0.0, 0.0, 0.0);
-        for (int i = 0; i < numValidPhotons; i++) {
-            const double w = 1.0 - (distances[i] / (k * maxdist));
-            const Spectrum v =
-                validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi());
-                totalFlux += w * v;
-        }
-        totalFlux /= (1.0 - 3.0 / (4.0 * k));
-
-        if (maxdist > EPS) {
-            return Spectrum(totalFlux / ((4.0 / 3.0) * PI * maxdist * maxdist * maxdist));
-        }
-        return Spectrum(0.0, 0.0, 0.0);    
-    }
-        
-private:
-    void knnFind(const Photon& photon, std::vector<Photon>* photons, 
-                    int gatherPhotons, double gatherRadius) const {
-        KnnQuery query(K_NEAREST | EPSILON_BALL, gatherPhotons, gatherRadius);
-        kdtree_.knnSearch(photon, query, photons);    
-    }
-
-    void tracePhoton(const Scene& scene,
-                     RenderParams& params,
-                     const Ray& r,
-                     const Spectrum& b,
-                     Sampler& sampler,
-                     MemoryArena& arena,
-                     std::vector<Photon>* photons) {
-        Ray ray(r);
-        Spectrum beta(b);
-        SurfaceInteraction isect;
-        const int maxBounces = params.getInt("maxDepth");
-
-        for (int bounces = 0; bounces < maxBounces; bounces++) {
-            bool isIntersect = scene.intersect(ray, &isect);
-        
-            // Sample participating media
-            MediumInteraction mi;
-            Spectrum bnew;
-            if (ray.medium()) bnew = beta * ray.medium()->sample(ray, sampler, arena, &mi);
-            if (beta.isBlack()) break;
-
-            if (mi.isValid()) {
-                photons->emplace_back(mi.pos(), beta, -ray.dir(), Normal3d());
-
-                Vector3d wo = -ray.dir();
-                Vector3d wi;
-
-                bnew = bnew * mi.phase()->sample(wo, &wi, sampler.get2D());
-                double continueProb = std::min(1.0, bnew.gray() / beta.gray());
-                if (sampler.get1D() > continueProb) break;
-                beta = bnew / continueProb;
-
-                ray = mi.spawnRay(wi);
-            } else {
-                if (!isIntersect) break;
-
-                photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());
-
-                isect.setScatterFuncs(ray, arena);
-                if (!isect.bsdf()) {
-                    bounces--;
-                    ray = isect.spawnRay(ray.dir());
-                    continue;
-                }
-                const BSDF& bsdf = *isect.bsdf();
-
-                Vector3d wi, wo = -ray.dir();
-                double pdf;
-                BxDFType sampledType;
-                Spectrum ref = bsdf.sample(wo, &wi, sampler.get2D(), &pdf,
-                                           BxDFType::All, &sampledType);
-
-                if (pdf == 0.0 || ref.isBlack()) break;
-
-                Spectrum bnew = beta * ref * vect::absDot(wi, isect.normal()) / pdf;
-
-                double continueProb = std::min(1.0, bnew.gray() / beta.gray());
-                if (sampler.get1D() > continueProb) break;
-                beta = bnew / continueProb;
-                ray = isect.spawnRay(wi);
-
-                // Account for BSSRDF
-                if (isect.bssrdf() && (sampledType & BxDFType::Transmission) != BxDFType::None) {
-                    break;
-
-                    SurfaceInteraction pi;
-                    Spectrum S = isect.bssrdf()->sample(scene, sampler.get1D(),
-                        sampler.get2D(), arena, &pi, &pdf);
-            
-                    if (S.isBlack() || pdf == 0.0) break;
-                    beta *= S / pdf;
-
-                    Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
-                                                   BxDFType::All, &sampledType);
-                    if (f.isBlack() || pdf == 0.0) break;
-                    beta *= f * vect::absDot(wi, pi.normal()) / pdf;
-
-                    ray = pi.spawnRay(wi);
-                }
-            }
-        }
-    }
-
-private:
-    KdTree<Photon> kdtreeSurface_;
-    KdTree<Photon> kdtreeVolume_;
-};
-
 VolPhotoIntegrator::VolPhotoIntegrator(const std::shared_ptr<Sampler>& sampler, double alpha)
     : SamplerIntegrator{ sampler }
-    , photonmap_{}
+    , globalMap_{}
+    , causticsMap_{}
+    , volumetricMap_{}
     , globalRadius_{}
     , alpha_{ alpha } {
-    photonmap_ = std::make_unique<VPhotonMap>();
+    globalMap_ = std::make_unique<PhotonMap>(PhotonMapType::Global);
+    causticsMap_ = std::make_unique<PhotonMap>(PhotonMapType::Caustics);
+    volumetricMap_ = std::make_unique<PhotonMap>(PhotonMapType::Volumetric);
 }
 
 VolPhotoIntegrator::VolPhotoIntegrator(RenderParams &params)
@@ -328,7 +57,9 @@ void VolPhotoIntegrator::loopStarted(const std::shared_ptr<const Camera> &camera
                                      RenderParams& params,
                                      Sampler& sampler) {
     // Construct photon map
-    photonmap_->construct(scene, params, sampler);
+    globalMap_->construct(scene, params, sampler, params.getInt("globalPhotons", 250000));
+    causticsMap_->construct(scene, params, sampler, params.getInt("causticsPhotons", 250000));
+    volumetricMap_->construct(scene, params, sampler, params.getInt("volumetricPhotons", 250000));
 }
 
 void VolPhotoIntegrator::loopFinished(const std::shared_ptr<const Camera> &camera,
@@ -352,8 +83,7 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
     bool specularBounce = false;
     const int maxBounces      = params.getInt("maxDepth", 8);
     const int gatherPhotons   = params.getInt("lookupSize", 32);
-    const double gatherRadius = params.getDouble("globalLookupRadius", 8.0);
-    
+
     std::mutex mtx;
     for (int bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
@@ -361,21 +91,16 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
 
         // Sample participating media
         MediumInteraction mi;
-        if (ray.medium()) {
-            Spectrum Ld(0.0);
-            beta *= ray.medium()->sample(ray, sampler, arena, &mi);
-            if (beta.isBlack()) break;
-            if (mi.isValid()) {
+        if (ray.medium()) beta *= ray.medium()->sample(ray, sampler, arena, &mi);
+        if (beta.isBlack()) break;
 
-                L += beta * photonmap_->evaluateL(mi, gatherPhotons, gatherRadius);
-                break;
-//                ray = Ray(mi.pos(), ray.dir(), INFTY, ray.medium());
-//                if (scene.intersect(ray, &isect)) {
-//                    break;
-//                }
-            }
-//            L += Ld;
-//            break;
+        // Sample participating media
+        if (mi.isValid()) {
+            if (bounces >= maxBounces) break;
+
+            L += beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
+            L += beta * volumetricMap_->evaluateL(mi, gatherPhotons, params.getDouble("volumetricLookupRadius"));
+            break;
         } else {
             // Sample Le which contributes without any loss
             if (bounces == 0 || specularBounce) {
@@ -414,8 +139,8 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
 
             if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
                 (sampledType & BxDFType::Reflection) != BxDFType::None) {
-                L += beta * photonmap_->evaluateL(isect, gatherPhotons, 
-                                                 gatherRadius);
+                L += beta * globalMap_->evaluateL(isect, gatherPhotons, params.getDouble("globalLookupRadius"));
+                L += beta * causticsMap_->evaluateL(isect, gatherPhotons, params.getDouble("causticsLookupRadius"));
                 break;
             } else {
                 L += Ld;

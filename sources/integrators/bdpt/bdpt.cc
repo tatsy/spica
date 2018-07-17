@@ -109,6 +109,7 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
                 fflush(stdout);
             }
         });
+        printf("\n");
 
         camera->film()->saveMLT(1.0 / (i + 1), i + 1);
 

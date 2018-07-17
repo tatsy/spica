@@ -291,7 +291,7 @@ int randomWalk(const Scene& scene, Ray ray, Sampler& sampler,
                                               BxDFType::All, &type);
             if (f.isBlack() || pdfFwd == 0.0) break;
 
-            beta *= f * vect::absDot(wi, isect.normal()) / pdfFwd;
+            beta *= f * vect::absDot(wi, isect.ns()) / pdfFwd;
             pdfRev = isect.bsdf()->pdf(wi, wo, BxDFType::All);
             if ((type & BxDFType::Specular) != BxDFType::None) {
                 vertex.delta = true;

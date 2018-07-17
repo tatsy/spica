@@ -117,7 +117,7 @@ struct Vertex {
     }
 
     inline Normal3d normal() const {
-        return intr->normal();
+        return intr->ns();
     }
 
     inline SurfaceInteraction* si() const {

@@ -234,14 +234,15 @@ Spectrum PhotonMap::evaluateL(const MediumInteraction& mi,
     Spectrum totalFlux = Spectrum(0.0);
     for (int i = 0; i < numValidPhotons; i++) {
         const double w = 1.0 - (distances[i] / (k * maxdist));
-        const Spectrum v = validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi()) * (4.0 * PI);
+        const Spectrum v = validPhotons[i].beta() * mi.phase()->p(mi.wo(), validPhotons[i].wi());
         totalFlux += w * v;
     }
     totalFlux /= (1.0 - 3.0 / (4.0 * k));
 
     Spectrum ret(0.0);
     if (maxdist > EPS) {
-        ret = Spectrum(totalFlux / ((4.0 / 3.0) * PI * maxdist * maxdist * maxdist));
+        Spectrum kappa = mi.getMedium()->sigmaExt(mi.pos());
+        ret = (totalFlux / kappa) / ((4.0 / 3.0) * PI * maxdist * maxdist * maxdist);
     }
   
     return ret;

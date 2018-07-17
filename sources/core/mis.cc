@@ -69,7 +69,6 @@ Spectrum estimateDirectLight(const Interaction& intr,
         if (!f.isBlack()) {
             if (handleMedia) {
                 Li *= vis.transmittance(scene, sampler);
-                //std::cout << "Li: " << Li << std::endl;
             } else if (!vis.unoccluded(scene)) {
                 Li = Spectrum(0.0);
             }

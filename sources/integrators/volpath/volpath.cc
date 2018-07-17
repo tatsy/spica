@@ -49,7 +49,6 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
             if (bounces >= maxBounces) break;
 
             Spectrum Ld = beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
-            //std::cout << Ld << std::endl;
             L += Ld;
 
             Vector3d wo = -ray.dir();
@@ -105,7 +104,7 @@ Spectrum VolPathIntegrator::Li(const Scene& scene,
                 if (S.isBlack() || pdf == 0.0) break;
                 beta *= S / pdf;
 
-                L += beta * uniformSampleOneLight(pi, scene, arena, sampler);
+                L += beta * uniformSampleOneLight(pi, scene, arena, sampler, true);
 
                 Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                                BxDFType::All, &sampledType);

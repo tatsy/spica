@@ -98,10 +98,6 @@ Spectrum VolPhotoIntegrator::Li(const Scene& scene,
         if (mi.isValid()) {
             if (bounces >= maxBounces) break;
 
-            Vector3d wo = -ray.dir();
-            Vector3d wi;
-            Spectrum bnew = beta * mi.phase()->sample(wo, &wi, sampler.get2D());
-
             L += beta * uniformSampleOneLight(mi, scene, arena, sampler, true);
             L += beta * volumetricMap_->evaluateL(mi, gatherPhotons, params.getDouble("volumetricLookupRadius"));
             break;

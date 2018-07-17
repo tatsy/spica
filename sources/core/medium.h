@@ -21,6 +21,7 @@ public:
     virtual Spectrum Tr(const Ray& ray, Sampler& sampler) const = 0;
     virtual Spectrum sample(const Ray& ray, Sampler& sampler,
                             MemoryArena& arena, MediumInteraction* mi) const = 0;
+    virtual Spectrum sigmaExt(const Point3d &pos) const = 0;
 };  // class Medium
 
 class MediumInterface {

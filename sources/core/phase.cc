@@ -44,7 +44,7 @@ double HenyeyGreenstein::sample(const Vector3d& wo, Vector3d* wi,
 
     *wi = cos(phi) * sinTheta * u + sin(phi) * sinTheta * v -
           cosTheta * wo;
-    return phase::hg(cosTheta, g_);
+    return phase::hg(-cosTheta, g_);
 }
 
 }  // namespace spica

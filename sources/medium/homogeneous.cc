@@ -59,4 +59,8 @@ Spectrum HomogeneousMedium::sample(const Ray& ray, Sampler& sampler,
     return sampleMedium ? (tr * sigmaScatter_ / pdf) : (tr / pdf);
 }
 
+Spectrum HomogeneousMedium::sigmaExt(const Point3d &pos) const {
+    return sigmaExt_;
+}
+
 }  // namespace spica

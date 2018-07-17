@@ -66,10 +66,12 @@ public:
 
     void clear();
 
-    virtual void construct(const Scene& scene,
-                           RenderParams& params,
-                           Sampler &sampler,
-                           int photonCount);
+    void construct(const std::vector<Photon> &photons);
+    void construct(const Scene& scene,
+                   RenderParams& params,
+                   Sampler &sampler,
+                   int photonCount);
+
 
     /**
      * Evaluate radiance at the point and to the direction.

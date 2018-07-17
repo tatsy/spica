@@ -120,6 +120,8 @@ struct Vertex {
         return intr->normal();
     }
 
+
+
     inline SurfaceInteraction* si() const {
         return (SurfaceInteraction*)intr.get();
     }

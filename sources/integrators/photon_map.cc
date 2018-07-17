@@ -86,6 +86,10 @@ void PhotonMap::clear() {
     kdtree_.release();
 }
 
+void PhotonMap::construct(const std::vector<Photon> &photons) {
+    kdtree_.construct(photons);
+}
+
 void PhotonMap::construct(const Scene& scene,
                           RenderParams& params,
                           Sampler &sampler,

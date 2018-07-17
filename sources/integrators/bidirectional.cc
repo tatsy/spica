@@ -115,7 +115,7 @@ bool Vertex::isConnectible() const {
                                                BxDFType::Transmission) > 0;
     }
 
-    FatalError("Unhandled vertex type in isConnectible()");
+    //FatalError("Unhandled vertex type in isConnectible()");
     return false;
 }
 

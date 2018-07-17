@@ -94,7 +94,7 @@ void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
     }
 
     const int numSamples = params.getInt("sampleCount");
-    const int castPhotons = params.getInt("globalPhotons");
+    const int castPhotons = params.getInt("globalPhotons", 250000);
     for (int t = 0; t < numSamples; t++) {
         std::cout << "--- Iteration No." << (t + 1) << " ---" << std::endl;
 

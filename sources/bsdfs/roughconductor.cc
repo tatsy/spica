@@ -10,14 +10,16 @@
 
 namespace spica {
 
-RoughConductor::RoughConductor(const std::shared_ptr<Texture<Spectrum>>& eta,
+RoughConductor::RoughConductor(const std::shared_ptr<Texture<Spectrum>> &Ks,
+                               const std::shared_ptr<Texture<Spectrum>>& eta,
                                const std::shared_ptr<Texture<Spectrum>>& k,
                                const std::shared_ptr<Texture<Spectrum>>& uRoughness,
                                const std::shared_ptr<Texture<Spectrum>>& vRoughness,
                                const std::string &distribution, 
                                const std::shared_ptr<Texture<Spectrum>>& bump,
                                bool remapRoughness) 
-    : eta_{ eta }
+    : Ks_{ Ks }
+    , eta_{ eta }
     , k_{ k }
     , uRoughness_{ uRoughness }
     , vRoughness_{ vRoughness }
@@ -27,7 +29,8 @@ RoughConductor::RoughConductor(const std::shared_ptr<Texture<Spectrum>>& eta,
 }
 
 RoughConductor::RoughConductor(RenderParams &params)
-    : RoughConductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("eta", true)),
+    : RoughConductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance", Spectrum(1.0))),
+                     std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("eta", true)),
                      std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("k", true)),
                      std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("alpha", Spectrum(0.1))),
                      std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("alpha", Spectrum(0.1))),
@@ -53,13 +56,14 @@ void RoughConductor::setScatterFuncs(SurfaceInteraction* isect,
         }
     }
 
+    const Spectrum ks = Ks_->evaluate(*isect);
     const Spectrum eta = eta_->evaluate(*isect);
     const Spectrum k = k_->evaluate(*isect);
     Fresnel* fresnel = arena.allocate<FresnelConductor>(Spectrum(1.0), eta, k);
 
     bool isSpecular = uRough == 0 && vRough == 0;
     if (isSpecular) {
-        isect->bsdf()->add(arena.allocate<SpecularReflection>(Spectrum(1.0), fresnel));
+        isect->bsdf()->add(arena.allocate<SpecularReflection>(ks, fresnel));
     } else {
         MicrofacetDistribution *distrib = nullptr;
         if (distribution_ == "beckmann") {
@@ -70,7 +74,7 @@ void RoughConductor::setScatterFuncs(SurfaceInteraction* isect,
             FatalError("Unknown micforacet distribution type: %s", distribution_.c_str());
         }
 
-        isect->bsdf()->add(arena.allocate<MicrofacetReflection>(Spectrum(1.0), distrib, fresnel));
+        isect->bsdf()->add(arena.allocate<MicrofacetReflection>(ks, distrib, fresnel));
     }
 }
 

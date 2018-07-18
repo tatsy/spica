@@ -144,7 +144,7 @@ Transform SceneParser::parseTransform(const XMLElement *parent) {
             const double x = str2double(getAttribute(elem, "x"));
             const double y = str2double(getAttribute(elem, "y"));
             const double z = str2double(getAttribute(elem, "z"));
-            const double angle = str2double(getAttribute(elem, "angle"));
+            const double angle = str2double(getAttribute(elem, "angle")) * PI / 180.0;
             sub = Transform::rotate(angle, Vector3d(x, y, z));
         } else if (std::strcmp(elem->Name(), "translate") == 0) {
             const double x = str2double(getAttribute(elem, "x"));
@@ -212,7 +212,7 @@ void SceneParser::storeToParam(const XMLElement *elem) {
             params_.add(name, value);
         }
     } else if (nodeName == "string") {
-        std::string value = elem->Attribute("value");
+        std::string value = getAttribute(elem, "value");
         if (name == "filename") {
             fs::path xmlPath(xmlFile_.c_str());
             fs::path filePath(value.c_str());

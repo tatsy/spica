@@ -11,16 +11,19 @@
 
 namespace spica {
 
-Conductor::Conductor(const std::shared_ptr<Texture<Spectrum>>& eta,
+Conductor::Conductor(const std::shared_ptr<Texture<Spectrum>> &Ks,
+                     const std::shared_ptr<Texture<Spectrum>> &eta,
                      const std::shared_ptr<Texture<Spectrum>> &k,
-                     const std::shared_ptr<Texture<Spectrum>>& bump)
-    : eta_{eta}
-    , k_{k}
+                     const std::shared_ptr<Texture<Spectrum>> &bump)
+    : Ks_{ Ks }
+    , eta_{ eta }
+    , k_{ k }
     , bumpMap_{ bump } {
 }
 
 Conductor::Conductor(RenderParams &params)
-    : Conductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("eta")),
+    : Conductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance", Spectrum(1.0))),
+                std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("eta")),
                 std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("k")),
                 std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("bumpMap"))} {
 }
@@ -31,10 +34,11 @@ void Conductor::setScatterFuncs(SurfaceInteraction* isect,
 
     isect->setBSDF(arena.allocate<BSDF>(*isect));
 
+    const Spectrum ks = Ks_->evaluate(*isect);
     const Spectrum eta = eta_->evaluate(*isect);
     const Spectrum k = k_->evaluate(*isect);
     Fresnel* fresnel = arena.allocate<FresnelConductor>(Spectrum(1.0), eta, k);
-    isect->bsdf()->add(arena.allocate<SpecularReflection>(Spectrum(1.0), fresnel));
+    isect->bsdf()->add(arena.allocate<SpecularReflection>(ks, fresnel));
 }
 
 }  // namespace spica

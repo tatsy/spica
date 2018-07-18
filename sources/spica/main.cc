@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     ArgumentParser parser;
     try {
         parser.addArgument("-i", "--input", "", true);
-        parser.addArgument("-t", "--threads", "4");
+        parser.addArgument("-t", "--threads", "-1");
         parser.addArgument("-o", "--output", "");
         if (!parser.parse(argc, argv)) {
             std::cout << parser.helpText() << std::endl;

@@ -15,7 +15,8 @@ namespace spica {
 
 class SPICA_EXPORTS RoughConductor : public SurfaceMaterial {
 public:
-    RoughConductor(const std::shared_ptr<Texture<Spectrum>>& eta,
+    RoughConductor(const std::shared_ptr<Texture<Spectrum>> &Ks,
+                   const std::shared_ptr<Texture<Spectrum>>& eta,
                    const std::shared_ptr<Texture<Spectrum>>& k,
                    const std::shared_ptr<Texture<Spectrum>>& uRoughness,
                    const std::shared_ptr<Texture<Spectrum>>& vRoughness,
@@ -27,6 +28,7 @@ public:
                          MemoryArena& arena) const override;
 
 private:
+    std::shared_ptr<Texture<Spectrum>> Ks_;
     std::shared_ptr<Texture<Spectrum>> eta_;
     std::shared_ptr<Texture<Spectrum>> k_;
     std::shared_ptr<Texture<Spectrum>> uRoughness_, vRoughness_;

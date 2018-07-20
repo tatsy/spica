@@ -8,6 +8,7 @@
 #include "core/parallel.h"
 #include "core/renderparams.h"
 #include "core/interaction.h"
+#include "core/sampling.h"
 #include "core/scene.h"
 #include "core/camera.h"
 #include "core/film.h"
@@ -207,61 +208,86 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
     // Take parameters.
     const int width  = camera->film()->resolution().x();
     const int height = camera->film()->resolution().y();
+    const int numPixels = width * height;
     const double pLarge  = params.getDouble("pLarge", 0.3);
     const int sampleCount = params.getInt("sampleCount", 64);
     const int nBootstrap = params.getInt("luminanceSamples", 100000);
     const int nMutate = width * height;
 
-    // Start rendering.
-    const double scrnArea = camera->film()->resolution().x() * camera->film()->resolution().y();
-
     const int nThreads = numSystemThreads();
     const int nLoop = (sampleCount + nThreads - 1) / nThreads;
-    
+    const int globalSeed = (uint32_t)time(0);
+    std::vector<MemoryArena> arenas(nThreads);
+
+    // Random number generator for global use.
+    Random rng(globalSeed);
+
+    // Bootstrap
+    std::vector<double> sampleWeights(nBootstrap, 0.0);
+    std::atomic<double> sumI(0.0);
+    parallel_for(0, nBootstrap, [&](int i) {
+        // Here, "rngIndex" is for using the same RNG in bootstrapping and mutation.
+        const int rngIndex = globalSeed + i;
+        auto randomSampler = std::make_shared<Random>(rngIndex);
+        auto psSampler = std::make_shared<PSSSampler>(randomSampler, pLarge);
+        psSampler->startNextSample();
+
+        // Generate bootstrap sample.
+        const int threadId = getThreadID();
+        PathSample ps = generateSample(camera, scene, params, *psSampler, arenas[threadId]);
+
+        const double I = ps.Li().gray();
+        sampleWeights[i] = I;
+        sumI.store(sumI.load() + I);
+
+        arenas[threadId].reset();
+    });
+    MsgInfo("Finish bootstrapping.");
+
+    // Distribution of bootstraps
+    Distribution1D bootstrap(sampleWeights);
+
+    // Mutation
     int progress = 0;
     for (int loop = 0; loop < nLoop; loop++) {
         std::mutex mtx;
         std::atomic<int64_t> nAccept(0);
         std::atomic<int64_t> nTotal(0);
         parallel_for (0, nThreads, [&](int t) {
-            MemoryArena arena;
-        
-            // Generate initial paths (burn-in step).
-            PathSample currentSample;
-            std::shared_ptr<PSSSampler> psSampler = nullptr;
-            std::shared_ptr<Random> randomSampler = std::make_shared<Random>((uint32_t)time(0));
-            double sumI = 0.0;
-            while (sumI == 0.0) {
-                psSampler = std::make_shared<PSSSampler>(randomSampler, pLarge);
-                for (int i = 0; i < nBootstrap; i++) {
-                    psSampler->startNextSample();
-                    currentSample = generateSample(camera, scene, params, *psSampler, arena);
-                    sumI += currentSample.Li().gray();
-                }
-            }
+            MemoryArena &arena = arenas[t];
+
+            // Select chain.
+            const int index = bootstrap.sampleDiscrete(rng.get1D());
+            const int rngIndex = globalSeed + index;
+            auto randomSampler = std::make_shared<Random>(rngIndex);
+            auto psSampler = std::make_shared<PSSSampler>(randomSampler, pLarge);
+            psSampler->startNextSample();
+
+            // Generate first sample.
+            PathSample currentSample = generateSample(camera, scene, params, *psSampler, arena);
 
             // Mutation.
             const int M = nMutate;
             const double b = sumI / nBootstrap;
             for (int i = 0; i < nMutate; i++) {
-                psSampler->startNextSample();
+                // Generate next sample.
                 PathSample nextSample = generateSample(camera, scene, params, *psSampler, arena);
-
-                double acceptRatio = currentSample.Li().isBlack() ? 1.0
-                                                                  : nextSample.Li().gray() / currentSample.Li().gray();
-                acceptRatio = std::min(1.0, acceptRatio);
+                double acceptRatio = 1.0;
+                if (!currentSample.Li().isBlack()) {
+                    acceptRatio = std::min(1.0, nextSample.Li().gray() / currentSample.Li().gray());
+                }
 
                 // Update image.
                 mtx.lock();
                 {
                     double currentWeight = (1.0 - acceptRatio) /
                                            ((currentSample.Li().gray() / b + psSampler->pLarge()) * M);
-                    double nextWeight    = (acceptRatio + psSampler->largeStep()) /
-                                           ((nextSample.Li().gray() / b + psSampler->pLarge()) * M);
+                    double nextWeight = (acceptRatio + psSampler->largeStep()) /
+                                        ((nextSample.Li().gray() / b + psSampler->pLarge()) * M);
 
-                    Point2d curPixel(width - currentSample.pixel().x(), currentSample.pixel().y());
+                    Point2d currentPixel(width - currentSample.pixel().x(), currentSample.pixel().y());
                     Point2d nextPixel(width - nextSample.pixel().x(), nextSample.pixel().y());
-                    camera->film()->addPixel(curPixel, currentWeight * currentSample.Li());
+                    camera->film()->addPixel(currentPixel, currentWeight * currentSample.Li());
                     camera->film()->addPixel(nextPixel, nextWeight * nextSample.Li());
                 }
                 mtx.unlock();
@@ -278,7 +304,7 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
 
                 if (nTotal % 1000 == 0) {
                     const double ratio = 100.0 * (nTotal + 1) / (nThreads * nMutate);
-                    printf("%6.2f %% processed...\r", ratio);
+                    printf("[ %d / %d ] %6.2f %% processed...\r", (loop + 1) * nThreads, sampleCount, ratio);
                     fflush(stdout);
                 }
 
@@ -286,6 +312,7 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
                 arena.reset();
             }
         });
+        printf("\n");
 
         // Report accept / reject ratio.
         const double ratio = 100.0 * nAccept / nTotal;
@@ -294,7 +321,7 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
 
         // Save image.
         progress += nThreads;
-        camera->film()->saveMLT(scrnArea / progress, progress);
+        camera->film()->saveMLT(numPixels / progress, progress);
     }
 }
 

@@ -25,7 +25,7 @@ public:
     double operator()(int i) const;
 
     double sample(double rand, double* pdf, int* offset = nullptr) const;
-    int    sampleDiscrete(double rand, double* pdf) const;
+    int    sampleDiscrete(double rand, double* pdf = nullptr) const;
     double pdfDiscrete(int index) const;
     inline double integral() const { return integral_; }
     inline int    count()    const { return static_cast<int>(func_.size()); }

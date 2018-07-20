@@ -251,7 +251,6 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
 
     // Distribute tasks
     const int nThreads = numSystemThreads();
-    const int tasksThread = (numPhotons + nThreads - 1) / nThreads;
 
     // Trace photons
     std::atomic<int> proc(0);

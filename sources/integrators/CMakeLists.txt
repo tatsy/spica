@@ -15,6 +15,8 @@ add_integrator(vcmups vcmups/vcmups.cc vcmups/vcmups.h
                LINK_LIBRARIES ${SPICA_DEPENDENCY_LIBRARIES})
 
 add_integrator(pssmlt pssmlt/pssmlt.cc pssmlt/pssmlt.h)
+add_integrator(mmlt mmlt/mmlt.cc mmlt/mmlt.h bidirectional.cc bidirectional.h)
+
 add_integrator(photonmapper photonmapper/photonmapper.cc photonmapper/photonmapper.h
                photon_map.cc photon_map.h)
 add_integrator(sppm sppm/sppm.cc sppm/sppm.h)

@@ -147,7 +147,7 @@ void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
             }
         }
         camera->film()->setImage(image);
-        camera->film()->save(t + 1);
+        camera->film()->save(t + 1, 1.0 / (t + 1));
     }
 }
 
@@ -205,13 +205,11 @@ void SPPMIntegrator::traceRays(const std::shared_ptr<const Camera> &camera,
     const int width  = camera->film()->resolution().x();
     const int height = camera->film()->resolution().y();
     const int numPixels = static_cast<int>(hpoints.size());
-    const int nThreads = numSystemThreads();
 
     // Generate a ray to cast
     std::cout << "Tracing rays from camera ..." << std::endl;
 
     std::atomic<int> proc(0);
-    const int tasksThread = (numPixels + nThreads - 1) / nThreads;
     parallel_for(0, numPixels, [&](int pid) {
         const int threadID = getThreadID();
 
@@ -248,9 +246,6 @@ void SPPMIntegrator::tracePhotons(const Scene& scene,
                                   const Distribution1D& lightDistrib,
                                   const int numPhotons) const {
     std::cout << "Shooting photons ..." << std::endl;
-
-    // Distribute tasks
-    const int nThreads = numSystemThreads();
 
     // Trace photons
     std::atomic<int> proc(0);

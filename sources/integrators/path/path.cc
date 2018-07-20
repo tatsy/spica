@@ -107,7 +107,7 @@ Spectrum PathIntegrator::Li(const Scene& scene,
             Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                            BxDFType::All, &sampledType);
             if (f.isBlack() || pdf == 0.0) break;
-            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+            beta *= f * vect::absDot(wi, pi.ns()) / pdf;
 
             specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
             ray = pi.spawnRay(wi);

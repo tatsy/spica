@@ -26,7 +26,7 @@ MemoryArena::~MemoryArena() {
     for (auto& block : availableBlocks_) align_free(block.second);
 }
 
-void* MemoryArena::allocate(size_t nBytes) {
+void* MemoryArena::allocBytes(size_t nBytes) {
     nBytes = ((nBytes + 0xf) & (~0xf));
     if (currentBlockPos_ + nBytes > currentAllocSize_) {
         if (currentBlock_) {

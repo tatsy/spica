@@ -20,26 +20,7 @@ Film::Film(const Point2i& resolution,
     samples_.assign(resolution_.x(), std::vector<int>(resolution_.y(), 0));
 }
 
-void Film::save(int id) const {
-    Image res = image_;
-    for (int y = 0; y < image_.height(); y++) {
-        for (int x = 0; x < image_.width(); x++) {
-            res.pixel(x, y) /= (weights_[x][y] + EPS);
-        }
-    }
-
-    char savefile[512];
-    const char* format = filename_.c_str();
-    sprintf(savefile, format, id);
-
-    saveImage(savefile, res);
-
-    if (saveCallback_) {
-        (*saveCallback_)(res);
-    }
-}
-
-void Film::saveMLT(double scale, int id) const {
+void Film::save(int id, double scale) const {
     Image res = image_;
     for (int y = 0; y < image_.height(); y++) {
         for (int x = 0; x < image_.width(); x++) {
@@ -50,6 +31,7 @@ void Film::saveMLT(double scale, int id) const {
     char savefile[512];
     const char* format = filename_.c_str();
     sprintf(savefile, format, id);
+
     saveImage(savefile, res);
 
     if (saveCallback_) {

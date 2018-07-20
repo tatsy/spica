@@ -22,7 +22,7 @@
 #include "core/phase.h"
 #include "core/mis.h"
 
-#include "integrators/photon_map.h"
+#include "integrators/photonmap.h"
 
 namespace spica {
 

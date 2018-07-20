@@ -23,18 +23,28 @@ namespace spica {
  */
 class SPICA_EXPORTS MEM_ALIGN(64) MemoryArena : private Uncopyable {
 public:
-    MemoryArena(size_t blockSize = 262144);
+    explicit MemoryArena(size_t blockSize = 262144);
     MemoryArena(MemoryArena&& arena) noexcept;
     virtual ~MemoryArena();
 
     MemoryArena& operator=(MemoryArena&& arena) = delete;
 
-    void* allocate(size_t nBytes);
-
     template <class T, class... Args>
-    T* allocate(const Args&... args) {
-        T* ret = (T*)allocate(sizeof(T));
+    typename std::enable_if<!std::is_array<T>::value, T>::type*
+    allocate(const Args&... args) {
+        T *ret = (T*)allocBytes(sizeof(T));
         new (ret) T(args...);
+        return ret;
+    }
+
+    template <class T>
+    typename std::enable_if<std::is_array<T>::value, typename std::remove_extent<T>::type>::type*
+    allocate(size_t size) {
+        using Elem = typename std::remove_extent<T>::type;
+        Elem *ret = (Elem*)allocBytes(sizeof(Elem) * size);
+        for (size_t i = 0; i < size; i++) {
+            new (ret + i) Elem();
+        }
         return ret;
     }
 
@@ -43,6 +53,9 @@ public:
     size_t totalAllocated() const;
 
 private:
+    // Private methods
+    void* allocBytes(size_t nBytes);
+
     // Private fields
     const size_t blockSize_;
     size_t currentBlockPos_ = 0;

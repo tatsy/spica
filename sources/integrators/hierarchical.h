@@ -11,7 +11,7 @@
 #include "../core/interaction.h"
 
 #include "integrator.h"
-#include "photon_map.h"
+#include "photonmap.h"
 
 namespace spica {
 

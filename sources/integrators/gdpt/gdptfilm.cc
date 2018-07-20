@@ -40,7 +40,7 @@ void GDPTFilm::save(int i, const std::string &solver) const {
         FatalError("Unknown solver: %s", solver.c_str());
     }
     film_->setImage(result);
-    film_->save(i);
+    film_->save(i, 1.0);
 }
 
 void GDPTFilm::addPixel(int x, int y, const Spectrum &color, double weight) {

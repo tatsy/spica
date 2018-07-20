@@ -233,7 +233,7 @@ Spectrum connectBDPT(const Scene& scene,
                      Vertex* lightPath, Vertex* cameraPath,
                      int lightID, int cameraID, const Distribution1D& lightDist,
                      const Camera& camera, Sampler& sampler, Point2d* pRaster,
-                     double* misWeight);
+                     double* misWeight = nullptr);
 
 }  // namespace spica
 

@@ -9,7 +9,7 @@
 
 #include "core/common.h"
 #include "core/integrator.h"
-#include "integrators/photon_map.h"
+#include "integrators/photonmap.h"
 
 namespace spica {
 

@@ -36,23 +36,10 @@ public:
     }
 
     /**
-     * Save the result by dividing sum(w * I) by sum(w).
-     * This method is typically used for SamplerIntegrator, which take the same
-     * number of samples for each pixel.
-     *
-     * @param[in] id: The ID used for naming the image file.
+     * Save the result (scale * sum(w * I) * ns) / sum(w).
+     * Typically, you need to set "scale = #sample^{-1}"
      */
-    void save(int id = 0) const;
-
-    /**
-     * Save the result by computing, (sum(w * I) * ns / (sum(w)), where ns is
-     * number of samples generated for a pixel.
-     * This method is typically used for MLT-like algorithms, which take
-     * different number of samples for each pixel.
-     *
-     * @param[in] scale: The parameter to scale pixel values.
-     */
-    void saveMLT(double scale, int id = 0) const;
+    void save(int id, double scale) const;
 
     void setImage(const Image& image);
     void addPixel(const Point2i& pixel, const Point2d& pInPixel,

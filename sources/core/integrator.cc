@@ -97,7 +97,7 @@ void SamplerIntegrator::render(const std::shared_ptr<const Camera> &camera,
         });
         printf("\n");
 
-        camera->film()->save(i + 1);
+        camera->film()->save(i + 1, 1.0 / (i + 1));
 
         for (int t = 0; t < numThreads; t++) {
             arenas[t].reset();

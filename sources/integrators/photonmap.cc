@@ -1,5 +1,5 @@
 #define SPICA_API_EXPORT
-#include "photon_map.h"
+#include "photonmap.h"
 
 #include <atomic>
 #include <ctime>

@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <numeric>
 
 #include "core/memory.h"
 #include "core/parallel.h"
@@ -18,180 +19,9 @@
 #include "core/bssrdf.h"
 #include "core/mis.h"
 
+#include "integrators/primarysample.h"
+
 namespace spica {
-
-namespace {
-
-/**
- * The sample object for primary space sampling.
- */
-class Sample {
-public:
-    // Public methods
-    Sample()
-        : modifyTime_{ 0 }
-        , value_{ 0.0 } {
-    }
-
-    Sample(int modifyTime, double value)
-        : modifyTime_{ modifyTime }
-        , value_{ value } {
-    }
-
-    Sample(const Sample&) = default;
-    Sample& operator=(const Sample&) = default;
-    
-    void mutate(const Point2d& rand) {
-        static const double s1 = 1.0 / 1024.0;
-        static const double s2 = 1.0 / 64.0;
-
-        const double dv = s2 * std::exp(-std::log(s2 / s1) * rand[0]);
-        if (rand[1] < 0.5) {
-            value_ += dv;
-        } else {
-            value_ -= dv;
-        }
-
-        value_ -= std::floor(value_);
-        modifyTime_++;
-    }
-
-    inline int modifyTime() const { return modifyTime_; }
-    inline double value() const { return value_; }
-
-private:
-    // Private fields
-    int modifyTime_;
-    double value_;
-};
-
-}  // anonymous namespace
-
-/**
- * Path sample.
- */
-class PSSMLTIntegrator::PathSample {
-public:
-    PathSample()
-        : pixel_{ 0.0, 0.0 }
-        , Li_{} {
-    }
-
-    PathSample(const Point2d& pixel, const Spectrum& Li)
-        : pixel_{ pixel }
-        , Li_{ Li } {
-    }
-
-    PathSample(const PathSample&) = default;
-    PathSample& operator=(const PathSample&) = default;
-
-    inline Point2d pixel() const { return pixel_; }
-    inline Point2i pixel2i() const { return Point2i((int)pixel_.x(), (int)pixel_.y()); }
-    inline Point2d pixelDec() const { return Point2d(pixel_.x() - (int)pixel_.x(), pixel_.y() - (int)pixel_.y()); }
-    inline const Spectrum& Li() const { return Li_; }
- 
-private:
-    Point2d pixel_;
-    Spectrum Li_;
-};
-
-/**
- * Management class for PSS sampling.
- */
-class PSSSampler : public Sampler {
-public:
-    PSSSampler(const std::shared_ptr<Random>& rand, double pLarge)
-        : rand_{ rand }
-        , pLarge_{ pLarge } {
-        static const int size = 128;
-        currentSamples_.resize(size);
-        previousSamples_.resize(size);
-        for (int i = 0; i < size; i++) {
-            currentSamples_[i] = Sample(0, rand_->get1D());
-            previousSamples_[i] = Sample(0, rand_->get1D());
-        }
-    }
-
-    double get1D() override {
-        if (currentCoordIndex_ >= currentSamples_.size()) {
-            const int size = currentSamples_.size();
-            currentSamples_.resize(size * 2);
-            previousSamples_.resize(size * 2);
-            for (int i = size; i < size * 2; i++) {
-                currentSamples_[i] = Sample(0, rand_->get1D());
-                previousSamples_[i] = Sample(0, rand_->get1D());
-            }
-        }
-        
-        if (currentSamples_[currentCoordIndex_].modifyTime() < globalTime_) {
-            if (largeStep_ != 0) {
-                // Large step
-                previousSamples_[currentCoordIndex_] = currentSamples_[currentCoordIndex_];
-                currentSamples_[currentCoordIndex_] = Sample(globalTime_, rand_->get1D());
-            } else {
-                // Small step
-                if (currentSamples_[currentCoordIndex_].modifyTime() < largeStepTime_) {
-                    previousSamples_[currentCoordIndex_] = currentSamples_[currentCoordIndex_];
-                    currentSamples_[currentCoordIndex_] = Sample(largeStepTime_, rand_->get1D());
-                }
-                
-                while (currentSamples_[currentCoordIndex_].modifyTime() < globalTime_ - 1) {
-                    currentSamples_[currentCoordIndex_].mutate(rand_->get2D());
-                }
-                previousSamples_[currentCoordIndex_] = currentSamples_[currentCoordIndex_];
-                currentSamples_[currentCoordIndex_].mutate(rand_->get2D());
-            }
-        }
-        
-        return currentSamples_[currentCoordIndex_++].value();
-    }
-
-    bool startNextSample() override {
-        currentCoordIndex_ = 0;
-        if (rand_->get1D() < pLarge_) {
-            largeStep_ = 1;
-        } else {
-            largeStep_ = 0;
-        }
-        return true;
-    }
-
-    std::unique_ptr<Sampler> clone(uint32_t seed = 0) const override {
-        return std::make_unique<PSSSampler>(std::make_shared<Random>(seed), pLarge_);
-    }
-
-    void accept() {
-        if (largeStep_ != 0) {
-            largeStepTime_ = globalTime_;
-        }
-        currentCoordIndex_ = 0;
-        globalTime_++;
-    }
-
-    void reject() {
-        for (int p = 0; p < currentCoordIndex_; p++) {
-            currentSamples_[p] = previousSamples_[p];
-        }
-        currentCoordIndex_ = 0;
-    }
-
-    inline int globalTime() const { return globalTime_; }
-    inline int largeStep() const { return largeStep_;}
-    inline int largeStepTime() const { return largeStepTime_; }
-    inline double pLarge() const { return pLarge_; }
-
-private:
-    int globalTime_ = 0;
-    int largeStep_ = 0;
-    int largeStepTime_ = 0;
-    int currentCoordIndex_ = 0;
-    
-    std::shared_ptr<Random> rand_;
-    double pLarge_;
-    
-    std::vector<Sample> currentSamples_;
-    std::vector<Sample> previousSamples_;
-};
 
 PSSMLTIntegrator::PSSMLTIntegrator()
     : Integrator{ } {
@@ -201,9 +31,6 @@ PSSMLTIntegrator::PSSMLTIntegrator(spica::RenderParams &params)
     : PSSMLTIntegrator{ } {
 }
 
-PSSMLTIntegrator::~PSSMLTIntegrator() {
-}
-
 void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const Scene& scene, RenderParams& params) {
     // Take parameters.
     const int width  = camera->film()->resolution().x();
@@ -211,34 +38,26 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
     const int numPixels = width * height;
     const double pLarge  = params.getDouble("pLarge", 0.3);
     const int sampleCount = params.getInt("sampleCount", 64);
-    const int nBootstrap = params.getInt("luminanceSamples", 100000);
-    const int nMutate = width * height;
-
+    const int nBootstrap = params.getInt("luminanceSamples", 500000);
     const int nThreads = numSystemThreads();
-    const int nLoop = (sampleCount + nThreads - 1) / nThreads;
+    const int nMutate = (numPixels + nThreads - 1) / nThreads;
+
     const int globalSeed = (uint32_t)time(0);
     std::vector<MemoryArena> arenas(nThreads);
 
-    // Random number generator for global use.
-    Random rng(globalSeed);
-
     // Bootstrap
     std::vector<double> sampleWeights(nBootstrap, 0.0);
-    std::atomic<double> sumI(0.0);
     parallel_for(0, nBootstrap, [&](int i) {
         // Here, "rngIndex" is for using the same RNG in bootstrapping and mutation.
         const int rngIndex = globalSeed + i;
-        auto randomSampler = std::make_shared<Random>(rngIndex);
-        auto psSampler = std::make_shared<PSSSampler>(randomSampler, pLarge);
-        psSampler->startNextSample();
+        auto psSampler = std::make_shared<PSSSampler>(rngIndex, pLarge);
 
         // Generate bootstrap sample.
         const int threadId = getThreadID();
         PathSample ps = generateSample(camera, scene, params, *psSampler, arenas[threadId]);
 
-        const double I = ps.Li().gray();
+        const double I = ps.L().gray();
         sampleWeights[i] = I;
-        sumI.store(sumI.load() + I);
 
         arenas[threadId].reset();
     });
@@ -246,10 +65,11 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
 
     // Distribution of bootstraps
     Distribution1D bootstrap(sampleWeights);
+    const double sumI = std::accumulate(sampleWeights.begin(), sampleWeights.end(), 0.0);
+    const double b = sumI / nBootstrap;
 
     // Mutation
-    int progress = 0;
-    for (int loop = 0; loop < nLoop; loop++) {
+    for (int i = 0; i < sampleCount; i++) {
         std::mutex mtx;
         std::atomic<int64_t> nAccept(0);
         std::atomic<int64_t> nTotal(0);
@@ -257,43 +77,40 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
             MemoryArena &arena = arenas[t];
 
             // Select chain.
+            Random rng(globalSeed + i * nThreads + t);
             const int index = bootstrap.sampleDiscrete(rng.get1D());
             const int rngIndex = globalSeed + index;
-            auto randomSampler = std::make_shared<Random>(rngIndex);
-            auto psSampler = std::make_shared<PSSSampler>(randomSampler, pLarge);
-            psSampler->startNextSample();
+            auto psSampler = std::make_shared<PSSSampler>(rngIndex, pLarge);
 
             // Generate first sample.
             PathSample currentSample = generateSample(camera, scene, params, *psSampler, arena);
 
             // Mutation.
-            const int M = nMutate;
-            const double b = sumI / nBootstrap;
-            for (int i = 0; i < nMutate; i++) {
+            for (int m = 0; m < nMutate; m++) {
                 // Generate next sample.
                 PathSample nextSample = generateSample(camera, scene, params, *psSampler, arena);
                 double acceptRatio = 1.0;
-                if (!currentSample.Li().isBlack()) {
-                    acceptRatio = std::min(1.0, nextSample.Li().gray() / currentSample.Li().gray());
+                if (!currentSample.L().isBlack()) {
+                    acceptRatio = std::min(1.0, nextSample.L().gray() / currentSample.L().gray());
                 }
 
                 // Update image.
                 mtx.lock();
                 {
                     double currentWeight = (1.0 - acceptRatio) /
-                                           ((currentSample.Li().gray() / b + psSampler->pLarge()) * M);
+                                           ((currentSample.L().gray() / b + psSampler->pLarge()));
                     double nextWeight = (acceptRatio + psSampler->largeStep()) /
-                                        ((nextSample.Li().gray() / b + psSampler->pLarge()) * M);
+                                        ((nextSample.L().gray() / b + psSampler->pLarge()));
 
-                    Point2d currentPixel(width - currentSample.pixel().x(), currentSample.pixel().y());
-                    Point2d nextPixel(width - nextSample.pixel().x(), nextSample.pixel().y());
-                    camera->film()->addPixel(currentPixel, currentWeight * currentSample.Li());
-                    camera->film()->addPixel(nextPixel, nextWeight * nextSample.Li());
+                    Point2d currentPixel(width - currentSample.p().x(), currentSample.p().y());
+                    Point2d nextPixel(width - nextSample.p().x(), nextSample.p().y());
+                    camera->film()->addPixel(currentPixel, currentWeight * currentSample.L());
+                    camera->film()->addPixel(nextPixel, nextWeight * nextSample.L());
                 }
                 mtx.unlock();
 
                 // Update sample.
-                if (randomSampler->get1D() < acceptRatio) {
+                if (rng.get1D() < acceptRatio) {
                     nAccept++;              
                     currentSample = nextSample;
                     psSampler->accept();
@@ -302,9 +119,9 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
                 }
                 nTotal++;
 
-                if (nTotal % 1000 == 0) {
+                if (nTotal % 1000 == 0 || nTotal == (nThreads * nMutate)) {
                     const double ratio = 100.0 * (nTotal + 1) / (nThreads * nMutate);
-                    printf("[ %d / %d ] %6.2f %% processed...\r", (loop + 1) * nThreads, sampleCount, ratio);
+                    printf("[ %d / %d ] %6.2f %% processed...\r", i + 1, sampleCount, ratio);
                     fflush(stdout);
                 }
 
@@ -320,16 +137,19 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
         fflush(stdout);
 
         // Save image.
-        progress += nThreads;
-        camera->film()->saveMLT(numPixels / progress, progress);
+        camera->film()->save(i + 1, 1.0 / (i + 1));
     }
 }
 
-PSSMLTIntegrator::PathSample PSSMLTIntegrator::generateSample(const std::shared_ptr<const Camera> &camera,
-                                                              const Scene& scene,
-                                                              RenderParams& params,
-                                                              Sampler& sampler,
-                                                              MemoryArena& arena) const {
+PathSample PSSMLTIntegrator::generateSample(const std::shared_ptr<const Camera> &camera,
+                                            const Scene& scene,
+                                            RenderParams& params,
+                                            Sampler& sampler,
+                                            MemoryArena& arena) const {
+    // Reset sampler.
+    sampler.startNextSample();
+
+    // Generate ray.
     const int width  = camera->film()->resolution().x();
     const int height = camera->film()->resolution().y();
 
@@ -396,7 +216,7 @@ Spectrum PSSMLTIntegrator::Li(const Scene& scene,
 
         if (ref.isBlack() || pdf == 0.0) break;
 
-        beta *= ref * vect::absDot(wi, isect.normal()) / pdf;
+        beta *= ref * vect::absDot(wi, isect.ns()) / pdf;
         specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
         ray = isect.spawnRay(wi);
 
@@ -414,7 +234,7 @@ Spectrum PSSMLTIntegrator::Li(const Scene& scene,
             Spectrum f = pi.bsdf()->sample(pi.wo(), &wi, sampler.get2D(), &pdf,
                                            BxDFType::All, &sampledType);
             if (f.isBlack() || pdf == 0.0) break;
-            beta *= f * vect::absDot(wi, pi.normal()) / pdf;
+            beta *= f * vect::absDot(wi, pi.ns()) / pdf;
 
             specularBounce = (sampledType & BxDFType::Specular) != BxDFType::None;
             ray = pi.spawnRay(wi);

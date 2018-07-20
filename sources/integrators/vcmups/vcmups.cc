@@ -15,7 +15,7 @@
 #include "core/visibility_tester.h"
 
 #include "integrators/bidirectional.h"
-#include "integrators/photon_map.h"
+#include "integrators/photonmap.h"
 
 namespace spica {
 
@@ -391,7 +391,7 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
         });
         printf("\n");
 
-        camera->film()->saveMLT(1.0 / (i + 1), i + 1);
+        camera->film()->save(i + 1, 1.0 / (i + 1));
 
         for (int t = 0; t < numThreads; t++) {
             arenas[t].reset();

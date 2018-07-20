@@ -11,20 +11,21 @@
 
 namespace spica {
 
+// Forward declaration
+class PathSample;
+
 /**
  * Primary Sample Space Metropolis Light Transport.
  * @ingroup integrator_module
  */
-class PSSMLTIntegrator : public Integrator {
+class SPICA_EXPORTS PSSMLTIntegrator : public Integrator {
 public:
     // Public methods
     PSSMLTIntegrator();
     explicit PSSMLTIntegrator(RenderParams &params);
-    virtual ~PSSMLTIntegrator();
     virtual void render(const std::shared_ptr<const Camera>& camera, const Scene& scene, RenderParams& params) override;
 
 private:
-    class PathSample;
     PathSample generateSample(const std::shared_ptr<const Camera> &camera,
                               const Scene& scene,
                               RenderParams& params,
@@ -39,7 +40,7 @@ private:
                 int depth = 0) const;
 };
 
-SPICA_EXPORT_PLUGIN(PSSMLTIntegrator, "Primary sampling space metroplis light transport");
+SPICA_EXPORT_PLUGIN(PSSMLTIntegrator, "Primary sampling space Metroplis light transport");
 
 }  // namespace spica
 

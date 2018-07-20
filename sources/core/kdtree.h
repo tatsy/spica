@@ -85,15 +85,14 @@ namespace spica {
         };
         
         // Private methods
-        KdTreeNode* constructRec(std::vector<const Ty*>& points, const int nodeID, const int startID, const int endID, const int dim);
-        KdTreeNode* addRec(KdTreeNode* node, const Ty& point, int dim);
-        void knnSearchRec(KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const;
+        KdTreeNode* constructRec(std::vector<const Ty*> &points, int nodeID, int startID, int endID, int dim);
+        KdTreeNode* addRec(KdTreeNode* node, const Ty &point, int dim);
 
-        static double distance(const Ty& p1, const Ty& p2);
+        static double squaredDistance(const Ty& p1, const Ty& p2);
 
         // Private fields
-        KdTreeNode* _nodes;
-        int* _numCopies;
+        KdTreeNode* nodes_;
+        int* numCopies_;
     };
 }
 

@@ -104,7 +104,7 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
             camera->film()->addPixel(Point2i(width - x - 1, y), randFilm, L);
 
             proc++;
-            if (proc % 1000 == 0) {
+            if (proc % 1000 == 0 || proc == numPixels) {
                 printf("\r[ %d / %d ] %6.2f %% processed...", i + 1, numSamples, 100.0 * proc / numPixels);
                 fflush(stdout);
             }

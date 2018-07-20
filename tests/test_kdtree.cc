@@ -1,25 +1,22 @@
 #include "gtest/gtest.h"
-
-#include "../include/spica.h"
+#include "spica.h"
 using namespace spica;
-
-#include "test_macros.h"
 
 #include <vector>
 #include <algorithm>
 
 struct Pair {
     double d;
-    Vector3D v;
-    Pair(double d_, Vector3D v_) 
+    Vector3d v;
+    Pair(double d_, const Vector3d &v_)
         : d(d_)
         , v(v_)
     {
     }
-    bool operator<(const Pair& p) const {
+    bool operator<(const Pair &p) const {
         return this->d < p.d;
     }
-    bool operator>(const Pair& p) const {
+    bool operator>(const Pair &p) const {
         return this->d > p.d;
     }
 };
@@ -27,37 +24,37 @@ struct Pair {
 TEST(KdTreeTest, KNNTest) {
     const int numSample = 1000;
     Random rng = Random();
-    std::vector<Vector3D> points;
+    std::vector<Vector3d> points;
     for (int i = 0; i < numSample; i++) {
         double x = rng.nextReal() * 10.0 - 5.0;
         double y = rng.nextReal() * 10.0 - 5.0;
         double z = rng.nextReal() * 10.0 - 5.0;
-        points.push_back(Vector3D(x, y, z));
+        points.emplace_back(x, y, z);
     }
 
-    KdTree<Vector3D> kdtree;
+    KdTree<Vector3d> kdtree;
     kdtree.construct(points);
 
-    Vector3D query;
-    std::vector<Vector3D> results;
+    Vector3d query;
+    std::vector<Vector3d> results;
     const int K = 10;
-    const int eps = 2.0;
-    kdtree.knnSearch(query, KnnQuery(K_NEAREST | EPSILON_BALL, eps, K), &results);
+    const double eps = 2.0;
+    kdtree.knnSearch(query, KnnQuery(K_NEAREST | EPSILON_BALL, K, eps), &results);
 
     std::vector<Pair> expected;
     std::vector<Pair> actual;
     int cnt = 0;
-    for (int i = 0; i< numSample; i++) {
-        double dist = (points[i] - query).norm();
-        expected.push_back(Pair(dist, points[i]));
+    for (const auto &p : points) {
+        double dist = (p - query).norm();
+        expected.emplace_back(dist, p);
         if (dist <= eps) {
             cnt++;
         }
     }
 
-    for (int i = 0; i < results.size(); i++) {
-        double dist = (results[i] - query).norm();
-        actual.push_back(Pair(dist, results[i]));
+    for (const auto & r : results) {
+        double dist = (r - query).norm();
+        actual.emplace_back(dist, r);
         EXPECT_LE(dist, eps);
     }
 
@@ -66,8 +63,10 @@ TEST(KdTreeTest, KNNTest) {
 
     cnt = std::min(cnt, K);
     EXPECT_EQ(cnt, results.size());
-    for (int i = 0; i < results.size(); i++) {
+    for (int i = 0; i < (int)results.size(); i++) {
         EXPECT_EQ(expected[i].d, actual[i].d);
-        EXPECT_EQ_VEC(expected[i].v, actual[i].v);
+        EXPECT_EQ(expected[i].v.x(), actual[i].v.x());
+        EXPECT_EQ(expected[i].v.y(), actual[i].v.y());
+        EXPECT_EQ(expected[i].v.z(), actual[i].v.z());
     }
 }

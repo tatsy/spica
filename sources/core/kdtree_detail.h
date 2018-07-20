@@ -2,6 +2,7 @@
 #define _SPICA_KDTREE_DETAIL_H_
 
 #include <cmath>
+#include <stack>
 #include <algorithm>
 
 #include "core/common.h"
@@ -11,15 +12,15 @@ namespace spica {
 
     template <class Ty>
     KdTree<Ty>::KdTree()
-        : _nodes(nullptr)
-        , _numCopies(nullptr)
+        : nodes_(nullptr)
+        , numCopies_(nullptr)
     {
     }
 
     template <class Ty>
     KdTree<Ty>::KdTree(const KdTree& kdtree)
-        : _nodes(nullptr)
-        , _numCopies(nullptr)
+        : nodes_(nullptr)
+        , numCopies_(nullptr)
     {
         this->operator=(kdtree);
     }
@@ -33,27 +34,27 @@ namespace spica {
     template <class Ty>
     KdTree<Ty>& KdTree<Ty>::operator=(const KdTree& kdtree) {
         release();
-        _numCopies = kdtree._numCopies;
-        (*_numCopies) += 1;
-        _nodes = kdtree._nodes;
+        numCopies_ = kdtree.numCopies_;
+        (*numCopies_) += 1;
+        nodes_ = kdtree.nodes_;
     }
 
     template <class Ty>
     void KdTree<Ty>::release() {
-        if (_numCopies != nullptr) {
-            if (*_numCopies == 0) {
-                delete[] _nodes;
-                delete _numCopies;
-                _numCopies = nullptr;
+        if (numCopies_ != nullptr) {
+            if (*numCopies_ == 0) {
+                delete[] nodes_;
+                delete numCopies_;
+                numCopies_ = nullptr;
             } else {
-                (*_numCopies) -= 1;
+                (*numCopies_) -= 1;
             }
         }
     }
 
     template <class Ty>
     void KdTree<Ty>::add(const Ty& point) {
-        _nodes = addRec(_nodes, point, 0);
+        nodes_ = addRec(nodes_, point, 0);
     }
 
     template <class Ty>
@@ -80,14 +81,14 @@ namespace spica {
         int numNodes;
         for (numNodes = 1; numNodes < numPoints; numNodes <<= 1) ;
 
-        _nodes = new KdTreeNode[numNodes];
+        nodes_ = new KdTreeNode[numNodes];
 
         std::vector<const Ty*> pointers(numPoints);
         for (int i = 0; i < numPoints; i++) {
             pointers[i] = &points[i];
         }
         constructRec(pointers, 0, 0, numPoints, 0);
-        _numCopies = new int(0);
+        numCopies_ = new int(0);
     }
 
     template <class Ty>
@@ -96,10 +97,10 @@ namespace spica {
             return NULL;
         }
 
-        std::sort(points.begin() + startID, points.begin() + endID, AxisComparator(dim));
+        const int mid = (startID + endID) / 2;
+        std::nth_element(points.begin() + startID, points.begin() + mid, points.begin() + endID, AxisComparator(dim));
 
-        int mid = (startID + endID) / 2;
-        KdTreeNode* node = &_nodes[nodeID];
+        KdTreeNode* node = &nodes_[nodeID];
         node->axis = dim;
         node->point = (*points[mid]);
         node->left = constructRec(points, nodeID * 2 + 1, startID, mid, (dim + 1) % 3);
@@ -108,13 +109,55 @@ namespace spica {
     }
 
     template <class Ty>
-    void KdTree<Ty>::knnSearch(const Ty& point, const KnnQuery& query, std::vector<Ty>* results) const {
-        PriorityQueue que; 
-        KnnQuery qq = query;
-        if ((qq.type & EPSILON_BALL) == 0) qq.epsilon = INFTY;
+    void KdTree<Ty>::knnSearch(const Ty& point, const KnnQuery& q, std::vector<Ty>* results) const {
+        // Queue to store result
+        PriorityQueue que;
+        KnnQuery query = q;
+        if ((query.type & EPSILON_BALL) == 0) {
+            query.epsilon = INFTY;
+        } else {
+            query.epsilon = query.epsilon * query.epsilon;
+        }
 
-        knnSearchRec(&_nodes[0], point, qq, &que);
+        // Stack-based depth first search
+        using NodeType = KdTree<Ty>::KdTreeNode;
+        NodeType *nodes[64];
+        int pos = 0;
+        nodes[pos++] = &nodes_[0];
 
+        while (pos > 0) {
+            NodeType *node = nodes[--pos];
+
+            if (node == nullptr) {
+                continue;
+            }
+
+            const double dist2 = squaredDistance(node->point, point);
+
+            if (dist2 < query.epsilon * query.epsilon) {
+                que.push(OrderedType(dist2, node->point));
+                if ((query.type & K_NEAREST) != 0 && (int)que.size() > query.k) {
+                    que.pop();
+                    query.epsilon = std::min(query.epsilon, squaredDistance(que.top().t, point));
+                }
+            }
+
+            const int axis = node->axis;
+            const double delta = point[axis] - node->point[axis];
+            if (delta < 0.0) {
+                if (std::abs(delta) < query.epsilon) {
+                    nodes[pos++] = node->right;
+                }
+                nodes[pos++] = node->left;
+            } else {
+                if (std::abs(delta) < query.epsilon) {
+                    nodes[pos++] = node->left;
+                }
+                nodes[pos++] = node->right;
+            }
+        }
+
+        // Store results
         while (!que.empty()) {
             results->push_back(que.top().t);
             que.pop();
@@ -122,44 +165,13 @@ namespace spica {
     }
 
     template <class Ty>
-    void KdTree<Ty>::knnSearchRec(typename KdTree<Ty>::KdTreeNode* node, const Ty& point, KnnQuery& query, PriorityQueue* results) const {
-        if (node == NULL) {
-            return;
-        }
-
-        const double dist = distance(node->point, point);
-        if (dist < query.epsilon) {
-            results->push(OrderedType(dist, node->point));
-            if ((query.type & K_NEAREST) != 0 && (int)results->size() > query.k) {
-                results->pop();
-
-                query.epsilon = distance(results->top().t, point);
-            }
-        }
-
-        int axis = node->axis;
-        double delta = point[axis] - node->point[axis];
-        if (delta < 0.0) {
-            knnSearchRec(node->left, point, query, results);
-            if (std::abs(delta) <= query.epsilon) {
-                knnSearchRec(node->right, point, query, results);
-            }
-        } else {
-            knnSearchRec(node->right, point, query, results);
-            if (std::abs(delta) <= query.epsilon) {
-                knnSearchRec(node->left, point, query, results);            
-            }
-        }
-    }
-
-    template <class Ty>
-    double KdTree<Ty>::distance(const Ty& p1, const Ty& p2) {
-        return Ty::distance(p1, p2);
+    double KdTree<Ty>::squaredDistance(const Ty& p1, const Ty& p2) {
+        return Ty::squaredDistance(p1, p2);
     }
 
     template <>
-    inline double KdTree<Vector3d>::distance(const Vector3d& p1, const Vector3d& p2) {
-        return (p1 - p2).norm();    
+    inline double KdTree<Vector3d>::squaredDistance(const Vector3d& p1, const Vector3d& p2) {
+        return (p1 - p2).squaredNorm();
     }
 
 }

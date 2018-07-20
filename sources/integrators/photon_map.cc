@@ -70,8 +70,8 @@ double Photon::operator[](int id) const {
     return pos_[id];
 }
 
-double Photon::distance(const Photon& p1, const Photon& p2) {
-    return (p1.pos_ - p2.pos_).norm();
+double Photon::squaredDistance(const Photon& p1, const Photon& p2) {
+    return (p1.pos_ - p2.pos_).squaredNorm();
 }
 
 PhotonMap::PhotonMap(PhotonMapType type)

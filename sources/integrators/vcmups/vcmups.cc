@@ -211,7 +211,6 @@ Spectrum connectVCM(const Scene& scene,
         misW_DE = numPixels / (sumW * kernelW + sumW * numPixels);
     } else if (!L_MC.isBlack()) {
         misW_MC = 1.0 / sumW;
-        L_MC *= misW_MC;
     } else if (!L_DE.isBlack()) {
         misW_DE = 1.0 / sumW;
     }
@@ -219,7 +218,7 @@ Spectrum connectVCM(const Scene& scene,
     L_MC *= misW_MC;
     L_DE *= misW_DE / numPixels;
 
-    if (misWeight) *misWeight = misW_MC;
+    // if (misWeight) *misWeight = misW_MC;
 
     return L_MC + L_DE;
 }
@@ -315,17 +314,24 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 maxBounces + 2, *camera, Point2i(x, y), randFilms[pid], cameraPaths[pid].get());
             lightPathLengths[pid] = calcLightSubpath(scene, *sampler, arenas[threadID],
                 maxBounces + 1, lightDist, lightPaths[pid].get());
+
+            proc++;
+            if (proc % 1000 == 0 || proc == numPixels) {
+                printf("\r[ %d / %d ] %6.2f %% processed...", i + 1, numSamples, 100.0 * proc / numPixels);
+                fflush(stdout);
+            }
         });
+        printf("\n");
 
         // Photon maps for each bounce count
         MsgInfo("Constructing photon maps...");
         std::vector<std::unique_ptr<PhotonMap>> photonMaps(maxBounces + 1);
-        for (int b = 0; b < maxBounces + 1; b++) {
+        for (int b = 1; b < maxBounces + 1; b++) {
             photonMaps[b] = std::make_unique<PhotonMap>(PhotonMapType::Global);
             std::vector<Photon> photons;
-            for (int i = 0; i < numPixels; i++) {
-                if (b < lightPathLengths[i]) {
-                    Vertex &v = lightPaths[i][b];
+            for (int p = 0; p < numPixels; p++) {
+                if (b < lightPathLengths[p]) {
+                    Vertex &v = lightPaths[p][b];
                     const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(v.intr);
                     if (intr) {
                         photons.emplace_back(v.pos(), v.beta, intr->wo(), intr->normal());
@@ -337,6 +343,7 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
         }
 
         // Density estimation
+        proc.store(0);
         parallel_for(0, numPixels, [&](int pid) {
             const int threadID = getThreadID();
             const auto &sampler = samplers[threadID];
@@ -377,7 +384,7 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             camera->film()->addPixel(Point2i(width - x - 1, y), randFilm, L);
 
             proc++;
-            if (proc % 1000 == 0) {
+            if (proc % 1000 == 0 || proc == numPixels) {
                 printf("\r[ %d / %d ] %6.2f %% processed...", i + 1, numSamples, 100.0 * proc / numPixels);
                 fflush(stdout);
             }

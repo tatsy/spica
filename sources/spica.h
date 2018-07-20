@@ -25,6 +25,7 @@
 #include "core/primitive.h"
 #include "core/random.h"
 #include "core/accelerator.h"
+#include "core/kdtree.h"
 
 #include "core/bsdf.h"
 #include "core/bxdf.h"

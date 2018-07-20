@@ -39,7 +39,7 @@ public:
     Photon& operator=(const Photon& photon);
     double operator[](int i) const;
 
-    static double distance(const Photon& p1, const Photon& p2);
+    static double squaredDistance(const Photon& p1, const Photon& p2);
 
     inline Point3d  pos()    const { return pos_; }
     inline Spectrum beta()   const { return beta_; }

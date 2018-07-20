@@ -64,7 +64,7 @@ private:
                    SPPMPixel* hp) const;
 
     void constructHashGrid(std::vector<SPPMPixel>& hpoints,
-                           int imageW, int imageH) const;
+                           int imageW, int imageH, double radiusScale) const;
 
     // Private fields
     std::shared_ptr<Sampler> sampler_;

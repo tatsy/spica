@@ -152,7 +152,7 @@ void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
 }
 
 void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
-                                       int imageW, int imageH) const {
+                                       int imageW, int imageH, double radiusScale) const {
     // Clear current data
     hashgrid_.clear();
 
@@ -167,7 +167,7 @@ void SPPMIntegrator::constructHashGrid(std::vector<SPPMPixel>& pixels,
     // Heuristic for initial radius
     Vector3d boxSize = bbox.posMax() - bbox.posMin();
     const double irad = ((boxSize.x() + boxSize.y() + boxSize.z()) / 3.0) /
-                        ((imageW + imageH) / 2.0) * 2.0;
+                        ((imageW + imageH) / 2.0) * 2.0 * radiusScale;
 
     // Update initial radius
     Vector3d iradv(irad, irad, irad);
@@ -237,7 +237,7 @@ void SPPMIntegrator::traceRays(const std::shared_ptr<const Camera> &camera,
     printf("\nFinish !!\n");
 
     // Construct hash grid
-    constructHashGrid(hpoints, width, height);
+    constructHashGrid(hpoints, width, height, params.getDouble("globalLookupRadius", 1.0));
     std::cout << "Hash grid constructed !!" << std::endl;
 }
 

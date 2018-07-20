@@ -208,7 +208,7 @@ void PSSMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const
     const int width  = camera->film()->resolution().x();
     const int height = camera->film()->resolution().y();
     const double pLarge  = params.getDouble("pLarge", 0.3);
-    const int sampleCount = params.getInt("sampleCount");
+    const int sampleCount = params.getInt("sampleCount", 64);
     const int nBootstrap = params.getInt("luminanceSamples", 100000);
     const int nMutate = width * height;
 

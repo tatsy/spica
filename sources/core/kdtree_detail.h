@@ -134,7 +134,7 @@ namespace spica {
 
             const double dist2 = squaredDistance(node->point, point);
 
-            if (dist2 < query.epsilon * query.epsilon) {
+            if (dist2 < query.epsilon) {
                 que.push(OrderedType(dist2, node->point));
                 if ((query.type & K_NEAREST) != 0 && (int)que.size() > query.k) {
                     que.pop();
@@ -145,12 +145,12 @@ namespace spica {
             const int axis = node->axis;
             const double delta = point[axis] - node->point[axis];
             if (delta < 0.0) {
-                if (std::abs(delta) < query.epsilon) {
+                if (delta * delta < query.epsilon) {
                     nodes[pos++] = node->right;
                 }
                 nodes[pos++] = node->left;
             } else {
-                if (std::abs(delta) < query.epsilon) {
+                if (delta * delta < query.epsilon) {
                     nodes[pos++] = node->left;
                 }
                 nodes[pos++] = node->right;

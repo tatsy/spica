@@ -116,11 +116,11 @@ void PhotonMap::construct(const Scene& scene,
     parallel_for(0, photonCount, [&](int i) {
         const int threadID = getThreadID();
         const std::unique_ptr<Sampler>& sampler = samplers[threadID];
-        sampler->startNextSample();
+        sampler->startPixel();
 
         // Sample light source
         double lightPdf;
-        int lightID = lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf);
+        const int lightID = std::min(lightDistrib.sampleDiscrete(sampler->get1D(), &lightPdf), lightDistrib.count() - 1);
         const std::shared_ptr<Light>& light = scene.lights()[lightID];
 
         Point2d rand0 = sampler->get2D();

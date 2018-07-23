@@ -80,6 +80,14 @@ void MMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const S
     const double sumI = std::accumulate(sampleWeights.begin(), sampleWeights.end(), 0.0);
     const double b = sumI / nBootstrap;
 
+    std::vector<double> depthWeights(maxDepth + 1, 0.0);
+    for (int depth = 0; depth <= maxDepth; depth++) {
+        for (int i = 0; i < nBootstrap; i++) {
+            depthWeights[depth] += sampleWeights[i * (maxDepth + 1) + depth];
+        }
+    }
+    Distribution1D depthDist(depthWeights);
+
     // Mutation
     std::mutex mtx;
     for (int i = 0; i < sampleCount; i++) {
@@ -92,6 +100,7 @@ void MMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const S
             Random rng(globalSeed + i * nThreads + t);
             const int rngIndex = bootstrap.sampleDiscrete(rng.get1D());
             const int depth = rngIndex % (maxDepth + 1);
+            const double depthPdf = depthDist.pdfDiscrete(depth);
             auto psSampler = std::make_shared<PSSSampler>(globalSeed + rngIndex, pLarge, NUM_SAMPLE_STREAMS);
 
             // Generate first sample.
@@ -111,7 +120,7 @@ void MMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const S
                 {
                     if (!currentSample.L().isBlack()) {
                         double currentWeight = (1.0 - acceptRatio) /
-                                               ((currentSample.L().gray() / b + psSampler->pLarge()));
+                                               ((currentSample.L().gray() / b + psSampler->pLarge() * depthPdf));
 
                         Point2d currentPixel(width - currentSample.p().x(), currentSample.p().y());
                         camera->film()->addPixel(currentPixel, currentWeight * currentSample.L());
@@ -119,7 +128,7 @@ void MMLTIntegrator::render(const std::shared_ptr<const Camera>& camera, const S
 
                     if (!nextSample.L().isBlack()) {
                         double nextWeight = (acceptRatio + psSampler->largeStep()) /
-                                            ((nextSample.L().gray() / b + psSampler->pLarge()));
+                                            ((nextSample.L().gray() / b + psSampler->pLarge() * depthPdf));
                         Point2d nextPixel(width - nextSample.p().x(), nextSample.p().y());
                         camera->film()->addPixel(nextPixel, nextWeight * nextSample.L());
                     }

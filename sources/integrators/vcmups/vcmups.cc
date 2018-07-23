@@ -203,7 +203,8 @@ Spectrum connectVCM(const Scene& scene,
     // Kernel sampling
     const double k = 1.1;
     const Point2d randDisk = sampleConcentricDisk(sampler.get2D());
-    const double kernelW = std::max(0.0, 1.0 - k * std::hypot(randDisk.x(), randDisk.y()));
+    const double accumW = (1.0 - 2.0 / (3.0 * k)) * (PI * lookupRadius * lookupRadius);
+    const double kernelW = std::max(0.0, 1.0 - k * std::hypot(randDisk.x(), randDisk.y())) / accumW;
 
     double misW_MC = 0.0, misW_DE = 0.0;
     if (!L_MC.isBlack() && !L_DE.isBlack()) {

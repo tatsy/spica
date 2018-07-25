@@ -327,6 +327,9 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
             if (isIntersect) {
                 // Area light
                 Le = isect.Le(-ray.dir());
+                if (!Le.isBlack() && bounces == 1) {
+                    return TraceRecord(PathType::NotInvertible);
+                }
             } else {
                 // Not area light (e.g. envmap)
                 for (const auto &light : scene.lights()) {

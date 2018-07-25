@@ -147,7 +147,7 @@ void SPPMIntegrator::render(const std::shared_ptr<const Camera>& camera,
             }
         }
         camera->film()->setImage(image);
-        camera->film()->save(t + 1, 1.0 / (t + 1));
+        camera->film()->save(t + 1, 1.0);
     }
 }
 
@@ -440,7 +440,7 @@ void SPPMIntegrator::pathTrace(const Scene& scene,
 
             if (isDiffuse || (isGlossy && bounces == maxBounces - 1)) {
                 pixel->vp = { isect.pos(), wo, &bsdf, beta };
-                //break;
+                break;
             }
 
             if (bounces < maxBounces - 1) {

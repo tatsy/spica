@@ -29,7 +29,7 @@ double calcWeightSum(const Scene& scene,
     // Single bounce connection.
     if (lightID + cameraID == 2) return 1.0;
 
-    // To handle specular reflectio, zero contribution is remapped to 1.0.
+    // To handle specular reflection, zero contribution is remapped to 1.0.
     auto remap0 = [](double f) -> double { return f != 0.0 ? f : 1.0; };
 
     // Take current and previous sample.
@@ -207,14 +207,14 @@ Spectrum connectVCM(const Scene& scene,
     const double kernelW = std::max(0.0, 1.0 - k * std::hypot(randDisk.x(), randDisk.y())) / accumW;
 
     double misW_MC = 0.0, misW_DE = 0.0;
-    if (!L_MC.isBlack() && !L_DE.isBlack()) {
+    //if (!L_MC.isBlack() && !L_DE.isBlack()) {
         misW_MC = kernelW / (sumW * kernelW + sumW * numPixels);
         misW_DE = numPixels / (sumW * kernelW + sumW * numPixels);
-    } else if (!L_MC.isBlack()) {
-        misW_MC = 1.0 / sumW;
-    } else if (!L_DE.isBlack()) {
-        misW_DE = 1.0 / sumW;
-    }
+    //} else if (!L_MC.isBlack()) {
+    //    misW_MC = 1.0 / sumW;
+    //} else if (!L_DE.isBlack()) {
+    //    misW_DE = 1.0 / sumW;
+    //}
 
     L_MC *= misW_MC;
     L_DE *= misW_DE / numPixels;

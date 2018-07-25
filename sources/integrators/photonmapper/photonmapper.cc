@@ -53,7 +53,7 @@ void PhotonMapperIntegrator::loopFinished(const std::shared_ptr<const Camera> &c
                                           RenderParams& params,
                                           Sampler& sampler) {
     // Scale global radius
-    lookupRadiusScale_ *= alpha_;
+    lookupRadiusScale_ = std::max(1.0, lookupRadiusScale_ * alpha_);
 }
 
 

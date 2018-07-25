@@ -109,15 +109,19 @@ struct BVHAccel::SIMDBVHNode {
     int reserved;
 };
 
-BVHAccel::BVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims,
-                   bool useSIMD)
-    : Accelerator{prims}
-    , root_{nullptr}
-    , simdNodes_{}
-    , useSIMD_{useSIMD} {
+#ifdef SPICA_WITH_SSE
+const bool BVHAccel::useSSE_ = true;
+#else
+const bool BVHAccel::useSSE_ = false;
+#endif
+
+BVHAccel::BVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims)
+    : Accelerator{ prims }
+    , root_{ nullptr }
+    , simdNodes_{ } {
     // Construct standard BVH
     construct();
-    if (useSIMD) {
+    if (useSSE_) {
         // Construct QBVH
         MsgInfo("BVH: SIMD accleration enabled!");
         collapse2QBVH(root_);
@@ -126,7 +130,7 @@ BVHAccel::BVHAccel(const std::vector<std::shared_ptr<Primitive>>& prims,
 
 BVHAccel::BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
                    RenderParams &params)
-    : BVHAccel{prims, params.getBool("useSIMD", false, true)} {
+    : BVHAccel{ prims } {
 }
 
 BVHAccel::~BVHAccel() {
@@ -313,7 +317,7 @@ void BVHAccel::collapse2QBVH(BVHNode* node) {
 }
 
 bool BVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
-    if (useSIMD_) {
+    if (useSSE_) {
         return intersectQBVH(ray, isect);
     } else {
         return intersectBVH(ray, isect);
@@ -321,7 +325,7 @@ bool BVHAccel::intersect(Ray& ray, SurfaceInteraction* isect) const {
 }
 
 bool BVHAccel::intersect(Ray &ray) const {
-    if (useSIMD_) {
+    if (useSSE_) {
         return intersectQBVH(ray);
     } else {
         return intersectBVH(ray);

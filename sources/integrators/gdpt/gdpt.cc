@@ -387,11 +387,7 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
         beta *= f * vect::absDot(wiSub, isect.ns()) / pdf;
         totalPDF *= pdf * J;
         jacobian *= J;
-        if (reconnect) {
-            ray = isect.spawnRayTo(next.pos());
-        } else {
-            ray = isect.spawnRay(wiSub);
-        }
+        ray = isect.spawnRay(wiSub);
     }
 
     // Create record

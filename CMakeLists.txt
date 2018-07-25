@@ -41,14 +41,6 @@ if (NOT WIN32)
     endif()
 endif()
 
-if (WITH_SSE)
-    if (MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
-    else()
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
-    endif()
-endif()
-
 # ------------------------------------------------------------------------------
 # Dependencies
 # ------------------------------------------------------------------------------
@@ -57,6 +49,15 @@ set(SPICA_DEPENDENCY_INCLUDE_DIRS "")
 set(SPICA_DEPENDENCY_LIBRARIES "")
 
 find_package(OpenGL REQUIRED)
+
+if (WITH_SSE)
+  add_definitions(-DSPICA_WITH_SSE)
+  if (MSVC)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
+  else()
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse")
+  endif()
+endif()
 
 if (WITH_FFTW)
     find_package(FFTW REQUIRED)

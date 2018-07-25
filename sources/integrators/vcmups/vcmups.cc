@@ -257,7 +257,7 @@ void VCMUPSIntegrator::loopFinished(const std::shared_ptr<const Camera> &camera,
     RenderParams& params,
     Sampler& sampler) {
     // Scale global radius
-    lookupRadiusScale_ *= alpha_;
+    lookupRadiusScale_ = std::max(1.0, lookupRadiusScale_ * alpha_);
 }
 
 void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,

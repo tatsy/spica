@@ -56,8 +56,7 @@ struct BVHNode {
  */
 class SPICA_EXPORTS BVHAccel : public Accelerator {
 public:
-    explicit BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
-                      bool useSIMD = false);
+    explicit BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims);
     BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
              RenderParams &params);
     virtual ~BVHAccel();
@@ -91,7 +90,8 @@ private:
     BVHNode* root_;
     std::vector<std::unique_ptr<BVHNode>> nodes_;
     std::vector<SIMDBVHNode*> simdNodes_;
-    bool useSIMD_;
+
+    static const bool useSSE_;
 };
 
 SPICA_EXPORT_ACCEL_PLUGIN(BVHAccel, "Standard bounding volume hierarchy");

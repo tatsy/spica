@@ -1,6 +1,7 @@
 #define SPICA_API_EXPORT
 #include "vcmups.h"
 
+#include <fstream>
 #include <mutex>
 
 #include "core/memory.h"
@@ -11,11 +12,14 @@
 #include "core/light.h"
 #include "core/scene.h"
 #include "core/sampling.h"
+#include "core/bsdf.h"
 #include "core/mis.h"
 #include "core/visibility_tester.h"
 
 #include "integrators/bidirectional.h"
 #include "integrators/photonmap.h"
+
+std::mutex mtx;
 
 namespace spica {
 
@@ -160,32 +164,27 @@ Spectrum connectVCM(const Scene& scene,
 
             // Photon density estimate
             if (lightID < nLight) {
-                const Vertex &vlNext = lightPath[lightID];
-                if (vlNext.isConnectible()) {
-                    const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vc.intr);
-                    if (intr) {
-                        L_DE = vc.beta * photonMaps[lightID]->evaluateL(*intr, lookupSize, lookupRadius);
-                    }
+                const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vc.intr);
+                if (intr) {
+                    L_DE = vc.beta * photonMaps[lightID]->evaluateL(*intr, lookupSize, lookupRadius);
                 }
             }
         }
     } else {
         const Vertex& vc = cameraPath[cameraID - 1];
         const Vertex& vl = lightPath[lightID - 1];
+
+        // Monte Carlo
         if (vc.isConnectible() && vl.isConnectible()) {
-            // Monte Carlo
             L_MC = vc.beta * vc.f(vl) * vl.f(vc) * vl.beta;
             if (!L_MC.isBlack()) L_MC *= G(scene, sampler, vl, vc);
-            
-            // Photon density estimate
-            if (lightID < nLight) {
-                const Vertex &vlNext = lightPath[lightID];
-                if (vlNext.isConnectible()) {
-                    const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vc.intr);
-                    if (intr) {
-                        L_DE = vc.beta * photonMaps[lightID]->evaluateL(*intr, lookupSize, lookupRadius);
-                    }
-                }
+        }
+
+        // Photon density estimate
+        if (vc.isConnectible() && lightID < nLight) {
+            const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vc.intr);
+            if (intr) {
+                L_DE = vc.beta * photonMaps[lightID]->evaluateL(*intr, lookupSize, lookupRadius);
             }
         }
     }
@@ -197,7 +196,7 @@ Spectrum connectVCM(const Scene& scene,
     }
 
     if (sumW == 0.0) {
-        return Spectrum(0.0);
+        return L_DE / numPixels / (lightID + cameraID);
     }
 
     // Kernel sampling
@@ -207,17 +206,17 @@ Spectrum connectVCM(const Scene& scene,
     const double kernelW = std::max(0.0, 1.0 - k * std::hypot(randDisk.x(), randDisk.y())) / accumW;
 
     double misW_MC = 0.0, misW_DE = 0.0;
-    //if (!L_MC.isBlack() && !L_DE.isBlack()) {
-        misW_MC = kernelW / (sumW * kernelW + sumW * numPixels);
-        misW_DE = numPixels / (sumW * kernelW + sumW * numPixels);
-    //} else if (!L_MC.isBlack()) {
-    //    misW_MC = 1.0 / sumW;
-    //} else if (!L_DE.isBlack()) {
-    //    misW_DE = 1.0 / sumW;
-    //}
+    if (!L_MC.isBlack() && !L_DE.isBlack()) {
+        misW_MC = 1.0 / (sumW * kernelW + sumW * numPixels);
+        misW_DE = 1.0 / (sumW * kernelW + sumW * numPixels);
+    } else if (!L_MC.isBlack()) {
+        misW_MC = 1.0 / sumW;
+    } else if (!L_DE.isBlack()) {
+        misW_DE = 1.0 / sumW; //(sumW * kernelW + sumW * numPixels);
+    }
 
     L_MC *= misW_MC;
-    L_DE *= misW_DE / numPixels;
+    L_DE *= misW_DE;
 
     // if (misWeight) *misWeight = misW_MC;
 
@@ -334,7 +333,7 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 if (b < lightPathLengths[p]) {
                     Vertex &v = lightPaths[p][b];
                     const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(v.intr);
-                    if (intr) {
+                    if (intr && intr->bsdf()->hasType(BxDFType::Diffuse)) {
                         photons.emplace_back(v.pos(), v.beta, intr->wo(), intr->normal());
                     }
                 }

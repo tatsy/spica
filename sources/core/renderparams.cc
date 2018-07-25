@@ -212,7 +212,7 @@ std::string RenderParams::getString(const std::string &name, const std::string &
     const auto it = strings.find(name);
     if (it != strings.cend()) {
         if (remove) {
-            const std::string &ret = it->second;
+            const std::string ret = it->second;
             strings.erase(it);
             return ret;
         }

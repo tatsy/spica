@@ -1,5 +1,8 @@
 #include "gdptfilm.h"
 
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
 #include "core/film.h"
 
 #ifdef SPICA_WITH_FFTW
@@ -8,8 +11,9 @@
 
 namespace spica {
 
-GDPTFilm::GDPTFilm(const std::shared_ptr<Film> &film)
-    : film_{film} {
+GDPTFilm::GDPTFilm(const std::shared_ptr<Film> &film, bool isDebug)
+    : film_{film} 
+    , isDebug_{isDebug} {
     // Initialize buffers
     const int width = film_->resolution().x();
     const int height = film_->resolution().y();
@@ -19,6 +23,10 @@ GDPTFilm::GDPTFilm(const std::shared_ptr<Film> &film)
         gradients_[k].resize(width, height);
         gradients_[k].fill(Spectrum(0.0));
     }
+
+    // Save folder
+    fs::path path(film->filename());
+    saveDir_ = fs::canonical(path.parent_path()).string();
 
     // Initialize weight buffers
     weights_.assign(width, std::vector<double>(height, 0.0));
@@ -157,21 +165,10 @@ Image GDPTFilm::solveL1() const {
         }
     }
 
-    // Save gradient
-    #ifdef GDPT_TAKE_LOG
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            Spectrum c;
-            c = gradX(x, y);
-            gradX.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
-            c = gradY(x, y);
-            gradY.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
-        }
+    // Save debug images
+    if (isDebug_) {
+        saveDebugImages(coarse, gradX, gradY);
     }
-    coarse.save("coarse.png");
-    gradX.save("gradX.png");
-    gradY.save("gradY.png");
-    #endif
 
     return std::move(output);
 }
@@ -229,21 +226,10 @@ Image GDPTFilm::solveL2() const {
         }
     }
 
-    // Save gradient
-    #ifdef GDPT_TAKE_LOG
-    for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-            Spectrum c;
-            c = gradX(x, y);
-            gradX.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
-            c = gradY(x, y);
-            gradY.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
-        }
+    // Save debug images
+    if (isDebug_) {
+        saveDebugImages(coarse, gradX, gradY);
     }
-    coarse.save("coarse.png");
-    gradX.save("gradX.png");
-    gradY.save("gradY.png");
-    #endif
 
     return std::move(output);
 }
@@ -274,13 +260,13 @@ Image GDPTFilm::solveFourier() const {
                 if (x == 0) {
                     gradX.pixel(x, y) = grads[0](x, y);
                 } else {
-                    gradX.pixel(x, y) = (grads[0](x, y) + grads[1](x - 1, y));
+                    gradX.pixel(x, y) = 0.5 * (grads[0](x, y) + grads[1](x - 1, y));
                 }
                 
                 if (y == 0) {
                     gradY.pixel(x, y) = grads[2](x, y);
                 } else {
-                    gradY.pixel(x, y) = (grads[2](x, y) + grads[3](x, y - 1));
+                    gradY.pixel(x, y) = 0.5 * (grads[2](x, y) + grads[3](x, y - 1));
                 }
             }
         }
@@ -390,25 +376,33 @@ Image GDPTFilm::solveFourier() const {
             }
         }
 
-        // Save gradient
-        #ifdef GDPT_TAKE_LOG
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                Spectrum c;
-                c = gradX(x, y);
-                gradX.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
-                c = gradY(x, y);
-                gradY.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
-            }
+        // Save debug images
+        if (isDebug_) {
+            saveDebugImages(coarse, gradX, gradY);
         }
-        coarse.save("coarse.png");
-        gradX.save("gradX.png");
-        gradY.save("gradY.png");
-        #endif
 
         return std::move(output);
     }
     #endif
+}
+
+void GDPTFilm::saveDebugImages(const Image &coarse, Image &gradX, Image &gradY) const {
+    const int width = coarse.width();
+    const int height = coarse.height();
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            Spectrum c;
+            c = gradX(x, y);
+            gradX.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
+            c = gradY(x, y);
+            gradY.pixel(x, y) = Spectrum(std::abs(c.red()), std::abs(c.green()), std::abs(c.blue()));
+        }
+    }
+    fs::path outPath(saveDir_.c_str());
+    coarse.save((outPath / fs::path("coarse.png")).string());
+    gradX.save((outPath / fs::path("gradY.png")).string());
+    gradY.save((outPath / fs::path("gradX.png")).string());
 }
 
 }  // namespace spica

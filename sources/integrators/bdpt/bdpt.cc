@@ -102,7 +102,6 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
                 }
             }
             camera->film()->addPixel(Point2i(width - x - 1, y), randFilm, L);
-            arenas[threadID].reset();
 
             proc++;
             if (proc % 1000 == 0 || proc == numPixels) {

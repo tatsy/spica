@@ -167,7 +167,7 @@ struct Vertex {
     SurfaceEventRecord surfaceRecord;
 };
 
-bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Vertex &current, const Vertex &next,
+bool nextDirection(const Scene &scene, const SurfaceInteraction &isect, const Vertex &prev, const Vertex &current, const Vertex &next,
                    Vector3d *wiOffset, double *pdf, Spectrum *f, double *J, bool *reconnect, bool *specularBounce) {
     const Vector3d woOffset = isect.wo();
     *reconnect = false;
@@ -193,13 +193,16 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
         if (f->isBlack() || (*pdf) == 0.0) {
             return false;
         }
-    } else if ((current.isDiffuse() && isect.bsdf()->hasType(BxDFType::Diffuse)) &&
-               (next.isDiffuse() || next.isAreaLight())) {
+    } else if ((current.isDiffuse() && isect.bsdf()->hasType(BxDFType::Diffuse)) && (next.isDiffuse() || next.isAreaLight())) {
         // Reconnect
         *wiOffset = vect::normalize(next.pos() - isect.pos());
         *f = isect.bsdf()->f(woOffset, *wiOffset);
         *pdf = isect.bsdf()->pdf(woOffset, *wiOffset);
-        *reconnect = true;
+        
+        // Testing visibility
+        VisibilityTester tester(isect, Interaction(next.pos(), next.normal()));
+        *reconnect = tester.unoccluded(scene);
+
     } else if ((current.isDiffuse() && isect.bsdf()->hasType(BxDFType::Diffuse)) ||
                (current.isGlossy() && isect.bsdf()->hasType(BxDFType::Glossy))) {
         // Half-vector copy
@@ -318,16 +321,6 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
             return TraceRecord(PathType::NotInvertible);
         }
 
-        // If previous and current vertices are reconnected,
-        // confirm whether next base and offset vertices are the same.
-        if (reconnect) {
-            if ((isect.pos() - current.pos()).norm() > 1.0e-6) {
-                // Occlusion occur
-                return TraceRecord(PathType::NonSymmetric);
-            }
-            reconnect = false;    
-        }
-
         // Check light endpoint
         if (specularBounce || bounces == 1) {
             Spectrum Le(0.0);
@@ -381,7 +374,8 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
         double J = 1.0, pdf = 0.0;
         Spectrum f(0.0);
         specularBounce = false;
-        bool foundNext = nextDirection(isect, prev, current, next, &wiSub, &pdf, &f, &J, &reconnect, &specularBounce);
+        reconnect = false;
+        bool foundNext = nextDirection(scene, isect, prev, current, next, &wiSub, &pdf, &f, &J, &reconnect, &specularBounce);
         if (!foundNext || f.isBlack() || pdf == 0.0 || J == 0.0) {
             return TraceRecord(PathType::NotInvertible);
         }
@@ -390,15 +384,18 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
         beta *= f * vect::absDot(wiSub, isect.ns()) / pdf;
         totalPDF *= pdf * J;
         jacobian *= J;
-        ray = isect.spawnRay(wiSub);
+        if (reconnect) {
+            ray = isect.spawnRayTo(next.pos());
+        } else {
+            ray = isect.spawnRay(wiSub);
+        }
     }
 
     // Create record
-    TraceRecord record;
+    TraceRecord record(PathType::Invertible);
     record.f = L;
     record.pdf = totalPDF;
     record.jacobian = jacobian;
-    record.type = PathType::Invertible;
     return record;    
 }
 
@@ -425,6 +422,7 @@ TraceRecord pathTrace(const Scene &scene, RenderParams &params, const Ray &r,
     // Path tracing
     TraceRecord record;
     int bounces;
+    const int maxDepth = params.getInt("maxDepth", 16);
     for (bounces = 0; ; bounces++) {
         SurfaceInteraction isect;
         bool isIntersect = scene.intersect(ray, &isect);
@@ -458,7 +456,7 @@ TraceRecord pathTrace(const Scene &scene, RenderParams &params, const Ray &r,
             }
         }
 
-        if (!isIntersect || bounces >= params.getInt("maxDepth")) {
+        if (!isIntersect || bounces >= maxDepth) {
             break;
         }
 
@@ -551,10 +549,11 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
     // Initialization
     Integrator::render(camera, scene, params);
     auto initSampler = sampler_->clone((unsigned int)time(0));
-    
+
     const int width = camera->film()->resolution().x();
     const int height = camera->film()->resolution().y();
-    GDPTFilm film(camera->film());
+    const bool isDebug = params.getBool("debug", false, true);
+    GDPTFilm film(camera->film(), isDebug);
 
     const int numThreads = numSystemThreads();
     auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
@@ -643,13 +642,7 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
                     film.addGradient(x, y, k,  G, filterWeight);
                 } else {
                     film.addGradient(x, y, k, -G, filterWeight);
-                }
-        
-                // Debug
-                #ifdef GDPT_TAKE_LOG
-                shiftImages[k].pixel(x, y) += subRecord.f;
-                misImages[k].pixel(x, y) += Spectrum(subRecord.jacobian);
-                #endif
+                }        
             }
             inversionRatio.pixel(x, y) += Spectrum(invRatio);
 
@@ -663,40 +656,6 @@ void GDPTIntegrator::render(const std::shared_ptr<const Camera> &camera,
         MsgInfo("%d / %d samples inverted!", nInvertedPath, nSampledPath);
 
         film.save(i + 1, solver_);
-
-        #ifdef GDPT_TAKE_LOG
-        Image temp;
-        char filename[256];
-        for (int k = 0; k < 4; k++) {
-            temp = misImages[k];
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    temp.pixel(x, y) /= (i + 1);   
-                }
-            }
-
-            sprintf(filename, "jacobian_%03d.png", k);
-            temp.save(filename);
-
-            temp = shiftImages[k];
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    temp.pixel(x, y) /= (i + 1);   
-                }
-            }
-
-            sprintf(filename, "shift_%03d.png", k);
-            temp.save(filename);
-        }
-        
-        temp = inversionRatio;
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                temp.pixel(x, y) /= (i + 1);
-            }
-        }
-        temp.save("inversion.png");
-        #endif
 
         for (int t = 0; t < numThreads; t++) {
             arenas[t].reset();

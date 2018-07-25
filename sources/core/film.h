@@ -28,7 +28,7 @@ public:
          const std::string& filename,
          const std::shared_ptr<std::function<void(const Image&)>> &callback = nullptr);
 
-    ~Film() = default;
+    virtual ~Film() = default;
 
     inline Point2i resolution() const { return resolution_; }
     inline double aspect() const {
@@ -45,6 +45,10 @@ public:
     void addPixel(const Point2i& pixel, const Point2d& pInPixel,
                   const Spectrum& color);
     void addPixel(const Point2d& pixel, const Spectrum& color);
+
+    inline const std::string &filename() const {
+        return filename_;
+    }
 
     inline void setFilename(const std::string filename) {
         this->filename_ = filename;

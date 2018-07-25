@@ -196,8 +196,8 @@ void SceneParser::storeToParam(const XMLElement *elem) {
         name = elem->Attribute("name");
     }
 
-    if (name == "boolean") {
-        bool value = std::strcmp(elem->Attribute("value"), "true") == 0;
+    if (nodeName == "boolean") {
+        bool value = std::strcmp(getAttribute(elem, "value"), "true") == 0;
         if (name != "") {
             params_.add(name, value);
         }

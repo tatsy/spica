@@ -42,6 +42,7 @@ void Film::save(int id, double scale) const {
 void Film::setImage(const Image& image) {
     this->image_ = image;
     weights_.assign(resolution_.x(), std::vector<double>(resolution_.y(), 1.0));
+    samples_.assign(resolution_.x(), std::vector<int>(resolution_.y(), 1));
 }
 
 void Film::addPixel(const Point2i& pixel, const Point2d& pInPixel, 

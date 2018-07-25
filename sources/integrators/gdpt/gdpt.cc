@@ -167,7 +167,7 @@ struct Vertex {
     SurfaceEventRecord surfaceRecord;
 };
 
-bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Vertex &current, const Vertex &next,
+bool nextDirection(const Scene &scene, const SurfaceInteraction &isect, const Vertex &prev, const Vertex &current, const Vertex &next,
                    Vector3d *wiOffset, double *pdf, Spectrum *f, double *J, bool *reconnect, bool *specularBounce) {
     const Vector3d woOffset = isect.wo();
     *reconnect = false;
@@ -199,7 +199,9 @@ bool nextDirection(const SurfaceInteraction &isect, const Vertex &prev, const Ve
         *wiOffset = vect::normalize(next.pos() - isect.pos());
         *f = isect.bsdf()->f(woOffset, *wiOffset);
         *pdf = isect.bsdf()->pdf(woOffset, *wiOffset);
-        *reconnect = true;
+
+        VisibilityTester tester(isect, Interaction(next.pos(), next.normal()));
+        *reconnect = tester.unoccluded(scene);
     } else if ((current.isDiffuse() && isect.bsdf()->hasType(BxDFType::Diffuse)) ||
                (current.isGlossy() && isect.bsdf()->hasType(BxDFType::Glossy))) {
         // Half-vector copy
@@ -318,22 +320,15 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
             return TraceRecord(PathType::NotInvertible);
         }
 
-        // If previous and current vertices are reconnected,
-        // confirm whether next base and offset vertices are the same.
-        if (reconnect) {
-            if ((isect.pos() - current.pos()).norm() > 1.0e-6) {
-                // Occlusion occur
-                return TraceRecord(PathType::NonSymmetric);
-            }
-            reconnect = false;    
-        }
-
         // Check light endpoint
         if (specularBounce || bounces == 1) {
             Spectrum Le(0.0);
             if (isIntersect) {
                 // Area light
                 Le = isect.Le(-ray.dir());
+                if (!Le.isBlack() && bounces == 1) {
+                    return TraceRecord(PathType::NotInvertible);
+                }
             } else {
                 // Not area light (e.g. envmap)
                 for (const auto &light : scene.lights()) {
@@ -381,7 +376,8 @@ TraceRecord shiftMap(const Scene &scene, RenderParams &params, const Ray &r, Sam
         double J = 1.0, pdf = 0.0;
         Spectrum f(0.0);
         specularBounce = false;
-        bool foundNext = nextDirection(isect, prev, current, next, &wiSub, &pdf, &f, &J, &reconnect, &specularBounce);
+        reconnect = false;
+        bool foundNext = nextDirection(scene, isect, prev, current, next, &wiSub, &pdf, &f, &J, &reconnect, &specularBounce);
         if (!foundNext || f.isBlack() || pdf == 0.0 || J == 0.0) {
             return TraceRecord(PathType::NotInvertible);
         }

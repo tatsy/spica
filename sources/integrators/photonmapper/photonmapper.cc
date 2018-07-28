@@ -123,8 +123,13 @@ Spectrum PhotonMapperIntegrator::Li(const Scene& scene,
 
             if (ref.isBlack() || pdf == 0.0) break;
 
-            if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
-                (sampledType & BxDFType::Reflection) != BxDFType::None) {
+            const BSDF &bsdf = *isect.bsdf();
+            bool isDiffuse = bsdf.numComponents(
+                    BxDFType::Diffuse | BxDFType::Reflection | BxDFType::Transmission) > 0;
+            bool isGlossy  = bsdf.numComponents(
+                    BxDFType::Glossy | BxDFType::Reflection | BxDFType::Transmission) > 0;
+
+            if (isDiffuse || (isGlossy && bounces == maxBounces - 1)) {
                 const double globalLookupRadius = params.getDouble("globalLookupRadius", 0.125) * lookupRadiusScale_;
                 L += beta * globalMap_.evaluateL(isect, gatherPhotons, globalLookupRadius);
                 const double causticsLookupRadius = params.getDouble("causticsLookupRadius", 0.125) * lookupRadiusScale_;

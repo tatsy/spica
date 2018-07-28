@@ -29,7 +29,8 @@ double calcWeightSum(const Scene& scene,
                      Vertex* lightPath, Vertex* cameraPath,
                      Vertex& sampled,
                      int lightID, int cameraID,
-                     const Distribution1D& lightDist) {
+                     const Distribution1D& lightDist,
+                     double *riLight, double *riCamera) {
     // Single bounce connection.
     if (lightID + cameraID == 2) return 1.0;
 
@@ -83,7 +84,11 @@ double calcWeightSum(const Scene& scene,
         ri *= remap0(cameraPath[i].pdfRev) / remap0(cameraPath[i].pdfFwd);
         if (cameraPath[i].delta || cameraPath[i - 1].delta) continue;
 
-        sumRi += ri;
+        if (i == 1) {
+            if (riCamera) *riCamera = ri;
+        } else {
+            sumRi += ri;
+        }
     }
 
     ri = 1.0;
@@ -93,7 +98,11 @@ double calcWeightSum(const Scene& scene,
             : lightPath[0].isDeltaLight();
         if (lightPath[i].delta || isDeltaLight) continue;
 
-        sumRi += ri;
+        if (i == 0) {
+            if (riLight) *riLight = ri;
+        } else {
+            sumRi += ri;
+        }
     }
 
     return 1.0 + sumRi;
@@ -111,6 +120,7 @@ Spectrum connectVCM(const Scene& scene,
 
     Spectrum L_MC(0.0);  // Radiance for BDPT
     Spectrum L_DE(0.0);  // Radiance for Photon map
+
     if (cameraID > 1 && lightID != 0 &&
         cameraPath[cameraID - 1].type == VertexType::Light) {
         return Spectrum(0.0);
@@ -140,8 +150,9 @@ Spectrum connectVCM(const Scene& scene,
     } else if (lightID == 1) {
         // Direct illumination
         const Vertex& vc = cameraPath[cameraID - 1];
+
+        // Monte Carlo
         if (vc.isConnectible()) {
-            // Monte Carlo
             double lightPdf;
             VisibilityTester vis;
             Vector3d wi;
@@ -161,16 +172,25 @@ Spectrum connectVCM(const Scene& scene,
                 if (vc.isOnSurface()) L_MC *= vect::absDot(wi, vc.normal());
                 if (!L_MC.isBlack()) L_MC *= vis.transmittance(scene, sampler);
             }
+        }
 
-            // Photon density estimate
-            if (lightID < nLight) {
-                const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vc.intr);
+        // Photon density estimate
+        for (int c = cameraID - 1; c >= 1; c--) {
+            const Vertex &vcMid = cameraPath[c];
+            const int l = lightID + (cameraID - c - 1);
+            if (vcMid.isConnectible() && l < nLight) {
+                const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vcMid.intr);
                 if (intr) {
-                    L_DE = vc.beta * photonMaps[lightID]->evaluateL(*intr, lookupSize, lookupRadius);
+                    const bool isDiffuse = intr->bsdf()->hasType(BxDFType::Diffuse | BxDFType::Reflection);
+                    if (isDiffuse) {
+                        L_DE += vcMid.beta * photonMaps[l]->evaluateL(*intr, lookupSize, lookupRadius);
+                    }
                 }
             }
         }
+
     } else {
+        // Ordinary connection case
         const Vertex& vc = cameraPath[cameraID - 1];
         const Vertex& vl = lightPath[lightID - 1];
 
@@ -181,44 +201,58 @@ Spectrum connectVCM(const Scene& scene,
         }
 
         // Photon density estimate
-        if (vc.isConnectible() && lightID < nLight) {
-            const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vc.intr);
-            if (intr) {
-                L_DE = vc.beta * photonMaps[lightID]->evaluateL(*intr, lookupSize, lookupRadius);
+        for (int c = cameraID - 1; c >= 1; c--) {
+            const Vertex &vcMid = cameraPath[c];
+            const int l = lightID + (cameraID - c - 1);
+            if (vcMid.isConnectible() && l < nLight) {
+                const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vcMid.intr);
+                if (intr) {
+                    const bool isDiffuse = intr->bsdf()->hasType(BxDFType::Diffuse | BxDFType::Reflection);
+                    if (isDiffuse) {
+                        L_DE += vcMid.beta * photonMaps[l]->evaluateL(*intr, lookupSize, lookupRadius);
+                    }
+                }
             }
         }
+
     }
 
-    double sumW = 0.0;
+    double sumW_DE = 0.0;
+    double riCamera = 0.0;
+    double riLight = 0.0;
     if (!L_MC.isBlack()) {
-        sumW = calcWeightSum(scene, lightPath, cameraPath,
-                             sampled, lightID, cameraID, lightDist);
+        sumW_DE = calcWeightSum(scene, lightPath, cameraPath, sampled,
+                                lightID, cameraID, lightDist, &riLight, &riCamera);
     }
+    const double sumW_MC = sumW_DE + riCamera + riLight;
 
-    if (sumW == 0.0) {
-        return L_DE / numPixels / (lightID + cameraID);
+    if (sumW_MC == 0.0) {
+        if (lightID + cameraID > 1) {
+            return L_DE / numPixels / (lightID + cameraID - 1);
+        }
+        return Spectrum(0.0);
     }
 
     // Kernel sampling
     const double k = 1.1;
     const Point2d randDisk = sampleConcentricDisk(sampler.get2D());
     const double accumW = (1.0 - 2.0 / (3.0 * k)) * (PI * lookupRadius * lookupRadius);
-    const double kernelW = std::max(0.0, 1.0 - k * std::hypot(randDisk.x(), randDisk.y())) / accumW;
+    const double kernelW = std::max(0.0, 1.0 - std::hypot(randDisk.x(), randDisk.y()) / k) / accumW;
 
     double misW_MC = 0.0, misW_DE = 0.0;
-    if (!L_MC.isBlack() && !L_DE.isBlack()) {
-        misW_MC = 1.0 / (sumW * kernelW + sumW * numPixels);
-        misW_DE = 1.0 / (sumW * kernelW + sumW * numPixels);
+    if ((!L_MC.isBlack() && !L_DE.isBlack()) || cameraID == 1) {
+        misW_MC = kernelW / (sumW_MC * kernelW + sumW_DE * numPixels);
+        misW_DE = numPixels / (sumW_MC * kernelW + sumW_DE * numPixels);
     } else if (!L_MC.isBlack()) {
-        misW_MC = 1.0 / sumW;
+        misW_MC = 1.0 / sumW_MC;
     } else if (!L_DE.isBlack()) {
-        misW_DE = 1.0 / sumW; //(sumW * kernelW + sumW * numPixels);
+        misW_DE = 1.0 / sumW_DE;
     }
 
     L_MC *= misW_MC;
-    L_DE *= misW_DE;
+    L_DE *= misW_DE / numPixels;
 
-    // if (misWeight) *misWeight = misW_MC;
+    if (misWeight) *misWeight = misW_MC;
 
     return L_MC + L_DE;
 }
@@ -269,7 +303,6 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
 
     const int numThreads = numSystemThreads();
     auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
-    auto arenas = std::vector<MemoryArena>(numThreads);
 
     Distribution1D lightDist = calcLightPowerDistrib(scene);
 
@@ -287,13 +320,11 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 samplers[t] = sampler_->clone(seed);
             }
         }
+        auto arenas = std::vector<MemoryArena>(numThreads);
 
         // Storage for path samples
-        std::vector<int> cameraPathLengths(numPixels);
         std::vector<int> lightPathLengths(numPixels);
-        std::vector<std::unique_ptr<Vertex[]>> cameraPaths(numPixels);
         std::vector<std::unique_ptr<Vertex[]>> lightPaths(numPixels);
-        std::vector<Point2d> randFilms(numPixels);
 
         // Sample camera and light paths
         MsgInfo("Sampling paths");
@@ -304,16 +335,9 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const auto &sampler = samplers[threadID];
             sampler->startPixel();
 
-            const int y = pid / width;
-            const int x = pid % width;
-            randFilms[pid] = sampler->get2D();
-
-            cameraPaths[pid] = std::make_unique<Vertex[]>(maxBounces + 2);
             lightPaths[pid] = std::make_unique<Vertex[]>(maxBounces + 1);
-            cameraPathLengths[pid] = calcCameraSubpath(scene, *sampler, arenas[threadID],
-                maxBounces + 2, *camera, Point2i(x, y), randFilms[pid], cameraPaths[pid].get());
             lightPathLengths[pid] = calcLightSubpath(scene, *sampler, arenas[threadID],
-                maxBounces + 1, lightDist, lightPaths[pid].get());
+                                                     maxBounces + 1, lightDist, lightPaths[pid].get());
 
             proc++;
             if (proc % 1000 == 0 || proc == numPixels) {
@@ -333,14 +357,20 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 if (b < lightPathLengths[p]) {
                     Vertex &v = lightPaths[p][b];
                     const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(v.intr);
-                    if (intr && intr->bsdf()->hasType(BxDFType::Diffuse)) {
-                        photons.emplace_back(v.pos(), v.beta, intr->wo(), intr->normal());
+                    if (intr) {
+                        const bool isDiffuse = intr->bsdf()->hasType(BxDFType::Diffuse | BxDFType::Reflection);
+                        if (isDiffuse) {
+                            photons.emplace_back(v.pos(), v.beta, intr->wo(), intr->normal());
+                        }
                     }
                 }
             }
             MsgInfo("#bounce: %d, #photons: %d", b, (int)photons.size());
             photonMaps[b]->construct(photons);
         }
+
+        // Prepare memory arena for traversing pixels
+        auto subArenas = std::vector<MemoryArena>(numThreads);
 
         // Density estimation
         proc.store(0);
@@ -352,9 +382,12 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const int y = pid / width;
             const int x = pid % width;
 
-            const int nCamera = cameraPathLengths[pid];
             const int nLight = lightPathLengths[pid];
-            const Point2d &randFilm = randFilms[pid];
+            const Point2d randFilm = sampler->get2D();
+
+            Vertex *cameraPath = (Vertex *)subArenas[threadID].allocate<Vertex[]>(maxBounces + 2);
+            const int nCamera = calcCameraSubpath(scene, *sampler, subArenas[threadID], maxBounces + 2,
+                                                  *camera, Point2i(x, y), randFilm, cameraPath);
 
             Spectrum L(0.0);
             for (int cid = 1; cid <= nCamera; cid++) {
@@ -367,7 +400,7 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
 
                     const int lookupSize = params.getInt("lookupSize", 32);
                     const double lookupRadius = params.getDouble("globalLookupRadius", 0.125) * lookupRadiusScale_;
-                    Spectrum Lpath = connectVCM(scene, lightPaths[pid].get(), cameraPaths[pid].get(),
+                    Spectrum Lpath = connectVCM(scene, lightPaths[pid].get(), cameraPath,
                                                 lid, cid, nLight, nCamera, photonMaps,
                                                 lookupSize, lookupRadius, numPixels,
                                                 lightDist, *camera, *sampler, &pFilm, &misWeight);
@@ -388,14 +421,12 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 printf("\r[ %d / %d ] %6.2f %% processed...", i + 1, numSamples, 100.0 * proc / numPixels);
                 fflush(stdout);
             }
+
+            subArenas[threadID].reset();
         });
         printf("\n");
 
         camera->film()->save(i + 1, 1.0 / (i + 1));
-
-        for (int t = 0; t < numThreads; t++) {
-            arenas[t].reset();
-        }
 
         // Event after loop
         loopFinished(camera, scene, params, *sampler_);

@@ -137,7 +137,7 @@ double BSDF::pdf(const Vector3d& woWorld, const Vector3d& wiWorld, BxDFType type
 
 bool BSDF::hasType(BxDFType type) const {
     for (int i = 0; i < nBxDFs_; i++) {
-        if ((bxdfs_[i]->type() & type) != BxDFType::None) return true;
+        if ((bxdfs_[i]->type() & type) == type) return true;
     }
     return false;
 }

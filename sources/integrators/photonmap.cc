@@ -322,8 +322,11 @@ void PhotonMap::tracePhoton(const Scene& scene,
 
             // A boolean "storeFlag" is true when each of conditions to store photons is satisfied.
             bool storeFlag = false;
-            if ((sampledType & BxDFType::Diffuse) != BxDFType::None &&
-                (sampledType & BxDFType::Reflection) != BxDFType::None) {
+            bool isDiffuse = bsdf.numComponents(
+                    BxDFType::Diffuse | BxDFType::Reflection | BxDFType::Transmission) > 0;
+            bool isGlossy  = bsdf.numComponents(
+                    BxDFType::Glossy | BxDFType::Reflection | BxDFType::Transmission) > 0;
+            if (isDiffuse || isGlossy) {
                 // Diffuse or glossy reflection
                 if (!specularBounce && type_ == PhotonMapType::Global) {
                     photons->emplace_back(isect.pos(), beta, -ray.dir(), isect.normal());

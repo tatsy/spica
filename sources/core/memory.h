@@ -43,7 +43,7 @@ public:
         using Elem = typename std::remove_extent<T>::type;
         Elem *ret = (Elem*)allocBytes(sizeof(Elem) * size);
         for (size_t i = 0; i < size; i++) {
-            new (ret + i) Elem();
+            new (&ret[i]) Elem();
         }
         return ret;
     }
@@ -60,7 +60,7 @@ private:
     const size_t blockSize_;
     size_t currentBlockPos_ = 0;
     size_t currentAllocSize_ = 0;
-    unsigned char* currentBlock_ = nullptr;
+    uint8_t* currentBlock_ = nullptr;
     std::list<std::pair<size_t, unsigned char*>> usedBlocks_, availableBlocks_;
 };  // class MemoryArena
 

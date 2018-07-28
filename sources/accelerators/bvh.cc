@@ -39,7 +39,7 @@ static const int orderTable[] = {
     0x40123, 0x40132, 0x41023, 0x41032, 0x42301, 0x43201, 0x42310, 0x43210,  // ++|++
 };
 
-int test_AABB(const __m128 bboxes[2][3], const __m128 org[3], const __m128 idir[3], const int sign[3], __m128 tmin, __m128 tmax) {
+int test_AABB(const __m128 bboxes[2][3], const __m128 org[3], const __m128 idir[3], const int sign[3], __m128 tmin, __m128 tmax) noexcept {
     tmin = _mm_max_ps(tmin, _mm_mul_ps(_mm_sub_ps(bboxes[sign[0]][0], org[0]), idir[0]));
     tmax = _mm_min_ps(tmax, _mm_mul_ps(_mm_sub_ps(bboxes[1 - sign[0]][0], org[0]), idir[0]));
     tmin = _mm_max_ps(tmin, _mm_mul_ps(_mm_sub_ps(bboxes[sign[1]][1], org[1]), idir[1]));
@@ -134,6 +134,7 @@ BVHAccel::BVHAccel(const std::vector<std::shared_ptr<Primitive>> &prims,
 }
 
 BVHAccel::~BVHAccel() {
+    release();
 }
 
 Bounds3d BVHAccel::worldBound() const {
@@ -144,7 +145,7 @@ void BVHAccel::construct() {
     if (primitives_.empty()) return;
         
     std::vector<BVHPrimitiveInfo> primitiveInfo(primitives_.size());
-    for (int i = 0; i < primitives_.size(); i++) {
+    for (int i = 0; i < (int)primitives_.size(); i++) {
         primitiveInfo[i] = { i, primitives_[i]->worldBound() };
     }
 
@@ -241,10 +242,10 @@ BVHNode* BVHAccel::constructRec(std::vector<BVHPrimitiveInfo>& buildData,
 }
 
 void BVHAccel::release() {
-    for (int i = 0; i < simdNodes_.size(); i++) {
-        align_free(simdNodes_[i]);
+    for (auto &node : simdNodes_) {
+        align_free(node);
     }
-    
+
     root_ = nullptr;
     simdNodes_.clear();
 }
@@ -253,8 +254,7 @@ void BVHAccel::collapse2QBVH(BVHNode* node) {
     BVHNode *lc = node->left;
     BVHNode *rc = node->right;
     
-    SIMDBVHNode* n =
-    static_cast<SIMDBVHNode*>(align_alloc(sizeof(SIMDBVHNode), 16));
+    SIMDBVHNode* n = (SIMDBVHNode *)align_alloc(sizeof(SIMDBVHNode), 16);
     Assertion(n != nullptr, "allocation failed !!");
     
     simdNodes_.push_back(n);
@@ -337,7 +337,6 @@ bool BVHAccel::intersectBVH(Ray &ray, SurfaceInteraction *isect) const{
     nodeStack.push(root_);
 
     bool hit = false;
-    int cnt = 0;
     while (!nodeStack.empty()) {
         BVHNode* node = nodeStack.top();
         nodeStack.pop();
@@ -367,7 +366,6 @@ bool BVHAccel::intersectBVH(Ray& ray) const {
     std::stack<BVHNode*> nodeStack;
     nodeStack.push(root_);
 
-    bool hit = false;
     while (!nodeStack.empty()) {
         BVHNode* node = nodeStack.top();
         nodeStack.pop();

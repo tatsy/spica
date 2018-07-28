@@ -7,7 +7,9 @@
 
 #include <iostream>
 #include <atomic>
+#include <mutex>
 #include <functional>
+#include <condition_variable>
 
 #include "core/common.h"
 
@@ -24,6 +26,24 @@ private:
     std::atomic<uint64_t> bits;
 };
 
+class SPICA_EXPORTS Barrier {
+public:
+    Barrier(int count)
+        : count{ count } {
+        Assertion(count >= 0, "# of threads you use should be positive!");
+    }
+    virtual ~Barrier() {
+        Assertion(count == 0, "Not all the treads finish their task properly!");
+    }
+
+    void wait();
+
+private:
+    std::mutex mutex;
+    std::condition_variable cv;
+    int count;
+};
+
 }  // namespace spica
 
 enum class ParallelSchedule {
@@ -31,7 +51,7 @@ enum class ParallelSchedule {
     Dynamic = 0x02
 };
 
-SPICA_EXPORTS void parallel_for(int start, int end, const std::function<void(int)>& func,
+SPICA_EXPORTS void parallel_for(int64_t start, int64_t end, const std::function<void(int)> &func,
                                 ParallelSchedule schedule = ParallelSchedule::Dynamic);
 
 SPICA_EXPORTS int numSystemThreads();

@@ -8,8 +8,6 @@
 #include <mutex>
 #include <condition_variable>
 
-static int numUserThreads = std::thread::hardware_concurrency();
-
 namespace spica {
 
 inline uint64_t doubleToBits(double v) {
@@ -45,127 +43,179 @@ void AtomicDouble::add(double v) {
     } while (!bits.compare_exchange_weak(oldBits, newBits));    
 }
 
+void Barrier::wait() {
+    std::unique_lock<std::mutex> lock(mutex);
+    if (--count == 0) {
+        cv.notify_all();
+    } else {
+        cv.wait(lock, [this] { return count == 0; });
+    }
+}
+
 }  // namespace spica
 
-class WorkerTask;
+// ---------------------------------------------------------------------------------------------------------------------
+// parallel_for definition
+// ---------------------------------------------------------------------------------------------------------------------
+
+static std::vector<std::thread> threads;
+static bool shutdownThreads = false;
+class ParallelForLoop;
+static ParallelForLoop *workList = nullptr;
+static std::mutex workListMutex;
+
+static int threadCount = std::thread::hardware_concurrency();
 
 static thread_local int threadID;
-static std::mutex workerListMutex;
 static std::condition_variable condval;
-static WorkerTask* workerTask;
 
-class WorkerTask {
+class ParallelForLoop {
 public:
-    WorkerTask(const std::function<void(int)>& f, int csize, int tasks)
-        : func{ f }
-        , chunkSize{ csize }
-        , nTasks { tasks } {
+    ParallelForLoop(std::function<void(int64_t)> func, int64_t maxIndex, int chunkSize)
+        : func{ std::move(func) }
+        , maxIndex{ maxIndex }
+        , chunkSize{ chunkSize } {
     }
 
     bool finished() const {
-        return currentIndex >= nTasks && activeWorkers == 0;
+        return nextIndex >= maxIndex && activeWorkers == 0;
     }
 
-    const std::function<void(int)>& func;
-    const int chunkSize;
-    const int nTasks;
-    bool isWorking = false;
-    int currentIndex = 0;
-    int activeWorkers = 0;
-};
-
-class WorkerTaskManager {
 public:
-    WorkerTaskManager(const std::function<void(int)>& f,
-                      int chunkSize, int nTasks) {
-        if (workerTask == nullptr) {
-            workerTask = new WorkerTask(f, chunkSize, nTasks);
-        }
-    }
+    std::function<void(int64_t)> func;
+    const int64_t maxIndex;
+    const int chunkSize;
 
-    ~WorkerTaskManager() {
-        delete workerTask;
-        workerTask = nullptr;
-    }
+    int64_t nextIndex = 0;
+    int activeWorkers = 0;
+    ParallelForLoop *next = nullptr;
 };
 
-static void workerThreadFunc(int threadIndex) {
-    threadID = threadIndex;
-    std::unique_lock<std::mutex> lock(workerListMutex);
-    while (!workerTask->finished()) {
-        if (!workerTask->isWorking) {
-            condval.wait(lock);
-        } else {
-            int indexStart = workerTask->currentIndex;
-            int indexEnd   = std::min(workerTask->nTasks, indexStart + workerTask->chunkSize);
-            workerTask->currentIndex = indexEnd;
-            if (workerTask->currentIndex == workerTask->nTasks) {
-                workerTask->isWorking = false;
-            }
-            workerTask->activeWorkers++;
-            lock.unlock();
 
-            for (int i = indexStart; i < indexEnd; i++) {
-                workerTask->func(i);
+static std::condition_variable workListCondition;
+
+static void workerThreadFunc(int threadIndex, std::shared_ptr<spica::Barrier> barrier) {
+    // Initialize worker
+    threadID = threadIndex;
+    barrier->wait();
+    barrier.reset();
+
+    std::unique_lock<std::mutex> lock(workListMutex);
+    while (!shutdownThreads) {
+        if (!workList) {
+            // Sleep thread while no task found.
+            workListCondition.wait(lock);
+        } else {
+            // Get task and evaluate a function
+            ParallelForLoop &loop = *workList;
+
+            int64_t indexStart = loop.nextIndex;
+            int64_t indexEnd = std::min(indexStart + loop.chunkSize, loop.maxIndex);
+
+            // Update loop state
+            loop.nextIndex = indexEnd;
+            if (loop.nextIndex == loop.maxIndex) {
+                workList = loop.next;
+            }
+            loop.activeWorkers++;
+
+            // Run loop
+            lock.unlock();
+            for (int64_t index = indexStart; index < indexEnd; index++) {
+                if (loop.func) {
+                    loop.func(index);
+                }
             }
             lock.lock();
 
-            workerTask->activeWorkers--;
-            if (workerTask->finished()) {
-                printf("OK!!");
-                condval.notify_all();
+            // Finish working for a function
+            loop.activeWorkers--;
+            if (loop.finished()) {
+                workListCondition.notify_all();
             }
         }
     }
 }
 
-void parallel_for(int start, int end, const std::function<void(int)>& func,
-                  ParallelSchedule schedule) {
-    const int nTasks = (end - start);
-    const int nThreads = numSystemThreads();
-    const int chunkSize = schedule == ParallelSchedule::Dynamic ? 1 : (nTasks + nThreads - 1) / nThreads;
-    WorkerTaskManager manager(func, chunkSize, nTasks);    
-
-    std::vector<std::thread> threads;
-    threadID = 0;
-    for (int i = 0; i < nThreads - 1; i++) {
-        threads.emplace_back(workerThreadFunc, i + 1);
-    }
-
-    workerListMutex.lock();
-    workerTask->isWorking = true;
-    workerListMutex.unlock();
-
-    {
-        std::unique_lock<std::mutex> lock(workerListMutex);
-        condval.notify_all();
-
-        while (!workerTask->finished()) {
-            int indexStart = workerTask->currentIndex;
-            int indexEnd   = std::min(workerTask->nTasks, indexStart + workerTask->chunkSize);
-            workerTask->currentIndex = indexEnd;
-            if (workerTask->currentIndex == workerTask->nTasks) {
-                workerTask->isWorking = false;
-            }
-            workerTask->activeWorkers++;
-            lock.unlock();
-
-            for (int i = indexStart; i < indexEnd; i++) {
-                workerTask->func(i);
-            }
-            lock.lock();
-            workerTask->activeWorkers--;
+class ParallelManager {
+public:
+    ParallelManager() {
+        // Initialize threads
+        threadID = 0;
+        const int nThreads = numSystemThreads();
+        auto barrier = std::make_shared<spica::Barrier>(nThreads);
+        for (int i = 0; i < nThreads - 1; i++) {
+            threads.emplace_back(workerThreadFunc, i + 1, barrier);
         }
-        condval.notify_all();
+        barrier->wait();
     }
 
-    for (auto& t : threads) {
-        t.join();
+    ~ParallelManager() {
+        // Clean up threads
+        if (threads.empty()) return;
+
+        {
+            std::lock_guard<std::mutex> lock(workListMutex);
+            shutdownThreads = true;
+            workListCondition.notify_all();
+        }
+
+        for (auto &thread: threads) {
+            thread.join();
+        }
+        threads.erase(threads.begin(), threads.end());
+        shutdownThreads = false;
+    }
+};
+
+static std::unique_ptr<ParallelManager> manager = nullptr;
+
+void parallel_for(int64_t start, int64_t end, const std::function<void(int)>& func, ParallelSchedule schedule) {
+    if (!manager) {
+        manager = std::make_unique<ParallelManager>();
+    }
+
+    // Size parameters
+    const int64_t count = end - start;
+    const int nThreads = numSystemThreads();
+    const int chunkSize = schedule == ParallelSchedule::Dynamic ? 1 : (count + nThreads - 1) / nThreads;
+
+    // Create and enqueue "ParallelForLoop" object.
+    ParallelForLoop loop(std::move(func), count, chunkSize);
+    workListMutex.lock();
+    loop.next = workList;
+    workList = &loop;
+    workListMutex.unlock();
+
+    // Notify worker threads of work to be done.
+    std::unique_lock<std::mutex> lock(workListMutex);
+    workListCondition.notify_all();
+
+    // Make each worker thread active from a main thread
+    while (!loop.finished()) {
+        int64_t indexStart = loop.nextIndex;
+        int64_t indexEnd   = std::min(indexStart + loop.chunkSize, loop.maxIndex);
+
+        loop.nextIndex = indexEnd;
+        if (loop.nextIndex == loop.maxIndex) {
+            workList = loop.next;
+        }
+        loop.activeWorkers++;
+
+        lock.unlock();
+        for (int64_t index = indexStart; index < indexEnd; index++) {
+            if (loop.func) {
+                loop.func(index);
+            }
+        }
+        lock.lock();
+
+        loop.activeWorkers--;
     }
 }
 
 int numSystemThreads() {
-    return std::max(1, numUserThreads);
+    return std::max(1, threadCount);
 }
 
 int getThreadID() {
@@ -174,8 +224,8 @@ int getThreadID() {
 
 void setNumThreads(uint32_t n) {
     if (n == 0) {
-        numUserThreads = std::thread::hardware_concurrency();
+        threadCount = std::thread::hardware_concurrency();
     } else {
-        numUserThreads = std::min(n, std::thread::hardware_concurrency()); 
+        threadCount = std::max(1u, std::min(n, std::thread::hardware_concurrency()));
     }
 }

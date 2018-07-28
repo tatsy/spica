@@ -2,6 +2,7 @@
 #include "memory.h"
 
 #include <cstdlib>
+#include <cstddef>
 #include <algorithm>
 
 namespace spica {
@@ -22,12 +23,13 @@ MemoryArena::MemoryArena(MemoryArena&& arena) noexcept
 
 MemoryArena::~MemoryArena() {
     align_free(currentBlock_);
-    for (auto& block : usedBlocks_)      align_free(block.second);
+    for (auto& block : usedBlocks_) align_free(block.second);
     for (auto& block : availableBlocks_) align_free(block.second);
 }
 
 void* MemoryArena::allocBytes(size_t nBytes) {
-    nBytes = ((nBytes + 0xf) & (~0xf));
+    const int align = alignof(std::max_align_t);
+    nBytes = ((nBytes + align - 1) & ~(align - 1));
     if (currentBlockPos_ + nBytes > currentAllocSize_) {
         if (currentBlock_) {
             usedBlocks_.emplace_back(currentAllocSize_, currentBlock_);
@@ -39,7 +41,7 @@ void* MemoryArena::allocBytes(size_t nBytes) {
             iter != availableBlocks_.end(); ++iter) {
             if (iter->first >= nBytes) {
                 currentAllocSize_ = iter->first;
-                currentBlock_     = iter->second;
+                currentBlock_ = iter->second;
                 availableBlocks_.erase(iter);
                 break;
             }
@@ -47,7 +49,7 @@ void* MemoryArena::allocBytes(size_t nBytes) {
 
         if (!currentBlock_) {
             currentAllocSize_ = std::max(nBytes, blockSize_);
-            currentBlock_     = (unsigned char*)align_alloc(currentAllocSize_, 64);
+            currentBlock_ = (uint8_t*)align_alloc(currentAllocSize_, 64);
         }
         currentBlockPos_ = 0;
     }
@@ -63,8 +65,8 @@ void MemoryArena::reset() {
 
 size_t MemoryArena::totalAllocated() const {
     size_t total = currentAllocSize_;
-    for (auto& block : usedBlocks_)      total += block.first;
-    for (auto& block : availableBlocks_) total += block.first;
+    for (const auto &block : usedBlocks_)      total += block.first;
+    for (const auto &block : availableBlocks_) total += block.first;
     return total;
 }
 

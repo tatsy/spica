@@ -303,12 +303,21 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
 
     const int numThreads = numSystemThreads();
     auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
+    auto arenas = std::vector<MemoryArena>(numThreads);
 
     Distribution1D lightDist = calcLightPowerDistrib(scene);
 
     const int numPixels = width * height;
     const int numSamples = params.getInt("sampleCount");
     const int maxBounces = params.getInt("maxDepth");
+
+    // Allocate memory for vertices
+    std::vector<int> lightPathLengths(numPixels);
+    std::vector<std::unique_ptr<Vertex[]>> lightPaths(numPixels);
+    for (int i = 0; i < numPixels; i++) lightPaths[i] = std::make_unique<Vertex[]>(maxBounces + 1);
+    std::vector<std::unique_ptr<Vertex[]>> cameraPaths(numThreads);
+    for (int i = 0; i < numThreads; i++) cameraPaths[i] = std::make_unique<Vertex[]>(maxBounces + 2);
+
     for (int i = 0; i < numSamples; i++) {
         // Event before loop
         loopStarted(camera, scene, params, *sampler_);
@@ -320,11 +329,6 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 samplers[t] = sampler_->clone(seed);
             }
         }
-        auto arenas = std::vector<MemoryArena>(numThreads);
-
-        // Storage for path samples
-        std::vector<int> lightPathLengths(numPixels);
-        std::vector<Vertex*> lightPaths(numPixels);
 
         // Sample camera and light paths
         MsgInfo("Sampling paths");
@@ -335,9 +339,8 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const auto &sampler = samplers[threadID];
             sampler->startPixel();
 
-            lightPaths[pid] = arenas[threadID].allocate<Vertex[]>(maxBounces + 1);
             lightPathLengths[pid] = calcLightSubpath(scene, *sampler, arenas[threadID],
-                                                     maxBounces + 1, lightDist, lightPaths[pid]);
+                                                     maxBounces + 1, lightDist, lightPaths[pid].get());
 
             proc++;
             if (proc % 1000 == 0 || proc == numPixels) {
@@ -369,9 +372,6 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             photonMaps[b]->construct(photons);
         }
 
-        // Prepare memory arena for traversing pixels
-        auto subArenas = std::vector<MemoryArena>(numThreads);
-
         // Density estimation
         proc.store(0);
         parallel_for(0, numPixels, [&](int pid) {
@@ -385,9 +385,8 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const int nLight = lightPathLengths[pid];
             const Point2d randFilm = sampler->get2D();
 
-            Vertex *cameraPath = subArenas[threadID].allocate<Vertex[]>(maxBounces + 2);
-            const int nCamera = calcCameraSubpath(scene, *sampler, subArenas[threadID], maxBounces + 2,
-                                                  *camera, Point2i(x, y), randFilm, cameraPath);
+            const int nCamera = calcCameraSubpath(scene, *sampler, arenas[threadID], maxBounces + 2,
+                                                  *camera, Point2i(x, y), randFilm, cameraPaths[threadID].get());
 
             Spectrum L(0.0);
             for (int cid = 1; cid <= nCamera; cid++) {
@@ -400,7 +399,7 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
 
                     const int lookupSize = params.getInt("lookupSize", 32);
                     const double lookupRadius = params.getDouble("lookupRadius", 0.125) * lookupRadiusScale_;
-                    Spectrum Lpath = connectVCM(scene, lightPaths[pid], cameraPath,
+                    Spectrum Lpath = connectVCM(scene, lightPaths[pid].get(), cameraPaths[threadID].get(),
                                                 lid, cid, nLight, nCamera, photonMaps,
                                                 lookupSize, lookupRadius, numPixels,
                                                 lightDist, *camera, *sampler, &pFilm, &misWeight);
@@ -421,8 +420,6 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 printf("\r[ %d / %d ] %6.2f %% processed...", i + 1, numSamples, 100.0 * proc / numPixels);
                 fflush(stdout);
             }
-
-            subArenas[threadID].reset();
         });
         printf("\n");
 

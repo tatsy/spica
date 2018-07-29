@@ -27,8 +27,6 @@ public:
     MemoryArena(MemoryArena&& arena) noexcept;
     virtual ~MemoryArena();
 
-    MemoryArena& operator=(MemoryArena&& arena) = delete;
-
     template <class T, class... Args>
     typename std::enable_if<!std::is_array<T>::value, T>::type*
     allocate(const Args&... args) {
@@ -61,7 +59,7 @@ private:
     size_t currentBlockPos_ = 0;
     size_t currentAllocSize_ = 0;
     uint8_t* currentBlock_ = nullptr;
-    std::list<std::pair<size_t, unsigned char*>> usedBlocks_, availableBlocks_;
+    std::list<std::pair<size_t, uint8_t*>> usedBlocks_, availableBlocks_;
 };  // class MemoryArena
 
 }  // namespace spica

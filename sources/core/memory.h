@@ -24,7 +24,6 @@ namespace spica {
 class SPICA_EXPORTS MEM_ALIGN(64) MemoryArena : private Uncopyable {
 public:
     explicit MemoryArena(size_t blockSize = 262144);
-    MemoryArena(MemoryArena&& arena) noexcept;
     virtual ~MemoryArena();
 
     template <class T, class... Args>

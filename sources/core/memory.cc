@@ -13,12 +13,18 @@ MemoryArena::MemoryArena(size_t blockSize)
 
 MemoryArena::~MemoryArena() {
     align_free(currentBlock_);
-    for (auto& block : usedBlocks_) align_free(block.second);
-    for (auto& block : availableBlocks_) align_free(block.second);
+
+    for (auto& block : usedBlocks_) {
+        align_free(block.second);
+    }
+
+    for (auto& block : availableBlocks_) {
+        align_free(block.second);
+    }
 }
 
 void* MemoryArena::allocBytes(size_t nBytes) {
-    const int align = alignof(std::max_align_t);
+    const uint32_t align = alignof(std::max_align_t);
     nBytes = (nBytes + align - 1) & ~(align - 1);
     if (currentBlockPos_ + nBytes > currentAllocSize_) {
         if (currentBlock_) {
@@ -55,7 +61,7 @@ void MemoryArena::reset() {
 
 size_t MemoryArena::totalAllocated() const {
     size_t total = currentAllocSize_;
-    for (const auto &block : usedBlocks_)      total += block.first;
+    for (const auto &block : usedBlocks_) total += block.first;
     for (const auto &block : availableBlocks_) total += block.first;
     return total;
 }

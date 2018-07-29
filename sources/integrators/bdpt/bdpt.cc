@@ -51,12 +51,6 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
     const int numSamples = params.getInt("sampleCount");
     const int maxBounces = params.getInt("maxDepth");
 
-    std::vector<std::unique_ptr<Vertex[]>> cameraPaths(numThreads);
-    for (int i = 0; i < numThreads; i++) cameraPaths[i] = std::make_unique<Vertex[]>(maxBounces + 2);
-    std::vector<std::unique_ptr<Vertex[]>> lightPaths(numThreads);
-    for (int i = 0; i < numThreads; i++) lightPaths[i] = std::make_unique<Vertex[]>(maxBounces + 1);
-
-
     for (int i = 0; i < numSamples; i++) {
         // Prepare samplers
         if (i % numThreads == 0) {
@@ -77,13 +71,13 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
             const int x = pid % width;
             const Point2d randFilm = sampler->get2D();
 
-            auto& cameraPath = cameraPaths[threadID];
-            auto& lightPath = lightPaths[threadID];
+            Vertex *cameraPath = arenas[threadID].allocate<Vertex[]>(maxBounces + 2);
+            Vertex *lightPath = arenas[threadID].allocate<Vertex[]>(maxBounces + 1);
             const int nCamera = calcCameraSubpath(scene, *sampler, arenas[threadID],
                               maxBounces + 2, *camera, Point2i(x, y), randFilm,
-                              cameraPath.get());
+                              cameraPath);
             const int nLight = calcLightSubpath(scene, *sampler, arenas[threadID],
-                             maxBounces + 1, lightDist, lightPath.get());
+                             maxBounces + 1, lightDist, lightPath);
 
             Spectrum L(0.0);
             for (int cid = 1; cid <= nCamera; cid++) {

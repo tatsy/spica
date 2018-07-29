@@ -22,26 +22,29 @@ double densityIBL(const Scene& scene, const Distribution1D& lightDist,
     return pdf / (lightDist.integral() * lightDist.count());
 }
 
-Vertex::Vertex() {
-    intr = std::make_shared<EndpointInteraction>();
+Vertex::Vertex()
+    : intr{ } {
 }
 
 Vertex::Vertex(VertexType type_, const EndpointInteraction& ei, const Spectrum& beta_)
     : type{ type_ }
-    , beta{ beta_ } {
-    intr = std::make_shared<EndpointInteraction>(ei);
+    , beta{ beta_ }
+    , intr{ }{
+    intr.emplace<0>(ei);
 }
 
-Vertex::Vertex(const SurfaceInteraction& it, const Spectrum& beta_)
+Vertex::Vertex(const SurfaceInteraction& si, const Spectrum& beta_)
     : type{ VertexType::Surface }
-    , beta{ beta_ } {
-    intr = std::make_shared<SurfaceInteraction>(it);
+    , beta{ beta_ }
+    , intr{ } {
+    intr.emplace<2>(si);
 }
 
-Vertex::Vertex(const MediumInteraction& it, const Spectrum& beta_)
+Vertex::Vertex(const MediumInteraction& mi, const Spectrum& beta_)
     : type{ VertexType::Medium }
-    , beta{ beta_ } {
-    intr = std::make_shared<MediumInteraction>(it);
+    , beta{ beta_ }
+    , intr{ } {
+    intr.emplace<1>(mi);
 }
 
 Vertex::Vertex(const Vertex& v) {
@@ -111,8 +114,8 @@ bool Vertex::isConnectible() const {
 
         case VertexType::Surface:
             return si()->bsdf()->numComponents(BxDFType::Diffuse | BxDFType::Glossy |
-                                               BxDFType::Reflection |
-                                               BxDFType::Transmission) > 0;
+                                            BxDFType::Reflection |
+                                            BxDFType::Transmission) > 0;
     }
 
     FatalError("Unhandled vertex type in isConnectible()");
@@ -218,19 +221,6 @@ double Vertex::pdfLightOrigin(const Scene& scene, const Vertex& v,
 
         light->pdfLe(Ray(pos(), w), normal(), &pdfPos, &pdfDir);
         return pdfPos * pdfChoise;
-    }
-}
-
-const Interaction& Vertex::getInteraction() const {
-    switch (type) {
-        case VertexType::Medium:
-            return *mi();
-
-        case VertexType::Surface:
-            return *si();
-
-        default:
-            return *ei();
     }
 }
 

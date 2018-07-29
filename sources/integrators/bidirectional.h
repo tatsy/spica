@@ -5,6 +5,8 @@
 #ifndef _SPICA_BIDIRECTIONAL_H_
 #define _SPICA_BIDIRECTIONAL_H_
 
+#include <variant>
+
 #include "core/common.h"
 #include "core/interaction.h"
 #include "core/integrator.h"
@@ -108,28 +110,47 @@ struct Vertex {
     double pdfLightOrigin(const Scene& scene, const Vertex& v, const Distribution1D& lightDist) const;
 
     bool isConnectible() const;
-    const Interaction& getInteraction() const;
 
     // Public inline methods
 
     inline Point3d pos() const {
-        return intr->pos();
+        return getInteraction().pos();
     }
 
     inline Normal3d normal() const {
-        return intr->normal();
+        return getInteraction().normal();
     }
 
-    inline SurfaceInteraction* si() const {
-        return (SurfaceInteraction*)intr.get();
+    inline Normal3d ns() const {
+        if (type == VertexType::Surface) {
+            return si()->ns();
+        }
+        return getInteraction().normal();
     }
 
-    inline MediumInteraction* mi() const {
-        return (MediumInteraction*)intr.get();
+    inline const EndpointInteraction * const ei() const {
+        return std::get_if<EndpointInteraction>(&intr);
     }
 
-    inline EndpointInteraction* ei() const {
-        return (EndpointInteraction*)intr.get();
+    inline const SurfaceInteraction * const si() const {
+        return std::get_if<SurfaceInteraction>(&intr);
+    }
+
+    inline const MediumInteraction * const mi() const {
+        return std::get_if<MediumInteraction>(&intr);
+    }
+
+    inline const Interaction &getInteraction() const {
+        switch (type) {
+        case VertexType::Medium:
+            return *mi();
+
+        case VertexType::Surface:
+            return *si();
+
+        default:
+            return *ei();
+        }
     }
 
     inline bool isOnSurface() const {
@@ -194,10 +215,9 @@ struct Vertex {
     }
 
     // Public fields
-
     VertexType type;
     Spectrum beta;
-    std::shared_ptr<Interaction> intr = nullptr;
+    std::variant<EndpointInteraction, MediumInteraction, SurfaceInteraction> intr;
     double pdfFwd = 0.0;
     double pdfRev = 0.0;
     bool delta = false;

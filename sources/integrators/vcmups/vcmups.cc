@@ -179,7 +179,7 @@ Spectrum connectVCM(const Scene& scene,
             const Vertex &vcMid = cameraPath[c];
             const int l = lightID + (cameraID - c - 1);
             if (vcMid.isConnectible() && l < nLight) {
-                const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vcMid.intr);
+                const SurfaceInteraction *intr = vcMid.si();
                 if (intr) {
                     const bool isDiffuse = intr->bsdf()->hasType(BxDFType::Diffuse | BxDFType::Reflection);
                     if (isDiffuse) {
@@ -205,7 +205,7 @@ Spectrum connectVCM(const Scene& scene,
             const Vertex &vcMid = cameraPath[c];
             const int l = lightID + (cameraID - c - 1);
             if (vcMid.isConnectible() && l < nLight) {
-                const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(vcMid.intr);
+                const SurfaceInteraction *intr = vcMid.si();
                 if (intr) {
                     const bool isDiffuse = intr->bsdf()->hasType(BxDFType::Diffuse | BxDFType::Reflection);
                     if (isDiffuse) {
@@ -311,12 +311,8 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
     const int numSamples = params.getInt("sampleCount");
     const int maxBounces = params.getInt("maxDepth");
 
-    // Allocate memory for vertices
     std::vector<int> lightPathLengths(numPixels);
-    std::vector<std::unique_ptr<Vertex[]>> lightPaths(numPixels);
-    for (int i = 0; i < numPixels; i++) lightPaths[i] = std::make_unique<Vertex[]>(maxBounces + 1);
-    std::vector<std::unique_ptr<Vertex[]>> cameraPaths(numThreads);
-    for (int i = 0; i < numThreads; i++) cameraPaths[i] = std::make_unique<Vertex[]>(maxBounces + 2);
+    std::vector<Vertex*> lightPaths(numPixels);
 
     for (int i = 0; i < numSamples; i++) {
         // Event before loop
@@ -339,8 +335,9 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const auto &sampler = samplers[threadID];
             sampler->startPixel();
 
+            lightPaths[pid] = arenas[threadID].allocate<Vertex[]>(maxBounces + 1);
             lightPathLengths[pid] = calcLightSubpath(scene, *sampler, arenas[threadID],
-                                                     maxBounces + 1, lightDist, lightPaths[pid].get());
+                                                     maxBounces + 1, lightDist, lightPaths[pid]);
 
             proc++;
             if (proc % 1000 == 0 || proc == numPixels) {
@@ -359,7 +356,7 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             for (int p = 0; p < numPixels; p++) {
                 if (b < lightPathLengths[p]) {
                     Vertex &v = lightPaths[p][b];
-                    const std::shared_ptr<SurfaceInteraction> intr = std::static_pointer_cast<SurfaceInteraction>(v.intr);
+                    const SurfaceInteraction *intr = v.si();
                     if (intr) {
                         const bool isDiffuse = intr->bsdf()->hasType(BxDFType::Diffuse | BxDFType::Reflection);
                         if (isDiffuse) {
@@ -385,8 +382,9 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const int nLight = lightPathLengths[pid];
             const Point2d randFilm = sampler->get2D();
 
+            Vertex *cameraPath = arenas[threadID].allocate<Vertex[]>(maxBounces + 2);
             const int nCamera = calcCameraSubpath(scene, *sampler, arenas[threadID], maxBounces + 2,
-                                                  *camera, Point2i(x, y), randFilm, cameraPaths[threadID].get());
+                                                  *camera, Point2i(x, y), randFilm, cameraPath);
 
             Spectrum L(0.0);
             for (int cid = 1; cid <= nCamera; cid++) {
@@ -399,7 +397,7 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
 
                     const int lookupSize = params.getInt("lookupSize", 32);
                     const double lookupRadius = params.getDouble("lookupRadius", 0.125) * lookupRadiusScale_;
-                    Spectrum Lpath = connectVCM(scene, lightPaths[pid].get(), cameraPaths[threadID].get(),
+                    Spectrum Lpath = connectVCM(scene, lightPaths[pid], cameraPath,
                                                 lid, cid, nLight, nCamera, photonMaps,
                                                 lookupSize, lookupRadius, numPixels,
                                                 lightDist, *camera, *sampler, &pFilm, &misWeight);

@@ -303,7 +303,8 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
 
     const int numThreads = numSystemThreads();
     auto samplers = std::vector<std::unique_ptr<Sampler>>(numThreads);
-    auto arenas = std::vector<MemoryArena>(numThreads);
+    auto globalArenas = std::vector<MemoryArena>(numThreads);
+    auto subArenas = std::vector<MemoryArena>(numThreads);
 
     Distribution1D lightDist = calcLightPowerDistrib(scene);
 
@@ -335,8 +336,8 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const auto &sampler = samplers[threadID];
             sampler->startPixel();
 
-            lightPaths[pid] = arenas[threadID].allocate<Vertex[]>(maxBounces + 1);
-            lightPathLengths[pid] = calcLightSubpath(scene, *sampler, arenas[threadID],
+            lightPaths[pid] = globalArenas[threadID].allocate<Vertex[]>(maxBounces + 1);
+            lightPathLengths[pid] = calcLightSubpath(scene, *sampler, globalArenas[threadID],
                                                      maxBounces + 1, lightDist, lightPaths[pid]);
 
             proc++;
@@ -382,8 +383,8 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
             const int nLight = lightPathLengths[pid];
             const Point2d randFilm = sampler->get2D();
 
-            Vertex *cameraPath = arenas[threadID].allocate<Vertex[]>(maxBounces + 2);
-            const int nCamera = calcCameraSubpath(scene, *sampler, arenas[threadID], maxBounces + 2,
+            Vertex *cameraPath = subArenas[threadID].allocate<Vertex[]>(maxBounces + 2);
+            const int nCamera = calcCameraSubpath(scene, *sampler, subArenas[threadID], maxBounces + 2,
                                                   *camera, Point2i(x, y), randFilm, cameraPath);
 
             Spectrum L(0.0);
@@ -418,10 +419,18 @@ void VCMUPSIntegrator::render(const std::shared_ptr<const Camera> &camera,
                 printf("\r[ %d / %d ] %6.2f %% processed...", i + 1, numSamples, 100.0 * proc / numPixels);
                 fflush(stdout);
             }
+
+            // Reset sub arena.
+            subArenas[threadID].reset();
         });
         printf("\n");
 
         camera->film()->save(i + 1, 1.0 / (i + 1));
+
+        // Reset global arena
+        for (auto &arena: globalArenas) {
+            arena.reset();
+        }
 
         // Event after loop
         loopFinished(camera, scene, params, *sampler_);

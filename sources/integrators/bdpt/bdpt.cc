@@ -88,7 +88,7 @@ void BDPTIntegrator::render(const std::shared_ptr<const Camera>& camera,
                     Point2d pFilm = Point2d(x + randFilm.x(), y + randFilm.y());
                     double misWeight = 0.0;
 
-                    Spectrum Lpath = connectBDPT(scene, lightPath.get(), cameraPath.get(),
+                    Spectrum Lpath = connectBDPT(scene, lightPath, cameraPath,
                         lid, cid, lightDist, *camera, *sampler,
                         &pFilm, &misWeight);
                     if (cid == 1 && !Lpath.isBlack()) {

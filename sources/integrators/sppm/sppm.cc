@@ -235,7 +235,7 @@ void SPPMIntegrator::traceRays(const std::shared_ptr<const Camera> &camera,
     printf("\nFinish !!\n");
 
     // Construct hash grid
-    constructHashGrid(hpoints, width, height, params.getDouble("globalLookupRadius", 1.0));
+    constructHashGrid(hpoints, width, height, params.getDouble("lookupRadius", 1.0));
     std::cout << "Hash grid constructed !!" << std::endl;
 }
 

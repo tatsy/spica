@@ -29,7 +29,7 @@ RoughConductor::RoughConductor(const std::shared_ptr<Texture<Spectrum>> &Ks,
 }
 
 RoughConductor::RoughConductor(RenderParams &params)
-    : RoughConductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance", Spectrum(1.0))),
+    : RoughConductor{std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("specularReflectance", Spectrum(1.0), true)),
                      std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("eta", true)),
                      std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("k", true)),
                      std::static_pointer_cast<Texture<Spectrum>>(params.getTexture("alpha", Spectrum(0.1))),

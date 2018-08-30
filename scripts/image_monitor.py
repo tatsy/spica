@@ -8,6 +8,7 @@ matplotlib.use('TkAgg')
 
 import matplotlib.pyplot as plt
 from matplotlib import animation
+from matplotlib.ticker import NullLocator
 
 def animate(filename, ax, tm_method):
     _, ext = os.path.splitext(filename)
@@ -26,6 +27,8 @@ def animate(filename, ax, tm_method):
         else:
             maxval = 1.0
             img = np.power(img / maxval, 1.0 / 2.2)
+    else:
+        img = (img / 255.0).astype('float32')
 
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = np.clip(img, 0.0, 1.0)
@@ -48,9 +51,15 @@ def main():
 
     height, width, dims = img.shape
 
-    fig = plt.figure()
+    dpi = 72
+    figsize = ((width + dpi - 1) // dpi, (height + dpi - 1) // dpi)
+    fig = plt.figure(dpi=dpi, figsize=figsize)
     plt.axis('off')
+    plt.title(os.path.abspath(args.input))
     ax = plt.imshow(np.zeros((height, width, dims)))
+    plt.gca().xaxis.set_major_locator(NullLocator())
+    plt.gca().yaxis.set_major_locator(NullLocator())
+    fig.tight_layout()
 
     init_fn = lambda : animate(args.input, ax, args.tonemap)
     anim_fn = lambda i: animate(args.input, ax, args.tonemap)
